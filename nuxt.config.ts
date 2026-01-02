@@ -1,6 +1,5 @@
 import Aura from "@primevue/themes/aura";
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
 
@@ -8,6 +7,21 @@ export default defineNuxtConfig({
     head: {
       title: "Schichtplaner",
       link: [{ rel: "icon", type: "image/png", href: "/favicon.ico" }],
+      // Dark Mode Script - lädt vor allem anderen um Flash zu vermeiden
+      script: [
+        {
+          innerHTML: `
+            (function() {
+              const saved = localStorage.getItem('darkMode');
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if (saved === 'true' || (saved === null && prefersDark)) {
+                document.documentElement.classList.add('dark');
+              }
+            })();
+          `,
+          type: "text/javascript",
+        },
+      ],
     },
   },
 
@@ -30,45 +44,11 @@ export default defineNuxtConfig({
     options: {
       locale: {
         firstDayOfWeek: 1,
-        dayNames: [
-          "Sonntag",
-          "Montag",
-          "Dienstag",
-          "Mittwoch",
-          "Donnerstag",
-          "Freitag",
-          "Samstag",
-        ],
+        dayNames: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
         dayNamesShort: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
         dayNamesMin: ["S", "M", "D", "M", "D", "F", "S"],
-        monthNames: [
-          "Januar",
-          "Februar",
-          "März",
-          "April",
-          "Mai",
-          "Juni",
-          "Juli",
-          "August",
-          "September",
-          "Oktober",
-          "November",
-          "Dezember",
-        ],
-        monthNamesShort: [
-          "Jan",
-          "Feb",
-          "Mär",
-          "Apr",
-          "Mai",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Okt",
-          "Nov",
-          "Dez",
-        ],
+        monthNames: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+        monthNamesShort: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
       },
       ripple: true,
       inputVariant: "filled",

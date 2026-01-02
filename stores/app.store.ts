@@ -5,6 +5,7 @@ export const useAppStore = defineStore("app", {
     selectedYear: new Date().getFullYear(),
     selectedWeek: getISOWeek(new Date()),
     isDarkMode: false,
+    _initialized: false,
   }),
 
   getters: {
@@ -24,9 +25,41 @@ export const useAppStore = defineStore("app", {
   },
 
   actions: {
-    setWeek(year: number, week: number) {
-      this.selectedYear = year;
-      this.selectedWeek = week;
+    // Dark Mode aus localStorage laden (nur im Browser)
+    initDarkMode() {
+      if (this._initialized) return;
+      this._initialized = true;
+      
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("darkMode");
+        if (saved !== null) {
+          this.isDarkMode = saved === "true";
+        } else {
+          // System-Präferenz prüfen
+          this.isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        }
+        this.applyDarkMode();
+      }
+    },
+
+    applyDarkMode() {
+      if (typeof document !== "undefined") {
+        if (this.isDarkMode) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }
+    },
+
+    toggleDarkMode() {
+      this.isDarkMode = !this.isDarkMode;
+      this.applyDarkMode();
+      
+      // In localStorage speichern
+      if (typeof window !== "undefined") {
+        localStorage.setItem("darkMode", String(this.isDarkMode));
+      }
     },
 
     nextWeek() {
@@ -52,23 +85,11 @@ export const useAppStore = defineStore("app", {
       this.selectedYear = new Date().getFullYear();
       this.selectedWeek = getISOWeek(new Date());
     },
-
-    toggleDarkMode() {
-      this.isDarkMode = !this.isDarkMode;
-      if (this.isDarkMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    },
   },
 });
 
-// Hilfsfunktionen
 function getISOWeek(date: Date): number {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));

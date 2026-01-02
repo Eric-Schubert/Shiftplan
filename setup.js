@@ -1,17 +1,22 @@
 import Database from "better-sqlite3";
 import * as fs from "node:fs";
+import bcrypt from "bcryptjs";
 
 const DATABASE_FOLDER = "db";
-const DATABASE_NAME = "db.sqlite";
-const DATABASE_PATH = `./${DATABASE_FOLDER}/${DATABASE_NAME}`;
+const DATABASE_PATH = `./${DATABASE_FOLDER}/db.sqlite`;
+const ADMIN_DB_PATH = `./${DATABASE_FOLDER}/admin.sqlite`;
 
-console.log(`[setup.js] => create database '${DATABASE_PATH}'...`);
+console.log(`[setup.js] => setting up databases...`);
 
 // Verzeichnis für die Datenbank erstellen, falls nicht vorhanden
 if (!fs.existsSync(DATABASE_FOLDER)) {
   fs.mkdirSync(DATABASE_FOLDER);
 }
 
+// ============================================
+// HAUPT-DATENBANK (Schichten, Mitarbeiter, etc.)
+// ============================================
+console.log(`[setup.js] => creating '${DATABASE_PATH}'...`);
 const db = new Database(DATABASE_PATH);
 
 // Tabelle staff erstellen
@@ -62,6 +67,57 @@ db.exec(`
   )
 `);
 
+// ============================================
+// ADMIN-DATENBANK (Passwort, Einstellungen)
+// ============================================
+console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
+const adminDb = new Database(ADMIN_DB_PATH);
+
+adminDb.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )
+`);
+
+// Standard Admin-Passwort setzen (falls nicht vorhanden)
+const existingPassword = adminDb.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
+if (!existingPassword) {
+  // Standard-Passwort: admin (gehasht mit bcrypt)
+  const hashedPassword = bcrypt.hashSync("admin", 10);
+  adminDb.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("admin_password", hashedPassword);
+  console.log("[setup.js] => Default admin password set to: admin (hashed with bcrypt)");
+}
+
+adminDb.close();
+
+// ============================================
+// NEUE TABELLEN FÜR ROTATIONSMUSTER
+// ============================================
+
+// Rotationskonfiguration (Zykluslänge, Startdatum)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS rotation_config (
+    config_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cycle_length INTEGER NOT NULL DEFAULT 4,
+    start_year INTEGER NOT NULL,
+    start_week INTEGER NOT NULL
+  )
+`);
+
+// Rotationsmuster: Wer arbeitet in welcher Musterwoche welche Schicht
+db.exec(`
+  CREATE TABLE IF NOT EXISTS rotation_pattern (
+    pattern_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pattern_week INTEGER NOT NULL,
+    staff_id INTEGER NOT NULL,
+    shift_id INTEGER NOT NULL,
+    FOREIGN KEY (staff_id) REFERENCES staff(staff_id) ON DELETE CASCADE,
+    FOREIGN KEY (shift_id) REFERENCES shifts(shift_id) ON DELETE CASCADE,
+    UNIQUE(pattern_week, staff_id, shift_id)
+  )
+`);
+
 // Demo-Daten einfügen (nur wenn Tabellen leer sind)
 const staffCount = db.prepare("SELECT COUNT(*) as count FROM staff").get();
 if (staffCount.count === 0) {
@@ -84,6 +140,11 @@ if (staffCount.count === 0) {
   insertShift.run("Früh", "06:00", "14:00", "#22c55e", 2, 1);
   insertShift.run("Spät", "14:00", "22:00", "#3b82f6", 2, 2);
   insertShift.run("Nacht", "22:00", "06:00", "#8b5cf6", 1, 3);
+
+  // Standard Rotationskonfiguration: 4-Wochen-Zyklus ab KW1 2025
+  db.prepare(
+    "INSERT INTO rotation_config (cycle_length, start_year, start_week) VALUES (?, ?, ?)"
+  ).run(4, 2025, 1);
 }
 
 console.log("[setup.js] => setup finished!");
