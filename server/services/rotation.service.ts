@@ -196,15 +196,12 @@ export const RotationService = {
       weekNumber
     );
 
-    // Berechne die Musterwoche (1-basiert)
-    let patternWeek = (weeksFromStart % config.cycle_length) + 1;
-
-    // Falls negativ (vor dem Startpunkt), korrigieren
-    if (patternWeek <= 0) {
-      patternWeek += config.cycle_length;
-    }
-
-    return patternWeek;
+    // Robuste Modulo-Berechnung die immer positiv ist
+    // ((n % m) + m) % m garantiert ein positives Ergebnis
+    const patternIndex = ((weeksFromStart % config.cycle_length) + config.cycle_length) % config.cycle_length;
+    
+    // +1 weil Musterwochen 1-basiert sind (1, 2, 3, 4 statt 0, 1, 2, 3)
+    return patternIndex + 1;
   },
 
   /**

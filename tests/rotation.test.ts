@@ -153,27 +153,80 @@ describe("Rotation Operations", () => {
   });
 
   describe("Pattern Week Calculation", () => {
-    it("should calculate correct pattern week", () => {
-      // Formel: ((calendarWeek - startWeek) % cycleLength) + 1
-      // Mit: startWeek = 1, cycleLength = 4
+    it("should calculate correct pattern week for sequential weeks", () => {
+      // Formel: ((weeksFromStart % cycleLength) + cycleLength) % cycleLength + 1
+      // Mit: startWeek = 1, startYear = 2025, cycleLength = 4
 
+      const startYear = 2025;
       const startWeek = 1;
       const cycleLength = 4;
 
-      // KW 1 -> Pattern Week 1
-      expect(((1 - startWeek) % cycleLength) + 1).toBe(1);
+      function calculatePatternWeek(year: number, week: number): number {
+        const startTotal = startYear * 52 + startWeek;
+        const endTotal = year * 52 + week;
+        const weeksFromStart = endTotal - startTotal;
+        const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
+        return patternIndex + 1;
+      }
 
-      // KW 2 -> Pattern Week 2
-      expect(((2 - startWeek) % cycleLength) + 1).toBe(2);
+      // 2025 KW 1 -> Pattern Week 1 (Start)
+      expect(calculatePatternWeek(2025, 1)).toBe(1);
 
-      // KW 4 -> Pattern Week 4
-      expect(((4 - startWeek) % cycleLength) + 1).toBe(4);
+      // 2025 KW 2 -> Pattern Week 2
+      expect(calculatePatternWeek(2025, 2)).toBe(2);
 
-      // KW 5 -> Pattern Week 1 (Zyklus wiederholt sich)
-      expect(((5 - startWeek) % cycleLength) + 1).toBe(1);
+      // 2025 KW 4 -> Pattern Week 4
+      expect(calculatePatternWeek(2025, 4)).toBe(4);
 
-      // KW 9 -> Pattern Week 1
-      expect(((9 - startWeek) % cycleLength) + 1).toBe(1);
+      // 2025 KW 5 -> Pattern Week 1 (Zyklus wiederholt sich)
+      expect(calculatePatternWeek(2025, 5)).toBe(1);
+
+      // 2026 KW 1 (52 Wochen später) -> Pattern Week 1
+      // 52 % 4 = 0 -> Pattern Week 1
+      expect(calculatePatternWeek(2026, 1)).toBe(1);
+
+      // 2026 KW 2 -> Pattern Week 2
+      expect(calculatePatternWeek(2026, 2)).toBe(2);
+    });
+
+    it("should handle weeks before start date", () => {
+      const startYear = 2025;
+      const startWeek = 10;
+      const cycleLength = 4;
+
+      function calculatePatternWeek(year: number, week: number): number {
+        const startTotal = startYear * 52 + startWeek;
+        const endTotal = year * 52 + week;
+        const weeksFromStart = endTotal - startTotal;
+        const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
+        return patternIndex + 1;
+      }
+
+      // Vor dem Start (negative weeksFromStart)
+      // KW 9 -> -1 Woche -> sollte Pattern Week 4 sein
+      expect(calculatePatternWeek(2025, 9)).toBe(4);
+
+      // KW 8 -> -2 Wochen -> sollte Pattern Week 3 sein
+      expect(calculatePatternWeek(2025, 8)).toBe(3);
+
+      // KW 6 -> -4 Wochen -> sollte Pattern Week 1 sein
+      expect(calculatePatternWeek(2025, 6)).toBe(1);
+    });
+
+    it("should never return pattern week > cycle length", () => {
+      const cycleLength = 4;
+
+      function calculatePatternWeek(weeksFromStart: number): number {
+        const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
+        return patternIndex + 1;
+      }
+
+      // Test mit vielen verschiedenen Werten
+      for (let i = -100; i <= 100; i++) {
+        const result = calculatePatternWeek(i);
+        expect(result).toBeGreaterThanOrEqual(1);
+        expect(result).toBeLessThanOrEqual(cycleLength);
+      }
     });
   });
 });
