@@ -3,50 +3,74 @@ import { defineStore } from "pinia";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     isAdmin: false,
-    sessionExpiry: null as number | null,
+    isChecking: true, // Für initialen Session-Check
   }),
 
   getters: {
     isAuthenticated(): boolean {
-      if (!this.isAdmin) return false;
-      if (this.sessionExpiry && Date.now() > this.sessionExpiry) {
-        this.isAdmin = false;
-        this.sessionExpiry = null;
-        return false;
-      }
-      return true;
+      return this.isAdmin;
     },
   },
 
   actions: {
-    async login(password: string): Promise<boolean> {
+    /**
+     * Prüft beim App-Start ob eine gültige Session existiert
+     */
+    async checkSession(): Promise<boolean> {
+      this.isChecking = true;
       try {
-        const result = await $fetch<{ success: boolean }>("/api/auth/login", {
+        const result = await $fetch<{ authenticated: boolean }>("/api/auth/session");
+        this.isAdmin = result.authenticated;
+        return result.authenticated;
+      } catch {
+        this.isAdmin = false;
+        return false;
+      } finally {
+        this.isChecking = false;
+      }
+    },
+
+    /**
+     * Login mit Passwort
+     */
+    async login(password: string): Promise<{ success: boolean; message?: string }> {
+      try {
+        const result = await $fetch<{ success: boolean; token: string }>("/api/auth/login", {
           method: "POST",
           body: { password },
         });
 
         if (result.success) {
           this.isAdmin = true;
-          // Session läuft nach 30 Minuten ab
-          this.sessionExpiry = Date.now() + 30 * 60 * 1000;
-          return true;
+          return { success: true };
         }
-        return false;
+        return { success: false, message: "Login fehlgeschlagen" };
+      } catch (error: any) {
+        const message = error.data?.statusMessage || error.data?.message || "Login fehlgeschlagen";
+        return { success: false, message };
+      }
+    },
+
+    /**
+     * Logout - Session serverseitig beenden
+     */
+    async logout(): Promise<void> {
+      try {
+        await $fetch("/api/auth/logout", { method: "POST" });
       } catch {
-        return false;
+        // Ignorieren - Cookie wird trotzdem gelöscht
+      } finally {
+        this.isAdmin = false;
       }
     },
 
-    logout() {
-      this.isAdmin = false;
-      this.sessionExpiry = null;
-    },
-
-    extendSession() {
-      if (this.isAdmin) {
-        this.sessionExpiry = Date.now() + 30 * 60 * 1000;
-      }
+    /**
+     * Session verlängern (wird automatisch durch API-Calls gemacht)
+     * Diese Methode ist jetzt nur noch für UI-Feedback
+     */
+    extendSession(): void {
+      // Die Session wird automatisch serverseitig verlängert
+      // bei jedem authentifizierten API-Call
     },
   },
 });

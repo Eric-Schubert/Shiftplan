@@ -25,8 +25,10 @@ Ein moderner, webbasierter Schichtplaner mit automatischem Rotationssystem für 
 - **Deutsche Lokalisierung** - Kalenderwochen nach ISO 8601
 
 ### Sicherheit
-- **Admin-Authentifizierung** - Passwortgeschützter Bearbeitungsmodus
-- **Bcrypt-Hashing** - Sichere Passwortspeicherung
+- **Serverseitige Session-Authentifizierung** - Alle schreibenden API-Endpunkte geschützt
+- **Rate Limiting** - Schutz vor Brute-Force-Angriffen
+- **Bcrypt-Hashing** - Sichere Passwortspeicherung (Cost Factor 12)
+- **HttpOnly Cookies** - XSS-resistente Session-Tokens
 - **Getrennte Datenbanken** - Admin-Credentials isoliert von Nutzdaten
 - **Lesemodus für alle** - Schichtplan öffentlich einsehbar
 
@@ -45,6 +47,9 @@ Ein moderner, webbasierter Schichtplaner mit automatischem Rotationssystem für 
 │  └─ settings      │   ├─ StaffManager   │    ├─ auth.store   (Auth)      │
 │                   │   ├─ ShiftManager   │    └─ data.store   (Data)      │
 │                   │   └─ RotationMgr    │                                │
+├──────────────────────────────────────────────────────────────────────────┤
+│                        Server Middleware (Nitro)                         │
+│                      auth.ts - API-Authentifizierung                     │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                             API Layer (Nitro)                            │
 │  /api/staff/*  │  /api/shift/*  │  /api/shiftplan/*  │  /api/auth/*      │
@@ -73,23 +78,28 @@ shiftplan/
 ├── pages/
 │   ├── index.vue            # Hauptseite (Wochenansicht)
 │   └── settings.vue         # Admin-Bereich
+├── plugins/
+│   └── auth.client.ts       # Auto Session-Check beim App-Start
 ├── server/
 │   ├── api/                 # REST API Endpoints
-│   │   ├── auth/            # Login, Passwort ändern
+│   │   ├── auth/            # Login, Logout, Session, Passwort
 │   │   ├── rotation/        # Rotationsmuster
 │   │   ├── shift/           # Schichten CRUD
 │   │   ├── shiftplan/       # Wochenplan, Zuweisungen
 │   │   └── staff/           # Mitarbeiter CRUD
+│   ├── middleware/
+│   │   └── auth.ts          # API-Authentifizierung
 │   ├── services/            # Business Logic
 │   │   ├── rotation.service.ts
 │   │   ├── shift.service.ts
 │   │   ├── shiftplan.service.ts
 │   │   └── staff.service.ts
 │   └── utils/
-│       └── database.ts      # DB-Verbindungen
+│       ├── database.ts      # DB-Verbindungen
+│       └── session.ts       # Session-Management & Rate Limiting
 ├── stores/                  # Pinia State Management
 │   ├── app.store.ts         # UI State (Woche, Dark Mode)
-│   ├── auth.store.ts        # Auth State (Session)
+│   ├── auth.store.ts        # Auth State (Server-Session)
 │   └── data.store.ts        # Daten (Staff, Shifts, Rotation)
 ├── types/                   # TypeScript Definitionen
 │   ├── rotation.ts
@@ -175,7 +185,7 @@ Beim ersten Start werden automatisch:
 2. Demo-Daten eingefügt (5 Mitarbeiter, 3 Schichten)
 3. Das Standard-Admin-Passwort gesetzt
 
-> ⚠️ **Wichtig:** Ändere das Admin-Passwort sofort nach dem ersten Login!
+> ⚠️ **Wichtig:** Das Standard-Passwort `admin` erfüllt nicht die Passwort-Policy! Ändere es sofort nach dem ersten Login.
 
 ---
 
@@ -194,15 +204,48 @@ Beim ersten Start werden automatisch:
 |-------------|------|
 | **Admin-Passwort** | `admin` |
 
+> ⚠️ Muss nach erstem Login geändert werden (erfüllt nicht die Passwort-Policy)
+
 ---
 
 ## 🔐 Sicherheit
 
 ### Authentifizierung
 
-- Passwort-Hashing mit **bcryptjs** (Cost Factor: 10)
-- Session-Timeout nach **30 Minuten** Inaktivität
+- **Serverseitige Sessions** - Tokens werden serverseitig validiert
+- **HttpOnly Cookies** - Session-Token nicht per JavaScript auslesbar
+- **Automatische Session-Verlängerung** - Bei Aktivität wird die Session verlängert
+- **Session-Timeout** nach **30 Minuten** Inaktivität
+- Passwort-Hashing mit **bcryptjs** (Cost Factor: 12)
 - Passwort in separater Datenbank (`admin.sqlite`)
+
+### Rate Limiting
+
+Schutz vor Brute-Force-Angriffen beim Login:
+
+| Einstellung | Wert |
+|-------------|------|
+| Max. Versuche | 5 pro Zeitfenster |
+| Zeitfenster | 15 Minuten |
+| Sperrzeit | 15 Minuten |
+
+### Passwort-Policy
+
+Neue Passwörter müssen folgende Anforderungen erfüllen:
+
+- Mindestens **8 Zeichen**
+- Mindestens **1 Großbuchstabe**
+- Mindestens **1 Kleinbuchstabe**
+- Mindestens **1 Zahl**
+
+Beispiel: `Schicht2025!`
+
+### API-Schutz
+
+| Methode | Routen | Authentifizierung |
+|---------|--------|-------------------|
+| `GET` | `/api/staff`, `/api/shift`, `/api/shiftplan`, `/api/rotation` | 🌍 Öffentlich |
+| `POST/PATCH/DELETE` | Alle anderen | 🔒 Session erforderlich |
 
 ### Berechtigungen
 
@@ -231,51 +274,82 @@ npm run dev
 
 ## 📡 API-Dokumentation
 
-### Staff API
+### Authentifizierung
 
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| `GET` | `/api/staff` | Alle Mitarbeiter |
-| `GET` | `/api/staff/:id` | Einzelner Mitarbeiter |
-| `POST` | `/api/staff` | Mitarbeiter erstellen |
-| `PATCH` | `/api/staff/:id` | Mitarbeiter bearbeiten |
-| `DELETE` | `/api/staff/:id` | Mitarbeiter löschen |
+Alle schreibenden Endpunkte erfordern eine gültige Session. Nach erfolgreichem Login wird automatisch ein HttpOnly-Cookie gesetzt. Alternativ kann der Token im Header mitgeschickt werden:
 
-### Shift API
-
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| `GET` | `/api/shift` | Alle Schichten |
-| `GET` | `/api/shift/:id` | Einzelne Schicht |
-| `POST` | `/api/shift` | Schicht erstellen |
-| `PATCH` | `/api/shift/:id` | Schicht bearbeiten |
-| `DELETE` | `/api/shift/:id` | Schicht löschen |
-
-### Shiftplan API
-
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| `GET` | `/api/shiftplan?year=&week=` | Wochenplan abrufen |
-| `POST` | `/api/shiftplan/assign` | Mitarbeiter zuweisen |
-| `POST` | `/api/shiftplan/unassign` | Zuweisung entfernen |
-| `POST` | `/api/shiftplan/generate` | Aus Muster generieren |
-
-### Rotation API
-
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| `GET` | `/api/rotation` | Komplettes Muster |
-| `GET` | `/api/rotation/config` | Konfiguration |
-| `PATCH` | `/api/rotation/config` | Konfiguration ändern |
-| `POST` | `/api/rotation/assign` | Zum Muster hinzufügen |
-| `POST` | `/api/rotation/unassign` | Aus Muster entfernen |
+```bash
+# Mit Authorization Header
+curl -X POST https://example.com/api/staff \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Max Mustermann"}'
+```
 
 ### Auth API
 
-| Methode | Endpoint | Beschreibung |
-|---------|----------|--------------|
-| `POST` | `/api/auth/login` | Anmelden |
-| `POST` | `/api/auth/change-password` | Passwort ändern |
+| Methode | Endpoint | Auth | Beschreibung |
+|---------|----------|------|--------------|
+| `POST` | `/api/auth/login` | 🌍 | Anmelden, gibt Session-Token zurück |
+| `POST` | `/api/auth/logout` | 🔒 | Abmelden, Session beenden |
+| `GET` | `/api/auth/session` | 🌍 | Session-Status prüfen |
+| `POST` | `/api/auth/change-password` | 🔒 | Passwort ändern |
+
+#### Login Response
+
+```json
+{
+  "success": true,
+  "token": "abc123..."
+}
+```
+
+#### Session Response
+
+```json
+{
+  "authenticated": true
+}
+```
+
+### Staff API
+
+| Methode | Endpoint | Auth | Beschreibung |
+|---------|----------|------|--------------|
+| `GET` | `/api/staff` | 🌍 | Alle Mitarbeiter |
+| `GET` | `/api/staff/:id` | 🌍 | Einzelner Mitarbeiter |
+| `POST` | `/api/staff` | 🔒 | Mitarbeiter erstellen |
+| `PATCH` | `/api/staff/:id` | 🔒 | Mitarbeiter bearbeiten |
+| `DELETE` | `/api/staff/:id` | 🔒 | Mitarbeiter löschen |
+
+### Shift API
+
+| Methode | Endpoint | Auth | Beschreibung |
+|---------|----------|------|--------------|
+| `GET` | `/api/shift` | 🌍 | Alle Schichten |
+| `GET` | `/api/shift/:id` | 🌍 | Einzelne Schicht |
+| `POST` | `/api/shift` | 🔒 | Schicht erstellen |
+| `PATCH` | `/api/shift/:id` | 🔒 | Schicht bearbeiten |
+| `DELETE` | `/api/shift/:id` | 🔒 | Schicht löschen |
+
+### Shiftplan API
+
+| Methode | Endpoint | Auth | Beschreibung |
+|---------|----------|------|--------------|
+| `GET` | `/api/shiftplan?year=&week=` | 🌍 | Wochenplan abrufen |
+| `POST` | `/api/shiftplan/assign` | 🔒 | Mitarbeiter zuweisen |
+| `POST` | `/api/shiftplan/unassign` | 🔒 | Zuweisung entfernen |
+| `POST` | `/api/shiftplan/generate` | 🔒 | Aus Muster generieren |
+
+### Rotation API
+
+| Methode | Endpoint | Auth | Beschreibung |
+|---------|----------|------|--------------|
+| `GET` | `/api/rotation` | 🌍 | Komplettes Muster |
+| `GET` | `/api/rotation/config` | 🌍 | Konfiguration |
+| `PATCH` | `/api/rotation/config` | 🔒 | Konfiguration ändern |
+| `POST` | `/api/rotation/assign` | 🔒 | Zum Muster hinzufügen |
+| `POST` | `/api/rotation/unassign` | 🔒 | Aus Muster entfernen |
 
 ---
 

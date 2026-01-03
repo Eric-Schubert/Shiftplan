@@ -15,9 +15,9 @@ async function handleLogin() {
   error.value = "";
 
   try {
-    const success = await authStore.login(password.value);
-    if (!success) {
-      error.value = "Falsches Passwort";
+    const result = await authStore.login(password.value);
+    if (!result.success) {
+      error.value = result.message || "Falsches Passwort";
       password.value = "";
     }
   } catch {
@@ -51,6 +51,7 @@ async function handleLogin() {
             placeholder="Passwort eingeben"
             class="w-full"
             :class="{ 'p-invalid': error }"
+            :disabled="loading"
           />
           <small v-if="error" class="text-red-500 block mt-1 text-center">
             {{ error }}
