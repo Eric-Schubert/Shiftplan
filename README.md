@@ -416,21 +416,3 @@ pm2 flush
 ## 📝 Lizenz
 
 MIT License - siehe [LICENSE](LICENSE)
-
----
-
-## 🤝 Mitwirken
-
-1. Fork erstellen
-2. Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Änderungen committen (`git commit -m 'Add AmazingFeature'`)
-4. Branch pushen (`git push origin feature/AmazingFeature`)
-5. Pull Request erstellen
-
----
-
-## 📞 Support
-
-Bei Fragen oder Problemen:
-- Issue auf GitHub erstellen
-- Dokumentation prüfen
