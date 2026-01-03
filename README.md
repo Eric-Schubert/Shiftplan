@@ -36,24 +36,24 @@ Ein moderner, webbasierter Schichtplaner mit automatischem Rotationssystem für 
 ### Übersicht
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Frontend (Nuxt 3)                        │
-├─────────────────────────────────────────────────────────────────┤
-│  Pages          │  Components        │  Stores (Pinia)          │
-│  ├─ index.vue   │  ├─ ShiftCard      │  ├─ app.store      (UI)  │
-│  └─ settings    │  ├─ StaffManager   │  ├─ auth.store   (Auth)  │
-│                 │  ├─ ShiftManager   │  └─ data.store   (Data)  │
-│                 │  └─ RotationMgr    │                          │
-├─────────────────────────────────────────────────────────────────┤
-│                      API Layer (Nitro)                           │
-│  /api/staff/*  │  /api/shift/*  │  /api/shiftplan/*  │  /api/auth/*  │
-├─────────────────────────────────────────────────────────────────┤
-│                    Services (Business Logic)                     │
+┌──────────────────────────────────────────────────────────────────────────┐
+│                           Frontend (Nuxt 3)                              │
+├──────────────────────────────────────────────────────────────────────────┤
+│  Pages            │   Components        │    Stores (Pinia)              │
+│  ├─ index.vue     │   ├─ ShiftCard      │    ├─ app.store      (UI)      │
+│  └─ settings      │   ├─ StaffManager   │    ├─ auth.store   (Auth)      │
+│                   │   ├─ ShiftManager   │    └─ data.store   (Data)      │
+│                   │   └─ RotationMgr    │                                │
+├──────────────────────────────────────────────────────────────────────────┤
+│                             API Layer (Nitro)                            │
+│  /api/staff/*  │  /api/shift/*  │  /api/shiftplan/*  │  /api/auth/*      │
+├──────────────────────────────────────────────────────────────────────────┤
+│                           Services (Business Logic)                      │
 │  StaffService  │  ShiftService  │  ShiftplanService  │  RotationService  │
-├─────────────────────────────────────────────────────────────────┤
-│                    Database (SQLite + better-sqlite3)            │
-│         db/db.sqlite (Data)    │    db/admin.sqlite (Auth)       │
-└─────────────────────────────────────────────────────────────────┘
+├──────────────────────────────────────────────────────────────────────────┤
+│                 Database (SQLite + better-sqlite3)                       │
+│           db/db.sqlite (Data)    │    db/admin.sqlite (Auth)             │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Verzeichnisstruktur
