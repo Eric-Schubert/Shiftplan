@@ -1,26 +1,19 @@
 import Database from "better-sqlite3";
 import type { Database as DatabaseType } from "better-sqlite3";
-import * as fs from "node:fs";
-
-const TEST_DB_PATH = "./db/test.sqlite";
 
 let testDb: DatabaseType | null = null;
 
 /**
- * Erstellt eine saubere Test-Datenbank
+ * Erstellt eine saubere In-Memory Test-Datenbank
  */
 export function setupTestDatabase(): DatabaseType {
-  // Alte Test-DB löschen
-  if (fs.existsSync(TEST_DB_PATH)) {
-    fs.unlinkSync(TEST_DB_PATH);
+  // Alte Verbindung schließen falls vorhanden
+  if (testDb) {
+    testDb.close();
   }
 
-  // Verzeichnis erstellen falls nicht vorhanden
-  if (!fs.existsSync("./db")) {
-    fs.mkdirSync("./db");
-  }
-
-  testDb = new Database(TEST_DB_PATH);
+  // In-Memory Datenbank - keine Datei-Locks!
+  testDb = new Database(":memory:");
 
   // Schema erstellen
   testDb.exec(`
@@ -112,13 +105,10 @@ export function closeTestDatabase(): void {
 }
 
 /**
- * Löscht die Test-Datenbank
+ * Alias für closeTestDatabase (Kompatibilität)
  */
 export function cleanupTestDatabase(): void {
   closeTestDatabase();
-  if (fs.existsSync(TEST_DB_PATH)) {
-    fs.unlinkSync(TEST_DB_PATH);
-  }
 }
 
 /**
