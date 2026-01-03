@@ -26,12 +26,6 @@ async function handleLogin() {
     loading.value = false;
   }
 }
-
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter") {
-    handleLogin();
-  }
-}
 </script>
 
 <template>
@@ -49,7 +43,7 @@ function handleKeydown(e: KeyboardEvent) {
         </p>
       </div>
 
-      <div class="space-y-4">
+      <form class="space-y-4" @submit.prevent="handleLogin">
         <div>
           <PrimeInputText
             v-model="password"
@@ -57,8 +51,6 @@ function handleKeydown(e: KeyboardEvent) {
             placeholder="Passwort eingeben"
             class="w-full"
             :class="{ 'p-invalid': error }"
-            @keydown="handleKeydown"
-            autofocus
           />
           <small v-if="error" class="text-red-500 block mt-1 text-center">
             {{ error }}
@@ -66,11 +58,11 @@ function handleKeydown(e: KeyboardEvent) {
         </div>
 
         <PrimeButton
+          type="submit"
           label="Anmelden"
           icon="pi pi-lock-open"
           class="w-full"
           :loading="loading"
-          @click="handleLogin"
         />
 
         <div class="text-center">
@@ -78,7 +70,7 @@ function handleKeydown(e: KeyboardEvent) {
             ← Zurück zum Schichtplan
           </NuxtLink>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </template>

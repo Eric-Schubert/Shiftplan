@@ -2,7 +2,7 @@
 const authStore = useAuthStore();
 const dataStore = useDataStore();
 
-const activeTab = ref(0);
+const activeTab = ref("0");
 const showChangePasswordDialog = ref(false);
 
 // Session bei Aktivität verlängern
@@ -47,25 +47,33 @@ function extendSession() {
         </div>
       </div>
 
-      <PrimeTabView v-model:active-index="activeTab">
-        <PrimeTabPanel header="Mitarbeiter">
-          <div class="pt-4">
-            <StaffManager />
-          </div>
-        </PrimeTabPanel>
+      <PrimeTabs v-model:value="activeTab">
+        <PrimeTabList>
+          <PrimeTab value="0">Mitarbeiter</PrimeTab>
+          <PrimeTab value="1">Schichten</PrimeTab>
+          <PrimeTab value="2">Rotationsmuster</PrimeTab>
+        </PrimeTabList>
 
-        <PrimeTabPanel header="Schichten">
-          <div class="pt-4">
-            <ShiftManager />
-          </div>
-        </PrimeTabPanel>
+        <PrimeTabPanels>
+          <PrimeTabPanel value="0">
+            <div class="pt-4">
+              <StaffManager />
+            </div>
+          </PrimeTabPanel>
 
-        <PrimeTabPanel header="Rotationsmuster">
-          <div class="pt-4">
-            <RotationManager />
-          </div>
-        </PrimeTabPanel>
-      </PrimeTabView>
+          <PrimeTabPanel value="1">
+            <div class="pt-4">
+              <ShiftManager />
+            </div>
+          </PrimeTabPanel>
+
+          <PrimeTabPanel value="2">
+            <div class="pt-4">
+              <RotationManager />
+            </div>
+          </PrimeTabPanel>
+        </PrimeTabPanels>
+      </PrimeTabs>
 
       <!-- Passwort ändern Dialog -->
       <ChangePasswordDialog v-model:visible="showChangePasswordDialog" />
