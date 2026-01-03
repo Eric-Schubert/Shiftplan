@@ -2,6 +2,7 @@
 
 Ein moderner, webbasierter Schichtplaner mit automatischem Rotationssystem für kleine bis mittlere Teams.
 
+[![CI](https://github.com/Eric-Schubert/Shiftplanv2/actions/workflows/ci.yml/badge.svg)](https://github.com/Eric-Schubert/Shiftplanv2/actions/workflows/ci.yml)
 ![Nuxt](https://img.shields.io/badge/Nuxt-3.x-00DC82?logo=nuxt.js)
 ![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vue.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
@@ -148,8 +149,8 @@ shiftplan/
 
 ### Voraussetzungen
 
-- **Node.js** 18.x oder höher
-- **npm** 9.x oder höher
+- **Node.js** 20.x oder höher
+- **npm** 10.x oder höher
 
 ### Lokale Entwicklung
 
