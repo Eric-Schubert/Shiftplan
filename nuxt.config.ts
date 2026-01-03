@@ -6,7 +6,10 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "Schichtplaner",
-      link: [{ rel: "icon", type: "image/png", href: "/favicon.ico" }],
+      link: [
+        { rel: "icon", type: "image/png", href: "/favicon.ico" },
+        { rel: "manifest", href: "/manifest.json" },
+      ],
       // Dark Mode Script - lädt vor allem anderen um Flash zu vermeiden
       script: [
         {
