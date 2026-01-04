@@ -32,16 +32,14 @@ const CONFIG = {
     'components',
     'layouts', 
     'pages',
-    'server/api',
-    'server/services',
-    'server/utils',
+    'server',
     'stores',
     'types',
     'scripts',
   ],
   
   // Files/folders to ignore
-  ignoreDirs: ['node_modules', '.git', '.nuxt', '.output', 'dist', '.github', 'db'],
+  ignoreDirs: ['node_modules', '.git', '.nuxt', '.output', 'dist', '.github', 'db', 'tests'],
   ignoreFiles: ['.DS_Store', 'Thumbs.db'],
   
   // Markers in README between which content is generated
@@ -65,17 +63,13 @@ const CONFIG = {
 // HELPER FUNCTIONS
 // ============================================
 
-function getFiles(dir, depth = 0, maxDepth = 3) {
-  if (depth > maxDepth) return [];
-  
-  const fullPath = path.join(ROOT, dir);
-  if (!fs.existsSync(fullPath)) return [];
-  
-  const items = fs.readdirSync(fullPath, { withFileTypes: true });
+function scanDirectory(dirPath, prefix = '', isLast = true) {
   const lines = [];
+  const fullPath = path.join(ROOT, dirPath);
   
-  // Sort: folders first, then files
-  const sorted = items
+  if (!fs.existsSync(fullPath)) return lines;
+  
+  const items = fs.readdirSync(fullPath, { withFileTypes: true })
     .filter(item => {
       if (CONFIG.ignoreDirs.includes(item.name)) return false;
       if (CONFIG.ignoreFiles.includes(item.name)) return false;
@@ -83,36 +77,25 @@ function getFiles(dir, depth = 0, maxDepth = 3) {
       return true;
     })
     .sort((a, b) => {
+      // Folders first, then files
       if (a.isDirectory() && !b.isDirectory()) return -1;
       if (!a.isDirectory() && b.isDirectory()) return 1;
       return a.name.localeCompare(b.name);
     });
   
-  for (let i = 0; i < sorted.length; i++) {
-    const item = sorted[i];
-    const isLast = i === sorted.length - 1;
-    const indent = '│   '.repeat(depth);
-    const connector = isLast ? '└── ' : '├── ';
+  items.forEach((item, index) => {
+    const isLastItem = index === items.length - 1;
+    const connector = isLastItem ? '└── ' : '├── ';
+    const newPrefix = prefix + (isLastItem ? '    ' : '│   ');
     
     if (item.isDirectory()) {
-      lines.push(`${indent}${connector}${item.name}/`);
-      const subLines = getFiles(
-        path.join(dir, item.name), 
-        depth + 1, 
-        maxDepth
-      );
-      // Adjust indent for sub-items when parent is last
-      const adjustedSubLines = subLines.map(line => {
-        if (isLast && depth < maxDepth) {
-          return line.replace('│   '.repeat(depth) + '│', '│   '.repeat(depth) + ' ');
-        }
-        return line;
-      });
-      lines.push(...adjustedSubLines);
+      lines.push(`${prefix}${connector}${item.name}/`);
+      const subLines = scanDirectory(path.join(dirPath, item.name), newPrefix, isLastItem);
+      lines.push(...subLines);
     } else {
-      lines.push(`${indent}${connector}${item.name}`);
+      lines.push(`${prefix}${connector}${item.name}`);
     }
-  }
+  });
   
   return lines;
 }
@@ -120,33 +103,45 @@ function getFiles(dir, depth = 0, maxDepth = 3) {
 function generateStructure() {
   const lines = ['```', 'schichtplaner/'];
   
-  // Get all configured directories
-  const topLevelDirs = [...new Set(CONFIG.includeDirs.map(d => d.split('/')[0]))];
+  // Collect all items: configured dirs + root files
+  const allItems = [];
   
-  for (let i = 0; i < topLevelDirs.length; i++) {
-    const dir = topLevelDirs[i];
-    const isLast = i === topLevelDirs.length - 1;
-    const connector = isLast ? '└── ' : '├── ';
-    
-    lines.push(`${connector}${dir}/`);
-    const subLines = getFiles(dir, 1, 2);
-    lines.push(...subLines);
+  // Add configured directories
+  for (const dir of CONFIG.includeDirs) {
+    if (fs.existsSync(path.join(ROOT, dir))) {
+      allItems.push({ name: dir, isDir: true });
+    }
   }
   
-  // Root-level config files
+  // Add root-level config files
   const rootFiles = fs.readdirSync(ROOT, { withFileTypes: true })
     .filter(f => f.isFile() && !f.name.startsWith('.'))
     .filter(f => ['.ts', '.js', '.json', '.md'].some(ext => f.name.endsWith(ext)))
     .filter(f => !['package-lock.json'].includes(f.name))
-    .map(f => f.name)
-    .sort();
+    .map(f => ({ name: f.name, isDir: false }));
   
-  if (rootFiles.length > 0) {
-    for (let i = 0; i < rootFiles.length; i++) {
-      const isLast = i === rootFiles.length - 1;
-      lines.push(`${isLast ? '└── ' : '├── '}${rootFiles[i]}`);
+  allItems.push(...rootFiles);
+  
+  // Sort: directories first, then files
+  allItems.sort((a, b) => {
+    if (a.isDir && !b.isDir) return -1;
+    if (!a.isDir && b.isDir) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  
+  // Generate tree
+  allItems.forEach((item, index) => {
+    const isLast = index === allItems.length - 1;
+    const connector = isLast ? '└── ' : '├── ';
+    
+    if (item.isDir) {
+      lines.push(`${connector}${item.name}/`);
+      const subLines = scanDirectory(item.name, isLast ? '    ' : '│   ', isLast);
+      lines.push(...subLines);
+    } else {
+      lines.push(`${connector}${item.name}`);
     }
-  }
+  });
   
   lines.push('```');
   return lines.join('\n');
@@ -184,10 +179,13 @@ function generateApiDocs() {
         
         const route = `${prefix}${routeName ? '/' + routeName : ''}`.replace(/\/+/g, '/') || '/';
         
-        // Try to extract description from file
+        // Try to extract description from file (first JSDoc comment)
         const content = fs.readFileSync(fullPath, 'utf-8');
-        const descMatch = content.match(/\/\*\*\s*\n?\s*\*?\s*(.+?)(\n|\*\/)/);
-        const description = descMatch ? descMatch[1].trim() : '';
+        const descMatch = content.match(/\/\*\*\s*\n?\s*\*?\s*([^*\n]+)/);
+        let description = descMatch ? descMatch[1].trim() : '';
+        
+        // Clean up description
+        if (description.startsWith('*')) description = '';
         
         endpoints.push({ method, route: `/api${route}`, description });
       }
@@ -255,9 +253,10 @@ function generateComponentsList() {
       
       // Try to extract description from JSDoc or first comment
       let description = '';
-      const jsdocMatch = content.match(/\/\*\*\s*\n?\s*\*?\s*(.+?)(\n|\*\/)/);
+      const jsdocMatch = content.match(/\/\*\*\s*\n?\s*\*?\s*([^*\n]+)/);
       if (jsdocMatch) {
         description = jsdocMatch[1].trim();
+        if (description.startsWith('*')) description = '';
       }
       
       return { name: f.replace('.vue', ''), file: f, description };
@@ -283,7 +282,7 @@ function updateReadme() {
   let updated = false;
   
   // Update structure
-  if (content.includes(CONFIG.markers.structure.start)) {
+  if (content.includes(CONFIG.markers.structure.start) && content.includes(CONFIG.markers.structure.end)) {
     const structure = generateStructure();
     const regex = new RegExp(
       `${escapeRegex(CONFIG.markers.structure.start)}[\\s\\S]*?${escapeRegex(CONFIG.markers.structure.end)}`,
@@ -298,7 +297,7 @@ function updateReadme() {
   }
   
   // Update API docs
-  if (content.includes(CONFIG.markers.api.start)) {
+  if (content.includes(CONFIG.markers.api.start) && content.includes(CONFIG.markers.api.end)) {
     const apiDocs = generateApiDocs();
     const regex = new RegExp(
       `${escapeRegex(CONFIG.markers.api.start)}[\\s\\S]*?${escapeRegex(CONFIG.markers.api.end)}`,
@@ -313,7 +312,7 @@ function updateReadme() {
   }
   
   // Update components
-  if (content.includes(CONFIG.markers.components.start)) {
+  if (content.includes(CONFIG.markers.components.start) && content.includes(CONFIG.markers.components.end)) {
     const components = generateComponentsList();
     const regex = new RegExp(
       `${escapeRegex(CONFIG.markers.components.start)}[\\s\\S]*?${escapeRegex(CONFIG.markers.components.end)}`,
@@ -331,9 +330,7 @@ function updateReadme() {
     fs.writeFileSync(CONFIG.readme, content);
     console.log('\n📝 README.md successfully updated!');
   } else {
-    console.log('⚠️  No markers found in README.md. Add these markers:');
-    console.log('   ' + CONFIG.markers.structure.start);
-    console.log('   ' + CONFIG.markers.structure.end);
+    console.log('⚠️  No markers found in README.md.');
   }
 }
 

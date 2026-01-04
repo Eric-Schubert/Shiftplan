@@ -63,72 +63,11 @@ A modern, web-based shift planner with automatic rotation system for small to me
 ### Directory Structure
 
 <!-- AUTO-GENERATED-STRUCTURE-START -->
-```
-schichtplaner/
-├── components/
-│   ├── AdminLogin.vue
-│   ├── ChangePasswordDialog.vue
-│   ├── RotationManager.vue
-│   ├── ShiftCard.vue
-│   ├── ShiftManager.vue
-│   ├── StaffManager.vue
-│   └── WeekPreview.vue
-├── layouts/
-│   └── default.vue
-├── pages/
-│   ├── index.vue
-│   └── settings.vue
-├── server/
-│   ├── api/
-│   │   ├── auth/
-│   │   ├── rotation/
-│   │   ├── shift/
-│   │   ├── shiftplan/
-│   │   └── staff/
-│   ├── middleware/
-│   │   └── auth.ts
-│   ├── services/
-│   │   ├── rotation.service.ts
-│   │   ├── shift.service.ts
-│   │   ├── shiftplan.service.ts
-│   │   └── staff.service.ts
-│   └── utils/
-│       ├── database.ts
-│       └── session.ts
-├── stores/
-│   ├── app.store.ts
-│   ├── auth.store.ts
-│   └── data.store.ts
-├── types/
-│   ├── rotation.ts
-│   ├── shift.ts
-│   ├── shiftplan.ts
-│   └── staff.ts
-└── scripts/
-│   └── generate-readme.js
-├── README.md
-├── components.d.ts
-├── nuxt.config.ts
-├── package.json
-├── setup.js
-├── tailwind.config.js
-├── tsconfig.json
-└── vitest.config.ts
-```
 <!-- AUTO-GENERATED-STRUCTURE-END -->
 
 ### Components
 
 <!-- AUTO-GENERATED-COMPONENTS-START -->
-| Component | File | Description |
-|-----------|------|-------------|
-| `AdminLogin` | AdminLogin.vue |  |
-| `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
-| `RotationManager` | RotationManager.vue |  |
-| `ShiftCard` | ShiftCard.vue |  |
-| `ShiftManager` | ShiftManager.vue |  |
-| `StaffManager` | StaffManager.vue |  |
-| `WeekPreview` | WeekPreview.vue |  |
 <!-- AUTO-GENERATED-COMPONENTS-END -->
 
 ---
@@ -175,54 +114,6 @@ npm run dev
 ## 📡 API Documentation
 
 <!-- AUTO-GENERATED-API-START -->
-### Staff API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/staff` |  |
-| `POST` | `/api/staff` |  |
-| `GET` | `/api/staff/:id` |  |
-| `PATCH` | `/api/staff/:id` |  |
-| `DELETE` | `/api/staff/:id` |  |
-
-### Shift API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/shift` |  |
-| `POST` | `/api/shift` |  |
-| `GET` | `/api/shift/:id` |  |
-| `PATCH` | `/api/shift/:id` |  |
-| `DELETE` | `/api/shift/:id` |  |
-
-### Shiftplan API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/shiftplan` |  |
-| `POST` | `/api/shiftplan/assign` |  |
-| `POST` | `/api/shiftplan/generate` |  |
-| `POST` | `/api/shiftplan/unassign` |  |
-
-### Rotation API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/rotation` |  |
-| `POST` | `/api/rotation/assign` |  |
-| `GET` | `/api/rotation/config` |  |
-| `PATCH` | `/api/rotation/config` |  |
-| `POST` | `/api/rotation/unassign` |  |
-
-### Auth API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/change-password` | Validiert die Passwort-Stärke |
-| `POST` | `/api/auth/login` |  |
-| `POST` | `/api/auth/logout` |  |
-| `GET` | `/api/auth/session` |  |
-
 <!-- AUTO-GENERATED-API-END -->
 
 ---
@@ -312,137 +203,17 @@ server {
 
 ## 📝 Auto-Generated Documentation
 
-This README uses auto-generated sections. To update them:
+This README uses auto-generated sections that update automatically via GitHub Actions.
 
+The following sections are auto-generated:
+- **Directory Structure** - Tree view of project files
+- **Components** - List of Vue components
+- **API Documentation** - All API endpoints
+
+To manually update:
 ```bash
-# Manual update
 npm run docs
-
-# Automatic updates on every commit
-npm run setup-hooks
 ```
-
-### Markers
-
-The following markers are used for auto-generation:
-
-| Section | Start Marker | End Marker |
-|---------|--------------|------------|
-| Structure | `<!-- AUTO-GENERATED-STRUCTURE-START -->
-```
-schichtplaner/
-├── components/
-│   ├── AdminLogin.vue
-│   ├── ChangePasswordDialog.vue
-│   ├── RotationManager.vue
-│   ├── ShiftCard.vue
-│   ├── ShiftManager.vue
-│   ├── StaffManager.vue
-│   └── WeekPreview.vue
-├── layouts/
-│   └── default.vue
-├── pages/
-│   ├── index.vue
-│   └── settings.vue
-├── server/
-│   ├── api/
-│   │   ├── auth/
-│   │   ├── rotation/
-│   │   ├── shift/
-│   │   ├── shiftplan/
-│   │   └── staff/
-│   ├── middleware/
-│   │   └── auth.ts
-│   ├── services/
-│   │   ├── rotation.service.ts
-│   │   ├── shift.service.ts
-│   │   ├── shiftplan.service.ts
-│   │   └── staff.service.ts
-│   └── utils/
-│       ├── database.ts
-│       └── session.ts
-├── stores/
-│   ├── app.store.ts
-│   ├── auth.store.ts
-│   └── data.store.ts
-├── types/
-│   ├── rotation.ts
-│   ├── shift.ts
-│   ├── shiftplan.ts
-│   └── staff.ts
-└── scripts/
-│   └── generate-readme.js
-├── README.md
-├── components.d.ts
-├── nuxt.config.ts
-├── package.json
-├── setup.js
-├── tailwind.config.js
-├── tsconfig.json
-└── vitest.config.ts
-```
-<!-- AUTO-GENERATED-STRUCTURE-END -->` |
-| Components | `<!-- AUTO-GENERATED-COMPONENTS-START -->
-| Component | File | Description |
-|-----------|------|-------------|
-| `AdminLogin` | AdminLogin.vue |  |
-| `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
-| `RotationManager` | RotationManager.vue |  |
-| `ShiftCard` | ShiftCard.vue |  |
-| `ShiftManager` | ShiftManager.vue |  |
-| `StaffManager` | StaffManager.vue |  |
-| `WeekPreview` | WeekPreview.vue |  |
-<!-- AUTO-GENERATED-COMPONENTS-END -->` |
-| API | `<!-- AUTO-GENERATED-API-START -->
-### Staff API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/staff` |  |
-| `POST` | `/api/staff` |  |
-| `GET` | `/api/staff/:id` |  |
-| `PATCH` | `/api/staff/:id` |  |
-| `DELETE` | `/api/staff/:id` |  |
-
-### Shift API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/shift` |  |
-| `POST` | `/api/shift` |  |
-| `GET` | `/api/shift/:id` |  |
-| `PATCH` | `/api/shift/:id` |  |
-| `DELETE` | `/api/shift/:id` |  |
-
-### Shiftplan API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/shiftplan` |  |
-| `POST` | `/api/shiftplan/assign` |  |
-| `POST` | `/api/shiftplan/generate` |  |
-| `POST` | `/api/shiftplan/unassign` |  |
-
-### Rotation API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/rotation` |  |
-| `POST` | `/api/rotation/assign` |  |
-| `GET` | `/api/rotation/config` |  |
-| `PATCH` | `/api/rotation/config` |  |
-| `POST` | `/api/rotation/unassign` |  |
-
-### Auth API
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/change-password` | Validiert die Passwort-Stärke |
-| `POST` | `/api/auth/login` |  |
-| `POST` | `/api/auth/logout` |  |
-| `GET` | `/api/auth/session` |  |
-
-<!-- AUTO-GENERATED-API-END -->` |
 
 ---
 

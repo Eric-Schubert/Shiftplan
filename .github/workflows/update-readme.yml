@@ -16,21 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     # Only run if CI was successful
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
+      
       - name: Generate README
         run: node scripts/generate-readme.js
-
+      
       - name: Check for changes
         id: changes
         run: |
@@ -39,7 +39,7 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-
+      
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
