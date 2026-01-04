@@ -7,6 +7,10 @@ on:
     types: [completed]
     branches: [master]
 
+# Add write permissions for the token
+permissions:
+  contents: write
+
 jobs:
   update-readme:
     runs-on: ubuntu-latest
