@@ -10,7 +10,9 @@
     "preview": "nuxt preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "docs": "node scripts/generate-readme.js",
+    "setup-hooks": "cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "dependencies": {
     "@nuxt/icon": "^1.9.0",
