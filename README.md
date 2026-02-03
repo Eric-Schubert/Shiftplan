@@ -68,6 +68,7 @@ schichtplaner/
 ├── components/
 │   ├── AdminLogin.vue
 │   ├── ChangePasswordDialog.vue
+│   ├── HolidayInfo.vue
 │   ├── RotationManager.vue
 │   ├── ShiftCard.vue
 │   ├── ShiftManager.vue
@@ -150,6 +151,7 @@ schichtplaner/
 |-----------|------|-------------|
 | `AdminLogin` | AdminLogin.vue |  |
 | `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
+| `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
 | `RotationManager` | RotationManager.vue |  |
 | `ShiftCard` | ShiftCard.vue |  |
 | `ShiftManager` | ShiftManager.vue |  |
