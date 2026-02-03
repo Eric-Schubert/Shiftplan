@@ -4,35 +4,31 @@
  * 
  * Zeigt Feiertage und Schulferien für eine bestimmte Kalenderwoche an.
  * Nutzt die OpenHolidays API über interne Server-Endpoints.
- * 
- * Features:
- * - Deutsche bundesweite Feiertage
- * - Sächsische Feiertage (Buß- und Bettag, Reformationstag)
- * - Schulferien für Sachsen und Brandenburg
- * - Automatisches Caching
  */
-
-import { ref, watch, computed } from 'vue';
-import { useHolidays, type PublicHoliday } from '~/composables/useHolidays';
-import { 
-  useSchoolHolidays, 
-  formatHolidayPeriod,
-  type SchoolHolidayPeriod 
-} from '~/composables/useSchoolHolidays';
 
 interface Props {
   year: number;
   week: number;
-  compact?: boolean; // Kompakte Ansicht für WeekPreview
+  compact?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   compact: false
 });
 
-// Composables
-const { getHolidaysForWeek } = useHolidays();
-const { getSchoolHolidaysForWeek } = useSchoolHolidays();
+interface PublicHoliday {
+  date: string;
+  name: string;
+  type: 'national' | 'saxony';
+  nationwide: boolean;
+}
+
+interface SchoolHolidayPeriod {
+  name: string;
+  start: string;
+  end: string;
+  states: Array<{ code: string; name: string }>;
+}
 
 // State
 const holidays = ref<PublicHoliday[]>([]);
@@ -40,19 +36,25 @@ const schoolHolidays = ref<SchoolHolidayPeriod[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-// Daten laden
+// Daten laden - nur clientseitig
 async function loadData() {
+  if (import.meta.server) return;
+  
   loading.value = true;
   error.value = null;
   
   try {
     const [holidayData, schoolData] = await Promise.all([
-      getHolidaysForWeek(props.year, props.week),
-      getSchoolHolidaysForWeek(props.year, props.week)
+      $fetch<PublicHoliday[]>(`/api/holidays/public`, {
+        query: { year: props.year, week: props.week }
+      }),
+      $fetch<{ grouped: SchoolHolidayPeriod[] }>(`/api/holidays/school`, {
+        query: { year: props.year, week: props.week, states: 'SN,BB' }
+      })
     ]);
     
     holidays.value = holidayData;
-    schoolHolidays.value = schoolData;
+    schoolHolidays.value = schoolData.grouped || [];
   } catch (e: any) {
     error.value = e.message || 'Fehler beim Laden';
     console.error('HolidayInfo error:', e);
@@ -61,11 +63,14 @@ async function loadData() {
   }
 }
 
-// Bei Prop-Änderungen neu laden
+// Initialer Load nach Mount + bei Prop-Änderungen
+onMounted(() => {
+  loadData();
+});
+
 watch(
   () => [props.year, props.week],
-  () => loadData(),
-  { immediate: true }
+  () => loadData()
 );
 
 // Prüft ob es etwas anzuzeigen gibt
@@ -81,6 +86,14 @@ function formatHolidayDate(dateStr: string): string {
     day: '2-digit', 
     month: '2-digit' 
   });
+}
+
+// Formatiert Zeitraum der Schulferien
+function formatHolidayPeriod(start: string, end: string): string {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const formatDate = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }
 
 // Kürzt den Feiertagnamen für kompakte Ansicht
