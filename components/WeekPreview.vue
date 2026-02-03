@@ -108,11 +108,19 @@ function goToWeek(year: number, week: number) {
             <i class="pi pi-spin pi-spinner text-gray-400 text-sm"></i>
           </div>
 
-          <!-- Schichten anzeigen -->
+          <!-- Content anzeigen -->
           <template v-else>
+            <!-- Feiertage & Schulferien - Kompakt -->
+            <HolidayInfo 
+              :year="week.year" 
+              :week="week.week" 
+              compact 
+            />
+
+            <!-- Schichten anzeigen -->
             <div
               v-if="getWeekShifts(week.year, week.week)"
-              class="space-y-1"
+              class="space-y-1 mt-1"
             >
               <div
                 v-for="shift in getWeekShifts(week.year, week.week)"
@@ -129,9 +137,9 @@ function goToWeek(year: number, week: number) {
               </div>
             </div>
 
-            <!-- Keine Daten -->
+            <!-- Keine Schicht-Daten -->
             <div
-              v-else
+              v-else-if="!getWeekShifts(week.year, week.week)"
               class="text-center py-2 text-gray-400 dark:text-gray-500"
             >
               <p class="text-xs">Nicht geplant</p>

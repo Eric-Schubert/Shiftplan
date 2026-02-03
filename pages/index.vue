@@ -122,6 +122,12 @@ async function generateBulk() {
       </div>
     </div>
 
+    <!-- Feiertage & Schulferien Anzeige -->
+    <HolidayInfo 
+      :year="appStore.selectedYear" 
+      :week="appStore.selectedWeek" 
+    />
+
     <!-- Admin Actions - Kompakt -->
     <div v-if="authStore.isAuthenticated" class="flex gap-2">
       <PrimeButton

@@ -11,6 +11,7 @@ const PUBLIC_GET_ROUTES = [
   "/api/shift",
   "/api/shiftplan",
   "/api/rotation",
+  "/api/holidays",  // Feiertage & Schulferien sind öffentlich
 ];
 
 export default defineEventHandler((event) => {
