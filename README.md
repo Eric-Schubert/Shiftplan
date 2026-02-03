@@ -87,6 +87,9 @@ schichtplaner/
 │   │   │   ├── login.post.ts
 │   │   │   ├── logout.post.ts
 │   │   │   └── session.get.ts
+│   │   ├── holidays/
+│   │   │   ├── public.get.ts
+│   │   │   └── school.get.ts
 │   │   ├── rotation/
 │   │   │   ├── assign.post.ts
 │   │   │   ├── config.get.ts
@@ -245,6 +248,13 @@ npm run dev
 | `POST` | `/api/auth/login` |  |
 | `POST` | `/api/auth/logout` |  |
 | `GET` | `/api/auth/session` |  |
+
+### Holidays API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/holidays/public` | API Route: /api/holidays/public |
+| `GET` | `/api/holidays/school` | API Route: /api/holidays/school |
 
 <!-- AUTO-GENERATED-API-END -->
 
