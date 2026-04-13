@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { WeeklyShiftplan } from "~/types/shiftplan";
+import { useSwipe } from "~/composables/useSwipe";
 
 const appStore = useAppStore();
 const authStore = useAuthStore();
@@ -23,7 +24,26 @@ const {
   watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
 });
 
-// Generierung aus Muster
+// ============================================
+// SWIPE NAVIGATION
+// ============================================
+const swipeContainer = ref<HTMLElement | null>(null);
+
+const { isSwiping, swipeDirection, swipeOffset } = useSwipe(swipeContainer, {
+  onSwipeLeft: () => appStore.nextWeek(),
+  onSwipeRight: () => appStore.previousWeek(),
+});
+
+// Nur Content-Bereich animieren, nicht Header/Nav
+const contentSlideClass = computed(() => {
+  if (swipeDirection.value === "left") return "content-slide-left";
+  if (swipeDirection.value === "right") return "content-slide-right";
+  return "";
+});
+
+// ============================================
+// GENERIERUNG
+// ============================================
 const generating = ref(false);
 
 async function generateFromPattern() {
@@ -67,7 +87,10 @@ async function generateBulk() {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div
+    ref="swipeContainer"
+    class="space-y-4"
+  >
     <!-- Header mit Navigation - Kompakter -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
       <div>
@@ -128,8 +151,14 @@ async function generateBulk() {
       :week="appStore.selectedWeek" 
     />
 
-    <!-- Admin Actions - Kompakt -->
-    <div v-if="authStore.isAuthenticated" class="flex gap-2">
+    <!-- Swipe-animierter Content-Bereich -->
+    <div
+      class="swipe-content space-y-4"
+      :class="contentSlideClass"
+      :style="isSwiping ? { opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
+    >
+      <!-- Admin Actions - Kompakt -->
+      <div v-if="authStore.isAuthenticated" class="flex gap-2">
       <PrimeButton
           label="Aus Muster füllen"
           icon="pi pi-sync"
@@ -193,6 +222,7 @@ async function generateBulk() {
         </span>
       </div>
     </div>
+    </div><!-- /swipe-content -->
 
     <!-- Vorschau der nächsten Wochen -->
     <WeekPreview />
@@ -239,3 +269,27 @@ async function generateBulk() {
     </PrimeDialog>
   </div>
 </template>
+
+<style scoped>
+.swipe-content {
+  transition: opacity 0.2s ease-out;
+}
+
+.content-slide-left {
+  animation: fadeSlideLeft 0.3s ease-out;
+}
+
+.content-slide-right {
+  animation: fadeSlideRight 0.3s ease-out;
+}
+
+@keyframes fadeSlideLeft {
+  0% { opacity: 0.4; transform: translateX(-15px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlideRight {
+  0% { opacity: 0.4; transform: translateX(15px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+</style>
