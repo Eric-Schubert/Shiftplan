@@ -70,6 +70,7 @@ schichtplaner/
 │   ├── ChangelogBanner.vue
 │   ├── ChangePasswordDialog.vue
 │   ├── HolidayInfo.vue
+│   ├── InstallBanner.vue
 │   ├── RotationManager.vue
 │   ├── ShiftCard.vue
 │   ├── ShiftManager.vue
@@ -158,6 +159,7 @@ schichtplaner/
 | `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
 | `ChangelogBanner` | ChangelogBanner.vue | ChangelogBanner Component |
 | `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
+| `InstallBanner` | InstallBanner.vue | InstallBanner Component |
 | `RotationManager` | RotationManager.vue |  |
 | `ShiftCard` | ShiftCard.vue | Drag starten: Mitarbeiter-Chip wird gezogen |
 | `ShiftManager` | ShiftManager.vue |  |
