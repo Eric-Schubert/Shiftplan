@@ -82,8 +82,8 @@ schichtplaner/
 │   ├── index.vue
 │   └── settings.vue
 ├── scripts/
-│   ├── bump-version.js
-│   └── generate-readme.js
+│   ├── generate-readme.js
+│   └── resolve-version.js
 ├── server/
 │   ├── api/
 │   │   ├── auth/
