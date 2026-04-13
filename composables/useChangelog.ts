@@ -1,8 +1,9 @@
 /**
  * Composable für das Changelog/Update-Banner
  * 
- * Vergleicht die package.json Version mit localStorage.
- * Hat sich die Version geändert → zeigt den neuesten Changelog-Eintrag.
+ * Zwei Modi:
+ * - 'update'  → automatisch nach Deploy, zeigt nur Neues
+ * - 'history' → manuell via (i)-Button, zeigt kompletten Verlauf
  * 
  * State ist modul-level → wird zwischen allen Komponenten geteilt.
  */
@@ -13,36 +14,37 @@ const STORAGE_KEY = 'schichtplaner_lastSeenVersion'
 
 // Shared State
 const isVisible = ref(false)
-const latestEntry = ref<ChangelogEntry | null>(null)
+const entries = ref<ChangelogEntry[]>([])
+const mode = ref<'update' | 'history'>('update')
 
 export function useChangelog() {
   const config = useRuntimeConfig()
   const currentVersion = config.public.appVersion as string
 
   /**
-   * Prüft ob sich die Version seit dem letzten Besuch geändert hat
+   * Automatisch beim Seitenaufruf — zeigt nur den neuesten Eintrag
    */
   function check() {
     if (!import.meta.client) return
 
     const lastSeen = localStorage.getItem(STORAGE_KEY)
 
-    // Gleiche Version → nichts zeigen
     if (lastSeen === currentVersion) return
 
-    // Neue Version oder erster Besuch → neuesten Eintrag zeigen
     if (CHANGELOG.length > 0) {
-      latestEntry.value = CHANGELOG[0]
+      mode.value = 'update'
+      entries.value = [CHANGELOG[0]]
       isVisible.value = true
     }
   }
 
   /**
-   * Banner manuell öffnen (Info-Button im Header)
+   * Manuell via (i)-Button — zeigt kompletten Versionsverlauf
    */
-  function open() {
+  function openHistory() {
     if (CHANGELOG.length > 0) {
-      latestEntry.value = CHANGELOG[0]
+      mode.value = 'history'
+      entries.value = [...CHANGELOG]
       isVisible.value = true
     }
   }
@@ -59,10 +61,11 @@ export function useChangelog() {
 
   return {
     isVisible,
-    latestEntry,
+    entries,
+    mode,
     currentVersion,
     check,
-    open,
+    openHistory,
     dismiss,
   }
 }

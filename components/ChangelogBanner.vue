@@ -2,10 +2,11 @@
 /**
  * ChangelogBanner Component
  * 
- * Zeigt nach einem Update einmalig ein Modal mit den Neuerungen.
- * Version kommt aus package.json, Inhalt aus utils/changelog.ts.
+ * Zwei Ansichten:
+ * - Update-Modus: "Was ist neu?" mit nur dem neuesten Eintrag
+ * - History-Modus: "Versionsverlauf" mit allen Einträgen
  */
-const { isVisible, latestEntry, currentVersion, check, dismiss } = useChangelog()
+const { isVisible, entries, mode, currentVersion, check, dismiss } = useChangelog()
 
 onMounted(() => check())
 </script>
@@ -22,11 +23,14 @@ onMounted(() => check())
     <template #header>
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 bg-primary-light/10 dark:bg-primary-dark/10 rounded-full flex items-center justify-center">
-          <Icon name="mdi:party-popper" class="text-xl text-primary-light dark:text-primary-dark" />
+          <Icon 
+            :name="mode === 'update' ? 'mdi:party-popper' : 'mdi:history'" 
+            class="text-xl text-primary-light dark:text-primary-dark" 
+          />
         </div>
         <div>
           <h2 class="text-lg font-bold text-gray-900 dark:text-white m-0">
-            Was ist neu?
+            {{ mode === 'update' ? 'Was ist neu?' : 'Versionsverlauf' }}
           </h2>
           <span class="text-sm text-gray-500 dark:text-gray-400">
             Version {{ currentVersion }}
@@ -35,31 +39,42 @@ onMounted(() => check())
       </div>
     </template>
 
-    <div v-if="latestEntry">
-      <!-- Titel & Datum -->
-      <div class="flex items-center gap-2 mb-3">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-200 m-0">
-          {{ latestEntry.title }}
-        </h3>
-        <span class="text-xs text-gray-400 dark:text-gray-500">
-          {{ latestEntry.date }}
-        </span>
-      </div>
+    <div class="space-y-5" :class="{ 'max-h-[60vh] overflow-y-auto': mode === 'history' }">
+      <div
+        v-for="(entry, index) in entries"
+        :key="entry.date"
+      >
+        <!-- Trennlinie zwischen Einträgen im History-Modus -->
+        <hr 
+          v-if="mode === 'history' && index > 0" 
+          class="border-gray-200 dark:border-gray-700 mb-4" 
+        />
 
-      <!-- Änderungen -->
-      <ul class="space-y-2 m-0 p-0 list-none">
-        <li
-          v-for="change in latestEntry.changes"
-          :key="change"
-          class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300"
-        >
-          <Icon 
-            name="mdi:check-circle" 
-            class="text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" 
-          />
-          <span>{{ change }}</span>
-        </li>
-      </ul>
+        <!-- Titel & Datum -->
+        <div class="flex items-center gap-2 mb-2">
+          <h3 class="font-semibold text-gray-800 dark:text-gray-200 m-0">
+            {{ entry.title }}
+          </h3>
+          <span class="text-xs text-gray-400 dark:text-gray-500">
+            {{ entry.date }}
+          </span>
+        </div>
+
+        <!-- Änderungen -->
+        <ul class="space-y-1.5 m-0 p-0 list-none">
+          <li
+            v-for="change in entry.changes"
+            :key="change"
+            class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300"
+          >
+            <Icon 
+              name="mdi:check-circle" 
+              class="text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" 
+            />
+            <span>{{ change }}</span>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <template #footer>

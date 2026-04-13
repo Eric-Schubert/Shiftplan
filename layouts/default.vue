@@ -3,7 +3,7 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 const dataStore = useDataStore();
 const route = useRoute();
-const { open: openChangelog, currentVersion } = useChangelog();
+const { openHistory, currentVersion } = useChangelog();
 
 const isSettingsPage = computed(() => route.path === "/settings");
 
@@ -34,13 +34,13 @@ onMounted(() => {
               <span>Admin</span>
             </div>
 
-            <!-- Changelog / What's New Button -->
+            <!-- Versionsverlauf Button -->
             <PrimeButton
               text
               rounded
               icon="pi pi-info-circle"
-              @click="openChangelog"
-              v-tooltip="'Was ist neu? (v' + currentVersion + ')'"
+              @click="openHistory"
+              v-tooltip="'Versionsverlauf (v' + currentVersion + ')'"
             />
 
             <PrimeButton
