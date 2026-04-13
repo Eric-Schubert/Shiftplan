@@ -4,10 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "node scripts/bump-version.js",
+    "prebuild": "node scripts/resolve-version.js",
     "build": "nuxt build",
-    "bump:minor": "node scripts/bump-version.js --minor",
-    "bump:major": "node scripts/bump-version.js --major",
     "predev": "node setup.js",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
@@ -16,7 +14,8 @@
     "test:run": "vitest run",
     "postinstall": "nuxt prepare",
     "docs": "node scripts/generate-readme.js",
-    "setup-hooks": "cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
+    "setup-hooks": "cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+    "version:check": "node scripts/resolve-version.js && cat .version"
   },
   "dependencies": {
     "@nuxt/icon": "^1.9.0",

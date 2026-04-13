@@ -8,5 +8,6 @@ node_modules
 *.log
 .DS_Store
 .env
+.version
 db/*.sqlite
 db/*.sqlite-*

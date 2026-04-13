@@ -31,6 +31,14 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-04-13',
+    title: 'Versionierung & Bugfixes',
+    changes: [
+      'Automatische Versionierung aus Git-Tags (kein manuelles Hochzählen mehr)',
+      'Versions-Anzeige funktioniert jetzt korrekt in Docker und CI',
+    ],
+  },
+    {
+    date: '2026-04-13',
     title: 'UI/UX',
     changes: [
       'Swipe-Navigation zwischen Kalenderwochen auf mobilen Geräten',

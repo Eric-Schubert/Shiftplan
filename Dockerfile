@@ -14,11 +14,18 @@ RUN npm ci
 # ============================================
 FROM node:20-alpine AS builder
 
+# Version wird vom CI/Docker-Compose als Build-Arg übergeben
+ARG APP_VERSION=0.0.0
+
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# .version Datei schreiben (kein Git im Container nötig)
+RUN echo "${APP_VERSION}" > .version
+
 RUN npm run build
 
 # ============================================
