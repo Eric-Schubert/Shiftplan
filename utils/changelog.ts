@@ -1,33 +1,30 @@
 /**
  * Changelog-Daten für das Update-Banner
  * 
- * Bei neuen Features einfach einen neuen Eintrag oben hinzufügen.
- * Die Version muss zur package.json Version passen.
- * 
- * Tipp: Nur Einträge mit sichtbaren Änderungen für die Nutzer hinzufügen,
- * keine internen Refactorings oder Bug-Fixes (es sei denn sie sind relevant).
+ * Bei neuen Features einfach einen neuen Eintrag OBEN hinzufügen.
+ * Die Version kommt automatisch aus package.json — hier nur
+ * Datum, Titel und Änderungen pflegen.
  */
 
 export interface ChangelogEntry {
-  version: string
   date: string
   title: string
   changes: string[]
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  // ↓ Neuester Eintrag immer oben ↓
   {
-    version: '1.2.0',
     date: '2026-04-13',
     title: 'Feiertage & Benachrichtigungen',
     changes: [
       'Feiertage & Schulferien für Sachsen und Brandenburg',
       'Update-Banner zeigt Neuerungen nach jedem Update',
+      'Info-Button im Header zum erneuten Aufrufen',
     ],
   },
   {
-    version: '1.1.0',
-    date: '2025-01-01',
+    date: '2025-09-17',
     title: 'Wochenvorschau',
     changes: [
       'Wochenvorschau mit den nächsten 3 Wochen',
@@ -37,8 +34,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    version: '1.0.0',
-    date: '2024-01-01',
+    date: '2025-06-01',
     title: 'Erster Release',
     changes: [
       'Wochenbasierte Schichtplanung',

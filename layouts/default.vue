@@ -3,6 +3,7 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 const dataStore = useDataStore();
 const route = useRoute();
+const { open: openChangelog, currentVersion } = useChangelog();
 
 const isSettingsPage = computed(() => route.path === "/settings");
 
@@ -32,6 +33,15 @@ onMounted(() => {
               <Icon name="mdi:shield-check" class="text-sm" />
               <span>Admin</span>
             </div>
+
+            <!-- Changelog / What's New Button -->
+            <PrimeButton
+              text
+              rounded
+              icon="pi pi-info-circle"
+              @click="openChangelog"
+              v-tooltip="'Was ist neu? (v' + currentVersion + ')'"
+            />
 
             <PrimeButton
               text
