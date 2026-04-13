@@ -36,7 +36,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Swipe-Navigation zwischen Kalenderwochen auf mobilen Geräten',
       'Drag & Drop Mitarbeiter-Zuordnung im Schichtplan und Rotationsmuster',
       'Mitarbeiter Pool zum Reinziehen im Rotationsmuster Editor',
-      'Schichtpläne von einem Jahr in ein anderes kopieren',,
+      'Schichtpläne von einem Jahr in ein anderes kopieren',
     ],
   },
   {
