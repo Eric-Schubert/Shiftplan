@@ -3,4 +3,5 @@
     <NuxtPage />
   </NuxtLayout>
   <ChangelogBanner />
+  <InstallBanner />
 </template>
