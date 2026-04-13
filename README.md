@@ -67,6 +67,7 @@ A modern, web-based shift planner with automatic rotation system for small to me
 schichtplaner/
 ├── components/
 │   ├── AdminLogin.vue
+│   ├── ChangelogBanner.vue
 │   ├── ChangePasswordDialog.vue
 │   ├── HolidayInfo.vue
 │   ├── RotationManager.vue
@@ -81,6 +82,7 @@ schichtplaner/
 │   ├── index.vue
 │   └── settings.vue
 ├── scripts/
+│   ├── bump-version.js
 │   └── generate-readme.js
 ├── server/
 │   ├── api/
@@ -154,6 +156,7 @@ schichtplaner/
 |-----------|------|-------------|
 | `AdminLogin` | AdminLogin.vue |  |
 | `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
+| `ChangelogBanner` | ChangelogBanner.vue | ChangelogBanner Component |
 | `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
 | `RotationManager` | RotationManager.vue |  |
 | `ShiftCard` | ShiftCard.vue | Drag starten: Mitarbeiter-Chip wird gezogen |
