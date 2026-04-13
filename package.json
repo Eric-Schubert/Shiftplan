@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/bump-version.js",
     "build": "nuxt build",
+    "bump:minor": "node scripts/bump-version.js --minor",
+    "bump:major": "node scripts/bump-version.js --major",
     "predev": "node setup.js",
     "dev": "nuxt dev",
     "generate": "nuxt generate",

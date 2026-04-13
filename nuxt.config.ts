@@ -1,7 +1,15 @@
 import Aura from "@primevue/themes/aura";
+import pkg from "./package.json";
 
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
+
+  // Version aus package.json als Runtime-Config bereitstellen
+  runtimeConfig: {
+    public: {
+      appVersion: pkg.version,
+    },
+  },
 
   app: {
     head: {
