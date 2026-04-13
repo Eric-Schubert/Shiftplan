@@ -31,22 +31,21 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-04-13',
+    title: 'UI/UX',
+    changes: [
+      'Swipe-Navigation zwischen Kalenderwochen auf mobilen Geräten',
+      'Drag & Drop Mitarbeiter-Zuordnung im Schichtplan und Rotationsmuster',
+      'Mitarbeiter Pool zum Reinziehen im Rotationsmuster Editor',
+      'Schichtpläne von einem Jahr in ein anderes kopieren',,
+    ],
+  },
+  {
+    date: '2026-04-12',
     title: 'Update-Banner & Versionsverlauf',
     changes: [
       'Changelog-Banner zeigt Neuerungen nach jedem Update',
       'Versionsverlauf über ⓘ-Button im Header jederzeit aufrufbar',
       'Automatische Versionierung bei jedem Build',
-    ],
-  },
-  {
-    date: '2026-02-03',
-    title: 'Feiertage & Schulferien',
-    changes: [
-      'Deutsche Feiertage und sächsische Feiertage via OpenHolidays API',
-      'Schulferien für Sachsen und Brandenburg',
-      'Kompakte Anzeige in der Wochenvorschau',
-      'Detailansicht mit farbigen Markierungen (rot/orange/blau)',
-      '24h Server-Cache für API-Anfragen',
     ],
   },
   {
@@ -68,6 +67,17 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Samstagslogik: Ab Samstag wird automatisch die nächste Woche angezeigt',
       'Kompakteres UI-Layout',
       'Jahres-Kopie: Schichtpläne zwischen Jahren übertragen',
+    ],
+  },
+  {
+    date: '2026-02-03',
+    title: 'Feiertage & Schulferien',
+    changes: [
+      'Deutsche Feiertage und sächsische Feiertage via OpenHolidays API',
+      'Schulferien für Sachsen und Brandenburg',
+      'Kompakte Anzeige in der Wochenvorschau',
+      'Detailansicht mit farbigen Markierungen (rot/orange/blau)',
+      '24h Server-Cache für API-Anfragen',
     ],
   },
   {
