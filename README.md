@@ -73,7 +73,8 @@ schichtplaner/
 │   ├── ShiftCard.vue
 │   ├── ShiftManager.vue
 │   ├── StaffManager.vue
-│   └── WeekPreview.vue
+│   ├── WeekPreview.vue
+│   └── YearCopy.vue
 ├── layouts/
 │   └── default.vue
 ├── pages/
@@ -105,9 +106,11 @@ schichtplaner/
 │   │   │   └── index.post.ts
 │   │   ├── shiftplan/
 │   │   │   ├── assign.post.ts
+│   │   │   ├── copy-year.post.ts
 │   │   │   ├── generate.post.ts
 │   │   │   ├── index.get.ts
-│   │   │   └── unassign.post.ts
+│   │   │   ├── unassign.post.ts
+│   │   │   └── year-summary.get.ts
 │   │   └── staff/
 │   │       ├── [id].delete.ts
 │   │       ├── [id].get.ts
@@ -153,10 +156,11 @@ schichtplaner/
 | `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
 | `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
 | `RotationManager` | RotationManager.vue |  |
-| `ShiftCard` | ShiftCard.vue |  |
+| `ShiftCard` | ShiftCard.vue | Drag starten: Mitarbeiter-Chip wird gezogen |
 | `ShiftManager` | ShiftManager.vue |  |
 | `StaffManager` | StaffManager.vue |  |
 | `WeekPreview` | WeekPreview.vue |  |
+| `YearCopy` | YearCopy.vue |  |
 <!-- AUTO-GENERATED-COMPONENTS-END -->
 
 ---
@@ -229,8 +233,10 @@ npm run dev
 |--------|----------|-------------|
 | `GET` | `/api/shiftplan` |  |
 | `POST` | `/api/shiftplan/assign` |  |
+| `POST` | `/api/shiftplan/copy-year` |  |
 | `POST` | `/api/shiftplan/generate` |  |
 | `POST` | `/api/shiftplan/unassign` |  |
+| `GET` | `/api/shiftplan/year-summary` |  |
 
 ### Rotation API
 
