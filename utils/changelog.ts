@@ -31,20 +31,20 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-04-13',
-    title: 'Versionierung & Bugfixes',
-    changes: [
-      'Automatische Versionierung aus Git-Tags (kein manuelles Hochzählen mehr)',
-      'Versions-Anzeige funktioniert jetzt korrekt in Docker und CI',
-    ],
-  },
-    {
-    date: '2026-04-13',
     title: 'UI/UX',
     changes: [
       'Swipe-Navigation zwischen Kalenderwochen auf mobilen Geräten',
       'Drag & Drop Mitarbeiter-Zuordnung im Schichtplan und Rotationsmuster',
       'Mitarbeiter Pool zum Reinziehen im Rotationsmuster Editor',
       'Schichtpläne von einem Jahr in ein anderes kopieren',
+    ],
+  },
+  {
+    date: '2026-04-13',
+    title: 'Versionierung & Bugfixes',
+    changes: [
+      'Automatische Versionierung aus Git-Tags (kein manuelles Hochzählen mehr)',
+      'Versions-Anzeige funktioniert jetzt korrekt in Docker und CI',
     ],
   },
   {
@@ -57,18 +57,17 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-01-04',
+    date: '2026-04-05',
     title: 'Docker & CI/CD',
     changes: [
       'Docker-Support mit Multi-Stage Build',
-      'Docker Compose mit Traefik-Integration',
       'GitHub Actions CI-Pipeline (Tests, Build, Typecheck)',
       'Automatische README-Generierung nach erfolgreichem CI',
       'Automatisches Docker-Image Build & Push (GHCR)',
     ],
   },
   {
-    date: '2026-01-04',
+    date: '2026-03-15',
     title: 'Wochenvorschau & UI-Verbesserungen',
     changes: [
       'Vorschau der nächsten 3 Wochen auf einen Blick',
@@ -78,7 +77,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-02-03',
+    date: '2026-03-15',
     title: 'Feiertage & Schulferien',
     changes: [
       'Deutsche Feiertage und sächsische Feiertage via OpenHolidays API',
@@ -89,7 +88,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-01-03',
+    date: '2026-03-03',
     title: 'Sicherheits-Update',
     changes: [
       'Serverseitige API-Authentifizierung (war vorher nur im Frontend!)',
@@ -101,7 +100,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-01-03',
+    date: '2026-02-05',
     title: 'Rotationssystem',
     changes: [
       'Automatisches 7-Wochen-Rotationsmuster',
@@ -112,7 +111,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: '2026-01-01',
+    date: '2026-01-18',
     title: 'Erster Release',
     changes: [
       'Wochenbasierte Schichtplanung mit Kalenderwochen-Navigation',
