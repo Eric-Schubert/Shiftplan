@@ -81,9 +81,7 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
-          args: --context
-        env:
-          OUTPUT: __cliff_context.json
+          args: --context --output __cliff_context.json
 
       - name: Transform changelog to app format
         run: |

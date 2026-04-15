@@ -66,7 +66,7 @@ function transformReleases(context) {
           // Nur Commits mit einer zugewiesenen Gruppe (feat, fix, etc.)
           if (!commit.group) continue;
 
-          let msg = commit.message || "";
+          let msg = commit.raw_message || commit.message || "";
           msg = msg.split("\n")[0];
 
           // Nur Conventional Commits durchlassen
