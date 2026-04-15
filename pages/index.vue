@@ -42,7 +42,7 @@ const contentSlideClass = computed(() => {
 });
 
 // ============================================
-// GENERIERUNG
+// GENERIERUNG (nur Admin)
 // ============================================
 const generating = ref(false);
 
@@ -155,113 +155,113 @@ async function generateBulk() {
     <div
       class="swipe-content space-y-4"
       :class="contentSlideClass"
-      :style="isSwiping ? { opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
+      :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
     >
-      <!-- Admin Actions - Kompakt -->
-      <div v-if="authStore.isAuthenticated" class="flex gap-2">
-      <PrimeButton
-          label="Aus Muster füllen"
-          icon="pi pi-sync"
-          severity="secondary"
-          size="small"
-          :loading="generating"
-          @click="generateFromPattern"
-      />
-      <PrimeButton
-          icon="pi pi-calendar-plus"
-          severity="secondary"
-          size="small"
-          @click="showBulkDialog = true"
-          v-tooltip="'Mehrere Wochen generieren'"
-      />
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="pending" class="flex justify-center py-8">
-      <PrimeProgressSpinner />
-    </div>
-
-    <!-- Schichtplan -->
-    <div v-else-if="shiftplan">
-      <!-- Keine Schichten -->
-      <div
-          v-if="shiftplan.shifts.length === 0"
-          class="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow"
-      >
-        <Icon name="mdi:calendar-blank" class="text-4xl text-gray-400 mb-2" />
-        <h3 class="font-medium text-gray-900 dark:text-white">
-          Keine Schichten definiert
-        </h3>
-        <NuxtLink to="/settings" class="text-primary-light dark:text-primary-dark text-sm">
-          → Einstellungen
-        </NuxtLink>
-      </div>
-
-      <!-- Schichten Liste - Vertikal aber kompakt -->
-      <div v-else class="space-y-2">
-        <ShiftCard
-            v-for="shift in shiftplan.shifts"
-            :key="shift.shift_id"
-            :shift="shift"
-            :year="appStore.selectedYear"
-            :week="appStore.selectedWeek"
-            @updated="refresh"
+      <!-- Admin Actions - Nur für Admin (Generieren aus Muster) -->
+      <div v-if="authStore.isAdmin" class="flex gap-2">
+        <PrimeButton
+            label="Aus Muster füllen"
+            icon="pi pi-sync"
+            severity="secondary"
+            size="small"
+            :loading="generating"
+            @click="generateFromPattern"
+        />
+        <PrimeButton
+            icon="pi pi-calendar-plus"
+            severity="secondary"
+            size="small"
+            @click="showBulkDialog = true"
+            v-tooltip="'Mehrere Wochen generieren'"
         />
       </div>
 
-      <!-- Hinweis wenn leer - Kompakter -->
-      <div
-          v-if="shiftplan.shifts.length > 0 && shiftplan.shifts.every(s => s.assigned_staff.length === 0)"
-          class="text-center py-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 text-sm"
-      >
-        <span class="text-yellow-700 dark:text-yellow-300">
-          ⚠ Diese Woche ist noch nicht befüllt.
-        </span>
-        <span v-if="authStore.isAuthenticated" class="text-yellow-600 dark:text-yellow-400 ml-2">
-          → "Aus Muster füllen" klicken
-        </span>
+      <!-- Planner Hinweis -->
+      <div v-else-if="authStore.isPlanner" class="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2">
+        <Icon name="mdi:information" class="text-lg flex-shrink-0" />
+        <span>Planermodus — Du kannst Mitarbeiter zu Schichten zuweisen und entfernen</span>
       </div>
-    </div>
-    </div><!-- /swipe-content -->
 
-    <!-- Vorschau der nächsten Wochen -->
-    <WeekPreview />
+      <!-- Loading State -->
+      <div v-if="pending" class="flex justify-center py-8">
+        <PrimeProgressSpinner />
+      </div>
 
-    <!-- Bulk Generate Dialog -->
-    <PrimeDialog
-        v-model:visible="showBulkDialog"
-        header="Mehrere Wochen generieren"
-        modal
-        :style="{ width: '22rem' }"
-    >
-      <div class="space-y-3">
-        <p class="text-gray-600 dark:text-gray-400 text-sm">
-          Generiert ab KW {{ appStore.selectedWeek }}/{{ appStore.selectedYear }}
-        </p>
+      <!-- Schichtplan -->
+      <div v-else-if="shiftplan">
+        <!-- Keine Schichten -->
+        <div
+            v-if="shiftplan.shifts.length === 0"
+            class="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow"
+        >
+          <Icon name="mdi:calendar-blank" class="text-4xl text-gray-400 mb-2" />
+          <h3 class="font-medium text-gray-900 dark:text-white">
+            Keine Schichten definiert
+          </h3>
+          <NuxtLink v-if="authStore.isAdmin" to="/settings" class="text-primary-light dark:text-primary-dark text-sm">
+            → Einstellungen
+          </NuxtLink>
+        </div>
 
-        <div class="flex flex-col gap-2">
-          <label class="font-medium text-sm">Anzahl Wochen</label>
-          <PrimeInputNumber
-              v-model="bulkWeeks"
-              :min="1"
-              :max="52"
-              show-buttons
+        <!-- Schichten Liste - Vertikal aber kompakt -->
+        <div v-else class="space-y-2">
+          <ShiftCard
+              v-for="shift in shiftplan.shifts"
+              :key="shift.shift_id"
+              :shift="shift"
+              :year="appStore.selectedYear"
+              :week="appStore.selectedWeek"
+              @updated="refresh"
           />
         </div>
 
-        <div v-if="bulkResult" class="p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm">
-          <span class="text-green-700 dark:text-green-400">
-            ✓ {{ bulkResult.generated }} Wochen generiert!
+        <!-- Hinweis wenn leer - Kompakter -->
+        <div
+            v-if="shiftplan.shifts.length > 0 && shiftplan.shifts.every(s => s.assigned_staff.length === 0)"
+            class="text-center py-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 text-sm"
+        >
+          <span class="text-yellow-700 dark:text-yellow-300">
+            ⚠ Diese Woche ist noch nicht befüllt.
+            <template v-if="authStore.isAdmin">
+              <button class="underline hover:no-underline" @click="generateFromPattern">
+                Jetzt aus Muster generieren
+              </button>
+            </template>
           </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wochenvorschau -->
+    <WeekPreview />
+
+    <!-- Bulk Generate Dialog (Admin only) -->
+    <PrimeDialog
+        v-model:visible="showBulkDialog"
+        modal
+        header="Mehrere Wochen generieren"
+        :style="{ width: '400px' }"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Generiert ab KW {{ appStore.selectedWeek }}/{{ appStore.selectedYear }} aus dem Rotationsmuster.
+        </p>
+
+        <div>
+          <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Anzahl Wochen</label>
+          <PrimeInputNumber v-model="bulkWeeks" :min="1" :max="52" class="w-full" />
+        </div>
+
+        <div v-if="bulkResult" class="bg-green-50 dark:bg-green-900/20 rounded p-3 text-sm text-green-700 dark:text-green-300">
+          ✅ {{ bulkResult.generated }} Wochen erfolgreich generiert
         </div>
       </div>
 
       <template #footer>
-        <PrimeButton label="Schließen" text size="small" @click="showBulkDialog = false; bulkResult = null" />
+        <PrimeButton label="Abbrechen" severity="secondary" text @click="showBulkDialog = false" />
         <PrimeButton
             label="Generieren"
-            icon="pi pi-sparkles"
-            size="small"
+            icon="pi pi-sync"
             :loading="bulkGenerating"
             @click="generateBulk"
         />
@@ -269,27 +269,3 @@ async function generateBulk() {
     </PrimeDialog>
   </div>
 </template>
-
-<style scoped>
-.swipe-content {
-  transition: opacity 0.2s ease-out;
-}
-
-.content-slide-left {
-  animation: fadeSlideLeft 0.3s ease-out;
-}
-
-.content-slide-right {
-  animation: fadeSlideRight 0.3s ease-out;
-}
-
-@keyframes fadeSlideLeft {
-  0% { opacity: 0.4; transform: translateX(-15px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes fadeSlideRight {
-  0% { opacity: 0.4; transform: translateX(15px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-</style>

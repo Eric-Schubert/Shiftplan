@@ -15,7 +15,8 @@
     "postinstall": "nuxt prepare",
     "docs": "node scripts/generate-readme.js",
     "setup-hooks": "cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "version:check": "node scripts/resolve-version.js && cat .version"
+    "version:check": "node scripts/resolve-version.js && cat .version",
+    "changelog": "node scripts/generate-changelog.js"
   },
   "dependencies": {
     "@nuxt/icon": "^1.9.0",

@@ -1,9 +1,13 @@
 import { randomBytes } from "crypto";
+import type { UserRole } from "~/types/auth";
 
 // In-Memory Session Store (für Production: Redis empfohlen)
 const sessions = new Map<
   string,
   {
+    userId: number;
+    username: string;
+    role: UserRole;
     createdAt: number;
     expiresAt: number;
     lastActivity: number;
@@ -32,9 +36,9 @@ const BLOCK_DURATION = 15 * 60 * 1000; // 15 Minuten Sperre
 // ============================================
 
 /**
- * Erstellt eine neue Session und gibt den Token zurück
+ * Erstellt eine neue Session mit Benutzerinfo und gibt den Token zurück
  */
-export function createSession(): string {
+export function createSession(userId: number, username: string, role: UserRole): string {
   // Cleanup alte Sessions
   cleanupExpiredSessions();
 
@@ -42,6 +46,9 @@ export function createSession(): string {
   const now = Date.now();
 
   sessions.set(token, {
+    userId,
+    username,
+    role,
     createdAt: now,
     expiresAt: now + SESSION_DURATION,
     lastActivity: now,
@@ -77,6 +84,32 @@ export function validateSession(token: string | undefined): boolean {
 }
 
 /**
+ * Gibt die Session-Daten zurück (Rolle, User-ID, Username)
+ */
+export function getSessionData(token: string | undefined): {
+  userId: number;
+  username: string;
+  role: UserRole;
+} | null {
+  if (!token) return null;
+
+  const session = sessions.get(token);
+  if (!session) return null;
+
+  const now = Date.now();
+  if (now > session.expiresAt) {
+    sessions.delete(token);
+    return null;
+  }
+
+  return {
+    userId: session.userId,
+    username: session.username,
+    role: session.role,
+  };
+}
+
+/**
  * Löscht eine Session (Logout)
  */
 export function destroySession(token: string | undefined): boolean {
@@ -102,7 +135,6 @@ function cleanupExpiredSessions(): void {
 
 /**
  * Prüft ob eine IP blockiert ist und zählt Versuche
- * Gibt { allowed: boolean, remainingAttempts: number, blockedFor: number } zurück
  */
 export function checkRateLimit(ip: string): {
   allowed: boolean;
@@ -110,7 +142,7 @@ export function checkRateLimit(ip: string): {
   blockedForSeconds: number;
 } {
   const now = Date.now();
-  let record = loginAttempts.get(ip);
+  const record = loginAttempts.get(ip);
 
   // Kein Record = erster Versuch
   if (!record) {
@@ -147,12 +179,10 @@ export function recordFailedLogin(ip: string): void {
   let record = loginAttempts.get(ip);
 
   if (!record || now - record.firstAttempt > LOGIN_WINDOW) {
-    // Neues Zeitfenster starten
     record = { count: 1, firstAttempt: now, blockedUntil: null };
   } else {
     record.count++;
 
-    // Max erreicht? Blockieren
     if (record.count >= MAX_LOGIN_ATTEMPTS) {
       record.blockedUntil = now + BLOCK_DURATION;
     }

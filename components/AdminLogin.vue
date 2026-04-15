@@ -1,11 +1,16 @@
 <script setup lang="ts">
 const authStore = useAuthStore();
 
+const username = ref("");
 const password = ref("");
 const error = ref("");
 const loading = ref(false);
 
 async function handleLogin() {
+  if (!username.value) {
+    error.value = "Bitte Benutzername eingeben";
+    return;
+  }
   if (!password.value) {
     error.value = "Bitte Passwort eingeben";
     return;
@@ -15,9 +20,9 @@ async function handleLogin() {
   error.value = "";
 
   try {
-    const result = await authStore.login(password.value);
+    const result = await authStore.login(username.value, password.value);
     if (!result.success) {
-      error.value = result.message || "Falsches Passwort";
+      error.value = result.message || "Login fehlgeschlagen";
       password.value = "";
     }
   } catch {
@@ -36,22 +41,34 @@ async function handleLogin() {
           <Icon name="mdi:shield-lock" class="text-3xl text-primary-light dark:text-primary-dark" />
         </div>
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-          Admin-Bereich
+          Anmelden
         </h2>
         <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-          Bitte Admin-Passwort eingeben
+          Bitte Zugangsdaten eingeben
         </p>
       </div>
 
       <form class="space-y-4" @submit.prevent="handleLogin">
         <div>
           <PrimeInputText
+            v-model="username"
+            type="text"
+            placeholder="Benutzername"
+            class="w-full"
+            :disabled="loading"
+            autocomplete="username"
+          />
+        </div>
+
+        <div>
+          <PrimeInputText
             v-model="password"
             type="password"
-            placeholder="Passwort eingeben"
+            placeholder="Passwort"
             class="w-full"
             :class="{ 'p-invalid': error }"
             :disabled="loading"
+            autocomplete="current-password"
           />
           <small v-if="error" class="text-red-500 block mt-1 text-center">
             {{ error }}

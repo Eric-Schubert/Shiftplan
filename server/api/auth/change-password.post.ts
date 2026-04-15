@@ -1,4 +1,5 @@
 import { getAdminDatabase } from "~/server/utils/database";
+import { requireRole } from "~/server/utils/auth";
 import bcrypt from "bcryptjs";
 
 // Passwort-Policy Konfiguration
@@ -43,8 +44,8 @@ function validatePasswordStrength(password: string): { valid: boolean; message: 
 }
 
 export default defineEventHandler(async (event) => {
-  // HINWEIS: Authentifizierung wird durch server/middleware/auth.ts sichergestellt
-  // Dieser Endpoint ist nur erreichbar wenn eine gültige Session existiert
+  // Beide Rollen dürfen ihr eigenes Passwort ändern
+  const user = requireRole(event, ["admin", "planner"]);
 
   const body = await readBody<{ currentPassword: string; newPassword: string }>(event);
 
@@ -71,18 +72,18 @@ export default defineEventHandler(async (event) => {
   // CURRENT PASSWORD CHECK
   // ============================================
   const db = getAdminDatabase();
-  const setting = db
-    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
-    .get() as { value: string } | undefined;
+  const dbUser = db
+    .prepare("SELECT password_hash FROM users WHERE user_id = ?")
+    .get(user.userId) as { password_hash: string } | undefined;
 
-  if (!setting) {
+  if (!dbUser) {
     throw createError({
       statusCode: 500,
-      statusMessage: "Admin-Passwort nicht konfiguriert",
+      statusMessage: "Benutzer nicht gefunden",
     });
   }
 
-  const isCurrentValid = await bcrypt.compare(body.currentPassword, setting.value);
+  const isCurrentValid = await bcrypt.compare(body.currentPassword, dbUser.password_hash);
   if (!isCurrentValid) {
     throw createError({
       statusCode: 401,
@@ -93,9 +94,10 @@ export default defineEventHandler(async (event) => {
   // ============================================
   // UPDATE PASSWORD
   // ============================================
-  const hashedNewPassword = await bcrypt.hash(body.newPassword, 12); // Cost Factor erhöht auf 12
-  db.prepare("UPDATE settings SET value = ? WHERE key = 'admin_password'").run(
-    hashedNewPassword
+  const hashedNewPassword = await bcrypt.hash(body.newPassword, 12);
+  db.prepare("UPDATE users SET password_hash = ? WHERE user_id = ?").run(
+    hashedNewPassword,
+    user.userId
   );
 
   return { success: true };

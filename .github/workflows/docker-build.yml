@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
-    branches: ["master", "main"]
+    branches: ["master", "main", "RBA"]
   workflow_dispatch:
 
 env:
@@ -24,13 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Alle Tags laden für git describe
+          fetch-depth: 0  # Alle Tags + History für git-cliff
 
       - name: Resolve version from Git
         id: version
         run: |
           RAW=$(git describe --tags --always 2>/dev/null || echo "0.0.0")
-          # v1.3.0 → 1.3.0 | v1.3.0-14-gabcdef → 1.3.0+14 | abcdef → 0.0.0
           if [[ "$RAW" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+)-g[a-f0-9]+)?$ ]]; then
             BASE="${BASH_REMATCH[1]}"
             COMMITS="${BASH_REMATCH[3]}"
@@ -40,6 +39,20 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "✓ Resolved version: $VERSION"
+
+      - name: Generate changelog from git tags
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --context
+        env:
+          OUTPUT: __cliff_context.json
+
+      - name: Transform changelog to app format
+        run: |
+          node scripts/generate-changelog.js --from-context __cliff_context.json
+          echo "✓ Changelog generated:"
+          cat utils/changelog.generated.json | head -20
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -58,6 +71,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=RBA,enable=${{ github.ref == 'refs/heads/RBA' }}
             type=sha,prefix=
             type=raw,value=${{ steps.version.outputs.version }}
 

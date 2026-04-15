@@ -70,7 +70,7 @@ function onDragEnd() {
 /** Drop-Zone: Visuelles Feedback */
 function onDragOver(event: DragEvent) {
   if (isValidDrop(props.shift.shift_id)) {
-    event.preventDefault(); // Erlaubt den Drop
+    event.preventDefault();
     setHoverShift(props.shift.shift_id);
   }
 }
@@ -83,7 +83,6 @@ function onDragEnter(event: DragEvent) {
 }
 
 function onDragLeave(event: DragEvent) {
-  // Nur zurücksetzen wenn wir wirklich die Card verlassen
   const relatedTarget = event.relatedTarget as HTMLElement | null;
   const currentTarget = event.currentTarget as HTMLElement;
   if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
@@ -172,70 +171,53 @@ const isHovering = computed(() => {
           :key="staff.staff_id"
           class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300 transition-shadow"
           :class="{
-            'cursor-grab active:cursor-grabbing hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-600': authStore.isAuthenticated,
+            'cursor-grab active:cursor-grabbing hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-600': authStore.canEditShifts,
           }"
-          :draggable="authStore.isAuthenticated"
+          :draggable="authStore.canEditShifts"
           @dragstart="onDragStart($event, staff.staff_id, staff.name)"
           @dragend="onDragEnd"
       >
         <span class="truncate">{{ staff.name }}</span>
         <button
-            v-if="authStore.isAuthenticated"
+            v-if="authStore.canEditShifts"
             class="text-gray-400 hover:text-red-500"
             @click.stop="unassignStaff(staff.staff_id)"
         >
-          ×
+          <Icon name="mdi:close" class="text-xs" />
         </button>
       </span>
-      <span v-if="shift.assigned_staff.length === 0" class="text-xs text-gray-400 italic">
-        –
-      </span>
 
-      <!-- Drop-Hinweis während Drag -->
-      <span
-        v-if="isDropTarget && shift.assigned_staff.length === 0"
-        class="text-xs text-blue-500 dark:text-blue-400 italic"
+      <!-- Zuweisen Button -->
+      <button
+          v-if="authStore.canEditShifts"
+          class="inline-flex items-center gap-0.5 px-2 py-0.5 border border-dashed border-gray-300 dark:border-gray-600 rounded text-xs text-gray-400 hover:text-primary-light dark:hover:text-primary-dark hover:border-primary-light dark:hover:border-primary-dark transition-colors"
+          @click="showAssignDialog = true"
       >
-        Hier ablegen
-      </span>
+        <Icon name="mdi:plus" class="text-xs" />
+      </button>
     </div>
-
-    <!-- Add Button -->
-    <PrimeButton
-        v-if="authStore.isAuthenticated"
-        icon="pi pi-plus"
-        text
-        rounded
-        size="small"
-        class="flex-shrink-0"
-        @click="showAssignDialog = true"
-    />
 
     <!-- Assign Dialog -->
     <PrimeDialog
         v-model:visible="showAssignDialog"
-        :header="`${shift.name}`"
         modal
-        :style="{ width: '18rem' }"
+        :header="`${shift.name} - Mitarbeiter zuweisen`"
+        :style="{ width: '320px' }"
     >
-      <div class="space-y-1 max-h-60 overflow-y-auto">
-        <p v-if="availableStaff.length === 0" class="text-gray-500 text-sm py-2">
-          Alle Mitarbeiter sind bereits zugewiesen.
-        </p>
-        <div
-            v-for="staff in availableStaff"
-            :key="staff.staff_id"
-            class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-            @click="assignStaff(staff.staff_id)"
+      <div v-if="availableStaff.length === 0" class="text-center text-gray-500 py-4">
+        Alle Mitarbeiter sind bereits zugewiesen
+      </div>
+      <div v-else class="space-y-1">
+        <button
+            v-for="s in availableStaff"
+            :key="s.staff_id"
+            class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition-colors"
+            :disabled="assigning"
+            @click="assignStaff(s.staff_id)"
         >
-          <span class="text-gray-900 dark:text-white text-sm">{{ staff.name }}</span>
-          <PrimeTag
-              v-if="staff.is_parttime"
-              value="TZ"
-              severity="secondary"
-              class="text-xs"
-          />
-        </div>
+          {{ s.name }}
+          <span v-if="s.is_parttime" class="text-xs text-gray-400 ml-1">TZ</span>
+        </button>
       </div>
     </PrimeDialog>
   </div>

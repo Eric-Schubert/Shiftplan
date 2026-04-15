@@ -17,6 +17,7 @@ declare module 'vue' {
     PrimeInputNumber: typeof import('primevue/inputnumber')['default']
     PrimeInputText: typeof import('primevue/inputtext')['default']
     PrimeProgressSpinner: typeof import('primevue/progressspinner')['default']
+    PrimeSelect: typeof import('primevue/select')['default']
     PrimeTab: typeof import('primevue/tab')['default']
     PrimeTabList: typeof import('primevue/tablist')['default']
     PrimeTabPanel: typeof import('primevue/tabpanel')['default']

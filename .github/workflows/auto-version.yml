@@ -1,0 +1,53 @@
+name: Auto Version & Release
+
+on:
+  push:
+    branches: ["main", "master"]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - "LICENSE"
+      - ".gitignore"
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    # Nicht triggern wenn der Commit vom Bot selbst kommt
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine next version
+        id: version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Conventional Commits Mapping:
+          # feat: → minor (1.4.0 → 1.5.0)
+          # fix:  → patch (1.4.0 → 1.4.1)
+          # perf: → patch
+          # BREAKING CHANGE: → major (1.4.0 → 2.0.0)
+          default_bump: patch
+          tag_prefix: v
+          # Nur taggen wenn es relevante Commits gibt (feat/fix/perf)
+          release_branches: main,master
+          dry_run: false
+
+      - name: Summary
+        if: steps.version.outputs.new_tag
+        run: |
+          echo "### 🏷️ New Version" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Previous:** ${{ steps.version.outputs.previous_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**New:** ${{ steps.version.outputs.new_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Bump:** ${{ steps.version.outputs.release_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.version.outputs.changelog }}" >> $GITHUB_STEP_SUMMARY
