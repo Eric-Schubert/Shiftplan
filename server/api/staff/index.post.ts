@@ -1,7 +1,10 @@
 import { StaffService } from "~/server/services/staff.service";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateName, validateBoolean } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const body = await readBody(event);
 
   // Input-Validierung

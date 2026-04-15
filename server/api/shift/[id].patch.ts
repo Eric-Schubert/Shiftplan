@@ -1,4 +1,5 @@
 import { ShiftService } from "~/server/services/shift.service";
+import { requireAdmin } from "~/server/utils/auth";
 import {
   validateId,
   validateName,
@@ -9,6 +10,8 @@ import {
 } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const id = validateId(getRouterParam(event, "id"), "ID");
   const body = await readBody(event);
 

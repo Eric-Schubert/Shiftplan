@@ -2,6 +2,7 @@
 import type { RotationConfig } from "~/types/rotation";
 
 const dataStore = useDataStore();
+const { authFetch } = useAuthFetch();
 
 // ============================================
 // KONFIGURATION
@@ -252,7 +253,7 @@ const generatePreviewList = computed(() => {
 async function generatePreview() {
   generating.value = true;
   try {
-    generateResult.value = await $fetch("/api/shiftplan/generate", {
+    generateResult.value = await authFetch("/api/shiftplan/generate", {
       method: "POST",
       body: {
         year: previewYear.value,

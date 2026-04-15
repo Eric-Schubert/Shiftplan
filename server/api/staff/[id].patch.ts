@@ -1,7 +1,10 @@
 import { StaffService } from "~/server/services/staff.service";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateName, validateBoolean, validateId } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const id = validateId(getRouterParam(event, "id"), "ID");
   const body = await readBody(event);
 

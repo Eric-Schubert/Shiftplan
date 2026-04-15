@@ -1,7 +1,10 @@
 import { RotationService } from "~/server/services/rotation.service";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateId, validateInteger } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const body = await readBody(event);
 
   const pattern_week = validateInteger(body.pattern_week, "Musterwoche", {

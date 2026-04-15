@@ -5,6 +5,7 @@ import { useSwipe } from "~/composables/useSwipe";
 const appStore = useAppStore();
 const authStore = useAuthStore();
 const dataStore = useDataStore();
+const { authFetch } = useAuthFetch();
 
 // Erweiterter Typ mit pattern_week
 interface WeeklyShiftplanWithPattern extends WeeklyShiftplan {
@@ -49,7 +50,7 @@ const generating = ref(false);
 async function generateFromPattern() {
   generating.value = true;
   try {
-    await $fetch("/api/shiftplan/generate", {
+    await authFetch("/api/shiftplan/generate", {
       method: "POST",
       body: {
         year: appStore.selectedYear,
@@ -71,7 +72,7 @@ const bulkResult = ref<{ generated: number } | null>(null);
 async function generateBulk() {
   bulkGenerating.value = true;
   try {
-    bulkResult.value = await $fetch("/api/shiftplan/generate", {
+    bulkResult.value = await authFetch("/api/shiftplan/generate", {
       method: "POST",
       body: {
         year: appStore.selectedYear,

@@ -6,6 +6,7 @@ import {
   resetRateLimit,
   getClientIP,
 } from "~/server/utils/session";
+import type { SessionUser, UserWithHash } from "~/types/auth";
 import bcrypt from "bcryptjs";
 
 export default defineEventHandler(async (event) => {
@@ -26,12 +27,27 @@ export default defineEventHandler(async (event) => {
   // ============================================
   // INPUT VALIDATION
   // ============================================
-  const body = await readBody<{ password: string }>(event);
+  const body = await readBody<{ username: string; password: string }>(event);
+
+  if (!body.username || typeof body.username !== "string") {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Benutzername erforderlich",
+    });
+  }
 
   if (!body.password || typeof body.password !== "string") {
     throw createError({
       statusCode: 400,
       statusMessage: "Passwort erforderlich",
+    });
+  }
+
+  const username = body.username.trim();
+  if (username.length < 3 || username.length > 100) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "UngÃ¼ltige Zugangsdaten",
     });
   }
 
@@ -47,18 +63,15 @@ export default defineEventHandler(async (event) => {
   // PASSWORD CHECK
   // ============================================
   const db = getAdminDatabase();
-  const setting = db
-    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
-    .get() as { value: string } | undefined;
+  const user = db
+    .prepare(
+      "SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ? AND active = 1"
+    )
+    .get(username) as UserWithHash | undefined;
 
-  if (!setting) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Admin-Passwort nicht konfiguriert",
-    });
-  }
-
-  const isValid = await bcrypt.compare(body.password, setting.value);
+  const isValid = user
+    ? await bcrypt.compare(body.password, user.password_hash)
+    : false;
 
   if (!isValid) {
     // Fehlversuch registrieren
@@ -79,7 +92,12 @@ export default defineEventHandler(async (event) => {
   resetRateLimit(ip);
 
   // Session erstellen (inkl. CSRF-Token)
-  const { sessionToken, csrfToken } = createSession();
+  const sessionUser: SessionUser = {
+    userId: user!.user_id,
+    username: user!.username,
+    role: user!.role,
+  };
+  const { sessionToken, csrfToken } = createSession(sessionUser);
 
   // Session-Cookie setzen (HttpOnly — nicht per JS lesbar)
   setCookie(event, "session_token", sessionToken, {
@@ -103,5 +121,6 @@ export default defineEventHandler(async (event) => {
   // NUR success zurückgeben — KEIN Token im Body!
   return {
     success: true,
+    user: sessionUser,
   };
 });

@@ -12,6 +12,7 @@ const emit = defineEmits<{ updated: [] }>();
 
 const authStore = useAuthStore();
 const dataStore = useDataStore();
+const { authFetch } = useAuthFetch();
 const { state: dragState, startDrag, endDrag, setHoverShift, getPayload, isValidDrop } = useDragDrop();
 
 const showAssignDialog = ref(false);
@@ -26,7 +27,7 @@ const availableStaff = computed(() => {
 async function assignStaff(staffId: number) {
   assigning.value = true;
   try {
-    await $fetch("/api/shiftplan/assign", {
+    await authFetch("/api/shiftplan/assign", {
       method: "POST",
       body: { staff_id: staffId, shift_id: props.shift.shift_id, year: props.year, week: props.week },
     });
@@ -38,7 +39,7 @@ async function assignStaff(staffId: number) {
 }
 
 async function unassignStaff(staffId: number) {
-  await $fetch("/api/shiftplan/unassign", {
+  await authFetch("/api/shiftplan/unassign", {
     method: "POST",
     body: { staff_id: staffId, shift_id: props.shift.shift_id, year: props.year, week: props.week },
   });
@@ -102,7 +103,7 @@ async function onDrop(event: DragEvent) {
 
   try {
     // 1. Von alter Schicht entfernen
-    await $fetch("/api/shiftplan/unassign", {
+    await authFetch("/api/shiftplan/unassign", {
       method: "POST",
       body: {
         staff_id: payload.staffId,
@@ -113,7 +114,7 @@ async function onDrop(event: DragEvent) {
     });
 
     // 2. Zu neuer Schicht zuweisen
-    await $fetch("/api/shiftplan/assign", {
+    await authFetch("/api/shiftplan/assign", {
       method: "POST",
       body: {
         staff_id: payload.staffId,

@@ -1,15 +1,45 @@
 import { defineStore } from "pinia";
+import type { SessionUser } from "~/types/auth";
+
+type AuthSessionResponse =
+  | { authenticated: false }
+  | { authenticated: true; user: SessionUser; csrfToken?: string | null };
+
+type LoginResponse = {
+  success: boolean;
+  user?: SessionUser;
+};
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    isAdmin: false,
+    user: null as SessionUser | null,
     isChecking: true,
     csrfToken: null as string | null,
   }),
 
   getters: {
     isAuthenticated(): boolean {
-      return this.isAdmin;
+      return this.user !== null;
+    },
+
+    isAdmin(): boolean {
+      return this.user?.role === "admin";
+    },
+
+    isPlanner(): boolean {
+      return this.user?.role === "planner";
+    },
+
+    canEditShifts(): boolean {
+      return this.user?.role === "admin" || this.user?.role === "planner";
+    },
+
+    canEditSettings(): boolean {
+      return this.user?.role === "admin";
+    },
+
+    username(): string {
+      return this.user?.username || "";
     },
   },
 
@@ -29,23 +59,20 @@ export const useAuthStore = defineStore("auth", {
     async checkSession(): Promise<boolean> {
       this.isChecking = true;
       try {
-        const result = await $fetch<{ authenticated: boolean; csrfToken?: string }>(
-          "/api/auth/session"
-        );
-        this.isAdmin = result.authenticated;
+        const result = await $fetch<AuthSessionResponse>("/api/auth/session");
 
-        if (result.authenticated && result.csrfToken) {
-          this.csrfToken = result.csrfToken;
+        if (!result.authenticated) {
+          this.user = null;
+          this.csrfToken = null;
+          return false;
         }
 
-        // Fallback: CSRF-Token aus Cookie lesen
-        if (result.authenticated && !this.csrfToken) {
-          this.csrfToken = this._readCsrfCookie();
-        }
+        this.user = result.user;
+        this.csrfToken = result.csrfToken || this._readCsrfCookie();
 
-        return result.authenticated;
+        return true;
       } catch {
-        this.isAdmin = false;
+        this.user = null;
         this.csrfToken = null;
         return false;
       } finally {
@@ -56,29 +83,36 @@ export const useAuthStore = defineStore("auth", {
     /**
      * Login mit Passwort
      */
-    async login(password: string): Promise<{ success: boolean; message?: string }> {
+    async login(
+      username: string,
+      password: string
+    ): Promise<{ success: boolean; message?: string }> {
       try {
-        const result = await $fetch<{ success: boolean }>("/api/auth/login", {
+        const result = await $fetch<LoginResponse>("/api/auth/login", {
           method: "POST",
-          body: { password },
+          body: { username, password },
         });
 
-        if (result.success) {
-          this.isAdmin = true;
+        if (result.success && result.user) {
+          this.user = result.user;
 
           // CSRF-Token aus Cookie lesen (wurde vom Server gesetzt)
           this.csrfToken = this._readCsrfCookie();
 
           // Fallback: Session-Endpoint holen
           if (!this.csrfToken) {
-            const session = await $fetch<{ csrfToken?: string }>("/api/auth/session");
-            this.csrfToken = session.csrfToken || null;
+            const session = await $fetch<AuthSessionResponse>("/api/auth/session");
+            this.csrfToken = session.authenticated ? session.csrfToken || null : null;
           }
 
           return { success: true };
         }
+        this.user = null;
+        this.csrfToken = null;
         return { success: false, message: "Login fehlgeschlagen" };
       } catch (error: any) {
+        this.user = null;
+        this.csrfToken = null;
         const message = error.data?.statusMessage || error.data?.message || "Login fehlgeschlagen";
         return { success: false, message };
       }
@@ -96,7 +130,7 @@ export const useAuthStore = defineStore("auth", {
       } catch {
         // Ignorieren - Cookie wird trotzdem gelöscht
       } finally {
-        this.isAdmin = false;
+        this.user = null;
         this.csrfToken = null;
       }
     },

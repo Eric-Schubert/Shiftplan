@@ -1,7 +1,10 @@
 import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateYear, validateWeek, validateInteger } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const body = await readBody(event);
 
   // Input-Validierung

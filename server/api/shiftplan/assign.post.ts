@@ -1,7 +1,10 @@
 import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { requirePlanner } from "~/server/utils/auth";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requirePlanner(event);
+
   const body = await readBody(event);
 
   // Input-Validierung

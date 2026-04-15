@@ -1,13 +1,18 @@
-import { validateSession, getSessionToken, getCsrfToken } from "~/server/utils/session";
+import { getSessionData, getSessionToken, getCsrfToken } from "~/server/utils/session";
 
 export default defineEventHandler((event) => {
   const token = getSessionToken(event);
-  const isValid = validateSession(token);
+  const user = getSessionData(token);
+
+  if (!user) {
+    return { authenticated: false };
+  }
 
   return {
-    authenticated: isValid,
+    authenticated: true,
+    user,
     // CSRF-Token nur zurückgeben wenn Session gültig ist
     // (Frontend braucht es nach Page-Refresh)
-    ...(isValid ? { csrfToken: getCsrfToken(token) } : {}),
+    csrfToken: getCsrfToken(token),
   };
 });

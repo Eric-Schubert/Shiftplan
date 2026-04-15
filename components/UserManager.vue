@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { User, UserRole } from "~/types/auth";
 
+const { authFetch } = useAuthFetch();
 const users = ref<User[]>([]);
 const loading = ref(true);
 
@@ -31,7 +32,7 @@ async function createUser() {
 
   creating.value = true;
   try {
-    await $fetch("/api/auth/users", {
+    await authFetch("/api/auth/users", {
       method: "POST",
       body: newUser.value,
     });
@@ -50,7 +51,7 @@ async function deleteUser(user: User) {
   if (!confirm(`Benutzer "${user.username}" wirklich löschen?`)) return;
 
   try {
-    await $fetch(`/api/auth/users/${user.user_id}`, { method: "DELETE" });
+    await authFetch(`/api/auth/users/${user.user_id}`, { method: "DELETE" });
     await fetchUsers();
   } catch (error: any) {
     alert(error.data?.statusMessage || "Fehler beim Löschen");

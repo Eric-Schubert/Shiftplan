@@ -1,4 +1,5 @@
-import { randomBytes } from "crypto";
+import { randomBytes, timingSafeEqual } from "crypto";
+import type { SessionUser } from "~/types/auth";
 
 // ============================================
 // SESSION STORE (In-Memory — für Production: Redis/SQLite empfohlen)
@@ -10,6 +11,7 @@ const sessions = new Map<
     expiresAt: number;
     lastActivity: number;
     csrfToken: string;
+    user: SessionUser;
   }
 >();
 
@@ -37,7 +39,7 @@ const BLOCK_DURATION = 15 * 60 * 1000; // 15 Minuten Sperre
 /**
  * Erstellt eine neue Session und gibt den Token zurück
  */
-export function createSession(): { sessionToken: string; csrfToken: string } {
+export function createSession(user: SessionUser): { sessionToken: string; csrfToken: string } {
   // Cleanup alte Sessions
   cleanupExpiredSessions();
 
@@ -50,6 +52,7 @@ export function createSession(): { sessionToken: string; csrfToken: string } {
     expiresAt: now + SESSION_DURATION,
     lastActivity: now,
     csrfToken,
+    user,
   });
 
   return { sessionToken, csrfToken };
@@ -59,17 +62,24 @@ export function createSession(): { sessionToken: string; csrfToken: string } {
  * Validiert einen Session-Token
  */
 export function validateSession(token: string | undefined): boolean {
-  if (!token) return false;
+  return getSessionData(token) !== null;
+}
+
+/**
+ * Holt den Benutzer zu einem gÃ¼ltigen Session-Token.
+ */
+export function getSessionData(token: string | undefined): SessionUser | null {
+  if (!token) return null;
 
   const session = sessions.get(token);
-  if (!session) return false;
+  if (!session) return null;
 
   const now = Date.now();
 
   // Session abgelaufen?
   if (now > session.expiresAt) {
     sessions.delete(token);
-    return false;
+    return null;
   }
 
   // Session verlängern bei Aktivität
@@ -78,7 +88,7 @@ export function validateSession(token: string | undefined): boolean {
     session.expiresAt = now + SESSION_DURATION;
   }
 
-  return true;
+  return session.user;
 }
 
 /**
@@ -93,10 +103,15 @@ export function validateCsrfToken(
   const session = sessions.get(sessionToken);
   if (!session) return false;
 
+  const now = Date.now();
+  if (now > session.expiresAt) {
+    sessions.delete(sessionToken);
+    return false;
+  }
+
   // Timing-safe comparison um Timing-Attacks zu verhindern
   if (session.csrfToken.length !== csrfToken.length) return false;
 
-  const { timingSafeEqual } = require("crypto");
   try {
     return timingSafeEqual(
       Buffer.from(session.csrfToken),

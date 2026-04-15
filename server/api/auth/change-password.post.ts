@@ -1,4 +1,5 @@
 import { getAdminDatabase } from "~/server/utils/database";
+import { getSessionUser } from "~/server/utils/auth";
 import bcrypt from "bcryptjs";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -27,6 +28,11 @@ function validatePasswordStrength(password: string): { valid: boolean; message: 
 }
 
 export default defineEventHandler(async (event) => {
+  const currentUser = getSessionUser(event);
+  if (!currentUser) {
+    throw createError({ statusCode: 401, statusMessage: "Nicht autorisiert - Bitte einloggen" });
+  }
+
   const body = await readBody<{ currentPassword: string; newPassword: string }>(event);
 
   if (!body.currentPassword || typeof body.currentPassword !== "string") {
@@ -47,21 +53,24 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getAdminDatabase();
-  const setting = db
-    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
-    .get() as { value: string } | undefined;
+  const user = db
+    .prepare("SELECT password_hash FROM users WHERE user_id = ? AND active = 1")
+    .get(currentUser.userId) as { password_hash: string } | undefined;
 
-  if (!setting) {
-    throw createError({ statusCode: 500, statusMessage: "Admin-Passwort nicht konfiguriert" });
+  if (!user) {
+    throw createError({ statusCode: 401, statusMessage: "Nicht autorisiert - Bitte einloggen" });
   }
 
-  const isCurrentValid = await bcrypt.compare(body.currentPassword, setting.value);
+  const isCurrentValid = await bcrypt.compare(body.currentPassword, user.password_hash);
   if (!isCurrentValid) {
     throw createError({ statusCode: 401, statusMessage: "Passwort-Änderung fehlgeschlagen" });
   }
 
   const hashedNewPassword = await bcrypt.hash(body.newPassword, 12);
-  db.prepare("UPDATE settings SET value = ? WHERE key = 'admin_password'").run(hashedNewPassword);
+  db.prepare("UPDATE users SET password_hash = ? WHERE user_id = ?").run(
+    hashedNewPassword,
+    currentUser.userId
+  );
 
   return { success: true };
 });

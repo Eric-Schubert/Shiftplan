@@ -1,7 +1,10 @@
 import { getDatabase } from "~/server/utils/database";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateYear, validateBoolean } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const body = await readBody(event);
 
   // ============================================

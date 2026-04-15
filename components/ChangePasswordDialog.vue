@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { authFetch } = useAuthFetch();
 const visible = defineModel<boolean>("visible");
 
 const currentPassword = ref("");
@@ -30,7 +31,7 @@ async function changePassword() {
   loading.value = true;
 
   try {
-    await $fetch("/api/auth/change-password", {
+    await authFetch("/api/auth/change-password", {
       method: "POST",
       body: {
         currentPassword: currentPassword.value,

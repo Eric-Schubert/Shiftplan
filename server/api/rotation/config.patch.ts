@@ -1,7 +1,10 @@
 import { RotationService } from "~/server/services/rotation.service";
+import { requireAdmin } from "~/server/utils/auth";
 import { validateInteger, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
+  requireAdmin(event);
+
   const body = await readBody(event);
 
   const cycle_length = validateInteger(body.cycle_length, "Zykluslänge", {

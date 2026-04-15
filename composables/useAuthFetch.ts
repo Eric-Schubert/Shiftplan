@@ -18,7 +18,7 @@ export function useAuthFetch() {
     url: string,
     options: Parameters<typeof $fetch>[1] = {}
   ): Promise<T> {
-    const method = (options.method || "GET").toUpperCase();
+    const method = String(options.method || "GET").toUpperCase();
     const needsCsrf = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
 
     const headers: Record<string, string> = {
@@ -29,10 +29,10 @@ export function useAuthFetch() {
       headers["x-csrf-token"] = authStore.csrfToken;
     }
 
-    return $fetch<T>(url, {
+    return (await $fetch<T>(url, {
       ...options,
       headers,
-    });
+    })) as T;
   }
 
   return { authFetch };

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const authStore = useAuthStore();
+const { authFetch } = useAuthFetch();
 
 const showDialog = ref(false);
 const sourceYear = ref(new Date().getFullYear());
@@ -66,7 +67,7 @@ async function executeCopy() {
   result.value = null;
 
   try {
-    result.value = await $fetch("/api/shiftplan/copy-year", {
+    result.value = await authFetch("/api/shiftplan/copy-year", {
       method: "POST",
       body: {
         sourceYear: sourceYear.value,
