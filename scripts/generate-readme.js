@@ -15,6 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { updateReadme as updateGeneratedReadme } from './readme-generator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -343,4 +344,4 @@ function escapeRegex(string) {
 // ============================================
 
 console.log('🔄 Generating README content...\n');
-updateReadme();
+updateGeneratedReadme();

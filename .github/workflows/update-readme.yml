@@ -5,11 +5,15 @@ on:
   workflow_run:
     workflows: ["CI"]  # Runs after CI workflow completes
     types: [completed]
-    branches: [master]
+    branches: [master, main]
 
 # Add write permissions for the token
 permissions:
   contents: write
+
+concurrency:
+  group: readme-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   update-readme:
@@ -22,6 +26,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}
+          fetch-depth: 2
+
+      - name: Check relevant changes
+        id: relevance
+        if: github.event_name == 'workflow_run'
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -E '^(components/|server/api/|server/middleware/|server/utils/auth\.ts|stores/|types/|scripts/(generate-readme|readme-generator)\.js|README\.md|\.github/workflows/)'; then
+            echo "relevant=true" >> $GITHUB_OUTPUT
+          else
+            echo "relevant=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,10 +45,12 @@ jobs:
           node-version: '20'
       
       - name: Generate README
-        run: node scripts/generate-readme.js
+        if: steps.relevance.outputs.relevant != 'false'
+        run: npm run docs
       
       - name: Check for changes
         id: changes
+        if: steps.relevance.outputs.relevant != 'false'
         run: |
           if git diff --quiet README.md; then
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -41,7 +59,7 @@ jobs:
           fi
       
       - name: Commit and push
-        if: steps.changes.outputs.changed == 'true'
+        if: steps.relevance.outputs.relevant != 'false' && steps.changes.outputs.changed == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
