@@ -1,10 +1,11 @@
 import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler((event) => {
   const query = getQuery(event);
-  const year = Number(query.year) || new Date().getFullYear();
-  const week = Number(query.week) || getISOWeek(new Date());
-  return ShiftplanService.getWeeklyPlan(year, week);
+  const year = validateYear(query.year, "Jahr") || new Date().getFullYear();
+  const week = validateWeek(query.week, "Woche") || getISOWeek(new Date());
+  return ShiftplanService.getWeeklyPlanReadOnly(year, week);
 });
 
 function getISOWeek(date: Date): number {

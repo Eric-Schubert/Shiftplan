@@ -30,6 +30,18 @@ export const ShiftplanService = {
   },
 
   /**
+   * Holt eine Woche ohne sie anzulegen.
+   */
+  getWeek(year: number, weekNumber: number): Week | null {
+    const db = getDatabase();
+    const week = db
+      .prepare("SELECT * FROM weeks WHERE year = ? AND week_number = ?")
+      .get(year, weekNumber) as Week | undefined;
+
+    return week || null;
+  },
+
+  /**
    * Holt den Schichtplan für eine bestimmte Woche
    */
   getWeeklyPlan(year: number, weekNumber: number): WeeklyShiftplan & { pattern_week: number } {
@@ -48,6 +60,44 @@ export const ShiftplanService = {
           WHERE sa.shift_id = ? AND sa.week_id = ?
         `)
         .all(shift.shift_id, week.week_id) as Staff[];
+
+      return {
+        ...shift,
+        assigned_staff: assignments,
+      };
+    });
+
+    return {
+      week,
+      shifts: shiftsWithStaff,
+      pattern_week: patternWeek,
+    };
+  },
+
+  /**
+   * Holt den Schichtplan read-only, ohne fehlende Wochen anzulegen.
+   */
+  getWeeklyPlanReadOnly(year: number, weekNumber: number): WeeklyShiftplan & { pattern_week: number } {
+    const db = getDatabase();
+    const existingWeek = this.getWeek(year, weekNumber);
+    const week: Week = existingWeek || {
+      week_id: 0,
+      year,
+      week_number: weekNumber,
+    };
+    const shifts = ShiftService.getActive();
+    const patternWeek = RotationService.calculatePatternWeek(year, weekNumber);
+
+    const shiftsWithStaff: ShiftWithStaff[] = shifts.map((shift) => {
+      const assignments = existingWeek
+        ? db
+            .prepare(`
+              SELECT s.* FROM staff s
+              JOIN shift_assignments sa ON s.staff_id = sa.staff_id
+              WHERE sa.shift_id = ? AND sa.week_id = ?
+            `)
+            .all(shift.shift_id, existingWeek.week_id) as Staff[]
+        : [];
 
       return {
         ...shift,
