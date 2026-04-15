@@ -50,7 +50,9 @@ function isConventionalCommit(message) {
  * git-cliff Context in App-Format transformieren
  */
 function transformReleases(context) {
-  return context
+  const releases = Array.isArray(context) ? context : context.releases || [];
+
+  return releases
       .filter((release) => release.version)
       .map((release) => {
         const date = new Date(release.timestamp * 1000)

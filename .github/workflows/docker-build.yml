@@ -25,6 +25,43 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Alle Tags + History für git-cliff
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Fetch latest tags
+        run: git fetch --tags --force
+
+      - name: Wait for release tag
+        if: >-
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'push' &&
+          (
+            github.event.workflow_run.head_branch == 'master' ||
+            github.event.workflow_run.head_branch == 'main'
+          )
+        env:
+          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
+        run: |
+          FIRST_LINE="${HEAD_MESSAGE%%$'\n'*}"
+
+          if [[ ! "$FIRST_LINE" =~ ^(feat|fix|perf|security)(\(.+\))?!?:[[:space:]] ]]; then
+            echo "No release tag expected for this commit type."
+            exit 0
+          fi
+
+          for attempt in {1..24}; do
+            git fetch --tags --force
+            TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
+            if [[ -n "$TAG" ]]; then
+              echo "Found release tag: $TAG"
+              exit 0
+            fi
+
+            echo "Waiting for auto-version tag ($attempt/24)..."
+            sleep 5
+          done
+
+          echo "::error::Release tag for this changelog-visible commit was not created in time."
+          exit 1
 
       - name: Resolve version from Git
         id: version
@@ -54,6 +91,32 @@ jobs:
           echo "✓ Changelog generated:"
           cat utils/changelog.generated.json | head -20
 
+      - name: Verify generated changelog
+        if: >-
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'push' &&
+          (
+            github.event.workflow_run.head_branch == 'master' ||
+            github.event.workflow_run.head_branch == 'main'
+          )
+        env:
+          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
+        run: |
+          FIRST_LINE="${HEAD_MESSAGE%%$'\n'*}"
+
+          if [[ ! "$FIRST_LINE" =~ ^(feat|fix|perf|security)(\(.+\))?!?:[[:space:]] ]]; then
+            echo "No visible changelog entry expected for this commit type."
+            exit 0
+          fi
+
+          COUNT=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('utils/changelog.generated.json','utf8')); console.log(Array.isArray(data) ? data.length : 0)")
+          if [[ "$COUNT" -eq 0 ]]; then
+            echo "::error::Generated changelog is empty for a changelog-visible commit."
+            exit 1
+          fi
+
+          echo "Generated changelog contains $COUNT release entries."
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -70,8 +133,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=RBA,enable=${{ github.ref == 'refs/heads/RBA' }}
+            type=raw,value=latest,enable=${{ (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')) || (github.event_name == 'workflow_run' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'main')) }}
+            type=raw,value=RBA,enable=${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/RBA') || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'RBA') }}
             type=sha,prefix=
             type=raw,value=${{ steps.version.outputs.version }}
 

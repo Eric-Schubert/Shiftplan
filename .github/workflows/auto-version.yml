@@ -15,7 +15,22 @@ permissions:
 jobs:
   version-and-release:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: >-
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      (
+        startsWith(github.event.head_commit.message, 'feat:') ||
+        startsWith(github.event.head_commit.message, 'feat(') ||
+        startsWith(github.event.head_commit.message, 'feat!:') ||
+        startsWith(github.event.head_commit.message, 'fix:') ||
+        startsWith(github.event.head_commit.message, 'fix(') ||
+        startsWith(github.event.head_commit.message, 'fix!:') ||
+        startsWith(github.event.head_commit.message, 'perf:') ||
+        startsWith(github.event.head_commit.message, 'perf(') ||
+        startsWith(github.event.head_commit.message, 'perf!:') ||
+        startsWith(github.event.head_commit.message, 'security:') ||
+        startsWith(github.event.head_commit.message, 'security(') ||
+        startsWith(github.event.head_commit.message, 'security!:')
+      )
 
     steps:
       - name: Checkout

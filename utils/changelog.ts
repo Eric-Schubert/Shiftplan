@@ -1,11 +1,9 @@
 /**
- * Changelog-Daten für das Update-Banner
+ * Changelog-Daten fuer das Update-Banner.
  *
- * AUTOMATISCH: Einträge werden aus Git-Tags via git-cliff generiert.
- * LEGACY: Ältere Einträge (vor der Automatisierung) stehen als Fallback unten.
- *
- * Die Generierung läuft über: npm run changelog
- * Im CI wird das automatisch vor dem Build ausgeführt.
+ * Eintraege werden im Docker-Build aus Git-Tags via git-cliff generiert.
+ * Die App zeigt nur diese generierten Eintraege; wenn keine vorhanden sind,
+ * bleibt der Versionsverlauf leer.
  */
 
 export interface ChangelogEntry {
@@ -14,19 +12,22 @@ export interface ChangelogEntry {
   changes: string[]
 }
 
-// Automatisch generierte Einträge (aus git-cliff via scripts/generate-changelog.js)
+// Automatisch generierte Eintraege (aus git-cliff via scripts/generate-changelog.js)
 let generatedEntries: ChangelogEntry[] = []
 try {
-  // @ts-ignore — Datei wird beim Build generiert, existiert nicht im Repo
+  // @ts-ignore - Datei wird beim Docker-Build generiert.
   generatedEntries = await import('./changelog.generated.json').then(m => m.default || m)
 } catch {
-  // Datei existiert noch nicht (erster Dev-Start oder git-cliff nicht installiert)
+  // Datei existiert noch nicht (erster Dev-Start oder fehlgeschlagene Generierung).
   generatedEntries = []
 }
 
 /**
- * Legacy-Einträge: Vor der git-cliff Automatisierung manuell gepflegt.
- * Diese werden angezeigt wenn kein generierter Eintrag mit gleichem Datum existiert.
+ * Archiv-Eintraege aus der Zeit vor der automatischen Release-Generierung.
+ *
+ * Diese Eintraege werden nur an einen erfolgreich generierten Changelog
+ * angehaengt. Sie sind kein Fallback, damit ein kaputter Build nicht so wirkt,
+ * als waere der Versionsverlauf aktuell.
  */
 const LEGACY_CHANGELOG: ChangelogEntry[] = [
   {
@@ -129,18 +130,13 @@ const LEGACY_CHANGELOG: ChangelogEntry[] = [
   },
 ]
 
-/**
- * Finaler Changelog: Generierte Einträge haben Vorrang.
- * Legacy-Einträge werden nur angehängt wenn kein generierter Eintrag
- * mit gleichem Datum existiert.
- */
 function mergeChangelogs(generated: ChangelogEntry[], legacy: ChangelogEntry[]): ChangelogEntry[] {
-  if (generated.length === 0) return legacy
+  if (generated.length === 0) return []
 
-  const generatedDates = new Set(generated.map(e => e.date))
-  const uniqueLegacy = legacy.filter(e => !generatedDates.has(e.date))
+  const seen = new Set(generated.map(entry => `${entry.date}:${entry.title.toLowerCase()}`))
+  const archivedEntries = legacy.filter(entry => !seen.has(`${entry.date}:${entry.title.toLowerCase()}`))
 
-  return [...generated, ...uniqueLegacy]
+  return [...generated, ...archivedEntries].sort((a, b) => b.date.localeCompare(a.date))
 }
 
 export const CHANGELOG: ChangelogEntry[] = mergeChangelogs(generatedEntries, LEGACY_CHANGELOG)
