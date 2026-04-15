@@ -38,8 +38,8 @@ export class AuditService {
     }
 
     db.prepare(`
-      INSERT INTO audit_log (user_id, username, action, year, week_number, shift_id, shift_name, staff_id, staff_name, reason)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO audit_log (user_id, username, action, year, week_number, shift_id, shift_name, staff_id, staff_name, reason, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).run(
       params.userId,
       params.username,

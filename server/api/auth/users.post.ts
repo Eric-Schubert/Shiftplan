@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
 
   const result = db
     .prepare(
-      "INSERT INTO users (username, password_hash, role, active) VALUES (?, ?, ?, 1)"
+      "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))"
     )
     .run(body.username, passwordHash, body.role);
 
