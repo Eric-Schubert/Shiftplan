@@ -81,6 +81,23 @@ export function setupTestDatabase(): DatabaseType {
     )
   `);
 
+  testDb.exec(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      username TEXT NOT NULL,
+      action TEXT NOT NULL,
+      year INTEGER NOT NULL,
+      week_number INTEGER NOT NULL,
+      shift_id INTEGER,
+      shift_name TEXT,
+      staff_id INTEGER,
+      staff_name TEXT,
+      reason TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
   return testDb;
 }
 
@@ -102,29 +119,4 @@ export function closeTestDatabase(): void {
     testDb.close();
     testDb = null;
   }
-}
-
-/**
- * Alias für closeTestDatabase (Kompatibilität)
- */
-export function cleanupTestDatabase(): void {
-  closeTestDatabase();
-}
-
-/**
- * Fügt Demo-Daten für Tests ein
- */
-export function insertTestData(db: DatabaseType): void {
-  // Staff
-  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Max Mustermann", 1, 0);
-  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Erika Musterfrau", 1, 0);
-  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Hans Teilzeit", 1, 1);
-
-  // Shifts
-  db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Frühschicht", "06:00", "14:00", "#22c55e", 2, 1);
-  db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Spätschicht", "14:00", "22:00", "#3b82f6", 2, 2);
-  db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Nachtschicht", "22:00", "06:00", "#8b5cf6", 1, 3);
-
-  // Rotation config
-  db.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)").run();
 }

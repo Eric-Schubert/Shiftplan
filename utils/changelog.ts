@@ -28,6 +28,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: '2026-04-15',
+    title: 'Role-Based Access Control',
+    changes: [
+      'New planner role for quick shift reassignments without full admin access',
+      'User management in admin settings to create and manage planner accounts',
+      'Audit log tracking all manual shift changes with user, timestamp and reason',
+      'Login now requires username and password',
+      'Role-based UI: planners see edit controls, admins see full settings',
+    ],
+  },
+  {
     date: '2026-04-13',
     title: 'UI/UX',
     changes: [

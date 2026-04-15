@@ -7,6 +7,7 @@ import {
   getClientIP,
 } from "~/server/utils/session";
 import bcrypt from "bcryptjs";
+import type { UserWithHash } from "~/types/auth";
 
 export default defineEventHandler(async (event) => {
   const ip = getClientIP(event);
@@ -26,41 +27,52 @@ export default defineEventHandler(async (event) => {
   // ============================================
   // INPUT VALIDATION
   // ============================================
-  const body = await readBody<{ password: string }>(event);
+  const body = await readBody<{ username: string; password: string }>(event);
 
-  if (!body.password) {
+  if (!body.username || !body.password) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Passwort erforderlich",
+      statusMessage: "Benutzername und Passwort erforderlich",
+    });
+  }
+
+  // ============================================
+  // USER LOOKUP
+  // ============================================
+  const db = getAdminDatabase();
+  const user = db
+    .prepare("SELECT * FROM users WHERE username = ? AND active = 1")
+    .get(body.username) as UserWithHash | undefined;
+
+  if (!user) {
+    // Fehlversuch registrieren (gleiche Meldung wie bei falschem Passwort)
+    recordFailedLogin(ip);
+
+    const remaining = rateLimit.remainingAttempts - 1;
+    const message =
+      remaining > 0
+        ? `Ungültige Anmeldedaten. Noch ${remaining} Versuche.`
+        : "Ungültige Anmeldedaten. Account temporär gesperrt.";
+
+    throw createError({
+      statusCode: 401,
+      statusMessage: message,
     });
   }
 
   // ============================================
   // PASSWORD CHECK
   // ============================================
-  const db = getAdminDatabase();
-  const setting = db
-    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
-    .get() as { value: string } | undefined;
-
-  if (!setting) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Admin-Passwort nicht konfiguriert",
-    });
-  }
-
-  const isValid = await bcrypt.compare(body.password, setting.value);
+  const isValid = await bcrypt.compare(body.password, user.password_hash);
 
   if (!isValid) {
-    // Fehlversuch registrieren
     recordFailedLogin(ip);
 
     const remaining = rateLimit.remainingAttempts - 1;
     const message =
       remaining > 0
-        ? `Falsches Passwort. Noch ${remaining} Versuche.`
-        : "Falsches Passwort. Account temporär gesperrt.";
+        ? `Ungültige Anmeldedaten. Noch ${remaining} Versuche.`
+        : "Ungültige Anmeldedaten. Account temporär gesperrt.";
 
     throw createError({
       statusCode: 401,
@@ -71,12 +83,10 @@ export default defineEventHandler(async (event) => {
   // ============================================
   // LOGIN ERFOLGREICH
   // ============================================
-
-  // Rate Limit zurücksetzen
   resetRateLimit(ip);
 
-  // Session erstellen
-  const sessionToken = createSession();
+  // Session erstellen mit Benutzerinfo
+  const sessionToken = createSession(user.user_id, user.username, user.role);
 
   // Cookie setzen (HttpOnly für Sicherheit)
   setCookie(event, "session_token", sessionToken, {
@@ -89,6 +99,8 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    token: sessionToken, // Auch im Body für API-Clients
+    token: sessionToken,
+    role: user.role,
+    username: user.username,
   };
 });

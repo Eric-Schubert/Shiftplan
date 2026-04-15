@@ -68,30 +68,6 @@ db.exec(`
 `);
 
 // ============================================
-// ADMIN-DATENBANK (Passwort, Einstellungen)
-// ============================================
-console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
-const adminDb = new Database(ADMIN_DB_PATH);
-
-adminDb.exec(`
-  CREATE TABLE IF NOT EXISTS settings (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  )
-`);
-
-// Standard Admin-Passwort setzen (falls nicht vorhanden)
-const existingPassword = adminDb.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get();
-if (!existingPassword) {
-  // Standard-Passwort: admin (gehasht mit bcrypt)
-  const hashedPassword = bcrypt.hashSync("admin", 10);
-  adminDb.prepare("INSERT INTO settings (key, value) VALUES (?, ?)").run("admin_password", hashedPassword);
-  console.log("[setup.js] => Default admin password set to: admin (hashed with bcrypt)");
-}
-
-adminDb.close();
-
-// ============================================
 // NEUE TABELLEN FÜR ROTATIONSMUSTER
 // ============================================
 
@@ -117,6 +93,93 @@ db.exec(`
     UNIQUE(pattern_week, staff_id, shift_id)
   )
 `);
+
+// ============================================
+// AUDIT LOG (Änderungsverlauf für Schichtplan)
+// ============================================
+db.exec(`
+  CREATE TABLE IF NOT EXISTS audit_log (
+    audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    action TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    week_number INTEGER NOT NULL,
+    shift_id INTEGER,
+    shift_name TEXT,
+    staff_id INTEGER,
+    staff_name TEXT,
+    reason TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+
+// ============================================
+// ADMIN-DATENBANK (Benutzer, Einstellungen)
+// ============================================
+console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
+const adminDb = new Database(ADMIN_DB_PATH);
+
+adminDb.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )
+`);
+
+// ============================================
+// USERS-TABELLE (Rollen: admin, planner)
+// ============================================
+adminDb.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'planner' CHECK(role IN ('admin', 'planner')),
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+
+// ============================================
+// MIGRATION: Bestehendes Admin-Passwort → Users-Tabelle
+// ============================================
+const existingUsers = adminDb.prepare("SELECT COUNT(*) as count FROM users").get();
+
+if (existingUsers.count === 0) {
+  // Prüfe ob ein altes Admin-Passwort in settings existiert
+  const existingPassword = adminDb.prepare(
+    "SELECT value FROM settings WHERE key = 'admin_password'"
+  ).get();
+
+  if (existingPassword) {
+    // Migriere das bestehende Passwort als admin-User
+    adminDb.prepare(
+      "INSERT INTO users (username, password_hash, role, active) VALUES (?, ?, 'admin', 1)"
+    ).run("admin", existingPassword.value);
+    console.log("[setup.js] => Migrated existing admin password to users table");
+  } else {
+    // Frische Installation: Standard Admin-Passwort setzen
+    const hashedPassword = bcrypt.hashSync("admin", 10);
+    adminDb.prepare(
+      "INSERT INTO users (username, password_hash, role, active) VALUES (?, ?, 'admin', 1)"
+    ).run("admin", hashedPassword);
+    console.log("[setup.js] => Default admin user created (password: admin)");
+  }
+
+  // Altes settings-Passwort beibehalten für Abwärtskompatibilität
+  const settingsPassword = adminDb.prepare(
+    "SELECT value FROM settings WHERE key = 'admin_password'"
+  ).get();
+  if (!settingsPassword) {
+    const hashedPassword = bcrypt.hashSync("admin", 10);
+    adminDb.prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?)"
+    ).run("admin_password", hashedPassword);
+  }
+}
+
+adminDb.close();
 
 // Demo-Daten einfügen (nur wenn Tabellen leer sind)
 const staffCount = db.prepare("SELECT COUNT(*) as count FROM staff").get();
