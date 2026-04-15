@@ -140,7 +140,8 @@ schichtplaner/
 │   └── utils/
 │       ├── auth.ts
 │       ├── database.ts
-│       └── session.ts
+│       ├── session.ts
+│       └── validation.ts
 ├── stores/
 │   ├── app.store.ts
 │   ├── auth.store.ts
@@ -271,7 +272,7 @@ npm run dev
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/auth/change-password` | Validiert die Passwort-Stärke |
+| `POST` | `/api/auth/change-password` |  |
 | `POST` | `/api/auth/login` |  |
 | `POST` | `/api/auth/logout` |  |
 | `GET` | `/api/auth/session` |  |
