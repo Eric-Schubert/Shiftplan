@@ -3,9 +3,7 @@
  *
  * Zwei Modi:
  * 1. CI:    node scripts/generate-changelog.js --from-context __cliff_context.json
- *           Liest eine bereits von der git-cliff GitHub Action erzeugte JSON-Datei
  * 2. Lokal: node scripts/generate-changelog.js
- *           Führt git-cliff --context selbst aus
  *
  * Fallback: Wenn git-cliff nicht verfügbar ist, wird [] geschrieben.
  */
@@ -18,13 +16,12 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 const OUTPUT_PATH = path.join(ROOT, "utils", "changelog.generated.json");
 
 /**
- * git-cliff Context JSON laden — entweder aus Datei (CI) oder direkt ausführen (lokal)
+ * git-cliff Context JSON laden
  */
 function loadContext() {
   const args = process.argv.slice(2);
   const fromContextIdx = args.indexOf("--from-context");
 
-  // Modus 1: Aus vorhandener Datei lesen (CI)
   if (fromContextIdx !== -1 && args[fromContextIdx + 1]) {
     const contextPath = path.resolve(args[fromContextIdx + 1]);
     console.log(`[changelog] Reading context from ${contextPath}`);
@@ -32,7 +29,6 @@ function loadContext() {
     return JSON.parse(raw);
   }
 
-  // Modus 2: git-cliff direkt ausführen (lokal)
   console.log("[changelog] Running git-cliff --context ...");
   const raw = execSync("git-cliff --context", {
     encoding: "utf-8",
@@ -44,50 +40,52 @@ function loadContext() {
 }
 
 /**
+ * Prüft ob ein Commit-Message ein Conventional Commit ist
+ */
+function isConventionalCommit(message) {
+  return /^(feat|fix|perf|security|refactor|style|test|chore|ci|docs?|build|revert)(\(.+?\))?!?:\s/.test(message);
+}
+
+/**
  * git-cliff Context in App-Format transformieren
  */
 function transformReleases(context) {
   return context
-    .filter((release) => release.version) // Nur getaggte Releases
-    .map((release) => {
-      // Timestamp zu Datum
-      const date = new Date(release.timestamp * 1000)
-        .toISOString()
-        .split("T")[0];
+      .filter((release) => release.version)
+      .map((release) => {
+        const date = new Date(release.timestamp * 1000)
+            .toISOString()
+            .split("T")[0];
 
-      // Commits gruppieren
-      const grouped = {};
-      for (const commit of release.commits || []) {
-        const group = commit.group || "Other";
-        if (!grouped[group]) grouped[group] = [];
+        const seen = new Set();
+        const changes = [];
 
-        // Commit-Message aufräumen
-        let msg = commit.message || "";
-        msg = msg.split("\n")[0];
-        msg = msg.replace(/^(feat|fix|perf|security)(\(.+?\))?:\s*/i, "");
-        msg = msg.charAt(0).toUpperCase() + msg.slice(1);
+        for (const commit of release.commits || []) {
+          // Nur Commits mit einer zugewiesenen Gruppe (feat, fix, etc.)
+          if (!commit.group) continue;
 
-        if (msg) grouped[group].push(msg);
-      }
+          let msg = commit.message || "";
+          msg = msg.split("\n")[0];
 
-      // Sortierung: Features → Bug Fixes → Rest
-      const groupOrder = ["Features", "Bug Fixes", "Performance", "Security"];
-      const changes = [];
+          // Nur Conventional Commits durchlassen
+          if (!isConventionalCommit(msg)) continue;
 
-      for (const group of groupOrder) {
-        if (grouped[group]) {
-          changes.push(...grouped[group]);
-          delete grouped[group];
+          // Prefix entfernen
+          msg = msg.replace(/^(feat|fix|perf|security)(\(.+?\))?!?:\s*/i, "");
+          msg = msg.charAt(0).toUpperCase() + msg.slice(1);
+
+          // Duplikate vermeiden
+          if (!msg || seen.has(msg.toLowerCase())) continue;
+          seen.add(msg.toLowerCase());
+
+          changes.push(msg);
         }
-      }
-      // Restliche Gruppen
-      for (const group of Object.keys(grouped).sort()) {
-        changes.push(...grouped[group]);
-      }
 
-      return { date, title: release.version, changes };
-    })
-    .filter((r) => r.changes.length > 0);
+        return { date, title: release.version, changes };
+      })
+      .filter((r) => r.changes.length > 0)
+      // Neueste zuerst
+      .sort((a, b) => b.date.localeCompare(a.date) || b.title.localeCompare(a.title));
 }
 
 // ============================================
@@ -113,7 +111,6 @@ function main() {
     }
   }
 
-  // Immer eine valide JSON-Datei schreiben
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(releases, null, 2), "utf-8");
   console.log(`[changelog] Wrote ${OUTPUT_PATH} (${releases.length} entries)`);
