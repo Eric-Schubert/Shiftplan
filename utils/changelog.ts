@@ -1,21 +1,23 @@
 /**
- * Changelog data for the update banner
+ * Changelog-Daten für das Update-Banner
  *
- * Add new entries at the TOP for new features.
- * The version is derived automatically from Git tags —
- * only maintain date, title, and changes here.
+ * Bei neuen Features einfach einen neuen Eintrag OBEN hinzufügen.
+ * Die Version kommt automatisch aus package.json — hier nur
+ * Datum, Titel und Änderungen pflegen.
  *
- * IMPORTANT: Newest entry always on top! (descending by date)
+ * WICHTIG: Neuester Eintrag immer oben! (absteigend nach Datum)
  */
 
 /**
  *   {
- *     date: 'Release date',
- *     title: 'Heading',
+ *     date: 'Release Datum',
+ *     title: 'Überschrift',
  *     changes: [
- *       'description of change',
- *       'description of change',
- *       'description of change',
+ *       'inhalt der änderung',
+ *       'inhalt der änderung',
+ *       'inhalt der änderung',
+ *       'inhalt der änderung',
+ *       'inhalt der änderung',
  *     ],
  *   },
  */
@@ -42,94 +44,87 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-04-13',
     title: 'UI/UX',
     changes: [
-      'Swipe navigation between calendar weeks on mobile devices',
-      'Drag & drop staff assignment in shift plan and rotation pattern',
-      'Staff pool for drag & drop in the rotation pattern editor',
-      'Copy shift plans from one year to another',
-    ],
-  },
-  {
-    date: '2026-04-13',
-    title: 'Versioning & Bugfixes',
-    changes: [
-      'Automatic versioning from Git tags (no more manual version bumps)',
-      'Version display now works correctly in Docker and CI',
+      'Swipe-Navigation zwischen Kalenderwochen auf mobilen Geräten',
+      'Drag & Drop Mitarbeiter-Zuordnung im Schichtplan und Rotationsmuster',
+      'Mitarbeiter Pool zum Reinziehen im Rotationsmuster Editor',
+      'Schichtpläne von einem Jahr in ein anderes kopieren',
     ],
   },
   {
     date: '2026-04-12',
-    title: 'Update Banner & Version History',
+    title: 'Update-Banner & Versionsverlauf',
     changes: [
-      'Changelog banner shows new features after each update',
-      'Version history accessible anytime via ⓘ button in the header',
-      'Automatic versioning on every build',
+      'Changelog-Banner zeigt Neuerungen nach jedem Update',
+      'Versionsverlauf über ⓘ-Button im Header jederzeit aufrufbar',
+      'Automatische Versionierung bei jedem Build',
     ],
   },
   {
-    date: '2026-04-05',
+    date: '2026-01-04',
     title: 'Docker & CI/CD',
     changes: [
-      'Docker support with multi-stage build',
-      'GitHub Actions CI pipeline (tests, build, typecheck)',
-      'Automatic README generation after successful CI',
-      'Automatic Docker image build & push (GHCR)',
+      'Docker-Support mit Multi-Stage Build',
+      'Docker Compose mit Traefik-Integration',
+      'GitHub Actions CI-Pipeline (Tests, Build, Typecheck)',
+      'Automatische README-Generierung nach erfolgreichem CI',
+      'Automatisches Docker-Image Build & Push (GHCR)',
     ],
   },
   {
-    date: '2026-03-15',
-    title: 'Week Preview & UI Improvements',
+    date: '2026-01-04',
+    title: 'Wochenvorschau & UI-Verbesserungen',
     changes: [
-      'Preview of the next 3 weeks at a glance',
-      'Saturday logic: Automatically shows next week from Saturday onwards',
-      'More compact UI layout',
-      'Year copy: Transfer shift plans between years',
+      'Vorschau der nächsten 3 Wochen auf einen Blick',
+      'Samstagslogik: Ab Samstag wird automatisch die nächste Woche angezeigt',
+      'Kompakteres UI-Layout',
+      'Jahres-Kopie: Schichtpläne zwischen Jahren übertragen',
     ],
   },
   {
-    date: '2026-03-15',
-    title: 'Public Holidays & School Vacations',
+    date: '2026-02-03',
+    title: 'Feiertage & Schulferien',
     changes: [
-      'German and Saxony public holidays via OpenHolidays API',
-      'School vacations for Saxony and Brandenburg',
-      'Compact display in the week preview',
-      'Detail view with color-coded markers (red/orange/blue)',
-      '24h server-side cache for API requests',
+      'Deutsche Feiertage und sächsische Feiertage via OpenHolidays API',
+      'Schulferien für Sachsen und Brandenburg',
+      'Kompakte Anzeige in der Wochenvorschau',
+      'Detailansicht mit farbigen Markierungen (rot/orange/blau)',
+      '24h Server-Cache für API-Anfragen',
     ],
   },
   {
-    date: '2026-03-03',
-    title: 'Security Update',
+    date: '2026-01-03',
+    title: 'Sicherheits-Update',
     changes: [
-      'Server-side API authentication (was previously frontend-only!)',
-      'Session management with HttpOnly & Secure cookies',
-      'Rate limiting against brute-force attacks (5 attempts / 15 min)',
-      'Password policy with minimum requirements',
-      'Change password dialog in the admin area',
-      'Separate databases for user data and admin credentials',
+      'Serverseitige API-Authentifizierung (war vorher nur im Frontend!)',
+      'Session-Management mit HttpOnly & Secure Cookies',
+      'Rate Limiting gegen Brute-Force (5 Versuche / 15 Min)',
+      'Passwort-Richtlinie mit Mindestanforderungen',
+      'Passwort-Ändern Dialog im Admin-Bereich',
+      'Getrennte Datenbanken für Nutzdaten und Admin-Credentials',
     ],
   },
   {
-    date: '2026-02-05',
-    title: 'Rotation System',
+    date: '2026-01-03',
+    title: 'Rotationssystem',
     changes: [
-      'Automatic 7-week rotation pattern',
-      'Configurable cycle length and start week',
-      'Pattern week calculation compatible with the legacy PHP system',
-      'Bulk generation: Create multiple weeks at once',
-      'Rotation manager UI for setting up patterns',
+      'Automatisches 7-Wochen-Rotationsmuster',
+      'Konfigurierbare Zykluslänge und Startwoche',
+      'Musterwoche-Berechnung kompatibel mit dem alten PHP-System',
+      'Bulk-Generierung: Mehrere Wochen auf einmal erstellen',
+      'Rotationsmanager-UI zum Einrichten der Muster',
     ],
   },
   {
-    date: '2026-01-18',
-    title: 'Initial Release',
+    date: '2026-01-01',
+    title: 'Erster Release',
     changes: [
-      'Week-based shift planning with calendar week navigation',
-      'Staff management (full-time/part-time, active/inactive)',
-      'Shift management with flexible times and colors',
-      'Drag & drop assignment of staff to shifts',
-      'Dark mode with persistent setting',
-      'Responsive design for desktop, tablet, and mobile',
-      'Admin authentication with password protection',
+      'Wochenbasierte Schichtplanung mit Kalenderwochen-Navigation',
+      'Mitarbeiterverwaltung (Vollzeit/Teilzeit, Aktiv/Inaktiv)',
+      'Schichtenverwaltung mit flexiblen Zeiten und Farben',
+      'Drag & Drop Zuweisung von Mitarbeitern zu Schichten',
+      'Dark Mode mit persistenter Einstellung',
+      'Responsive Design für Desktop, Tablet und Mobil',
+      'Admin-Authentifizierung mit Passwortschutz',
     ],
   },
 ]

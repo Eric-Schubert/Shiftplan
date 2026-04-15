@@ -120,3 +120,23 @@ export function closeTestDatabase(): void {
     testDb = null;
   }
 }
+
+/** Alias für Abwärtskompatibilität mit bestehenden Tests */
+export const cleanupTestDatabase = closeTestDatabase;
+
+/**
+ * Fügt Test-Daten ein (Mitarbeiter + Schichten)
+ */
+export function insertTestData(db: DatabaseType): void {
+  // Test-Mitarbeiter
+  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Test User 1", 1, 0);
+  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Test User 2", 1, 0);
+  db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Test User 3", 1, 1);
+
+  // Test-Schichten
+  db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Früh", "06:00", "14:00", "#22c55e", 2, 1);
+  db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Spät", "14:00", "22:00", "#3b82f6", 2, 2);
+
+  // Rotation Config
+  db.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)").run();
+}
