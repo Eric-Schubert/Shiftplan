@@ -1,26 +1,19 @@
 import { ShiftplanService } from "~/server/services/shiftplan.service";
-
-interface GenerateBody {
-  year: number;
-  week: number;
-  weeks?: number; // Optional: Mehrere Wochen auf einmal generieren
-}
+import { validateYear, validateWeek, validateInteger } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<GenerateBody>(event);
+  const body = await readBody(event);
 
-  if (!body.year || !body.week) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Jahr und Woche sind erforderlich",
-    });
-  }
+  // Input-Validierung
+  const year = validateYear(body.year, "Jahr", { required: true })!;
+  const week = validateWeek(body.week, "Woche", { required: true })!;
+  const weeks = validateInteger(body.weeks, "Anzahl Wochen", { min: 1, max: 53 });
 
   // Wenn mehrere Wochen angefordert
-  if (body.weeks && body.weeks > 1) {
-    return ShiftplanService.generateMultipleWeeks(body.year, body.week, body.weeks);
+  if (weeks && weeks > 1) {
+    return ShiftplanService.generateMultipleWeeks(year, week, weeks);
   }
 
   // Einzelne Woche generieren
-  return ShiftplanService.generateFromPattern(body.year, body.week);
+  return ShiftplanService.generateFromPattern(year, week);
 });

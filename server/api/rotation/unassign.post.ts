@@ -1,21 +1,18 @@
 import { RotationService } from "~/server/services/rotation.service";
-import type { RotationPatternUnassignDTO } from "~/types/rotation";
+import { validateId, validateInteger } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<RotationPatternUnassignDTO>(event);
+  const body = await readBody(event);
 
-  if (!body.pattern_week || !body.staff_id || !body.shift_id) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "pattern_week, staff_id und shift_id sind erforderlich",
-    });
-  }
+  const pattern_week = validateInteger(body.pattern_week, "Musterwoche", {
+    required: true,
+    min: 1,
+    max: 12,
+  })!;
+  const staff_id = validateId(body.staff_id, "staff_id");
+  const shift_id = validateId(body.shift_id, "shift_id");
 
-  const success = RotationService.unassignFromPattern(
-    body.pattern_week,
-    body.staff_id,
-    body.shift_id
-  );
+  const success = RotationService.unassignFromPattern(pattern_week, staff_id, shift_id);
 
   return { success };
 });

@@ -1,16 +1,15 @@
 import { randomBytes } from "crypto";
-import type { UserRole } from "~/types/auth";
 
-// In-Memory Session Store (für Production: Redis empfohlen)
+// ============================================
+// SESSION STORE (In-Memory — für Production: Redis/SQLite empfohlen)
+// ============================================
 const sessions = new Map<
   string,
   {
-    userId: number;
-    username: string;
-    role: UserRole;
     createdAt: number;
     expiresAt: number;
     lastActivity: number;
+    csrfToken: string;
   }
 >();
 
@@ -36,25 +35,24 @@ const BLOCK_DURATION = 15 * 60 * 1000; // 15 Minuten Sperre
 // ============================================
 
 /**
- * Erstellt eine neue Session mit Benutzerinfo und gibt den Token zurück
+ * Erstellt eine neue Session und gibt den Token zurück
  */
-export function createSession(userId: number, username: string, role: UserRole): string {
+export function createSession(): { sessionToken: string; csrfToken: string } {
   // Cleanup alte Sessions
   cleanupExpiredSessions();
 
-  const token = randomBytes(32).toString("hex");
+  const sessionToken = randomBytes(32).toString("hex");
+  const csrfToken = randomBytes(32).toString("hex");
   const now = Date.now();
 
-  sessions.set(token, {
-    userId,
-    username,
-    role,
+  sessions.set(sessionToken, {
     createdAt: now,
     expiresAt: now + SESSION_DURATION,
     lastActivity: now,
+    csrfToken,
   });
 
-  return token;
+  return { sessionToken, csrfToken };
 }
 
 /**
@@ -84,29 +82,44 @@ export function validateSession(token: string | undefined): boolean {
 }
 
 /**
- * Gibt die Session-Daten zurück (Rolle, User-ID, Username)
+ * Validiert den CSRF-Token für eine Session
  */
-export function getSessionData(token: string | undefined): {
-  userId: number;
-  username: string;
-  role: UserRole;
-} | null {
-  if (!token) return null;
+export function validateCsrfToken(
+  sessionToken: string | undefined,
+  csrfToken: string | undefined
+): boolean {
+  if (!sessionToken || !csrfToken) return false;
 
-  const session = sessions.get(token);
+  const session = sessions.get(sessionToken);
+  if (!session) return false;
+
+  // Timing-safe comparison um Timing-Attacks zu verhindern
+  if (session.csrfToken.length !== csrfToken.length) return false;
+
+  const { timingSafeEqual } = require("crypto");
+  try {
+    return timingSafeEqual(
+      Buffer.from(session.csrfToken),
+      Buffer.from(csrfToken)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Holt den CSRF-Token für eine gültige Session
+ */
+export function getCsrfToken(sessionToken: string | undefined): string | null {
+  if (!sessionToken) return null;
+
+  const session = sessions.get(sessionToken);
   if (!session) return null;
 
   const now = Date.now();
-  if (now > session.expiresAt) {
-    sessions.delete(token);
-    return null;
-  }
+  if (now > session.expiresAt) return null;
 
-  return {
-    userId: session.userId,
-    username: session.username,
-    role: session.role,
-  };
+  return session.csrfToken;
 }
 
 /**
@@ -219,6 +232,13 @@ export function getSessionToken(event: any): string | undefined {
   }
 
   return undefined;
+}
+
+/**
+ * Extrahiert den CSRF-Token aus dem Request
+ */
+export function getCsrfTokenFromRequest(event: any): string | undefined {
+  return getHeader(event, "x-csrf-token") || undefined;
 }
 
 /**

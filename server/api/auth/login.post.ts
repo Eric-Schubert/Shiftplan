@@ -7,7 +7,6 @@ import {
   getClientIP,
 } from "~/server/utils/session";
 import bcrypt from "bcryptjs";
-import type { UserWithHash } from "~/types/auth";
 
 export default defineEventHandler(async (event) => {
   const ip = getClientIP(event);
@@ -20,75 +19,69 @@ export default defineEventHandler(async (event) => {
   if (!rateLimit.allowed) {
     throw createError({
       statusCode: 429,
-      statusMessage: `Zu viele Anmeldeversuche. Bitte warte ${rateLimit.blockedForSeconds} Sekunden.`,
+      statusMessage: `Zu viele Anmeldeversuche. Bitte warten.`,
     });
   }
 
   // ============================================
   // INPUT VALIDATION
   // ============================================
-  const body = await readBody<{ username: string; password: string }>(event);
+  const body = await readBody<{ password: string }>(event);
 
-  if (!body.username || !body.password) {
+  if (!body.password || typeof body.password !== "string") {
     throw createError({
       statusCode: 400,
-      statusMessage: "Benutzername und Passwort erforderlich",
+      statusMessage: "Passwort erforderlich",
     });
   }
 
-  // ============================================
-  // USER LOOKUP
-  // ============================================
-  const db = getAdminDatabase();
-  const user = db
-    .prepare("SELECT * FROM users WHERE username = ? AND active = 1")
-    .get(body.username) as UserWithHash | undefined;
-
-  if (!user) {
-    // Fehlversuch registrieren (gleiche Meldung wie bei falschem Passwort)
-    recordFailedLogin(ip);
-
-    const remaining = rateLimit.remainingAttempts - 1;
-    const message =
-      remaining > 0
-        ? `Ungültige Anmeldedaten. Noch ${remaining} Versuche.`
-        : "Ungültige Anmeldedaten. Account temporär gesperrt.";
-
+  // Passwort-Länge begrenzen (verhindert DoS über bcrypt mit extrem langen Strings)
+  if (body.password.length > 256) {
     throw createError({
-      statusCode: 401,
-      statusMessage: message,
+      statusCode: 400,
+      statusMessage: "Passwort zu lang",
     });
   }
 
   // ============================================
   // PASSWORD CHECK
   // ============================================
-  const isValid = await bcrypt.compare(body.password, user.password_hash);
+  const db = getAdminDatabase();
+  const setting = db
+    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
+    .get() as { value: string } | undefined;
+
+  if (!setting) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Admin-Passwort nicht konfiguriert",
+    });
+  }
+
+  const isValid = await bcrypt.compare(body.password, setting.value);
 
   if (!isValid) {
+    // Fehlversuch registrieren
     recordFailedLogin(ip);
 
-    const remaining = rateLimit.remainingAttempts - 1;
-    const message =
-      remaining > 0
-        ? `Ungültige Anmeldedaten. Noch ${remaining} Versuche.`
-        : "Ungültige Anmeldedaten. Account temporär gesperrt.";
-
+    // Generische Fehlermeldung — keine Details über verbleibende Versuche
     throw createError({
       statusCode: 401,
-      statusMessage: message,
+      statusMessage: "Anmeldung fehlgeschlagen",
     });
   }
 
   // ============================================
   // LOGIN ERFOLGREICH
   // ============================================
+
+  // Rate Limit zurücksetzen
   resetRateLimit(ip);
 
-  // Session erstellen mit Benutzerinfo
-  const sessionToken = createSession(user.user_id, user.username, user.role);
+  // Session erstellen (inkl. CSRF-Token)
+  const { sessionToken, csrfToken } = createSession();
 
-  // Cookie setzen (HttpOnly für Sicherheit)
+  // Session-Cookie setzen (HttpOnly — nicht per JS lesbar)
   setCookie(event, "session_token", sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -97,10 +90,18 @@ export default defineEventHandler(async (event) => {
     path: "/",
   });
 
+  // CSRF-Token als separates, JS-lesbares Cookie
+  // (NICHT httpOnly — Frontend muss es lesen können um es als Header zu senden)
+  setCookie(event, "csrf_token", csrfToken, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 30 * 60,
+    path: "/",
+  });
+
+  // NUR success zurückgeben — KEIN Token im Body!
   return {
     success: true,
-    token: sessionToken,
-    role: user.role,
-    username: user.username,
   };
 });

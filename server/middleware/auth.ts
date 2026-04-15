@@ -1,12 +1,15 @@
-import { validateSession, getSessionToken, getSessionData } from "~/server/utils/session";
+import {
+  validateSession,
+  getSessionToken,
+  validateCsrfToken,
+  getCsrfTokenFromRequest,
+} from "~/server/utils/session";
 
 // Routen die IMMER öffentlich sind (auch POST/PATCH/DELETE)
-const PUBLIC_ROUTES = [
-  "/api/auth/login",
-];
+const PUBLIC_ROUTES = new Set(["/api/auth/login"]);
 
-// Routen die nur mit GET öffentlich sind
-const PUBLIC_GET_ROUTES = [
+// Routen-Prefixe die nur mit GET öffentlich sind
+const PUBLIC_GET_PREFIXES = [
   "/api/staff",
   "/api/shift",
   "/api/shiftplan",
@@ -14,15 +17,19 @@ const PUBLIC_GET_ROUTES = [
   "/api/holidays",
 ];
 
-// Mutierende Routen die auch Planner nutzen dürfen
-// Alles andere erfordert Admin-Rolle
-const PLANNER_ALLOWED_MUTATIONS = [
-  "/api/shiftplan/assign",
-  "/api/shiftplan/unassign",
-  "/api/auth/change-password",
-  "/api/auth/logout",
-  "/api/auth/session",
-];
+// HTTP-Methoden die CSRF-Schutz brauchen
+const CSRF_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
+
+/**
+ * Prüft ob ein Pfad zu einem öffentlichen GET-Prefix gehört.
+ * Erlaubt nur exakte Treffer oder Pfade die mit / weitergehen.
+ * z.B. /api/staff → ✅, /api/staff/1 → ✅, /api/staff-secret → ❌
+ */
+function isPublicGetRoute(path: string): boolean {
+  return PUBLIC_GET_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(prefix + "/")
+  );
+}
 
 export default defineEventHandler((event) => {
   const path = getRequestURL(event).pathname;
@@ -33,13 +40,13 @@ export default defineEventHandler((event) => {
     return;
   }
 
-  // Komplett öffentliche Routen
-  if (PUBLIC_ROUTES.some((route) => path.startsWith(route))) {
+  // Komplett öffentliche Routen (exakter Match)
+  if (PUBLIC_ROUTES.has(path)) {
     return;
   }
 
-  // GET-Requests auf öffentliche Routen erlauben
-  if (method === "GET" && PUBLIC_GET_ROUTES.some((route) => path.startsWith(route))) {
+  // GET-Requests auf öffentliche Routen erlauben (sicheres Prefix-Matching)
+  if (method === "GET" && isPublicGetRoute(path)) {
     return;
   }
 
@@ -54,20 +61,18 @@ export default defineEventHandler((event) => {
     });
   }
 
-  // Session-Daten an Event-Context anhängen
-  const sessionData = getSessionData(token);
-  if (sessionData) {
-    event.context.user = sessionData;
-  }
+  // CSRF-Schutz für state-ändernde Methoden
+  if (CSRF_METHODS.has(method)) {
+    const csrfToken = getCsrfTokenFromRequest(event);
+    const csrfValid = validateCsrfToken(token, csrfToken);
 
-  // Rollenbasierte Zugriffskontrolle für mutierende Requests
-  if (sessionData && sessionData.role === "planner" && method !== "GET") {
-    const isAllowed = PLANNER_ALLOWED_MUTATIONS.some((route) => path.startsWith(route));
-    if (!isAllowed) {
+    if (!csrfValid) {
       throw createError({
         statusCode: 403,
-        statusMessage: "Keine Berechtigung für diese Aktion",
+        statusMessage: "Ungültiger Sicherheitstoken - Bitte Seite neu laden",
       });
     }
   }
+
+  // Session ist gültig, Request durchlassen
 });

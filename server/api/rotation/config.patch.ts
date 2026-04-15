@@ -1,16 +1,26 @@
 import { RotationService } from "~/server/services/rotation.service";
-import type { RotationConfigUpdateDTO } from "~/types/rotation";
+import { validateInteger, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<RotationConfigUpdateDTO>(event);
+  const body = await readBody(event);
 
-  // Validierung
-  if (body.cycle_length !== undefined && (body.cycle_length < 1 || body.cycle_length > 12)) {
+  const cycle_length = validateInteger(body.cycle_length, "Zykluslänge", {
+    min: 1,
+    max: 12,
+  });
+  const start_year = validateYear(body.start_year, "Startjahr");
+  const start_week = validateWeek(body.start_week, "Startwoche");
+
+  if (cycle_length === undefined && start_year === undefined && start_week === undefined) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Zykluslänge muss zwischen 1 und 12 liegen",
+      statusMessage: "Keine Änderungen angegeben",
     });
   }
 
-  return RotationService.updateConfig(body);
+  return RotationService.updateConfig({
+    ...(cycle_length !== undefined && { cycle_length }),
+    ...(start_year !== undefined && { start_year }),
+    ...(start_week !== undefined && { start_week }),
+  });
 });

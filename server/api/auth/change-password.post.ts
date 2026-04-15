@@ -1,104 +1,67 @@
 import { getAdminDatabase } from "~/server/utils/database";
-import { requireRole } from "~/server/utils/auth";
 import bcrypt from "bcryptjs";
 
-// Passwort-Policy Konfiguration
 const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 256;
 const REQUIRE_UPPERCASE = true;
 const REQUIRE_LOWERCASE = true;
 const REQUIRE_NUMBER = true;
 
-/**
- * Validiert die Passwort-Stärke
- */
 function validatePasswordStrength(password: string): { valid: boolean; message: string } {
   if (password.length < MIN_PASSWORD_LENGTH) {
-    return {
-      valid: false,
-      message: `Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen haben`,
-    };
+    return { valid: false, message: `Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen haben` };
   }
-
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    return { valid: false, message: `Passwort darf maximal ${MAX_PASSWORD_LENGTH} Zeichen haben` };
+  }
   if (REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
-    return {
-      valid: false,
-      message: "Passwort muss mindestens einen Großbuchstaben enthalten",
-    };
+    return { valid: false, message: "Passwort muss mindestens einen Großbuchstaben enthalten" };
   }
-
   if (REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
-    return {
-      valid: false,
-      message: "Passwort muss mindestens einen Kleinbuchstaben enthalten",
-    };
+    return { valid: false, message: "Passwort muss mindestens einen Kleinbuchstaben enthalten" };
   }
-
   if (REQUIRE_NUMBER && !/[0-9]/.test(password)) {
-    return {
-      valid: false,
-      message: "Passwort muss mindestens eine Zahl enthalten",
-    };
+    return { valid: false, message: "Passwort muss mindestens eine Zahl enthalten" };
   }
-
   return { valid: true, message: "" };
 }
 
 export default defineEventHandler(async (event) => {
-  // Beide Rollen dürfen ihr eigenes Passwort ändern
-  const user = requireRole(event, ["admin", "planner"]);
-
   const body = await readBody<{ currentPassword: string; newPassword: string }>(event);
 
-  // ============================================
-  // INPUT VALIDATION
-  // ============================================
-  if (!body.currentPassword || !body.newPassword) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Aktuelles und neues Passwort erforderlich",
-    });
+  if (!body.currentPassword || typeof body.currentPassword !== "string") {
+    throw createError({ statusCode: 400, statusMessage: "Aktuelles Passwort erforderlich" });
+  }
+  if (!body.newPassword || typeof body.newPassword !== "string") {
+    throw createError({ statusCode: 400, statusMessage: "Neues Passwort erforderlich" });
   }
 
-  // Passwort-Stärke prüfen
+  // DoS-Schutz: bcrypt ist absichtlich langsam
+  if (body.currentPassword.length > MAX_PASSWORD_LENGTH) {
+    throw createError({ statusCode: 400, statusMessage: "Passwort zu lang" });
+  }
+
   const strength = validatePasswordStrength(body.newPassword);
   if (!strength.valid) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: strength.message,
-    });
+    throw createError({ statusCode: 400, statusMessage: strength.message });
   }
 
-  // ============================================
-  // CURRENT PASSWORD CHECK
-  // ============================================
   const db = getAdminDatabase();
-  const dbUser = db
-    .prepare("SELECT password_hash FROM users WHERE user_id = ?")
-    .get(user.userId) as { password_hash: string } | undefined;
+  const setting = db
+    .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
+    .get() as { value: string } | undefined;
 
-  if (!dbUser) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: "Benutzer nicht gefunden",
-    });
+  if (!setting) {
+    throw createError({ statusCode: 500, statusMessage: "Admin-Passwort nicht konfiguriert" });
   }
 
-  const isCurrentValid = await bcrypt.compare(body.currentPassword, dbUser.password_hash);
+  const isCurrentValid = await bcrypt.compare(body.currentPassword, setting.value);
   if (!isCurrentValid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Aktuelles Passwort ist falsch",
-    });
+    throw createError({ statusCode: 401, statusMessage: "Passwort-Änderung fehlgeschlagen" });
   }
 
-  // ============================================
-  // UPDATE PASSWORD
-  // ============================================
   const hashedNewPassword = await bcrypt.hash(body.newPassword, 12);
-  db.prepare("UPDATE users SET password_hash = ? WHERE user_id = ?").run(
-    hashedNewPassword,
-    user.userId
-  );
+  db.prepare("UPDATE settings SET value = ? WHERE key = 'admin_password'").run(hashedNewPassword);
 
   return { success: true };
 });

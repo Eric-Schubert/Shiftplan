@@ -1,35 +1,20 @@
 import { getDatabase } from "~/server/utils/database";
-
-interface CopyYearBody {
-  sourceYear: number;
-  targetYear: number;
-  overwrite?: boolean; // Bestehende Zuweisungen im Zieljahr überschreiben?
-}
+import { validateYear, validateBoolean } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<CopyYearBody>(event);
+  const body = await readBody(event);
 
   // ============================================
   // VALIDATION
   // ============================================
-  if (!body.sourceYear || !body.targetYear) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Quell- und Zieljahr erforderlich",
-    });
-  }
+  const sourceYear = validateYear(body.sourceYear, "Quelljahr", { required: true })!;
+  const targetYear = validateYear(body.targetYear, "Zieljahr", { required: true })!;
+  const overwrite = validateBoolean(body.overwrite, "Überschreiben") === 1;
 
-  if (body.sourceYear === body.targetYear) {
+  if (sourceYear === targetYear) {
     throw createError({
       statusCode: 400,
       statusMessage: "Quell- und Zieljahr dürfen nicht identisch sein",
-    });
-  }
-
-  if (body.sourceYear < 2020 || body.sourceYear > 2100 || body.targetYear < 2020 || body.targetYear > 2100) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Jahr muss zwischen 2020 und 2100 liegen",
     });
   }
 
@@ -45,16 +30,15 @@ export default defineEventHandler(async (event) => {
       WHERE w.year = ?
       ORDER BY w.week_number
     `)
-    .all(body.sourceYear) as Array<{ week_id: number; week_number: number }>;
+    .all(sourceYear) as Array<{ week_id: number; week_number: number }>;
 
   if (sourceWeeks.length === 0) {
     throw createError({
       statusCode: 404,
-      statusMessage: `Keine Schichtpläne für ${body.sourceYear} gefunden`,
+      statusMessage: `Keine Schichtpläne für ${sourceYear} gefunden`,
     });
   }
 
-  // Zähle wie viele Wochen tatsächlich Zuweisungen haben
   const weeksWithAssignments = sourceWeeks.filter((w) => {
     const count = db
       .prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?")
@@ -65,29 +49,26 @@ export default defineEventHandler(async (event) => {
   if (weeksWithAssignments.length === 0) {
     throw createError({
       statusCode: 404,
-      statusMessage: `Keine Zuweisungen in ${body.sourceYear} vorhanden`,
+      statusMessage: `Keine Zuweisungen in ${sourceYear} vorhanden`,
     });
   }
 
   // ============================================
   // KOPIEREN (als Transaktion)
   // ============================================
-  const overwrite = body.overwrite ?? false;
   let copiedWeeks = 0;
   let skippedWeeks = 0;
   let copiedAssignments = 0;
 
   const copyTransaction = db.transaction(() => {
     for (const sourceWeek of weeksWithAssignments) {
-      // Ziel-Woche erstellen oder holen
       db.prepare("INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)")
-        .run(body.targetYear, sourceWeek.week_number);
+        .run(targetYear, sourceWeek.week_number);
 
       const targetWeek = db
         .prepare("SELECT week_id FROM weeks WHERE year = ? AND week_number = ?")
-        .get(body.targetYear, sourceWeek.week_number) as { week_id: number };
+        .get(targetYear, sourceWeek.week_number) as { week_id: number };
 
-      // Prüfe ob Ziel-Woche bereits Zuweisungen hat
       const existingCount = db
         .prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?")
         .get(targetWeek.week_id) as { cnt: number };
@@ -97,13 +78,11 @@ export default defineEventHandler(async (event) => {
         continue;
       }
 
-      // Bei Overwrite: bestehende Zuweisungen löschen
       if (existingCount.cnt > 0 && overwrite) {
         db.prepare("DELETE FROM shift_assignments WHERE week_id = ?")
           .run(targetWeek.week_id);
       }
 
-      // Zuweisungen kopieren
       const assignments = db
         .prepare("SELECT staff_id, shift_id FROM shift_assignments WHERE week_id = ?")
         .all(sourceWeek.week_id) as Array<{ staff_id: number; shift_id: number }>;
@@ -125,8 +104,8 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    sourceYear: body.sourceYear,
-    targetYear: body.targetYear,
+    sourceYear,
+    targetYear,
     copiedWeeks,
     skippedWeeks,
     copiedAssignments,

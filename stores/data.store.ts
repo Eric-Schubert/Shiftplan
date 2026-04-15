@@ -3,6 +3,17 @@ import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import type { Shift, ShiftCreateDTO, ShiftUpdateDTO } from "~/types/shift";
 import type { FullRotationPattern, RotationConfig } from "~/types/rotation";
 
+/**
+ * Helper: Gibt CSRF-Header aus dem Auth-Store zurück
+ */
+function csrfHeaders(): Record<string, string> {
+  const authStore = useAuthStore();
+  if (authStore.csrfToken) {
+    return { "x-csrf-token": authStore.csrfToken };
+  }
+  return {};
+}
+
 export const useDataStore = defineStore("data", {
   state: () => ({
     // Daten
@@ -20,27 +31,22 @@ export const useDataStore = defineStore("data", {
   }),
 
   getters: {
-    // Aktive Mitarbeiter
     activeStaff(): Staff[] {
       return this.staff.filter((s) => s.active);
     },
 
-    // Aktive Schichten
     activeShifts(): Shift[] {
       return this.shifts.filter((s) => s.active);
     },
 
-    // Rotationskonfiguration
     rotationConfig(): RotationConfig | null {
       return this.rotationPattern?.config || null;
     },
 
-    // Staff by ID
     getStaffById: (state) => (id: number) => {
       return state.staff.find((s) => s.staff_id === id);
     },
 
-    // Shift by ID
     getShiftById: (state) => (id: number) => {
       return state.shifts.find((s) => s.shift_id === id);
     },
@@ -48,7 +54,7 @@ export const useDataStore = defineStore("data", {
 
   actions: {
     // ============================================
-    // INITIALISIERUNG - Alles auf einmal laden
+    // INITIALISIERUNG
     // ============================================
     async init() {
       if (this.initialized) return;
@@ -78,6 +84,7 @@ export const useDataStore = defineStore("data", {
       const newStaff = await $fetch<Staff>("/api/staff", {
         method: "POST",
         body: data,
+        headers: csrfHeaders(),
       });
       this.staff.push(newStaff);
       return newStaff;
@@ -87,6 +94,7 @@ export const useDataStore = defineStore("data", {
       const updated = await $fetch<Staff>(`/api/staff/${id}`, {
         method: "PATCH",
         body: data,
+        headers: csrfHeaders(),
       });
       const index = this.staff.findIndex((s) => s.staff_id === id);
       if (index !== -1) {
@@ -96,9 +104,11 @@ export const useDataStore = defineStore("data", {
     },
 
     async deleteStaff(id: number): Promise<boolean> {
-      await $fetch(`/api/staff/${id}`, { method: "DELETE" });
+      await $fetch(`/api/staff/${id}`, {
+        method: "DELETE",
+        headers: csrfHeaders(),
+      });
       this.staff = this.staff.filter((s) => s.staff_id !== id);
-      // Auch aus Rotation entfernen (lokal)
       await this.fetchRotation();
       return true;
     },
@@ -126,9 +136,9 @@ export const useDataStore = defineStore("data", {
       const newShift = await $fetch<Shift>("/api/shift", {
         method: "POST",
         body: data,
+        headers: csrfHeaders(),
       });
       this.shifts.push(newShift);
-      // Rotation neu laden (neue Schicht erscheint dort)
       await this.fetchRotation();
       return newShift;
     },
@@ -137,12 +147,12 @@ export const useDataStore = defineStore("data", {
       const updated = await $fetch<Shift>(`/api/shift/${id}`, {
         method: "PATCH",
         body: data,
+        headers: csrfHeaders(),
       });
       const index = this.shifts.findIndex((s) => s.shift_id === id);
       if (index !== -1) {
         this.shifts[index] = updated;
       }
-      // Rotation neu laden falls Schicht aktiviert/deaktiviert
       if (data.active !== undefined) {
         await this.fetchRotation();
       }
@@ -150,7 +160,10 @@ export const useDataStore = defineStore("data", {
     },
 
     async deleteShift(id: number): Promise<boolean> {
-      await $fetch(`/api/shift/${id}`, { method: "DELETE" });
+      await $fetch(`/api/shift/${id}`, {
+        method: "DELETE",
+        headers: csrfHeaders(),
+      });
       this.shifts = this.shifts.filter((s) => s.shift_id !== id);
       await this.fetchRotation();
       return true;
@@ -179,6 +192,7 @@ export const useDataStore = defineStore("data", {
       await $fetch("/api/rotation/config", {
         method: "PATCH",
         body: data,
+        headers: csrfHeaders(),
       });
       await this.fetchRotation();
     },
@@ -191,6 +205,7 @@ export const useDataStore = defineStore("data", {
       await $fetch("/api/rotation/assign", {
         method: "POST",
         body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },
+        headers: csrfHeaders(),
       });
       await this.fetchRotation();
     },
@@ -203,6 +218,7 @@ export const useDataStore = defineStore("data", {
       await $fetch("/api/rotation/unassign", {
         method: "POST",
         body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },
+        headers: csrfHeaders(),
       });
       await this.fetchRotation();
     },

@@ -6,10 +6,11 @@ export default defineEventHandler((event) => {
   // Session serverseitig löschen
   destroySession(token);
 
-  // Cookie löschen
-  deleteCookie(event, "session_token", {
-    path: "/",
-  });
+  // Session-Cookie löschen
+  deleteCookie(event, "session_token", { path: "/" });
+
+  // CSRF-Cookie löschen
+  deleteCookie(event, "csrf_token", { path: "/" });
 
   return { success: true };
 });

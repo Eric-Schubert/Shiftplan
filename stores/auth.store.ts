@@ -1,58 +1,52 @@
 import { defineStore } from "pinia";
-import type { UserRole } from "~/types/auth";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    role: null as UserRole | null,
-    username: null as string | null,
+    isAdmin: false,
     isChecking: true,
+    csrfToken: null as string | null,
   }),
 
   getters: {
     isAuthenticated(): boolean {
-      return this.role !== null;
-    },
-    isAdmin(): boolean {
-      return this.role === "admin";
-    },
-    isPlanner(): boolean {
-      return this.role === "planner";
-    },
-    /** Darf Schichtzuweisungen ändern (Admin oder Planner) */
-    canEditShifts(): boolean {
-      return this.role === "admin" || this.role === "planner";
-    },
-    /** Darf Stammdaten ändern (nur Admin) */
-    canEditSettings(): boolean {
-      return this.role === "admin";
+      return this.isAdmin;
     },
   },
 
   actions: {
+    /**
+     * Holt den CSRF-Token aus dem Cookie
+     */
+    _readCsrfCookie(): string | null {
+      if (import.meta.server) return null;
+      const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
+      return match ? decodeURIComponent(match[1]) : null;
+    },
+
     /**
      * Prüft beim App-Start ob eine gültige Session existiert
      */
     async checkSession(): Promise<boolean> {
       this.isChecking = true;
       try {
-        const result = await $fetch<{
-          authenticated: boolean;
-          role: UserRole | null;
-          username: string | null;
-        }>("/api/auth/session");
+        const result = await $fetch<{ authenticated: boolean; csrfToken?: string }>(
+          "/api/auth/session"
+        );
+        this.isAdmin = result.authenticated;
 
-        if (result.authenticated) {
-          this.role = result.role;
-          this.username = result.username;
-          return true;
+        if (result.authenticated && result.csrfToken) {
+          this.csrfToken = result.csrfToken;
         }
 
-        this.role = null;
-        this.username = null;
-        return false;
+        // Fallback: CSRF-Token aus Cookie lesen
+        if (result.authenticated && !this.csrfToken) {
+          this.csrfToken = this._readCsrfCookie();
+        }
+
+        return result.authenticated;
       } catch {
-        this.role = null;
-        this.username = null;
+        this.isAdmin = false;
+        this.csrfToken = null;
         return false;
       } finally {
         this.isChecking = false;
@@ -60,32 +54,32 @@ export const useAuthStore = defineStore("auth", {
     },
 
     /**
-     * Login mit Benutzername und Passwort
+     * Login mit Passwort
      */
-    async login(
-      username: string,
-      password: string
-    ): Promise<{ success: boolean; message?: string }> {
+    async login(password: string): Promise<{ success: boolean; message?: string }> {
       try {
-        const result = await $fetch<{
-          success: boolean;
-          token: string;
-          role: UserRole;
-          username: string;
-        }>("/api/auth/login", {
+        const result = await $fetch<{ success: boolean }>("/api/auth/login", {
           method: "POST",
-          body: { username, password },
+          body: { password },
         });
 
         if (result.success) {
-          this.role = result.role;
-          this.username = result.username;
+          this.isAdmin = true;
+
+          // CSRF-Token aus Cookie lesen (wurde vom Server gesetzt)
+          this.csrfToken = this._readCsrfCookie();
+
+          // Fallback: Session-Endpoint holen
+          if (!this.csrfToken) {
+            const session = await $fetch<{ csrfToken?: string }>("/api/auth/session");
+            this.csrfToken = session.csrfToken || null;
+          }
+
           return { success: true };
         }
         return { success: false, message: "Login fehlgeschlagen" };
       } catch (error: any) {
-        const message =
-          error.data?.statusMessage || error.data?.message || "Login fehlgeschlagen";
+        const message = error.data?.statusMessage || error.data?.message || "Login fehlgeschlagen";
         return { success: false, message };
       }
     },
@@ -95,13 +89,27 @@ export const useAuthStore = defineStore("auth", {
      */
     async logout(): Promise<void> {
       try {
-        await $fetch("/api/auth/logout", { method: "POST" });
+        await $fetch("/api/auth/logout", {
+          method: "POST",
+          headers: this._csrfHeaders(),
+        });
       } catch {
         // Ignorieren - Cookie wird trotzdem gelöscht
       } finally {
-        this.role = null;
-        this.username = null;
+        this.isAdmin = false;
+        this.csrfToken = null;
       }
+    },
+
+    /**
+     * Gibt CSRF-Header für fetch-Requests zurück.
+     * Alle state-ändernden Requests müssen diesen Header mitsenden.
+     */
+    _csrfHeaders(): Record<string, string> {
+      if (this.csrfToken) {
+        return { "x-csrf-token": this.csrfToken };
+      }
+      return {};
     },
 
     /**
@@ -109,6 +117,7 @@ export const useAuthStore = defineStore("auth", {
      */
     extendSession(): void {
       // Die Session wird automatisch serverseitig verlängert
+      // bei jedem authentifizierten API-Call
     },
   },
 });
