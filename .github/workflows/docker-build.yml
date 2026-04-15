@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
-    branches: ["master", "main"]
+    branches: ["master", "main", "RBA"]
   workflow_dispatch:
 
 env:
@@ -58,6 +58,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=RBA,enable=${{ github.ref == 'refs/heads/RBA' }}
             type=sha,prefix=
             type=raw,value=${{ steps.version.outputs.version }}
 
