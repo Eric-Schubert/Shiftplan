@@ -346,7 +346,7 @@ npm run dev
 |----------|---------|-------------|
 | CI | Push: master, main, RBA; PR: master/main | Tests, build, and typecheck |
 | Auto Version & Release | Push: main, master | Creates version tag and GitHub release for changelog-visible commits |
-| Docker Build & Push | CI success: master, main, RBA | Builds and pushes GHCR image with generated changelog |
+| Docker Build & Push | CI success + deploy prefix: master, main, RBA | Builds and pushes GHCR image with generated changelog |
 | Update README | CI success: master, main | Regenerates README sections and commits with [skip ci] |
 
 ### Changelog Prefixes
@@ -360,7 +360,8 @@ Hidden from releases: `refactor:`, `style:`, `test:`, `chore:`, `ci:`, `docs:`, 
 1. CI validates tests, typecheck, and production build.
 2. Auto Version & Release creates a tag for visible commit prefixes.
 3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.
-4. README automation updates generated documentation without retriggering CI.
+4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.
+5. README automation updates generated documentation without retriggering CI.
 <!-- AUTO-GENERATED-WORKFLOWS-END -->
 
 ---

@@ -18,7 +18,27 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        !contains(github.event.workflow_run.head_commit.message, '[skip ci]') &&
+        (
+          startsWith(github.event.workflow_run.head_commit.message, 'feat:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'feat(') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'feat!:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'fix:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'fix(') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'fix!:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'perf:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'perf(') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'perf!:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'security:') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'security(') ||
+          startsWith(github.event.workflow_run.head_commit.message, 'security!:')
+        )
+      )
 
     steps:
       - name: Checkout
