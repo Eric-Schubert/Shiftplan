@@ -67,6 +67,7 @@ A modern, web-based shift planner with automatic rotation system for small to me
 schichtplaner/
 ├── components/
 │   ├── AdminLogin.vue
+│   ├── AuditLog.vue
 │   ├── ChangelogBanner.vue
 │   ├── ChangePasswordDialog.vue
 │   ├── HolidayInfo.vue
@@ -75,6 +76,7 @@ schichtplaner/
 │   ├── ShiftCard.vue
 │   ├── ShiftManager.vue
 │   ├── StaffManager.vue
+│   ├── UserManager.vue
 │   ├── WeekPreview.vue
 │   └── YearCopy.vue
 ├── layouts/
@@ -83,15 +85,22 @@ schichtplaner/
 │   ├── index.vue
 │   └── settings.vue
 ├── scripts/
+│   ├── generate-changelog.js
 │   ├── generate-readme.js
 │   └── resolve-version.js
 ├── server/
 │   ├── api/
+│   │   ├── audit/
+│   │   │   └── index.get.ts
 │   │   ├── auth/
+│   │   │   ├── users/
+│   │   │   │   └── [id].delete.ts
 │   │   │   ├── change-password.post.ts
 │   │   │   ├── login.post.ts
 │   │   │   ├── logout.post.ts
-│   │   │   └── session.get.ts
+│   │   │   ├── session.get.ts
+│   │   │   ├── users.get.ts
+│   │   │   └── users.post.ts
 │   │   ├── holidays/
 │   │   │   ├── public.get.ts
 │   │   │   └── school.get.ts
@@ -123,11 +132,13 @@ schichtplaner/
 │   ├── middleware/
 │   │   └── auth.ts
 │   ├── services/
+│   │   ├── audit.service.ts
 │   │   ├── rotation.service.ts
 │   │   ├── shift.service.ts
 │   │   ├── shiftplan.service.ts
 │   │   └── staff.service.ts
 │   └── utils/
+│       ├── auth.ts
 │       ├── database.ts
 │       └── session.ts
 ├── stores/
@@ -135,6 +146,7 @@ schichtplaner/
 │   ├── auth.store.ts
 │   └── data.store.ts
 ├── types/
+│   ├── auth.ts
 │   ├── rotation.ts
 │   ├── shift.ts
 │   ├── shiftplan.ts
@@ -156,6 +168,7 @@ schichtplaner/
 | Component | File | Description |
 |-----------|------|-------------|
 | `AdminLogin` | AdminLogin.vue |  |
+| `AuditLog` | AuditLog.vue |  |
 | `ChangePasswordDialog` | ChangePasswordDialog.vue |  |
 | `ChangelogBanner` | ChangelogBanner.vue | ChangelogBanner Component |
 | `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
@@ -164,6 +177,7 @@ schichtplaner/
 | `ShiftCard` | ShiftCard.vue | Drag starten: Mitarbeiter-Chip wird gezogen |
 | `ShiftManager` | ShiftManager.vue |  |
 | `StaffManager` | StaffManager.vue |  |
+| `UserManager` | UserManager.vue |  |
 | `WeekPreview` | WeekPreview.vue |  |
 | `YearCopy` | YearCopy.vue |  |
 <!-- AUTO-GENERATED-COMPONENTS-END -->
@@ -261,6 +275,15 @@ npm run dev
 | `POST` | `/api/auth/login` |  |
 | `POST` | `/api/auth/logout` |  |
 | `GET` | `/api/auth/session` |  |
+| `GET` | `/api/auth/users` |  |
+| `POST` | `/api/auth/users` |  |
+| `DELETE` | `/api/auth/users/:id` |  |
+
+### Audit API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/audit` |  |
 
 ### Holidays API
 
