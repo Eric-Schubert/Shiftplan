@@ -136,7 +136,31 @@ function mergeChangelogs(generated: ChangelogEntry[], legacy: ChangelogEntry[]):
   const seen = new Set(generated.map(entry => `${entry.date}:${entry.title.toLowerCase()}`))
   const archivedEntries = legacy.filter(entry => !seen.has(`${entry.date}:${entry.title.toLowerCase()}`))
 
-  return [...generated, ...archivedEntries].sort((a, b) => b.date.localeCompare(a.date))
+  return [...generated, ...archivedEntries].sort(compareChangelogEntries)
+}
+
+function parseVersionParts(version: string): number[] {
+  const match = version.match(/\d+(?:\.\d+)*/)
+  if (!match) return []
+
+  return match[0].split('.').map(part => Number.parseInt(part, 10))
+}
+
+export function compareVersions(a: string, b: string): number {
+  const aParts = parseVersionParts(a)
+  const bParts = parseVersionParts(b)
+  const maxLength = Math.max(aParts.length, bParts.length)
+
+  for (let i = 0; i < maxLength; i += 1) {
+    const diff = (aParts[i] || 0) - (bParts[i] || 0)
+    if (diff !== 0) return diff
+  }
+
+  return a.localeCompare(b)
+}
+
+export function compareChangelogEntries(a: ChangelogEntry, b: ChangelogEntry): number {
+  return b.date.localeCompare(a.date) || compareVersions(b.title, a.title)
 }
 
 export const CHANGELOG: ChangelogEntry[] = mergeChangelogs(generatedEntries, LEGACY_CHANGELOG)

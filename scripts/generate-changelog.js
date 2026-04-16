@@ -65,10 +65,34 @@ function stripVisiblePrefix(message) {
   return message.replace(VISIBLE_PREFIX_PATTERN, "");
 }
 
+function parseVersionParts(version) {
+  const match = String(version).match(/\d+(?:\.\d+)*/);
+  if (!match) return [];
+
+  return match[0].split(".").map((part) => Number.parseInt(part, 10));
+}
+
+export function compareVersions(a, b) {
+  const aParts = parseVersionParts(a);
+  const bParts = parseVersionParts(b);
+  const maxLength = Math.max(aParts.length, bParts.length);
+
+  for (let i = 0; i < maxLength; i += 1) {
+    const diff = (aParts[i] || 0) - (bParts[i] || 0);
+    if (diff !== 0) return diff;
+  }
+
+  return String(a).localeCompare(String(b));
+}
+
+export function compareChangelogEntries(a, b) {
+  return b.date.localeCompare(a.date) || compareVersions(b.title, a.title);
+}
+
 /**
  * git-cliff Context in App-Format transformieren
  */
-function transformReleases(context) {
+export function transformReleases(context) {
   const releases = Array.isArray(context) ? context : context.releases || [];
 
   return releases
@@ -106,7 +130,7 @@ function transformReleases(context) {
       })
       .filter((r) => r.changes.length > 0)
       // Neueste zuerst
-      .sort((a, b) => b.date.localeCompare(a.date) || b.title.localeCompare(a.title));
+      .sort(compareChangelogEntries);
 }
 
 // ============================================
@@ -137,4 +161,6 @@ function main() {
   console.log(`[changelog] Wrote ${OUTPUT_PATH} (${releases.length} entries)`);
 }
 
-main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main();
+}

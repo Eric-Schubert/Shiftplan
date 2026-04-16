@@ -42,7 +42,7 @@ onMounted(() => check())
     <div class="space-y-5" :class="{ 'max-h-[60vh] overflow-y-auto': mode === 'history' }">
       <div
         v-for="(entry, index) in entries"
-        :key="entry.date"
+        :key="`${entry.date}:${entry.title}`"
       >
         <!-- Trennlinie zwischen Einträgen im History-Modus -->
         <hr 
