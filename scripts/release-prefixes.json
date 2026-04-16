@@ -1,0 +1,43 @@
+{
+  "visible": [
+    {
+      "prefix": "feat",
+      "group": "Features",
+      "bump": "minor"
+    },
+    {
+      "prefix": "fix",
+      "group": "Bug Fixes",
+      "bump": "patch"
+    },
+    {
+      "prefix": "perf",
+      "group": "Performance",
+      "bump": "patch"
+    },
+    {
+      "prefix": "security",
+      "group": "Security",
+      "bump": "patch"
+    }
+  ],
+  "hidden": [
+    "refactor",
+    "style",
+    "test",
+    "chore",
+    "ci",
+    "docs",
+    "build",
+    "revert"
+  ],
+  "deploy": [
+    "feat",
+    "fix",
+    "perf",
+    "security"
+  ],
+  "skipTokens": [
+    "[skip ci]"
+  ]
+}

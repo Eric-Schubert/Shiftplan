@@ -23,51 +23,41 @@ jobs:
       (
         github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.event == 'push' &&
-        !contains(github.event.workflow_run.head_commit.message, '[skip ci]') &&
-        (
-          startsWith(github.event.workflow_run.head_commit.message, 'feat:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'feat(') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'feat!:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'fix:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'fix(') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'fix!:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'perf:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'perf(') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'perf!:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'security:') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'security(') ||
-          startsWith(github.event.workflow_run.head_commit.message, 'security!:')
-        )
+        !contains(github.event.workflow_run.head_commit.message, '[skip ci]')
       )
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Alle Tags + History für git-cliff
+          fetch-depth: 0  # Full tag history for git-cliff
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
+      - name: Check release rules
+        id: release_rules
+        if: github.event_name == 'workflow_run'
+        env:
+          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
+        run: node scripts/release-rules.js github-output
+
+      - name: Skip non-deploy commit
+        if: github.event_name == 'workflow_run' && steps.release_rules.outputs.deploy != 'true'
+        run: echo "No Docker image expected for commit type '${{ steps.release_rules.outputs.type }}'."
+
       - name: Fetch latest tags
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         run: git fetch --tags --force
 
       - name: Wait for release tag
         if: >-
           github.event_name == 'workflow_run' &&
+          steps.release_rules.outputs.deploy == 'true' &&
           github.event.workflow_run.event == 'push' &&
           (
             github.event.workflow_run.head_branch == 'master' ||
             github.event.workflow_run.head_branch == 'main'
           )
-        env:
-          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
         run: |
-          FIRST_LINE="${HEAD_MESSAGE%%$'\n'*}"
-
-          if [[ ! "$FIRST_LINE" =~ ^(feat|fix|perf|security)(\(.+\))?!?:[[:space:]] ]]; then
-            echo "No release tag expected for this commit type."
-            exit 0
-          fi
-
           for attempt in {1..24}; do
             git fetch --tags --force
             TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
@@ -85,6 +75,7 @@ jobs:
 
       - name: Resolve version from Git
         id: version
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         run: |
           RAW=$(git describe --tags --always 2>/dev/null || echo "0.0.0")
           if [[ "$RAW" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+)-g[a-f0-9]+)?$ ]]; then
@@ -95,38 +86,32 @@ jobs:
             VERSION="0.0.0"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "✓ Resolved version: $VERSION"
+          echo "Resolved version: $VERSION"
 
       - name: Generate changelog from git tags
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
           args: --context --output __cliff_context.json
 
       - name: Transform changelog to app format
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         run: |
           node scripts/generate-changelog.js --from-context __cliff_context.json
-          echo "✓ Changelog generated:"
+          echo "Changelog generated:"
           cat utils/changelog.generated.json | head -20
 
       - name: Verify generated changelog
         if: >-
           github.event_name == 'workflow_run' &&
+          steps.release_rules.outputs.deploy == 'true' &&
           github.event.workflow_run.event == 'push' &&
           (
             github.event.workflow_run.head_branch == 'master' ||
             github.event.workflow_run.head_branch == 'main'
           )
-        env:
-          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
         run: |
-          FIRST_LINE="${HEAD_MESSAGE%%$'\n'*}"
-
-          if [[ ! "$FIRST_LINE" =~ ^(feat|fix|perf|security)(\(.+\))?!?:[[:space:]] ]]; then
-            echo "No visible changelog entry expected for this commit type."
-            exit 0
-          fi
-
           COUNT=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('utils/changelog.generated.json','utf8')); console.log(Array.isArray(data) ? data.length : 0)")
           if [[ "$COUNT" -eq 0 ]]; then
             echo "::error::Generated changelog is empty for a changelog-visible commit."
@@ -136,9 +121,11 @@ jobs:
           echo "Generated changelog contains $COUNT release entries."
 
       - name: Set up Docker Buildx
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -147,6 +134,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -157,6 +145,7 @@ jobs:
             type=raw,value=${{ steps.version.outputs.version }}
 
       - name: Build and push
+        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         uses: docker/build-push-action@v6
         with:
           context: .

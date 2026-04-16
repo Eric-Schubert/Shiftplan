@@ -11,9 +11,23 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  evaluateCommitMessage,
+  getVisiblePrefixes,
+} from "./release-rules.js";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const __filename = fileURLToPath(import.meta.url);
+const ROOT = path.resolve(path.dirname(__filename), "..");
 const OUTPUT_PATH = path.join(ROOT, "utils", "changelog.generated.json");
+const VISIBLE_PREFIX_PATTERN = new RegExp(
+  `^(${getVisiblePrefixes().map(escapeRegex).join("|")})(\\(.+?\\))?!?:\\s*`,
+  "i",
+);
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /**
  * git-cliff Context JSON laden
@@ -43,7 +57,12 @@ function loadContext() {
  * Prüft ob ein Commit-Message ein Conventional Commit ist
  */
 function isConventionalCommit(message) {
-  return /^(feat|fix|perf|security|refactor|style|test|chore|ci|docs?|build|revert)(\(.+?\))?!?:\s/.test(message);
+  const result = evaluateCommitMessage(message);
+  return result.conventional && (result.visible || result.hidden);
+}
+
+function stripVisiblePrefix(message) {
+  return message.replace(VISIBLE_PREFIX_PATTERN, "");
 }
 
 /**
@@ -73,7 +92,7 @@ function transformReleases(context) {
           if (!isConventionalCommit(msg)) continue;
 
           // Prefix entfernen
-          msg = msg.replace(/^(feat|fix|perf|security)(\(.+?\))?!?:\s*/i, "");
+          msg = stripVisiblePrefix(msg);
           msg = msg.charAt(0).toUpperCase() + msg.slice(1);
 
           // Duplikate vermeiden

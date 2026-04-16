@@ -15,22 +15,7 @@ permissions:
 jobs:
   version-and-release:
     runs-on: ubuntu-latest
-    if: >-
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      (
-        startsWith(github.event.head_commit.message, 'feat:') ||
-        startsWith(github.event.head_commit.message, 'feat(') ||
-        startsWith(github.event.head_commit.message, 'feat!:') ||
-        startsWith(github.event.head_commit.message, 'fix:') ||
-        startsWith(github.event.head_commit.message, 'fix(') ||
-        startsWith(github.event.head_commit.message, 'fix!:') ||
-        startsWith(github.event.head_commit.message, 'perf:') ||
-        startsWith(github.event.head_commit.message, 'perf(') ||
-        startsWith(github.event.head_commit.message, 'perf!:') ||
-        startsWith(github.event.head_commit.message, 'security:') ||
-        startsWith(github.event.head_commit.message, 'security(') ||
-        startsWith(github.event.head_commit.message, 'security!:')
-      )
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
 
     steps:
       - name: Checkout
@@ -39,8 +24,19 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check release rules
+        id: release_rules
+        env:
+          HEAD_MESSAGE: ${{ github.event.head_commit.message || '' }}
+        run: node scripts/release-rules.js github-output
+
+      - name: Skip non-release commit
+        if: steps.release_rules.outputs.release != 'true'
+        run: echo "No release expected for commit type '${{ steps.release_rules.outputs.type }}'."
+
       # 1. Version bumpen und Tag erstellen
       - name: Determine next version
+        if: steps.release_rules.outputs.release == 'true'
         id: version
         uses: mathieudutour/github-tag-action@v6.2
         with:
@@ -51,12 +47,12 @@ jobs:
           dry_run: false
 
       - name: Fetch new tag
-        if: steps.version.outputs.new_tag
+        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         run: git fetch --tags --force
 
       # 2. Changelog generieren (nur wenn neuer Tag erstellt wurde)
       - name: Generate release notes
-        if: steps.version.outputs.new_tag
+        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         uses: orhun/git-cliff-action@v4
         id: changelog
         with:
@@ -65,7 +61,7 @@ jobs:
 
       # 3. GitHub Release erstellen
       - name: Create GitHub Release
-        if: steps.version.outputs.new_tag
+        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -76,7 +72,7 @@ jobs:
 
       # 4. Summary
       - name: Summary
-        if: steps.version.outputs.new_tag
+        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         run: |
           echo "### 🏷️ New Release" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

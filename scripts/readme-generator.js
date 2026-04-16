@@ -10,6 +10,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
+import { getHiddenPrefixes, getVisiblePrefixes } from "./release-rules.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -379,23 +380,9 @@ function parseInlineBranches(workflowText) {
 }
 
 function parseChangelogPrefixes() {
-  if (!fileExists("cliff.toml")) return { visible: [], hidden: [] };
-  const text = readText("cliff.toml");
-  const visible = [];
-  const hidden = [];
-
-  for (const line of text.split("\n")) {
-    const match = line.match(/message\s*=\s*"\^([A-Za-z?]+)"/);
-    if (!match) continue;
-    const rawPrefix = match[1].replace("?", "");
-    const prefix = rawPrefix === "doc" ? "docs" : rawPrefix;
-    if (line.includes("skip = true")) hidden.push(prefix);
-    else visible.push(prefix);
-  }
-
   return {
-    visible: [...new Set(visible)],
-    hidden: [...new Set(hidden)],
+    visible: getVisiblePrefixes(),
+    hidden: getHiddenPrefixes(),
   };
 }
 
@@ -422,6 +409,8 @@ export function generateWorkflowDocs() {
     `| Update README | CI success: ${parseInlineBranches(readme).join(", ") || "-"} | Regenerates README sections and commits with [skip ci] |`,
     "",
     "### Changelog Prefixes\n",
+    "Release and deploy prefix rules are defined in `scripts/release-prefixes.json`.",
+    "",
     `Visible in releases: ${prefixes.visible.map((prefix) => `\`${prefix}:\``).join(", ") || "-"}`,
     "",
     `Hidden from releases: ${prefixes.hidden.map((prefix) => `\`${prefix}:\``).join(", ") || "-"}`,

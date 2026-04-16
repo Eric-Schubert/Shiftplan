@@ -89,6 +89,8 @@ schichtplaner/
 |   |-- generate-changelog.js
 |   |-- generate-readme.js
 |   |-- readme-generator.js
+|   |-- release-prefixes.json
+|   |-- release-rules.js
 |   `-- resolve-version.js
 |-- server/
 |   |-- api/
@@ -352,6 +354,8 @@ npm run dev
 | Update README | CI success: master, main | Regenerates README sections and commits with [skip ci] |
 
 ### Changelog Prefixes
+
+Release and deploy prefix rules are defined in `scripts/release-prefixes.json`.
 
 Visible in releases: `feat:`, `fix:`, `perf:`, `security:`
 
