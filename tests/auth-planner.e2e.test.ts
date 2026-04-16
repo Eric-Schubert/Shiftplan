@@ -376,6 +376,13 @@ describe("auth and planner e2e", () => {
     const remaining = client.mainDb
       .prepare("SELECT COUNT(*) AS count FROM shift_assignments")
       .get() as { count: number };
+    const auditEntries = client.mainDb
+      .prepare(`
+        SELECT username, action, year, week_number, shift_name, staff_name
+        FROM audit_log
+        ORDER BY audit_id ASC
+      `)
+      .all();
 
     expect(forbiddenStaffCreate.status).toBe(403);
     expect(assign.status).toBe(200);
@@ -388,6 +395,24 @@ describe("auth and planner e2e", () => {
     expect(unassign.status).toBe(200);
     expect(unassign.json).toEqual({ success: true });
     expect(remaining.count).toBe(0);
+    expect(auditEntries).toEqual([
+      {
+        username: "planner",
+        action: "assign",
+        year: 2026,
+        week_number: 14,
+        shift_name: "Planner Test Shift",
+        staff_name: "Planner Test Staff",
+      },
+      {
+        username: "planner",
+        action: "unassign",
+        year: 2026,
+        week_number: 14,
+        shift_name: "Planner Test Shift",
+        staff_name: "Planner Test Staff",
+      },
+    ]);
   });
 
   it("allows admins to create planner users", async () => {

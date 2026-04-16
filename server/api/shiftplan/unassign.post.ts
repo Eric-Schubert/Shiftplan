@@ -1,9 +1,10 @@
+import { AuditService } from "~/server/services/audit.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  requirePlanner(event);
+  const user = requirePlanner(event);
 
   const body = await readBody(event);
 
@@ -15,6 +16,18 @@ export default defineEventHandler(async (event) => {
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
   const success = ShiftplanService.unassignStaff(staff_id, shift_id, weekData.week_id);
+
+  if (success) {
+    AuditService.log({
+      userId: user.userId,
+      username: user.username,
+      action: "unassign",
+      year,
+      weekNumber: week,
+      shiftId: shift_id,
+      staffId: staff_id,
+    });
+  }
 
   return { success };
 });

@@ -113,6 +113,21 @@ export const ShiftplanService = {
   },
 
   /**
+   * Prueft ob eine Zuweisung bereits existiert
+   */
+  hasAssignment(staffId: number, shiftId: number, weekId: number): boolean {
+    const db = getDatabase();
+    const assignment = db
+      .prepare(`
+        SELECT assignment_id FROM shift_assignments
+        WHERE staff_id = ? AND shift_id = ? AND week_id = ?
+      `)
+      .get(staffId, shiftId, weekId);
+
+    return Boolean(assignment);
+  },
+
+  /**
    * Weist einen Mitarbeiter einer Schicht zu
    */
   assignStaff(staffId: number, shiftId: number, weekId: number): boolean {

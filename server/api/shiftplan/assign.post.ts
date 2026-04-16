@@ -1,9 +1,10 @@
+import { AuditService } from "~/server/services/audit.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {
-  requirePlanner(event);
+  const user = requirePlanner(event);
 
   const body = await readBody(event);
 
@@ -14,10 +15,23 @@ export default defineEventHandler(async (event) => {
   const week = validateWeek(body.week, "Woche", { required: true })!;
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
+  const wasAssigned = ShiftplanService.hasAssignment(staff_id, shift_id, weekData.week_id);
   const success = ShiftplanService.assignStaff(staff_id, shift_id, weekData.week_id);
 
   if (!success) {
     throw createError({ statusCode: 500, statusMessage: "Zuweisung fehlgeschlagen" });
+  }
+
+  if (!wasAssigned) {
+    AuditService.log({
+      userId: user.userId,
+      username: user.username,
+      action: "assign",
+      year,
+      weekNumber: week,
+      shiftId: shift_id,
+      staffId: staff_id,
+    });
   }
 
   return { success: true };
