@@ -140,6 +140,7 @@ schichtplaner/
 |   |   `-- staff.service.ts
 |   `-- utils/
 |       |-- auth.ts
+|       |-- database-migrations.js
 |       |-- database.ts
 |       |-- session.ts
 |       `-- validation.ts
