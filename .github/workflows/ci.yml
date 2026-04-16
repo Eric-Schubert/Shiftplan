@@ -94,3 +94,14 @@ jobs:
 
       - name: Run type check
         run: npx nuxi typecheck
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    needs: [test, build, typecheck]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and smoke test Docker image
+        run: bash scripts/docker-smoke-test.sh

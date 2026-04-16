@@ -416,7 +416,7 @@ export function generateWorkflowDocs() {
     "### Workflow Summary\n",
     "| Workflow | Runs On | Main Result |",
     "|----------|---------|-------------|",
-    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, build, and typecheck |`,
+    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, build, typecheck, and Docker smoke test |`,
     `| Auto Version & Release | Push: ${parseInlineBranches(release).join(", ") || "-"} | Creates version tag and GitHub release for changelog-visible commits |`,
     `| Docker Build & Push | CI success + deploy prefix: ${parseInlineBranches(docker).join(", ") || "-"} | Builds and pushes GHCR image with generated changelog |`,
     `| Update README | CI success: ${parseInlineBranches(readme).join(", ") || "-"} | Regenerates README sections and commits with [skip ci] |`,

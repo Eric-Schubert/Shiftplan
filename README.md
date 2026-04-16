@@ -85,6 +85,7 @@ schichtplaner/
 |   |-- index.vue
 |   `-- settings.vue
 |-- scripts/
+|   |-- docker-smoke-test.sh
 |   |-- generate-changelog.js
 |   |-- generate-readme.js
 |   |-- readme-generator.js
@@ -345,7 +346,7 @@ npm run dev
 
 | Workflow | Runs On | Main Result |
 |----------|---------|-------------|
-| CI | Push: master, main, RBA; PR: master/main | Tests, build, and typecheck |
+| CI | Push: master, main, RBA; PR: master/main | Tests, build, typecheck, and Docker smoke test |
 | Auto Version & Release | Push: main, master | Creates version tag and GitHub release for changelog-visible commits |
 | Docker Build & Push | CI success + deploy prefix: master, main, RBA | Builds and pushes GHCR image with generated changelog |
 | Update README | CI success: master, main | Regenerates README sections and commits with [skip ci] |

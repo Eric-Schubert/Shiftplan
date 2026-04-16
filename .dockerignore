@@ -1,0 +1,17 @@
+.git
+.github
+.idea
+.nuxt
+.output
+.data
+.cache
+.nitro
+coverage
+dist
+docs
+node_modules
+db
+*.log
+.env
+.version
+logs_*.zip

@@ -39,6 +39,7 @@ describe("README generator", () => {
     expect(workflowDocs).toContain("Visible in releases:");
     expect(workflowDocs).toContain("`security:`");
     expect(workflowDocs).toContain("`docs:`");
+    expect(workflowDocs).toContain("Docker smoke test");
     expect(workflowDocs).toContain("CI success + deploy prefix");
     expect(workflowDocs).not.toContain("`doc:`");
   });
