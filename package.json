@@ -34,12 +34,12 @@
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.0",
-    "@nuxt/test-utils": "^3.15.0",
+    "@nuxt/test-utils": "^4.0.2",
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@primevue/nuxt-module": "^4.2.5",
     "@types/better-sqlite3": "^7.6.12",
     "@vue/test-utils": "^2.4.6",
-    "vitest": "^3.2.0",
+    "vitest": "^4.1.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.1",
     "typescript": "^5.7.2"
