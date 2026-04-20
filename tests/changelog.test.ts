@@ -4,7 +4,12 @@ import {
   compareVersions,
   transformReleases,
 } from "../scripts/generate-changelog.js";
-import { compareChangelogEntries as compareRuntimeChangelogEntries } from "../utils/changelog";
+import {
+  compareChangelogEntries as compareRuntimeChangelogEntries,
+  formatChangelogDate,
+  formatRelativeChangelogDate,
+  getCalendarDayDiff,
+} from "../utils/changelog";
 
 describe("changelog ordering", () => {
   it("sorts semantic versions numerically", () => {
@@ -87,5 +92,19 @@ describe("changelog ordering", () => {
       "Explain start week, cycle length, and pattern weeks in the workbook",
       "Import rotation config and assignments from filled .xlsx files",
     ]);
+  });
+
+  it("formats changelog dates for German readers", () => {
+    expect(formatChangelogDate("2026-01-04")).toBe("04.01.2026");
+    expect(formatChangelogDate("2026-04-01")).toBe("01.04.2026");
+  });
+
+  it("calculates relative dates by calendar day across daylight saving time", () => {
+    const today = new Date(2026, 3, 20, 12, 0, 0);
+
+    expect(getCalendarDayDiff("2026-04-01", today)).toBe(19);
+    expect(getCalendarDayDiff("2026-01-04", today)).toBe(106);
+    expect(getCalendarDayDiff("2026-01-01", today)).toBe(109);
+    expect(formatRelativeChangelogDate("2026-01-04", today)).toBe("vor 106 Tagen");
   });
 });

@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { ChangelogEntry } from "~/utils/changelog";
+import {
+  formatChangelogDate,
+  formatRelativeChangelogDate,
+  type ChangelogEntry,
+} from "~/utils/changelog";
 
 const { isVisible, entries, mode, currentVersion, check, dismiss } = useChangelog();
 
@@ -54,19 +58,6 @@ function isCurrent(entry: ChangelogEntry): boolean {
   return version === displayCurrentVersion.value;
 }
 
-function formatRelativeDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return date;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.max(0, Math.floor((today.getTime() - parsed.getTime()) / 86_400_000));
-  if (diffDays === 0) return "heute";
-  if (diffDays === 1) return "gestern";
-  return `vor ${diffDays} Tagen`;
-}
-
 function releaseUrl(entry: ChangelogEntry): string | null {
   const version = extractVersion(entry.title);
   return version ? `https://github.com/Eric-Schubert/Shiftplanv2/releases/tag/${version}` : null;
@@ -114,8 +105,11 @@ function openEntry(entry: ChangelogEntry) {
         @click="openEntry(entry)"
       >
         <span class="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:w-20">
-            {{ formatRelativeDate(entry.date) }}
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:w-24">
+            <span>{{ formatRelativeChangelogDate(entry.date) }}</span>
+            <span class="mt-0.5 block text-[11px] font-medium normal-case tracking-normal text-gray-400 dark:text-gray-500">
+              {{ formatChangelogDate(entry.date) }}
+            </span>
           </span>
           <span class="flex min-w-0 flex-wrap items-center gap-2">
             <span class="truncate text-lg font-bold text-gray-900 dark:text-white">
@@ -161,7 +155,7 @@ function openEntry(entry: ChangelogEntry) {
           {{ detailEntry.title }}
         </h3>
         <p class="m-0 mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ detailEntry.date }}
+          {{ formatChangelogDate(detailEntry.date) }}
         </p>
       </div>
 
