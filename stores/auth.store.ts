@@ -50,7 +50,7 @@ export const useAuthStore = defineStore("auth", {
     _readCsrfCookie(): string | null {
       if (import.meta.server) return null;
       const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
-      return match ? decodeURIComponent(match[1]) : null;
+      return match?.[1] ? decodeURIComponent(match[1]) : null;
     },
 
     /**

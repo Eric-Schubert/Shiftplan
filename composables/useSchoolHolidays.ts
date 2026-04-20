@@ -145,7 +145,7 @@ export function useSchoolHolidays() {
     date: Date | string, 
     state?: string
   ): Promise<SchoolHoliday | null> {
-    const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+    const dateStr = typeof date === 'string' ? date : date.toISOString().slice(0, 10);
     const year = new Date(dateStr).getFullYear();
     
     const states = state ? [state] : undefined;

@@ -92,7 +92,7 @@ export function useHolidays() {
    * Prüft ob ein Datum ein Feiertag ist
    */
   async function isHoliday(date: Date | string): Promise<PublicHoliday | null> {
-    const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+    const dateStr = typeof date === 'string' ? date : date.toISOString().slice(0, 10);
     const year = new Date(dateStr).getFullYear();
     
     const holidays = await getHolidaysForYear(year);

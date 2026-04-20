@@ -267,7 +267,8 @@ export function getClientIP(event: any): string {
   // Standard Proxy Header
   const xForwardedFor = getHeader(event, "x-forwarded-for");
   if (xForwardedFor) {
-    return xForwardedFor.split(",")[0].trim();
+    const forwardedIp = xForwardedFor.split(",")[0]?.trim();
+    if (forwardedIp) return forwardedIp;
   }
 
   const xRealIP = getHeader(event, "x-real-ip");

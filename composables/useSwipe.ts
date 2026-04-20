@@ -39,6 +39,8 @@ export function useSwipe(
 
   function handleTouchStart(e: TouchEvent) {
     const touch = e.touches[0];
+    if (!touch) return;
+
     startX = touch.clientX;
     startY = touch.clientY;
     startTime = Date.now();
@@ -49,6 +51,8 @@ export function useSwipe(
 
   function handleTouchMove(e: TouchEvent) {
     const touch = e.touches[0];
+    if (!touch) return;
+
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);
 
@@ -68,6 +72,8 @@ export function useSwipe(
 
   function handleTouchEnd(e: TouchEvent) {
     const touch = e.changedTouches[0];
+    if (!touch) return;
+
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);
     const duration = Date.now() - startTime;

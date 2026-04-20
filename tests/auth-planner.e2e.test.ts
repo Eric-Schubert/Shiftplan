@@ -87,6 +87,8 @@ function updateCookieJar(jar: CookieJar | undefined, response: PlainResponse) {
 
   for (const header of setCookies) {
     const [pair] = header.split(";");
+    if (!pair) continue;
+
     const separator = pair.indexOf("=");
     if (separator === -1) continue;
 
@@ -389,7 +391,7 @@ describe("auth and planner e2e", () => {
     expect(assign.json).toEqual({ success: true });
     expect(assigned.count).toBe(1);
     expect(publicPlan.status).toBe(200);
-    expect(publicPlan.json?.shifts[0].assigned_staff).toEqual([
+    expect(publicPlan.json?.shifts[0]?.assigned_staff).toEqual([
       expect.objectContaining({ name: "Planner Test Staff" }),
     ]);
     expect(unassign.status).toBe(200);

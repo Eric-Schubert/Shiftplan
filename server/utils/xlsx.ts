@@ -100,7 +100,10 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
   let sheetMatch: RegExpExecArray | null;
 
   while ((sheetMatch = sheetRegex.exec(workbook)) !== null) {
-    const attrs = parseAttrs(sheetMatch[1]);
+    const sheetAttrs = sheetMatch[1];
+    if (!sheetAttrs) continue;
+
+    const attrs = parseAttrs(sheetAttrs);
     const name = attrs.name;
     const relId = attrs["r:id"];
 
@@ -451,7 +454,10 @@ function parseRelationships(xml: string): Map<string, string> {
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(xml)) !== null) {
-    const attrs = parseAttrs(match[1]);
+    const relAttrs = match[1];
+    if (!relAttrs) continue;
+
+    const attrs = parseAttrs(relAttrs);
     if (attrs.Id && attrs.Target) {
       relationships.set(attrs.Id, attrs.Target);
     }
@@ -468,7 +474,10 @@ function parseSharedStrings(xml: string): string[] {
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(xml)) !== null) {
-    strings.push(parseTextRuns(match[1]));
+    const itemXml = match[1];
+    if (itemXml !== undefined) {
+      strings.push(parseTextRuns(itemXml));
+    }
   }
 
   return strings;
@@ -481,17 +490,25 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
   let fallbackRow = 1;
 
   while ((rowMatch = rowRegex.exec(xml)) !== null) {
-    const rowAttrs = parseAttrs(rowMatch[1]);
+    const rowAttrsXml = rowMatch[1];
+    const rowXml = rowMatch[2];
+    if (rowAttrsXml === undefined || rowXml === undefined) continue;
+
+    const rowAttrs = parseAttrs(rowAttrsXml);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
     const row: XlsxCellValue[] = [];
     let fallbackCol = 1;
     const cellRegex = /<c\b([^>]*)>([\s\S]*?)<\/c>/g;
     let cellMatch: RegExpExecArray | null;
 
-    while ((cellMatch = cellRegex.exec(rowMatch[2])) !== null) {
-      const cellAttrs = parseAttrs(cellMatch[1]);
+    while ((cellMatch = cellRegex.exec(rowXml)) !== null) {
+      const cellAttrsXml = cellMatch[1];
+      const cellXml = cellMatch[2];
+      if (cellAttrsXml === undefined || cellXml === undefined) continue;
+
+      const cellAttrs = parseAttrs(cellAttrsXml);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;
-      row[colNumber - 1] = parseCellValue(cellMatch[2], cellAttrs.t, sharedStrings);
+      row[colNumber - 1] = parseCellValue(cellXml, cellAttrs.t, sharedStrings);
       fallbackCol = colNumber + 1;
     }
 
@@ -510,7 +527,10 @@ function parseCellValue(xml: string, type: string | undefined, sharedStrings: st
   const valueMatch = xml.match(/<v\b[^>]*>([\s\S]*?)<\/v>/);
   if (!valueMatch) return "";
 
-  const raw = decodeXml(valueMatch[1]);
+  const rawValue = valueMatch[1];
+  if (rawValue === undefined) return "";
+
+  const raw = decodeXml(rawValue);
 
   if (type === "s") {
     return sharedStrings[Number(raw)] || "";
@@ -534,7 +554,10 @@ function parseTextRuns(xml: string): string {
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(xml)) !== null) {
-    texts.push(decodeXml(match[1]));
+    const text = match[1];
+    if (text !== undefined) {
+      texts.push(decodeXml(text));
+    }
   }
 
   return texts.join("");
@@ -546,7 +569,10 @@ function parseAttrs(input: string): Record<string, string> {
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(input)) !== null) {
-    attrs[match[1]] = decodeXml(match[2] ?? match[3] ?? "");
+    const name = match[1];
+    if (!name) continue;
+
+    attrs[name] = decodeXml(match[2] ?? match[3] ?? "");
   }
 
   return attrs;
@@ -640,7 +666,7 @@ function crc32(data: Buffer): number {
   let crc = 0xffffffff;
 
   for (const byte of data) {
-    crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+    crc = CRC_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
   }
 
   return (crc ^ 0xffffffff) >>> 0;
