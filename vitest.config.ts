@@ -8,11 +8,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     // Sequentiell statt parallel - verhindert DB-Konflikte
     pool: "forks",
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
