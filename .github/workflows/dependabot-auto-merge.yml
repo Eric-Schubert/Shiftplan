@@ -1,0 +1,97 @@
+name: Dependabot Auto Merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  mark-safe-updates:
+    name: Mark safe updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]'
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Ensure automation labels exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh label create "dependabot-automerge" --repo "$REPO" --description "Safe Dependabot update, merge after green CI" --color "0e8a16" || true
+          gh label create "manual-review" --repo "$REPO" --description "Needs manual review before merge" --color "d93f0b" || true
+
+      - name: Mark patch and minor updates for auto-merge
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr edit "$PR_URL" --remove-label "manual-review" || true
+          gh pr edit "$PR_URL" --add-label "dependabot-automerge"
+          gh pr review --approve "$PR_URL" || true
+
+      - name: Keep major updates for manual review
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr edit "$PR_URL" --remove-label "dependabot-automerge" || true
+          gh pr edit "$PR_URL" --add-label "manual-review"
+          echo "Major dependency update detected. Leaving PR open for manual review."
+
+  merge-after-green-ci:
+    name: Merge after green CI
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Merge safe Dependabot PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          prs=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/$REPO/commits/$HEAD_SHA/pulls" \
+            --jq '.[] | select(.state == "open" and .user.login == "dependabot[bot]") | .number')
+
+          if [ -z "$prs" ]; then
+            echo "No open Dependabot PR found for $HEAD_SHA."
+            exit 0
+          fi
+
+          for pr in $prs; do
+            has_label=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '.labels[].name' | grep -Fx "dependabot-automerge" || true)
+
+            if [ -z "$has_label" ]; then
+              echo "PR #$pr is not marked for auto-merge."
+              continue
+            fi
+
+            is_draft=$(gh pr view "$pr" --repo "$REPO" --json isDraft --jq '.isDraft')
+            if [ "$is_draft" = "true" ]; then
+              echo "PR #$pr is a draft. Skipping."
+              continue
+            fi
+
+            gh pr merge "$pr" --repo "$REPO" --squash --delete-branch
+          done
