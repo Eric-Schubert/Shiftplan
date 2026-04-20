@@ -195,17 +195,6 @@ function todayParts(today: Date): DateParts {
   }
 }
 
-function padDatePart(value: number): string {
-  return String(value).padStart(2, '0')
-}
-
-export function formatChangelogDate(date: string): string {
-  const parts = parseDateParts(date)
-  if (!parts) return date
-
-  return `${padDatePart(parts.day)}.${padDatePart(parts.month)}.${parts.year}`
-}
-
 export function getCalendarDayDiff(date: string, today = new Date()): number | null {
   const parts = parseDateParts(date)
   if (!parts) return null

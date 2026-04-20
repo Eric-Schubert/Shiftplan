@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  formatChangelogDate,
   formatRelativeChangelogDate,
   type ChangelogEntry,
 } from "~/utils/changelog";
@@ -108,7 +107,7 @@ function openEntry(entry: ChangelogEntry) {
           <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:w-24">
             <span>{{ formatRelativeChangelogDate(entry.date) }}</span>
             <span class="mt-0.5 block text-[11px] font-medium normal-case tracking-normal text-gray-400 dark:text-gray-500">
-              {{ formatChangelogDate(entry.date) }}
+              {{ entry.date }}
             </span>
           </span>
           <span class="flex min-w-0 flex-wrap items-center gap-2">
@@ -155,20 +154,20 @@ function openEntry(entry: ChangelogEntry) {
           {{ detailEntry.title }}
         </h3>
         <p class="m-0 mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ formatChangelogDate(detailEntry.date) }}
+          {{ detailEntry.date }}
         </p>
       </div>
 
-      <div>
-        <h4 class="mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200">
+      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/70">
+        <h4 class="m-0 mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200">
           <Icon name="mdi:sparkles" class="text-primary-light dark:text-primary-dark" />
           Änderungen
         </h4>
-        <ul class="m-0 space-y-2 p-0">
+        <ul class="m-0 space-y-3 p-0">
           <li
             v-for="change in detailEntry.changes"
             :key="change"
-            class="flex items-start gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm leading-6 text-gray-700 dark:bg-gray-800/70 dark:text-gray-300"
+            class="flex items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-300"
           >
             <Icon
               name="mdi:check-circle"
