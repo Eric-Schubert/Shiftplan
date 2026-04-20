@@ -112,6 +112,8 @@ schichtplaner/
 |   |   |   |-- assign.post.ts
 |   |   |   |-- config.get.ts
 |   |   |   |-- config.patch.ts
+|   |   |   |-- excel-import.post.ts
+|   |   |   |-- excel-template.get.ts
 |   |   |   |-- index.get.ts
 |   |   |   `-- unassign.post.ts
 |   |   |-- shift/
@@ -137,6 +139,7 @@ schichtplaner/
 |   |   `-- auth.ts
 |   |-- services/
 |   |   |-- audit.service.ts
+|   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
 |   |   |-- shift.service.ts
 |   |   |-- shiftplan.service.ts
@@ -146,7 +149,8 @@ schichtplaner/
 |       |-- database-migrations.js
 |       |-- database.ts
 |       |-- session.ts
-|       `-- validation.ts
+|       |-- validation.ts
+|       `-- xlsx.ts
 |-- stores/
 |   |-- app.store.ts
 |   |-- auth.store.ts
@@ -258,8 +262,8 @@ npm run dev
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/shiftplan` | Public | No | `week`, `year` | - | List shiftplan records |
 | `POST` | `/api/shiftplan/assign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Assign staff to a weekly shift |
-| `POST` | `/api/shiftplan/copy-year` | Admin | Yes | - | `overwrite`, `sourceYear`, `targetYear` | Copy shift plans between years |
-| `POST` | `/api/shiftplan/generate` | Admin | Yes | - | `week`, `weeks`, `year` | Generate plans from the rotation pattern |
+| `POST` | `/api/shiftplan/copy-year` | Planner/Admin | Yes | - | `overwrite`, `sourceYear`, `targetYear` | Copy shift plans between years |
+| `POST` | `/api/shiftplan/generate` | Planner/Admin | Yes | - | `week`, `weeks`, `year` | Generate plans from the rotation pattern |
 | `POST` | `/api/shiftplan/unassign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Remove staff from a weekly shift |
 | `GET` | `/api/shiftplan/year-summary` | Public | No | `year` | - | Read yearly planning coverage |
 
@@ -268,10 +272,12 @@ npm run dev
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/rotation` | Public | No | - | - | List rotation records |
-| `POST` | `/api/rotation/assign` | Admin | Yes | - | `pattern_week`, `shift_id`, `staff_id` | Create or update rotation data |
+| `POST` | `/api/rotation/assign` | Planner/Admin | Yes | - | `pattern_week`, `shift_id`, `staff_id` | Create or update rotation data |
 | `GET` | `/api/rotation/config` | Public | No | - | - | List rotation records |
-| `PATCH` | `/api/rotation/config` | Admin | Yes | - | `cycle_length`, `start_week`, `start_year` | Update one rotation record |
-| `POST` | `/api/rotation/unassign` | Admin | Yes | - | `pattern_week`, `shift_id`, `staff_id` | Create or update rotation data |
+| `PATCH` | `/api/rotation/config` | Planner/Admin | Yes | - | `cycle_length`, `start_week`, `start_year` | Update one rotation record |
+| `POST` | `/api/rotation/excel-import` | Planner/Admin | Yes | - | - | Create or update rotation data |
+| `GET` | `/api/rotation/excel-template` | Planner/Admin | No | - | - | List rotation records |
+| `POST` | `/api/rotation/unassign` | Planner/Admin | Yes | - | `pattern_week`, `shift_id`, `staff_id` | Create or update rotation data |
 
 ### Auth API
 
@@ -318,15 +324,17 @@ npm run dev
 | `DELETE` | `/api/shift/:id` | No | No | Yes | Yes |
 | `GET` | `/api/shiftplan` | Yes | Yes | Yes | No |
 | `POST` | `/api/shiftplan/assign` | No | Yes | Yes | Yes |
-| `POST` | `/api/shiftplan/copy-year` | No | No | Yes | Yes |
-| `POST` | `/api/shiftplan/generate` | No | No | Yes | Yes |
+| `POST` | `/api/shiftplan/copy-year` | No | Yes | Yes | Yes |
+| `POST` | `/api/shiftplan/generate` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/unassign` | No | Yes | Yes | Yes |
 | `GET` | `/api/shiftplan/year-summary` | Yes | Yes | Yes | No |
 | `GET` | `/api/rotation` | Yes | Yes | Yes | No |
-| `POST` | `/api/rotation/assign` | No | No | Yes | Yes |
+| `POST` | `/api/rotation/assign` | No | Yes | Yes | Yes |
 | `GET` | `/api/rotation/config` | Yes | Yes | Yes | No |
-| `PATCH` | `/api/rotation/config` | No | No | Yes | Yes |
-| `POST` | `/api/rotation/unassign` | No | No | Yes | Yes |
+| `PATCH` | `/api/rotation/config` | No | Yes | Yes | Yes |
+| `POST` | `/api/rotation/excel-import` | No | Yes | Yes | Yes |
+| `GET` | `/api/rotation/excel-template` | No | Yes | Yes | No |
+| `POST` | `/api/rotation/unassign` | No | Yes | Yes | Yes |
 | `POST` | `/api/auth/change-password` | No | Yes | Yes | Yes |
 | `POST` | `/api/auth/login` | Yes | Yes | Yes | No |
 | `POST` | `/api/auth/logout` | No | Yes | Yes | Yes |
