@@ -6,6 +6,10 @@ const route = useRoute();
 const { openHistory, currentVersion } = useChangelog();
 
 const isSettingsPage = computed(() => route.path === "/settings");
+const displayCurrentVersion = computed(() => {
+  const version = currentVersion.trim();
+  return version.startsWith("v") ? version : `v${version}`;
+});
 
 // Dark Mode und Daten beim Laden initialisieren
 onMounted(() => {
@@ -34,13 +38,22 @@ onMounted(() => {
               <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
             </div>
 
-            <!-- Versionsverlauf Button -->
+            <button
+              type="button"
+              class="hidden sm:inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:border-primary-light/50 hover:text-primary-light dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-200 dark:hover:border-primary-dark/50 dark:hover:text-primary-dark"
+              @click="openHistory"
+              v-tooltip="'Versionsverlauf anzeigen'"
+            >
+              <Icon name="mdi:history" class="text-base" />
+              <span>{{ displayCurrentVersion }}</span>
+            </button>
             <PrimeButton
+              class="sm:!hidden"
               text
               rounded
               icon="pi pi-info-circle"
               @click="openHistory"
-              v-tooltip="'Versionsverlauf (v' + currentVersion + ')'"
+              v-tooltip="'Versionsverlauf anzeigen'"
             />
 
             <PrimeButton

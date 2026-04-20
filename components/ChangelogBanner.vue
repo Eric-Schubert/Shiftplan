@@ -1,14 +1,80 @@
 <script setup lang="ts">
-/**
- * ChangelogBanner Component
- * 
- * Zwei Ansichten:
- * - Update-Modus: "Was ist neu?" mit nur dem neuesten Eintrag
- * - History-Modus: "Versionsverlauf" mit allen Einträgen
- */
-const { isVisible, entries, mode, currentVersion, check, dismiss } = useChangelog()
+import type { ChangelogEntry } from "~/utils/changelog";
 
-onMounted(() => check())
+const { isVisible, entries, mode, currentVersion, check, dismiss } = useChangelog();
+
+const selectedEntry = ref<ChangelogEntry | null>(null);
+
+const isHistoryMode = computed(() => mode.value === "history");
+const visibleEntries = computed(() => entries.value);
+const latestEntry = computed(() => visibleEntries.value[0] || null);
+const detailEntry = computed(() => selectedEntry.value || (isHistoryMode.value ? null : latestEntry.value));
+const showReleaseList = computed(() => isHistoryMode.value && !selectedEntry.value);
+
+const dialogWidth = computed(() => (showReleaseList.value ? "820px" : "680px"));
+const displayCurrentVersion = computed(() => formatVersion(currentVersion));
+const dialogTitle = computed(() => {
+  if (showReleaseList.value) return "Versionsverlauf";
+  if (detailEntry.value) return `Änderungsprotokoll ${formatReleaseTitle(detailEntry.value)}`;
+  return mode.value === "update" ? "Was ist neu?" : "Versionsverlauf";
+});
+
+watch(isVisible, (visible) => {
+  if (!visible) selectedEntry.value = null;
+});
+
+watch(mode, () => {
+  selectedEntry.value = null;
+});
+
+onMounted(() => check());
+
+function extractVersion(value: string): string | null {
+  const match = value.match(/v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.-]+)?/);
+  return match ? formatVersion(match[0]) : null;
+}
+
+function formatVersion(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "v0.0.0";
+  return trimmed.startsWith("v") ? trimmed : `v${trimmed}`;
+}
+
+function formatReleaseTitle(entry: ChangelogEntry): string {
+  const version = extractVersion(entry.title);
+  return version ? `Release ${version}` : entry.title;
+}
+
+function isLatest(entry: ChangelogEntry): boolean {
+  return latestEntry.value === entry;
+}
+
+function isCurrent(entry: ChangelogEntry): boolean {
+  const version = extractVersion(entry.title);
+  return version === displayCurrentVersion.value;
+}
+
+function formatRelativeDate(date: string): string {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.max(0, Math.floor((today.getTime() - parsed.getTime()) / 86_400_000));
+  if (diffDays === 0) return "heute";
+  if (diffDays === 1) return "gestern";
+  return `vor ${diffDays} Tagen`;
+}
+
+function releaseUrl(entry: ChangelogEntry): string | null {
+  const version = extractVersion(entry.title);
+  return version ? `https://github.com/Eric-Schubert/Shiftplanv2/releases/tag/${version}` : null;
+}
+
+function openEntry(entry: ChangelogEntry) {
+  selectedEntry.value = entry;
+}
 </script>
 
 <template>
@@ -17,59 +83,102 @@ onMounted(() => check())
     modal
     :closable="true"
     :draggable="false"
-    :style="{ width: '520px', maxWidth: '95vw' }"
+    :style="{ width: dialogWidth, maxWidth: '95vw' }"
     @hide="dismiss"
   >
     <template #header>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-primary-light/10 dark:bg-primary-dark/10 rounded-full flex items-center justify-center">
-          <Icon 
-            :name="mode === 'update' ? 'mdi:party-popper' : 'mdi:history'" 
-            class="text-xl text-primary-light dark:text-primary-dark" 
+      <div class="flex items-start gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-light/10 text-primary-light dark:bg-primary-dark/10 dark:text-primary-dark">
+          <Icon
+            :name="showReleaseList ? 'mdi:history' : 'mdi:file-document-outline'"
+            class="text-xl"
           />
         </div>
         <div>
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white m-0">
-            {{ mode === 'update' ? 'Was ist neu?' : 'Versionsverlauf' }}
+          <h2 class="m-0 text-xl font-bold text-gray-900 dark:text-white">
+            {{ dialogTitle }}
           </h2>
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            Version {{ currentVersion }}
-          </span>
+          <p class="m-0 mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Aktuell installiert: {{ displayCurrentVersion }}
+          </p>
         </div>
       </div>
     </template>
 
-    <div class="space-y-5" :class="{ 'max-h-[60vh] overflow-y-auto': mode === 'history' }">
-      <div
-        v-for="(entry, index) in entries"
+    <div v-if="showReleaseList" class="space-y-3">
+      <button
+        v-for="entry in visibleEntries"
         :key="`${entry.date}:${entry.title}`"
+        type="button"
+        class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-primary-light/50 hover:bg-white dark:border-gray-700 dark:bg-gray-800/70 dark:hover:border-primary-dark/50 dark:hover:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"
+        @click="openEntry(entry)"
       >
-        <!-- Trennlinie zwischen Einträgen im History-Modus -->
-        <hr 
-          v-if="mode === 'history' && index > 0" 
-          class="border-gray-200 dark:border-gray-700 mb-4" 
-        />
-
-        <!-- Titel & Datum -->
-        <div class="flex items-center gap-2 mb-2">
-          <h3 class="font-semibold text-gray-800 dark:text-gray-200 m-0">
-            {{ entry.title }}
-          </h3>
-          <span class="text-xs text-gray-400 dark:text-gray-500">
-            {{ entry.date }}
+        <span class="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:w-20">
+            {{ formatRelativeDate(entry.date) }}
           </span>
-        </div>
+          <span class="flex min-w-0 flex-wrap items-center gap-2">
+            <span class="truncate text-lg font-bold text-gray-900 dark:text-white">
+              {{ formatReleaseTitle(entry) }}
+            </span>
+            <span
+              v-if="isLatest(entry)"
+              class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300"
+            >
+              neueste
+            </span>
+            <span
+              v-if="isCurrent(entry)"
+              class="rounded-full bg-primary-light/10 px-2 py-0.5 text-xs font-semibold text-primary-light dark:bg-primary-dark/20 dark:text-primary-dark"
+            >
+              Aktuell
+            </span>
+          </span>
+        </span>
 
-        <!-- Änderungen -->
-        <ul class="space-y-1.5 m-0 p-0 list-none">
+        <span class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-light px-3 py-2 text-sm font-semibold text-white dark:bg-primary-dark dark:text-gray-950">
+          <Icon name="mdi:file-document-outline" class="text-base" />
+          Änderungsprotokoll anzeigen
+        </span>
+      </button>
+    </div>
+
+    <div v-else-if="detailEntry" class="space-y-5">
+      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/70">
+        <a
+          v-if="extractVersion(detailEntry.title)"
+          :href="releaseUrl(detailEntry) || undefined"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-lg font-bold text-primary-light underline-offset-4 hover:underline dark:text-primary-dark"
+        >
+          {{ extractVersion(detailEntry.title) }}
+        </a>
+        <h3
+          v-else
+          class="m-0 text-lg font-bold text-gray-900 dark:text-white"
+        >
+          {{ detailEntry.title }}
+        </h3>
+        <p class="m-0 mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+          {{ detailEntry.date }}
+        </p>
+      </div>
+
+      <div>
+        <h4 class="mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200">
+          <Icon name="mdi:sparkles" class="text-primary-light dark:text-primary-dark" />
+          Änderungen
+        </h4>
+        <ul class="m-0 space-y-2 p-0">
           <li
-            v-for="change in entry.changes"
+            v-for="change in detailEntry.changes"
             :key="change"
-            class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300"
+            class="flex items-start gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm leading-6 text-gray-700 dark:bg-gray-800/70 dark:text-gray-300"
           >
-            <Icon 
-              name="mdi:check-circle" 
-              class="text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" 
+            <Icon
+              name="mdi:check-circle"
+              class="mt-0.5 flex-shrink-0 text-green-500 dark:text-green-400"
             />
             <span>{{ change }}</span>
           </li>
@@ -77,11 +186,34 @@ onMounted(() => check())
       </div>
     </div>
 
+    <div v-else class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+      Für diese Version ist noch kein Änderungsprotokoll vorhanden.
+    </div>
+
     <template #footer>
-      <div class="flex justify-end">
+      <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <PrimeButton
-          label="Verstanden"
-          icon="pi pi-check"
+          v-if="selectedEntry"
+          label="Zurück"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          outlined
+          @click="selectedEntry = null"
+        />
+        <a
+          v-if="detailEntry && releaseUrl(detailEntry)"
+          :href="releaseUrl(detailEntry) || undefined"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-light px-4 py-2 text-sm font-semibold text-white hover:opacity-90 dark:bg-primary-dark dark:text-gray-950"
+        >
+          <Icon name="mdi:github" class="text-base" />
+          Auf GitHub anzeigen
+        </a>
+        <PrimeButton
+          label="Schließen"
+          severity="secondary"
+          outlined
           @click="dismiss"
         />
       </div>

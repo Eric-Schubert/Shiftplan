@@ -1,66 +1,124 @@
-# 🗓️ Schichtplaner (Shift Planner)
-
-A modern, web-based shift planner with automatic rotation system for small to medium-sized teams.
+# Schichtplaner
 
 [![CI](https://github.com/Eric-Schubert/Shiftplanv2/actions/workflows/ci.yml/badge.svg)](https://github.com/Eric-Schubert/Shiftplanv2/actions/workflows/ci.yml)
-![Nuxt](https://img.shields.io/badge/Nuxt-3.x-00DC82?logo=nuxt.js)
+![Nuxt](https://img.shields.io/badge/Nuxt-4.x-00DC82?logo=nuxt.js)
 ![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vue.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript)
 ![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?logo=sqlite)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## ✨ Features
+Ein webbasierter Dienstplan fuer kleine und mittlere Teams. Der Plan laeuft wochenbasiert, unterstuetzt feste Schichtrotationen und laesst sich direkt im Browser pflegen.
 
-### Core Functionality
-- **Week-based shift planning** - Clear display per calendar week
-- **Automatic rotation system** - Define patterns that repeat automatically
-- **Staff management** - Full-time/part-time, active/inactive status
-- **Shift management** - Flexible times, colors, minimum staffing
-- **Bulk generation** - Create multiple weeks at once from pattern
-- **Week preview** - Shows the next 3 weeks at a glance
+## Was die App kann
 
-### User Experience
-- **Responsive design** - Optimized for desktop, tablet, and mobile
-- **Dark mode** - Persistent setting (localStorage)
-- **Real-time updates** - Changes visible immediately (Pinia Store)
-- **German localization** - Calendar weeks according to ISO 8601
-- **Saturday logic** - Automatically shows next week from Saturday onwards
+- Wochenplan mit Kalenderwochen, Feiertagen und Schulferien
+- Schichtrotation mit Startwoche, Zykluslaenge und Musterwochen
+- Excel-Vorlage herunterladen, bearbeiten und wieder importieren
+- Mitarbeiter, Schichten und Rotationsmuster verwalten
+- Planer-Rolle fuer Schichtzuweisungen ohne volle Admin-Rechte
+- Admin-Bereich fuer Benutzer, Stammdaten und Einstellungen
+- Audit-Log fuer manuelle Aenderungen am Schichtplan
+- Automatische Releases, Changelog und Docker-Image ueber GitHub Actions
 
-### Security
-- **Admin authentication** - Password-protected editing mode
-- **Bcrypt hashing** - Secure password storage
-- **Separate databases** - Admin credentials isolated from user data
-- **Read mode for everyone** - Shift schedule publicly viewable
+## Schnellstart
 
----
+Voraussetzungen:
 
-## 🏗️ Architecture
+- Node.js 20+
+- npm
 
-### Overview
-
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           Frontend (Nuxt 3)                              │
-├──────────────────────────────────────────────────────────────────────────┤
-│  Pages            │   Components        │    Stores (Pinia)              │
-│  ├─ index.vue     │   ├─ ShiftCard      │    ├─ app.store      (UI)      │
-│  └─ settings.vue  │   ├─ StaffManager   │    ├─ auth.store   (Auth)      │
-│                   │   ├─ ShiftManager   │    └─ data.store   (Data)      │
-│                   │   ├─ RotationMgr    │                                │
-│                   │   └─ WeekPreview    │                                │
-├──────────────────────────────────────────────────────────────────────────┤
-│                             API Layer (Nitro)                            │
-│  /api/staff/*  │  /api/shift/*  │  /api/shiftplan/*  │  /api/auth/*      │
-├──────────────────────────────────────────────────────────────────────────┤
-│                           Services (Business Logic)                      │
-│  StaffService  │  ShiftService  │  ShiftplanService  │  RotationService  │
-├──────────────────────────────────────────────────────────────────────────┤
-│                 Database (SQLite + better-sqlite3)                       │
-│           db/db.sqlite (Data)    │    db/admin.sqlite (Auth)             │
-└──────────────────────────────────────────────────────────────────────────┘
+```bash
+npm install
+npm run dev
 ```
 
-### Directory Structure
+Die App startet lokal unter `http://localhost:3000`.
+
+Standardzugang nach frischer Datenbank:
+
+| Benutzer | Passwort | Rolle |
+|----------|----------|-------|
+| `admin` | `admin` | Admin |
+
+Das Passwort sollte nach dem ersten Login geaendert werden.
+
+## Docker
+
+```bash
+docker build -t schichtplaner .
+docker run --rm -p 3000:3000 -v ${PWD}/db:/app/db schichtplaner
+```
+
+Aktuelle Images werden nach Releases nach GHCR gepusht:
+
+```text
+ghcr.io/eric-schubert/shiftplanv2:latest
+ghcr.io/eric-schubert/shiftplanv2:<version>
+```
+
+## Rollen
+
+| Rolle | Darf sehen | Darf planen | Darf verwalten |
+|-------|------------|-------------|----------------|
+| Öffentlich | Wochenplan, Schichten, Rotation | Nein | Nein |
+| Planer | Alles aus der öffentlichen Ansicht | Schichten zuweisen, Rotation importieren/generieren | Nein |
+| Admin | Alles | Alles | Benutzer, Mitarbeiter, Schichten, Einstellungen |
+
+## Schichtrotation per Excel
+
+Planer und Admins koennen die Rotation ueber eine Excel-Datei pflegen:
+
+1. In den Einstellungen die Excel-Vorlage herunterladen.
+2. Im ersten Blatt die Anleitung lesen.
+3. Startjahr, Startwoche und Zykluslaenge pruefen.
+4. Musterwochen befuellen oder anpassen.
+5. Datei wieder importieren.
+6. Schichtplan aus dem neuen Muster generieren.
+
+Interne IDs werden in der Vorlage nicht zur Bearbeitung angezeigt. Die sichtbaren Felder sind so aufgebaut, dass die Datei auch ohne technisches Vorwissen bearbeitet werden kann.
+
+## Entwicklung
+
+```bash
+npm run dev          # Entwicklungsserver
+npm run test:run     # Tests einmalig ausfuehren
+npm run build        # Produktionsbuild
+npm run docs         # README-Abschnitte neu generieren
+```
+
+Wichtige Pfade:
+
+| Bereich | Pfad |
+|---------|------|
+| Seiten | `pages/` |
+| Komponenten | `components/` |
+| Stores | `stores/` |
+| Server-API | `server/api/` |
+| Services | `server/services/` |
+| Tests | `tests/` |
+| Release/README-Skripte | `scripts/` |
+
+## Releases
+
+Releases entstehen automatisch aus Conventional Commits. Sichtbar und deploy-relevant sind aktuell:
+
+```text
+feat:
+fix:
+perf:
+security:
+```
+
+Nicht sichtbare Wartungscommits wie `docs:`, `test:`, `ci:` oder `chore:` erzeugen kein Release und kein Docker-Image.
+
+Der Versionsverlauf ist in der App ueber die Versionsanzeige im Header erreichbar. Neue Versionen zeigen beim ersten Besuch nur den neuesten Eintrag; der komplette Verlauf bleibt separat abrufbar.
+
+## Automatisch generierte Details
+
+Die folgenden Bereiche werden von `scripts/readme-generator.js` gepflegt. Sie sind absichtlich eingeklappt, damit die README zuerst lesbar bleibt.
+
+<details>
+<summary>Projektstruktur anzeigen</summary>
 
 <!-- AUTO-GENERATED-STRUCTURE-START -->
 ```text
@@ -172,7 +230,10 @@ schichtplaner/
 ```
 <!-- AUTO-GENERATED-STRUCTURE-END -->
 
-### Components
+</details>
+
+<details>
+<summary>Komponenten anzeigen</summary>
 
 <!-- AUTO-GENERATED-COMPONENTS-START -->
 | Component | File | Description |
@@ -180,7 +241,7 @@ schichtplaner/
 | `AdminLogin` | AdminLogin.vue | - |
 | `AuditLog` | AuditLog.vue | - |
 | `ChangePasswordDialog` | ChangePasswordDialog.vue | - |
-| `ChangelogBanner` | ChangelogBanner.vue | ChangelogBanner Component |
+| `ChangelogBanner` | ChangelogBanner.vue | - |
 | `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
 | `InstallBanner` | InstallBanner.vue | InstallBanner Component |
 | `RotationManager` | RotationManager.vue | - |
@@ -192,48 +253,10 @@ schichtplaner/
 | `YearCopy` | YearCopy.vue | - |
 <!-- AUTO-GENERATED-COMPONENTS-END -->
 
----
+</details>
 
-## 🚀 Installation
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/Eric-Schubert/Shiftplanv2.git
-cd Shiftplanv2
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`.
-
-### Default Login
-
-- **Password:** `admin`
-
-### Reset Admin Password
-
-```bash
-# Delete the admin database
-rm db/admin.sqlite
-
-# Restart server - password will be reset to "admin"
-npm run dev
-```
-
----
-
-## 📡 API Documentation
+<details>
+<summary>API-Endpunkte anzeigen</summary>
 
 <!-- AUTO-GENERATED-API-START -->
 ### Staff API
@@ -305,9 +328,10 @@ npm run dev
 | `GET` | `/api/holidays/school` | Public | No | `states`, `week`, `year` | - | Read school holidays |
 <!-- AUTO-GENERATED-API-END -->
 
----
+</details>
 
-## Access Control
+<details>
+<summary>Zugriffsrechte anzeigen</summary>
 
 <!-- AUTO-GENERATED-RBAC-START -->
 | Method | Endpoint | Public | Planner | Admin | CSRF |
@@ -347,9 +371,10 @@ npm run dev
 | `GET` | `/api/holidays/school` | Yes | Yes | Yes | No |
 <!-- AUTO-GENERATED-RBAC-END -->
 
----
+</details>
 
-## Automation
+<details>
+<summary>CI, Release und Docker anzeigen</summary>
 
 <!-- AUTO-GENERATED-WORKFLOWS-START -->
 ### Workflow Summary
@@ -378,125 +403,8 @@ Hidden from releases: `refactor:`, `style:`, `test:`, `chore:`, `ci:`, `docs:`, 
 5. README automation updates generated documentation without retriggering CI.
 <!-- AUTO-GENERATED-WORKFLOWS-END -->
 
----
+</details>
 
-## 🛠️ Scripts
+## Lizenz
 
-```bash
-# Development
-npm run dev          # Start development server
-
-# Build
-npm run build        # Create production build
-npm run preview      # Preview build
-
-# Testing
-npm run test         # Run tests
-npm run test:watch   # Tests in watch mode
-
-# Documentation
-npm run docs         # Auto-update README.md
-npm run setup-hooks  # Install git hooks for auto-updates
-```
-
----
-
-## 🌐 Production Deployment
-
-### With PM2 (recommended)
-
-```bash
-# Build
-npm run build
-
-# Start with PM2
-pm2 start .output/server/index.mjs --name "schichtplaner"
-
-# Auto-start on system boot
-pm2 startup
-pm2 save
-```
-
-### With Docker
-
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3000
-
-CMD ["node", ".output/server/index.mjs"]
-```
-
-```bash
-# Build image
-docker build -t schichtplaner .
-
-# Run container
-docker run -p 3000:3000 -v ./db:/app/db schichtplaner
-```
-
-### With nginx (Reverse Proxy)
-
-```nginx
-server {
-    listen 80;
-    server_name schichtplaner.example.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
----
-
-## 📝 Auto-Generated Documentation
-
-This README uses auto-generated sections that update automatically via GitHub Actions.
-
-The following sections are auto-generated:
-- **Directory Structure** - Tree view of project files
-- **Components** - List of Vue components
-- **API Documentation** - All API endpoints
-- **Access Control** - Route permissions and CSRF requirements
-- **Automation** - CI, release, Docker, and README workflow summary
-
-To manually update:
-```bash
-npm run docs
-```
-
----
-
-## 📋 Changelog
-
-### v1.1.0
-- Week preview showing next 3 weeks
-- Saturday logic: Shows next week from Saturday onwards
-- Compact UI layout
-- Auto-generated README
-
-### v1.0.0
-- Initial release
-- Week-based shift planning
-- Rotation patterns
-- Admin authentication
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE)
+MIT License. Details stehen in [LICENSE](LICENSE).
