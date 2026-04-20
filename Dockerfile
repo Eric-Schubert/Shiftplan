@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1: Dependencies
 # ============================================
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 
 RUN apk add --no-cache python3 make g++
 
@@ -12,7 +12,7 @@ RUN npm ci
 # ============================================
 # Stage 2: Build
 # ============================================
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Version wird vom CI/Docker-Compose als Build-Arg übergeben
 ARG APP_VERSION=0.0.0
@@ -31,7 +31,7 @@ RUN npm run build
 # ============================================
 # Stage 3: Production
 # ============================================
-FROM node:20-alpine
+FROM node:24-alpine
 
 RUN apk add --no-cache libstdc++
 
