@@ -57,4 +57,35 @@ describe("changelog ordering", () => {
 
     expect(releases.map((release: { title: string }) => release.title)).toEqual(["v1.5.10", "v1.5.9"]);
   });
+
+  it("includes bullet points from conventional commit bodies", () => {
+    const timestamp = Date.parse("2026-04-20T10:00:00Z") / 1000;
+    const releases = transformReleases({
+      releases: [
+        {
+          version: "v1.6.0",
+          timestamp,
+          commits: [
+            {
+              group: "Features",
+              raw_message: [
+                "feat(rotation): add Excel template workflow for shift rotations",
+                "",
+                "- add downloadable Excel rotation template with first-sheet instructions",
+                "- explain start week, cycle length, and pattern weeks in the workbook",
+                "- import rotation config and assignments from filled .xlsx files",
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(releases[0].changes).toEqual([
+      "Add Excel template workflow for shift rotations",
+      "Add downloadable Excel rotation template with first-sheet instructions",
+      "Explain start week, cycle length, and pattern weeks in the workbook",
+      "Import rotation config and assignments from filled .xlsx files",
+    ]);
+  });
 });

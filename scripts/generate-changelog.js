@@ -65,6 +65,74 @@ function stripVisiblePrefix(message) {
   return message.replace(VISIBLE_PREFIX_PATTERN, "");
 }
 
+function capitalizeFirst(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getCommitMessageParts(commit) {
+  const raw = String(commit.raw_message || "");
+
+  if (raw) {
+    const lines = raw.split(/\r?\n/);
+    return {
+      subject: (lines.shift() || "").trim(),
+      body: lines.join("\n").trim(),
+    };
+  }
+
+  return {
+    subject: String(commit.message || "").split(/\r?\n/)[0].trim(),
+    body: String(commit.body || "").trim(),
+  };
+}
+
+function cleanChangeLine(line) {
+  return String(line)
+    .trim()
+    .replace(/^[-*+]\s+/, "")
+    .replace(/^\d+[.)]\s+/, "")
+    .trim();
+}
+
+function isCommitFooter(line) {
+  return /^(co-authored-by|signed-off-by|refs?|closes|fixes):\s+/i.test(line);
+}
+
+function bodyToChanges(body) {
+  return String(body || "")
+    .split(/\r?\n/)
+    .map(cleanChangeLine)
+    .filter((line) => line && !isCommitFooter(line))
+    .map(capitalizeFirst);
+}
+
+function commitToChanges(commit) {
+  const { subject, body } = getCommitMessageParts(commit);
+
+  if (!isConventionalCommit(subject)) return [];
+
+  const title = capitalizeFirst(stripVisiblePrefix(subject));
+  return [title, ...bodyToChanges(body)];
+}
+
+function releaseBodyToChanges(body) {
+  return String(body || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .map(cleanChangeLine)
+    .filter(Boolean)
+    .map((line) => capitalizeFirst(stripVisiblePrefix(line)));
+}
+
+function addUniqueChanges(target, changes, seen) {
+  for (const change of changes) {
+    if (!change || seen.has(change.toLowerCase())) continue;
+    seen.add(change.toLowerCase());
+    target.push(change);
+  }
+}
+
 function parseVersionParts(version) {
   const match = String(version).match(/\d+(?:\.\d+)*/);
   if (!match) return [];
@@ -89,6 +157,60 @@ export function compareChangelogEntries(a, b) {
   return b.date.localeCompare(a.date) || compareVersions(b.title, a.title);
 }
 
+async function fetchGithubReleaseBody(tagName) {
+  const repository = process.env.GITHUB_REPOSITORY;
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+
+  if (!repository || !token || typeof fetch !== "function") return "";
+
+  const response = await fetch(
+    `https://api.github.com/repos/${repository}/releases/tags/${encodeURIComponent(tagName)}`,
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    console.log(`[changelog] GitHub release body unavailable for ${tagName}: ${response.status}`);
+    return "";
+  }
+
+  const release = await response.json();
+  return typeof release.body === "string" ? release.body : "";
+}
+
+async function mergeGithubReleaseBodies(entries) {
+  if (!process.env.GITHUB_REPOSITORY || !(process.env.GITHUB_TOKEN || process.env.GH_TOKEN)) {
+    return entries;
+  }
+
+  const merged = [];
+
+  for (const entry of entries) {
+    const body = await fetchGithubReleaseBody(entry.title);
+    const releaseChanges = releaseBodyToChanges(body);
+
+    if (releaseChanges.length === 0) {
+      merged.push(entry);
+      continue;
+    }
+
+    const changes = [];
+    const seen = new Set();
+
+    addUniqueChanges(changes, releaseChanges, seen);
+    addUniqueChanges(changes, entry.changes, seen);
+
+    merged.push({ ...entry, changes });
+  }
+
+  return merged;
+}
+
 /**
  * git-cliff Context in App-Format transformieren
  */
@@ -109,21 +231,7 @@ export function transformReleases(context) {
           // Nur Commits mit einer zugewiesenen Gruppe (feat, fix, etc.)
           if (!commit.group) continue;
 
-          let msg = commit.raw_message || commit.message || "";
-          msg = msg.split("\n")[0];
-
-          // Nur Conventional Commits durchlassen
-          if (!isConventionalCommit(msg)) continue;
-
-          // Prefix entfernen
-          msg = stripVisiblePrefix(msg);
-          msg = msg.charAt(0).toUpperCase() + msg.slice(1);
-
-          // Duplikate vermeiden
-          if (!msg || seen.has(msg.toLowerCase())) continue;
-          seen.add(msg.toLowerCase());
-
-          changes.push(msg);
+          addUniqueChanges(changes, commitToChanges(commit), seen);
         }
 
         return { date, title: release.version, changes };
@@ -136,12 +244,13 @@ export function transformReleases(context) {
 // ============================================
 // MAIN
 // ============================================
-function main() {
+async function main() {
   let releases = [];
 
   try {
     const context = loadContext();
     releases = transformReleases(context);
+    releases = await mergeGithubReleaseBodies(releases);
     console.log(`[changelog] Generated ${releases.length} release(s) from git tags`);
   } catch (err) {
     const msg = err.message?.split("\n")[0] || String(err);
@@ -162,5 +271,8 @@ function main() {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  main();
+  main().catch((err) => {
+    console.error("[changelog] Fatal error:", err);
+    process.exitCode = 1;
+  });
 }

@@ -97,6 +97,9 @@ jobs:
 
       - name: Transform changelog to app format
         if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           node scripts/generate-changelog.js --from-context __cliff_context.json
           echo "Changelog generated:"

@@ -10,6 +10,9 @@ body = """
 ### {{ group | upper_first }}
 {% for commit in commits %}\
 - {{ commit.message | split(pat="\n") | first | upper_first }}
+{% if commit.body %}\
+  {{ commit.body | trim | replace(from="\n", to="\n  ") }}
+{% endif %}\
 {% endfor %}\
 {% endfor %}\
 {% endif %}\
