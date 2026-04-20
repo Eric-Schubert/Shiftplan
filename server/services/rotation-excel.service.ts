@@ -375,7 +375,12 @@ function resolveByName<T extends Staff | Shift>(
     badRequest(`${label} '${name}' in Zeile ${rowNumber} ist mehrfach vorhanden`);
   }
 
-  return matches[0];
+  const match = matches[0];
+  if (!match) {
+    badRequest(`${label} '${name}' in Zeile ${rowNumber} ist unbekannt oder inaktiv`);
+  }
+
+  return match;
 }
 
 function makeNameLookup<T extends Staff | Shift>(items: T[], label: string): Map<string, T[]> {

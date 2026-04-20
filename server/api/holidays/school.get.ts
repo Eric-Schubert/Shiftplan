@@ -67,8 +67,8 @@ function getWeekDateRange(year: number, week: number): { start: string; end: str
   weekEnd.setDate(weekStart.getDate() + 6);
   
   return {
-    start: weekStart.toISOString().split('T')[0],
-    end: weekEnd.toISOString().split('T')[0]
+    start: weekStart.toISOString().slice(0, 10),
+    end: weekEnd.toISOString().slice(0, 10)
   };
 }
 

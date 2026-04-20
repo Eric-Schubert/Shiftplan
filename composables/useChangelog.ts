@@ -31,9 +31,11 @@ export function useChangelog() {
 
     if (lastSeen === currentVersion) return
 
-    if (CHANGELOG.length > 0) {
+    const latestEntry = CHANGELOG[0]
+
+    if (latestEntry) {
       mode.value = 'update'
-      entries.value = [CHANGELOG[0]]
+      entries.value = [latestEntry]
       isVisible.value = true
     }
   }
