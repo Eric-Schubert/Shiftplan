@@ -159,7 +159,7 @@ async function generateBulk() {
       :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
     >
       <!-- Admin Actions - Nur für Admin (Generieren aus Muster) -->
-      <div v-if="authStore.isAdmin" class="flex gap-2">
+      <div v-if="authStore.canEditShifts" class="flex gap-2">
         <PrimeButton
             label="Aus Muster füllen"
             icon="pi pi-sync"
@@ -223,7 +223,7 @@ async function generateBulk() {
         >
           <span class="text-yellow-700 dark:text-yellow-300">
             ⚠ Diese Woche ist noch nicht befüllt.
-            <template v-if="authStore.isAdmin">
+            <template v-if="authStore.canEditShifts">
               <button class="underline hover:no-underline" @click="generateFromPattern">
                 Jetzt aus Muster generieren
               </button>

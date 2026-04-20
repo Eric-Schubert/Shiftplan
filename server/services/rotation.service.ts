@@ -178,6 +178,40 @@ export const RotationService = {
     return true;
   },
 
+  /**
+   * Ersetzt Konfiguration und Rotationsmuster in einem Schritt.
+   * Wird vom Excel-Import genutzt, damit nie ein halb importiertes Muster bleibt.
+   */
+  replacePattern(
+    config: Omit<RotationConfig, "config_id">,
+    entries: Array<{ pattern_week: number; staff_id: number; shift_id: number }>
+  ): FullRotationPattern {
+    const db = getDatabase();
+    const current = this.getConfig();
+
+    const replaceTransaction = db.transaction(() => {
+      db.prepare(`
+        UPDATE rotation_config
+        SET cycle_length = ?, start_year = ?, start_week = ?
+        WHERE config_id = ?
+      `).run(config.cycle_length, config.start_year, config.start_week, current.config_id);
+
+      db.prepare("DELETE FROM rotation_pattern").run();
+
+      const insertPattern = db.prepare(`
+        INSERT OR IGNORE INTO rotation_pattern (pattern_week, staff_id, shift_id)
+        VALUES (?, ?, ?)
+      `);
+
+      for (const entry of entries) {
+        insertPattern.run(entry.pattern_week, entry.staff_id, entry.shift_id);
+      }
+    });
+
+    replaceTransaction();
+    return this.getFullPattern();
+  },
+
   // ============================================
   // BERECHNUNGEN
   // ============================================

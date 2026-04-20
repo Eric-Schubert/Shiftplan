@@ -5,6 +5,90 @@ const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
 
 // ============================================
+// EXCEL IMPORT / EXPORT
+// ============================================
+const excelFileInput = ref<HTMLInputElement | null>(null);
+const downloadingTemplate = ref(false);
+const importingExcel = ref(false);
+const excelImportError = ref<string | null>(null);
+const excelImportResult = ref<{
+  importedRows: number;
+  importedAssignments: number;
+  config: RotationConfig;
+} | null>(null);
+
+async function downloadExcelTemplate() {
+  downloadingTemplate.value = true;
+  excelImportError.value = null;
+
+  try {
+    const response = await fetch("/api/rotation/excel-template", {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(await readResponseError(response));
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "schichtplan-rotation-template.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error: any) {
+    excelImportError.value = error.message || "Vorlage konnte nicht geladen werden";
+  } finally {
+    downloadingTemplate.value = false;
+  }
+}
+
+function openExcelImport() {
+  excelFileInput.value?.click();
+}
+
+async function importExcelTemplate(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) return;
+
+  importingExcel.value = true;
+  excelImportError.value = null;
+  excelImportResult.value = null;
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    excelImportResult.value = await authFetch("/api/rotation/excel-import", {
+      method: "POST",
+      body: formData,
+    });
+
+    await dataStore.fetchRotation();
+  } catch (error: any) {
+    excelImportError.value =
+      error.data?.statusMessage || error.data?.message || "Excel-Import fehlgeschlagen";
+  } finally {
+    importingExcel.value = false;
+    input.value = "";
+  }
+}
+
+async function readResponseError(response: Response): Promise<string> {
+  try {
+    const data = await response.json();
+    return data.statusMessage || data.message || response.statusText;
+  } catch {
+    return response.statusText;
+  }
+}
+
+// ============================================
 // KONFIGURATION
 // ============================================
 const showConfigDialog = ref(false);
@@ -277,7 +361,30 @@ async function generatePreview() {
           · Start: KW {{ dataStore.rotationPattern.config.start_week }}/{{ dataStore.rotationPattern.config.start_year }}
         </p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
+        <input
+          ref="excelFileInput"
+          type="file"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          class="hidden"
+          @change="importExcelTemplate"
+        />
+        <PrimeButton
+          label="Excel-Vorlage"
+          icon="pi pi-download"
+          severity="secondary"
+          size="small"
+          :loading="downloadingTemplate"
+          @click="downloadExcelTemplate"
+        />
+        <PrimeButton
+          label="Excel importieren"
+          icon="pi pi-upload"
+          severity="secondary"
+          size="small"
+          :loading="importingExcel"
+          @click="openExcelImport"
+        />
         <PrimeButton
           label="Konfiguration"
           icon="pi pi-cog"
@@ -293,6 +400,23 @@ async function generatePreview() {
           @click="showPreviewDialog = true"
         />
       </div>
+    </div>
+
+    <div
+      v-if="excelImportResult"
+      class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm text-green-700 dark:text-green-300"
+    >
+      Import abgeschlossen: {{ excelImportResult.importedRows }} Zeilen gelesen,
+      {{ excelImportResult.importedAssignments }} Zuweisungen uebernommen.
+      Zyklus: {{ excelImportResult.config.cycle_length }} Wochen ab KW
+      {{ excelImportResult.config.start_week }}/{{ excelImportResult.config.start_year }}.
+    </div>
+
+    <div
+      v-if="excelImportError"
+      class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-700 dark:text-red-300"
+    >
+      {{ excelImportError }}
     </div>
 
     <!-- Info Box -->

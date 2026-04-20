@@ -25,13 +25,13 @@ onMounted(() => {
           </NuxtLink>
 
           <div class="flex items-center gap-2">
-            <!-- Admin-Badge wenn eingeloggt -->
+            <!-- Rollen-Badge wenn eingeloggt -->
             <div 
               v-if="authStore.isAuthenticated" 
               class="hidden sm:flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-sm"
             >
               <Icon name="mdi:shield-check" class="text-sm" />
-              <span>Admin</span>
+              <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
             </div>
 
             <!-- Versionsverlauf Button -->
