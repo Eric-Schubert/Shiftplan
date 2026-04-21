@@ -37,29 +37,29 @@
 
 .dark {
   color-scheme: dark;
-  --app-bg: oklch(0.19 0.006 22);
-  --app-bg-strong: oklch(0.22 0.007 22);
-  --surface: oklch(0.24 0.006 22);
-  --surface-muted: oklch(0.27 0.007 22);
-  --surface-strong: oklch(0.31 0.009 22);
-  --panel: color-mix(in oklab, var(--surface) 97%, var(--brand-red) 3%);
-  --panel-strong: color-mix(in oklab, var(--surface) 93%, var(--brand-red) 7%);
+  --app-bg: oklch(0.18 0.003 280);
+  --app-bg-strong: oklch(0.22 0.003 280);
+  --surface: oklch(0.245 0.003 280);
+  --surface-muted: oklch(0.275 0.003 280);
+  --surface-strong: oklch(0.315 0.004 280);
+  --panel: color-mix(in oklab, var(--surface) 99%, var(--brand-red) 1%);
+  --panel-strong: color-mix(in oklab, var(--surface) 96%, var(--brand-red) 4%);
   --border-soft: color-mix(in oklab, var(--brand-cream) 18%, var(--surface) 82%);
   --border-strong: color-mix(in oklab, var(--brand-cream) 28%, var(--surface-strong) 72%);
   --text-1: color-mix(in oklab, var(--brand-cream) 94%, white 6%);
-  --text-2: color-mix(in oklab, var(--brand-cream) 72%, oklch(0.7 0.01 18) 28%);
-  --text-3: color-mix(in oklab, var(--brand-cream) 54%, oklch(0.58 0.01 18) 46%);
-  --accent: color-mix(in oklab, var(--brand-red) 72%, white 28%);
-  --accent-strong: color-mix(in oklab, var(--brand-cream) 84%, var(--brand-red) 16%);
-  --accent-soft: color-mix(in oklab, var(--brand-red) 12%, var(--surface) 88%);
+  --text-2: color-mix(in oklab, var(--brand-cream) 74%, var(--surface-strong) 26%);
+  --text-3: color-mix(in oklab, var(--brand-cream) 56%, var(--surface-strong) 44%);
+  --accent: var(--brand-red);
+  --accent-strong: color-mix(in oklab, var(--brand-cream) 92%, var(--brand-red) 8%);
+  --accent-soft: color-mix(in oklab, var(--brand-red) 9%, var(--surface) 91%);
   --positive-soft: oklch(0.31 0.045 150);
   --positive-ink: oklch(0.86 0.07 150);
   --warning-soft: oklch(0.32 0.045 80);
   --warning-ink: oklch(0.88 0.07 80);
-  --danger-soft: color-mix(in oklab, var(--brand-red) 22%, var(--surface) 78%);
-  --danger-ink: color-mix(in oklab, var(--brand-cream) 82%, var(--brand-red) 18%);
+  --danger-soft: color-mix(in oklab, var(--brand-red) 16%, var(--surface) 84%);
+  --danger-ink: color-mix(in oklab, var(--brand-cream) 88%, var(--brand-red) 12%);
   --name-pill-bg: color-mix(in oklab, var(--surface-strong) 88%, white 12%);
-  --name-pill-border: color-mix(in oklab, var(--border-strong) 62%, var(--accent) 38%);
+  --name-pill-border: color-mix(in oklab, var(--border-strong) 80%, var(--accent) 20%);
   --name-pill-text: color-mix(in oklab, var(--brand-cream) 94%, white 6%);
   --shadow-sm: 0 20px 46px -30px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 34px 80px -46px rgba(0, 0, 0, 0.78);
@@ -82,8 +82,8 @@ body {
 
 .dark body {
   background:
-    radial-gradient(circle at top left, color-mix(in oklab, var(--accent) 8%, transparent) 0%, transparent 22%),
-    radial-gradient(circle at top right, color-mix(in oklab, var(--brand-cream) 5%, transparent) 0%, transparent 20%),
+    radial-gradient(circle at top left, color-mix(in oklab, var(--brand-cream) 4%, transparent) 0%, transparent 18%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 4%, transparent) 0%, transparent 16%),
     linear-gradient(180deg, var(--app-bg), var(--app-bg-strong));
 }
 
@@ -204,7 +204,7 @@ select {
 .dark .planner-hero::after {
   background: radial-gradient(
     circle,
-    color-mix(in oklab, var(--accent) 10%, transparent) 0%,
+    color-mix(in oklab, var(--accent) 6%, transparent) 0%,
     transparent 70%
   );
 }

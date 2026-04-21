@@ -47,10 +47,10 @@ const BrandPreset = definePreset(Aura, {
       },
       dark: {
         primary: {
-          color: "{primary.400}",
-          contrastColor: "#14080a",
-          hoverColor: "{primary.300}",
-          activeColor: "{primary.200}",
+          color: "{primary.500}",
+          contrastColor: "#f8f5f5",
+          hoverColor: "{primary.600}",
+          activeColor: "{primary.700}",
         },
       },
     },
