@@ -242,10 +242,10 @@ schichtplaner/
 | `AuditLog` | AuditLog.vue | - |
 | `ChangePasswordDialog` | ChangePasswordDialog.vue | - |
 | `ChangelogBanner` | ChangelogBanner.vue | - |
-| `HolidayInfo` | HolidayInfo.vue | HolidayInfo Component |
+| `HolidayInfo` | HolidayInfo.vue | - |
 | `InstallBanner` | InstallBanner.vue | InstallBanner Component |
 | `RotationManager` | RotationManager.vue | - |
-| `ShiftCard` | ShiftCard.vue | Drag starten: Mitarbeiter-Chip wird gezogen |
+| `ShiftCard` | ShiftCard.vue | - |
 | `ShiftManager` | ShiftManager.vue | - |
 | `StaffManager` | StaffManager.vue | - |
 | `UserManager` | UserManager.vue | - |
