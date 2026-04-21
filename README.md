@@ -140,6 +140,10 @@ schichtplaner/
 |   |-- ShiftCard.vue
 |   |-- ShiftManager.vue
 |   |-- StaffManager.vue
+|   |-- UserCreateDialog.vue
+|   |-- UserDeleteDialog.vue
+|   |-- UserManagementHeader.vue
+|   |-- UserManagementList.vue
 |   |-- UserManager.vue
 |   |-- WeekPreview.vue
 |   `-- YearCopy.vue
@@ -260,6 +264,10 @@ schichtplaner/
 | `ShiftCard` | ShiftCard.vue | - |
 | `ShiftManager` | ShiftManager.vue | - |
 | `StaffManager` | StaffManager.vue | - |
+| `UserCreateDialog` | UserCreateDialog.vue | - |
+| `UserDeleteDialog` | UserDeleteDialog.vue | - |
+| `UserManagementHeader` | UserManagementHeader.vue | - |
+| `UserManagementList` | UserManagementList.vue | - |
 | `UserManager` | UserManager.vue | - |
 | `WeekPreview` | WeekPreview.vue | - |
 | `YearCopy` | YearCopy.vue | - |
