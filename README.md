@@ -130,7 +130,13 @@ schichtplaner/
 |   |-- ChangePasswordDialog.vue
 |   |-- HolidayInfo.vue
 |   |-- InstallBanner.vue
+|   |-- RotationAssignDialog.vue
+|   |-- RotationConfigDialog.vue
+|   |-- RotationGenerateDialog.vue
 |   |-- RotationManager.vue
+|   |-- RotationPatternBoard.vue
+|   |-- RotationPatternWeekCard.vue
+|   |-- RotationToolbar.vue
 |   |-- ShiftCard.vue
 |   |-- ShiftManager.vue
 |   |-- StaffManager.vue
@@ -244,7 +250,13 @@ schichtplaner/
 | `ChangelogBanner` | ChangelogBanner.vue | - |
 | `HolidayInfo` | HolidayInfo.vue | - |
 | `InstallBanner` | InstallBanner.vue | InstallBanner Component |
+| `RotationAssignDialog` | RotationAssignDialog.vue | - |
+| `RotationConfigDialog` | RotationConfigDialog.vue | - |
+| `RotationGenerateDialog` | RotationGenerateDialog.vue | - |
 | `RotationManager` | RotationManager.vue | - |
+| `RotationPatternBoard` | RotationPatternBoard.vue | - |
+| `RotationPatternWeekCard` | RotationPatternWeekCard.vue | - |
+| `RotationToolbar` | RotationToolbar.vue | - |
 | `ShiftCard` | ShiftCard.vue | - |
 | `ShiftManager` | ShiftManager.vue | - |
 | `StaffManager` | StaffManager.vue | - |
