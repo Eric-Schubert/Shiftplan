@@ -124,37 +124,48 @@ Die folgenden Bereiche werden von `scripts/readme-generator.js` gepflegt. Sie si
 ```text
 schichtplaner/
 |-- components/
-|   |-- AdminLogin.vue
-|   |-- AuditLog.vue
-|   |-- ChangelogBanner.vue
-|   |-- ChangePasswordDialog.vue
-|   |-- HolidayInfo.vue
-|   |-- InstallBanner.vue
-|   |-- RotationAssignDialog.vue
-|   |-- RotationConfigDialog.vue
-|   |-- RotationGenerateDialog.vue
-|   |-- RotationManager.vue
-|   |-- RotationPatternBoard.vue
-|   |-- RotationPatternWeekCard.vue
-|   |-- RotationToolbar.vue
-|   |-- ShiftCard.vue
-|   |-- ShiftDeleteDialog.vue
-|   |-- ShiftFormDialog.vue
-|   |-- ShiftManagementHeader.vue
-|   |-- ShiftManagementList.vue
-|   |-- ShiftManager.vue
-|   |-- StaffDeleteDialog.vue
-|   |-- StaffFormDialog.vue
-|   |-- StaffManagementHeader.vue
-|   |-- StaffManagementList.vue
-|   |-- StaffManager.vue
-|   |-- UserCreateDialog.vue
-|   |-- UserDeleteDialog.vue
-|   |-- UserManagementHeader.vue
-|   |-- UserManagementList.vue
-|   |-- UserManager.vue
-|   |-- WeekPreview.vue
-|   `-- YearCopy.vue
+|   |-- app/
+|   |   |-- ChangelogBanner.vue
+|   |   `-- InstallBanner.vue
+|   |-- planner/
+|   |   |-- HolidayInfo.vue
+|   |   |-- ShiftCard.vue
+|   |   `-- WeekPreview.vue
+|   `-- settings/
+|       |-- audit/
+|       |   `-- AuditLog.vue
+|       |-- auth/
+|       |   |-- AdminLogin.vue
+|       |   `-- ChangePasswordDialog.vue
+|       |-- rotation/
+|       |   |-- RotationAssignDialog.vue
+|       |   |-- RotationConfigDialog.vue
+|       |   |-- RotationGenerateDialog.vue
+|       |   |-- RotationManager.vue
+|       |   |-- RotationPatternBoard.vue
+|       |   |-- RotationPatternWeekCard.vue
+|       |   |-- RotationToolbar.vue
+|       |   |-- YearCopy.vue
+|       |   |-- YearCopyDialog.vue
+|       |   `-- YearCopyStatusPanel.vue
+|       |-- shifts/
+|       |   |-- ShiftDeleteDialog.vue
+|       |   |-- ShiftFormDialog.vue
+|       |   |-- ShiftManagementHeader.vue
+|       |   |-- ShiftManagementList.vue
+|       |   `-- ShiftManager.vue
+|       |-- staff/
+|       |   |-- StaffDeleteDialog.vue
+|       |   |-- StaffFormDialog.vue
+|       |   |-- StaffManagementHeader.vue
+|       |   |-- StaffManagementList.vue
+|       |   `-- StaffManager.vue
+|       `-- users/
+|           |-- UserCreateDialog.vue
+|           |-- UserDeleteDialog.vue
+|           |-- UserManagementHeader.vue
+|           |-- UserManagementList.vue
+|           `-- UserManager.vue
 |-- layouts/
 |   `-- default.vue
 |-- pages/
@@ -254,39 +265,7 @@ schichtplaner/
 <summary>Komponenten anzeigen</summary>
 
 <!-- AUTO-GENERATED-COMPONENTS-START -->
-| Component | File | Description |
-|-----------|------|-------------|
-| `AdminLogin` | AdminLogin.vue | - |
-| `AuditLog` | AuditLog.vue | - |
-| `ChangePasswordDialog` | ChangePasswordDialog.vue | - |
-| `ChangelogBanner` | ChangelogBanner.vue | - |
-| `HolidayInfo` | HolidayInfo.vue | - |
-| `InstallBanner` | InstallBanner.vue | InstallBanner Component |
-| `RotationAssignDialog` | RotationAssignDialog.vue | - |
-| `RotationConfigDialog` | RotationConfigDialog.vue | - |
-| `RotationGenerateDialog` | RotationGenerateDialog.vue | - |
-| `RotationManager` | RotationManager.vue | - |
-| `RotationPatternBoard` | RotationPatternBoard.vue | - |
-| `RotationPatternWeekCard` | RotationPatternWeekCard.vue | - |
-| `RotationToolbar` | RotationToolbar.vue | - |
-| `ShiftCard` | ShiftCard.vue | - |
-| `ShiftDeleteDialog` | ShiftDeleteDialog.vue | - |
-| `ShiftFormDialog` | ShiftFormDialog.vue | - |
-| `ShiftManagementHeader` | ShiftManagementHeader.vue | - |
-| `ShiftManagementList` | ShiftManagementList.vue | - |
-| `ShiftManager` | ShiftManager.vue | - |
-| `StaffDeleteDialog` | StaffDeleteDialog.vue | - |
-| `StaffFormDialog` | StaffFormDialog.vue | - |
-| `StaffManagementHeader` | StaffManagementHeader.vue | - |
-| `StaffManagementList` | StaffManagementList.vue | - |
-| `StaffManager` | StaffManager.vue | - |
-| `UserCreateDialog` | UserCreateDialog.vue | - |
-| `UserDeleteDialog` | UserDeleteDialog.vue | - |
-| `UserManagementHeader` | UserManagementHeader.vue | - |
-| `UserManagementList` | UserManagementList.vue | - |
-| `UserManager` | UserManager.vue | - |
-| `WeekPreview` | WeekPreview.vue | - |
-| `YearCopy` | YearCopy.vue | - |
+*No components found.*
 <!-- AUTO-GENERATED-COMPONENTS-END -->
 
 </details>
