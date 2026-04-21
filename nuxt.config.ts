@@ -101,6 +101,13 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
   ],
 
+  components: [
+    {
+      path: "~/components",
+      pathPrefix: false,
+    },
+  ],
+
   css: ["primeicons/primeicons.css", "~/assets/theme.css"],
 
   primevue: {

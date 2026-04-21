@@ -1,6 +1,19 @@
 <script setup lang="ts">
-const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
+
+interface YearCopyPreview {
+  year: number;
+  totalWeeks: number;
+  totalAssignments: number;
+  weeks: Array<{ week: number; assignments: number }>;
+}
+
+interface YearCopyResult {
+  success: boolean;
+  copiedWeeks: number;
+  skippedWeeks: number;
+  copiedAssignments: number;
+}
 
 const showDialog = ref(false);
 const sourceYear = ref(new Date().getFullYear());
@@ -10,20 +23,10 @@ const copying = ref(false);
 const loading = ref(false);
 
 // Vorschau-Daten
-const preview = ref<{
-  year: number;
-  totalWeeks: number;
-  totalAssignments: number;
-  weeks: Array<{ week: number; assignments: number }>;
-} | null>(null);
+const preview = ref<YearCopyPreview | null>(null);
 
 // Ergebnis nach dem Kopieren
-const result = ref<{
-  success: boolean;
-  copiedWeeks: number;
-  skippedWeeks: number;
-  copiedAssignments: number;
-} | null>(null);
+const result = ref<YearCopyResult | null>(null);
 
 const error = ref<string | null>(null);
 
@@ -35,7 +38,7 @@ async function loadPreview() {
   result.value = null;
 
   try {
-    preview.value = await $fetch("/api/shiftplan/year-summary", {
+    preview.value = await $fetch<YearCopyPreview>("/api/shiftplan/year-summary", {
       query: { year: sourceYear.value },
     });
   } catch (e: any) {
@@ -67,7 +70,7 @@ async function executeCopy() {
   result.value = null;
 
   try {
-    result.value = await authFetch("/api/shiftplan/copy-year", {
+    result.value = await authFetch<YearCopyResult>("/api/shiftplan/copy-year", {
       method: "POST",
       body: {
         sourceYear: sourceYear.value,
