@@ -125,11 +125,12 @@ onMounted(fetchEntries);
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex justify-between items-center mt-4 pt-4 border-t dark:border-gray-700">
+      <div v-if="totalPages > 1" class="mt-4 flex items-center justify-between gap-3 border-t pt-4 dark:border-gray-700">
         <PrimeButton
           icon="pi pi-chevron-left"
           text
-          size="small"
+          class="!h-11 !w-11"
+          aria-label="Vorherige Seite"
           :disabled="page === 0"
           @click="prevPage"
         />
@@ -139,7 +140,8 @@ onMounted(fetchEntries);
         <PrimeButton
           icon="pi pi-chevron-right"
           text
-          size="small"
+          class="!h-11 !w-11"
+          aria-label="Nächste Seite"
           :disabled="page >= totalPages - 1"
           @click="nextPage"
         />

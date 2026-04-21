@@ -10,6 +10,11 @@ const showCreateDialog = ref(false);
 const newUser = ref({ username: "", password: "", role: "planner" as UserRole });
 const creating = ref(false);
 const createError = ref("");
+const createErrorId = "create-user-error";
+const showDeleteDialog = ref(false);
+const userToDelete = ref<User | null>(null);
+const deleting = ref(false);
+const deleteError = ref("");
 
 // Laden
 async function fetchUsers() {
@@ -26,7 +31,17 @@ async function createUser() {
   createError.value = "";
 
   if (!newUser.value.username || !newUser.value.password) {
-    createError.value = "Alle Felder ausfüllen";
+    createError.value = "Benutzername und Passwort sind erforderlich.";
+    return;
+  }
+
+  if (newUser.value.username.trim().length < 3) {
+    createError.value = "Der Benutzername braucht mindestens 3 Zeichen.";
+    return;
+  }
+
+  if (newUser.value.password.length < 8) {
+    createError.value = "Das Passwort braucht mindestens 8 Zeichen.";
     return;
   }
 
@@ -47,14 +62,24 @@ async function createUser() {
 }
 
 // Löschen
-async function deleteUser(user: User) {
-  if (!confirm(`Benutzer "${user.username}" wirklich löschen?`)) return;
+function openDeleteDialog(user: User) {
+  deleteError.value = "";
+  userToDelete.value = user;
+  showDeleteDialog.value = true;
+}
 
+async function deleteUser() {
+  if (!userToDelete.value) return;
+  deleting.value = true;
   try {
-    await authFetch(`/api/auth/users/${user.user_id}`, { method: "DELETE" });
+    await authFetch(`/api/auth/users/${userToDelete.value.user_id}`, { method: "DELETE" });
+    showDeleteDialog.value = false;
+    userToDelete.value = null;
     await fetchUsers();
   } catch (error: any) {
-    alert(error.data?.statusMessage || "Fehler beim Löschen");
+    deleteError.value = error.data?.statusMessage || "Benutzer konnte nicht gelöscht werden.";
+  } finally {
+    deleting.value = false;
   }
 }
 
@@ -80,7 +105,7 @@ onMounted(fetchUsers);
       <PrimeButton
         label="Neuer Benutzer"
         icon="pi pi-user-plus"
-        size="small"
+        class="min-h-11"
         @click="showCreateDialog = true"
       />
     </div>
@@ -116,10 +141,10 @@ onMounted(fetchUsers);
         <PrimeButton
           icon="pi pi-trash"
           severity="danger"
-          text
-          rounded
-          size="small"
-          @click="deleteUser(user)"
+          outlined
+          label="Löschen"
+          class="min-h-10"
+          @click="openDeleteDialog(user)"
         />
       </div>
 
@@ -133,40 +158,45 @@ onMounted(fetchUsers);
       v-model:visible="showCreateDialog"
       modal
       header="Neuer Benutzer"
-      :style="{ width: '400px', maxWidth: '95vw' }"
+      :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="create-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Benutzername
           </label>
           <PrimeInputText
             v-model="newUser.username"
+            id="create-username"
             class="w-full"
             placeholder="z.B. schichtleitung"
             :disabled="creating"
+            :aria-describedby="createError ? createErrorId : undefined"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="create-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Passwort
           </label>
           <PrimeInputText
             v-model="newUser.password"
+            id="create-password"
             type="password"
             class="w-full"
-            placeholder="Min. 8 Zeichen"
+            placeholder="Mindestens 8 Zeichen"
             :disabled="creating"
+            :aria-describedby="createError ? createErrorId : undefined"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label for="create-role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Rolle
           </label>
           <PrimeSelect
             v-model="newUser.role"
+            input-id="create-role"
             :options="[
               { label: 'Planer – Darf Schichtzuweisungen ändern', value: 'planner' },
               { label: 'Admin – Vollzugriff', value: 'admin' },
@@ -178,7 +208,7 @@ onMounted(fetchUsers);
           />
         </div>
 
-        <small v-if="createError" class="text-red-500 block">
+        <small v-if="createError" :id="createErrorId" class="text-red-600 dark:text-red-400 block" role="alert">
           {{ createError }}
         </small>
       </div>
@@ -193,9 +223,32 @@ onMounted(fetchUsers);
         <PrimeButton
           label="Erstellen"
           icon="pi pi-check"
+          class="min-h-11"
           :loading="creating"
           @click="createUser"
         />
+      </template>
+    </PrimeDialog>
+
+    <PrimeDialog
+      v-model:visible="showDeleteDialog"
+      modal
+      header="Benutzer löschen"
+      :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
+    >
+      <div class="space-y-3">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          Benutzer <strong>{{ userToDelete?.username }}</strong> wirklich löschen?
+          Dieser Schritt kann nicht rückgängig gemacht werden.
+        </p>
+        <small v-if="deleteError" class="block text-sm text-red-600 dark:text-red-400" role="alert">
+          {{ deleteError }}
+        </small>
+      </div>
+
+      <template #footer>
+        <PrimeButton label="Abbrechen" severity="secondary" text @click="showDeleteDialog = false" />
+        <PrimeButton label="Benutzer löschen" severity="danger" class="min-h-11" :loading="deleting" @click="deleteUser" />
       </template>
     </PrimeDialog>
   </div>

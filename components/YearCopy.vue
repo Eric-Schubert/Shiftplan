@@ -97,7 +97,7 @@ async function executeCopy() {
       v-model:visible="showDialog"
       header="Schichtplan kopieren"
       modal
-      :style="{ width: '28rem' }"
+      :style="{ width: '30rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -106,20 +106,22 @@ async function executeCopy() {
         </p>
 
         <!-- Quell- und Zieljahr -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">Von (Quelljahr)</label>
+            <label for="copy-source-year" class="text-sm font-medium">Von (Quelljahr)</label>
             <PrimeInputNumber
               v-model="sourceYear"
+              input-id="copy-source-year"
               :min="2020"
               :max="2100"
               :use-grouping="false"
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">Nach (Zieljahr)</label>
+            <label for="copy-target-year" class="text-sm font-medium">Nach (Zieljahr)</label>
             <PrimeInputNumber
               v-model="targetYear"
+              input-id="copy-target-year"
               :min="2020"
               :max="2100"
               :use-grouping="false"
@@ -135,13 +137,13 @@ async function executeCopy() {
 
         <div
           v-else-if="preview && preview.totalWeeks > 0"
-          class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3"
+          class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800"
         >
-          <div class="text-sm text-blue-700 dark:text-blue-300">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
             <p class="font-medium mb-1">
               {{ preview.totalWeeks }} Wochen mit {{ preview.totalAssignments }} Zuweisungen in {{ sourceYear }}
             </p>
-            <p class="text-xs text-blue-600 dark:text-blue-400">
+            <p class="text-xs text-gray-500 dark:text-gray-400">
               KW {{ preview.weeks[0]?.week }} bis KW {{ preview.weeks[preview.weeks.length - 1]?.week }}
             </p>
           </div>
@@ -201,13 +203,13 @@ async function executeCopy() {
         <PrimeButton
           label="Schließen"
           text
-          size="small"
+          class="min-h-11"
           @click="showDialog = false"
         />
         <PrimeButton
           label="Kopieren"
           icon="pi pi-copy"
-          size="small"
+          class="min-h-11"
           :loading="copying"
           :disabled="!preview || preview.totalWeeks === 0 || sourceYear === targetYear"
           @click="executeCopy"

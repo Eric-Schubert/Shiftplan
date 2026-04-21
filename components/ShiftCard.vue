@@ -18,11 +18,12 @@ const { state: dragState, startDrag, endDrag, setHoverShift, getPayload, isValid
 const showAssignDialog = ref(false);
 const assigning = ref(false);
 
-// Verfügbare Mitarbeiter aus dem Store
 const availableStaff = computed(() => {
-  const assignedIds = props.shift.assigned_staff.map((s) => s.staff_id);
-  return dataStore.activeStaff.filter((s) => !assignedIds.includes(s.staff_id));
+  const assignedIds = props.shift.assigned_staff.map((staff) => staff.staff_id);
+  return dataStore.activeStaff.filter((staff) => !assignedIds.includes(staff.staff_id));
 });
+
+const isUnderstaffed = computed(() => props.shift.assigned_staff.length < props.shift.min_staff);
 
 async function assignStaff(staffId: number) {
   assigning.value = true;
@@ -46,16 +47,6 @@ async function unassignStaff(staffId: number) {
   emit("updated");
 }
 
-// Mindestbesetzung prüfen
-const isUnderstaffed = computed(() => {
-  return props.shift.assigned_staff.length < props.shift.min_staff;
-});
-
-// ============================================
-// DRAG & DROP
-// ============================================
-
-/** Drag starten: Mitarbeiter-Chip wird gezogen */
 function onDragStart(event: DragEvent, staffId: number, staffName: string) {
   startDrag(event, {
     staffId,
@@ -68,7 +59,6 @@ function onDragEnd() {
   endDrag();
 }
 
-/** Drop-Zone: Visuelles Feedback */
 function onDragOver(event: DragEvent) {
   if (isValidDrop(props.shift.shift_id)) {
     event.preventDefault();
@@ -93,7 +83,6 @@ function onDragLeave(event: DragEvent) {
   }
 }
 
-/** Drop ausführen: Mitarbeiter von Quell-Schicht entfernen und hier zuweisen */
 async function onDrop(event: DragEvent) {
   event.preventDefault();
   setHoverShift(null);
@@ -102,7 +91,6 @@ async function onDrop(event: DragEvent) {
   if (!payload || payload.sourceShiftId === props.shift.shift_id) return;
 
   try {
-    // 1. Von alter Schicht entfernen
     await authFetch("/api/shiftplan/unassign", {
       method: "POST",
       body: {
@@ -113,7 +101,6 @@ async function onDrop(event: DragEvent) {
       },
     });
 
-    // 2. Zu neuer Schicht zuweisen
     await authFetch("/api/shiftplan/assign", {
       method: "POST",
       body: {
@@ -125,99 +112,122 @@ async function onDrop(event: DragEvent) {
     });
 
     emit("updated");
-  } catch (e) {
-    console.error("Drag & Drop fehlgeschlagen:", e);
+  } catch (error) {
+    console.error("Drag and drop failed", error);
   }
 }
 
-/** Ist diese Karte gerade ein gültiges Drop-Target? */
-const isDropTarget = computed(() => {
-  return dragState.isDragging && isValidDrop(props.shift.shift_id);
-});
-
-/** Wird gerade über diese Karte gehovert? */
-const isHovering = computed(() => {
-  return dragState.hoverShiftId === props.shift.shift_id;
-});
+const isDropTarget = computed(() => dragState.isDragging && isValidDrop(props.shift.shift_id));
+const isHovering = computed(() => dragState.hoverShiftId === props.shift.shift_id);
+const shiftCardStyle = computed(() => ({
+  "--shift-accent": props.shift.color,
+}));
 </script>
 
 <template>
   <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 border-l-4 px-3 py-2 flex items-center gap-3 transition-all duration-150"
-      :class="{
-        'ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-1 dark:ring-offset-gray-900 bg-blue-50/50 dark:bg-blue-900/20': isHovering,
-        'ring-1 ring-dashed ring-blue-300 dark:ring-blue-600': isDropTarget && !isHovering,
-      }"
-      :style="{ borderLeftColor: shift.color }"
-      @dragover="onDragOver"
-      @dragenter="onDragEnter"
-      @dragleave="onDragLeave"
-      @drop="onDrop"
+    class="planner-shift-card group flex items-stretch gap-3 sm:gap-4"
+    :class="{
+      'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--app-bg)] bg-[var(--accent-soft)]': isHovering,
+      'ring-1 ring-dashed ring-[var(--accent)]': isDropTarget && !isHovering,
+    }"
+    :style="shiftCardStyle"
+    @dragover="onDragOver"
+    @dragenter="onDragEnter"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
   >
-    <!-- Schicht Info - Fixed width -->
-    <div class="w-32 flex-shrink-0">
-      <div class="flex items-center gap-1">
-        <span class="font-semibold text-gray-900 dark:text-white text-sm">{{ shift.name }}</span>
-        <span v-if="isUnderstaffed" class="text-orange-500 text-xs">⚠</span>
-      </div>
-      <span class="text-xs text-gray-500 dark:text-gray-400">
-        {{ shift.start_time }} - {{ shift.end_time }}
-      </span>
-    </div>
+    <span class="planner-shift-rail" aria-hidden="true"></span>
 
-    <!-- Mitarbeiter - Flexible -->
-    <div class="flex-1 flex flex-wrap items-center gap-1 min-w-0">
-      <span
+    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-3 sm:gap-x-4">
+      <div class="min-w-0 flex-1">
+        <div class="space-y-2 sm:space-y-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="hidden rounded-full bg-[var(--surface-muted)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)] sm:inline-flex">
+              Schicht
+            </span>
+            <span
+              v-if="isUnderstaffed"
+              class="rounded-full bg-[var(--warning-soft)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--warning-ink)]"
+            >
+              Unterbesetzt
+            </span>
+          </div>
+
+          <div class="space-y-2">
+            <p class="text-base font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
+
+            <div class="planner-time-badge">
+              <Icon name="mdi:clock-outline" class="text-sm" />
+              <span>{{ shift.start_time }} - {{ shift.end_time }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-2.5">
+        <span
           v-for="staff in shift.assigned_staff"
           :key="staff.staff_id"
-          class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300 transition-shadow"
+          class="planner-assignee inline-flex min-h-10 items-center gap-2 rounded-full px-3 py-1 text-sm shadow-sm sm:min-h-11 sm:py-1.5"
           :class="{
-            'cursor-grab active:cursor-grabbing hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-600': authStore.canEditShifts,
+            'cursor-grab active:cursor-grabbing hover:border-[var(--accent)] hover:bg-[var(--surface)]': authStore.canEditShifts,
           }"
           :draggable="authStore.canEditShifts"
           @dragstart="onDragStart($event, staff.staff_id, staff.name)"
           @dragend="onDragEnd"
-      >
-        <span class="truncate">{{ staff.name }}</span>
-        <button
-            v-if="authStore.canEditShifts"
-            class="text-gray-400 hover:text-red-500"
-            @click.stop="unassignStaff(staff.staff_id)"
         >
-          <Icon name="mdi:close" class="text-xs" />
-        </button>
-      </span>
+          <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">{{ staff.name }}</span>
+          <button
+            v-if="authStore.canEditShifts"
+            type="button"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface)] text-[var(--text-3)] transition-colors hover:bg-[var(--danger-soft)] hover:text-[var(--danger-ink)]"
+            :aria-label="`${staff.name} aus ${shift.name} entfernen`"
+            @click.stop="unassignStaff(staff.staff_id)"
+          >
+            <Icon name="mdi:close" class="text-xs" />
+          </button>
+        </span>
 
-      <!-- Zuweisen Button -->
-      <button
+        <button
           v-if="authStore.canEditShifts"
-          class="inline-flex items-center gap-0.5 px-2 py-0.5 border border-dashed border-gray-300 dark:border-gray-600 rounded text-xs text-gray-400 hover:text-primary-light dark:hover:text-primary-dark hover:border-primary-light dark:hover:border-primary-dark transition-colors"
+          type="button"
+          class="planner-pill-button border-dashed"
+          :aria-label="`Mitarbeiter zu ${shift.name} hinzufügen`"
           @click="showAssignDialog = true"
-      >
-        <Icon name="mdi:plus" class="text-xs" />
-      </button>
+        >
+          <Icon name="mdi:plus" class="text-sm" />
+          <span>Hinzufügen</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Assign Dialog -->
     <PrimeDialog
-        v-model:visible="showAssignDialog"
-        modal
-        :header="`${shift.name} - Mitarbeiter zuweisen`"
-        :style="{ width: '320px' }"
+      v-model:visible="showAssignDialog"
+      modal
+      :header="`${shift.name} - Mitarbeiter zuweisen`"
+      :style="{ width: '24rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
-      <div v-if="availableStaff.length === 0" class="text-center text-gray-500 py-4">
-        Alle Mitarbeiter sind bereits zugewiesen
+      <div v-if="availableStaff.length === 0" class="planner-empty !py-8">
+        <Icon name="mdi:account-check-outline" class="text-3xl text-[var(--text-3)]" />
+        <p class="text-sm">Alle verfügbaren Mitarbeiter sind dieser Schicht bereits zugeordnet.</p>
       </div>
-      <div v-else class="space-y-1">
+      <div v-else class="space-y-2">
         <button
-            v-for="s in availableStaff"
-            :key="s.staff_id"
-            class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition-colors"
-            :disabled="assigning"
-            @click="assignStaff(s.staff_id)"
+          v-for="staffMember in availableStaff"
+          :key="staffMember.staff_id"
+          type="button"
+          class="flex w-full items-center justify-between rounded-[18px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-left text-sm text-[var(--text-2)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
+          :disabled="assigning"
+          @click="assignStaff(staffMember.staff_id)"
         >
-          {{ s.name }}
-          <span v-if="s.is_parttime" class="text-xs text-gray-400 ml-1">TZ</span>
+          <span class="font-medium text-[var(--text-1)]">{{ staffMember.name }}</span>
+          <span
+            v-if="staffMember.is_parttime"
+            class="rounded-full bg-[var(--surface-muted)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]"
+          >
+            TZ
+          </span>
         </button>
       </div>
     </PrimeDialog>

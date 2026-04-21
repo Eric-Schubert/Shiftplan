@@ -5,6 +5,7 @@ const username = ref("");
 const password = ref("");
 const error = ref("");
 const loading = ref(false);
+const loginErrorId = "login-error";
 
 async function handleLogin() {
   if (!username.value) {
@@ -35,42 +36,55 @@ async function handleLogin() {
 
 <template>
   <div class="min-h-[60vh] flex items-center justify-center">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-sm">
-      <div class="text-center mb-6">
-        <div class="w-16 h-16 bg-primary-light/10 dark:bg-primary-dark/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon name="mdi:shield-lock" class="text-3xl text-primary-light dark:text-primary-dark" />
+    <div class="planner-slab w-full max-w-md">
+      <div class="mb-6 text-center">
+        <div class="app-logo-mark mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl">
+          <Icon name="mdi:shield-lock" class="text-3xl" />
         </div>
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-          Anmelden
-        </h2>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-          Bitte Zugangsdaten eingeben
+        <p class="planner-kicker">Geschützter Bereich</p>
+        <h2 class="mt-2 text-2xl font-semibold text-[var(--text-1)]">Anmelden</h2>
+        <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
+          Melde dich an, um Schichten, Muster und Benutzer zu verwalten.
         </p>
       </div>
 
       <form class="space-y-4" @submit.prevent="handleLogin">
-        <div>
+        <div class="space-y-1.5">
+          <label for="login-username" class="block text-sm font-medium text-[var(--text-2)]">
+            Benutzername
+          </label>
           <PrimeInputText
             v-model="username"
+            id="login-username"
             type="text"
-            placeholder="Benutzername"
+            placeholder="z. B. schichtleitung"
             class="w-full"
             :disabled="loading"
             autocomplete="username"
           />
         </div>
 
-        <div>
+        <div class="space-y-1.5">
+          <label for="login-password" class="block text-sm font-medium text-[var(--text-2)]">
+            Passwort
+          </label>
           <PrimeInputText
             v-model="password"
+            id="login-password"
             type="password"
-            placeholder="Passwort"
+            placeholder="Passwort eingeben"
             class="w-full"
             :class="{ 'p-invalid': error }"
             :disabled="loading"
             autocomplete="current-password"
+            :aria-describedby="error ? loginErrorId : undefined"
           />
-          <small v-if="error" class="text-red-500 block mt-1 text-center">
+          <small
+            v-if="error"
+            :id="loginErrorId"
+            class="block mt-1 text-sm text-[var(--danger-ink)]"
+            role="alert"
+          >
             {{ error }}
           </small>
         </div>
@@ -79,13 +93,16 @@ async function handleLogin() {
           type="submit"
           label="Anmelden"
           icon="pi pi-lock-open"
-          class="w-full"
+          class="w-full min-h-11"
           :loading="loading"
         />
 
-        <div class="text-center">
-          <NuxtLink to="/" class="text-sm text-gray-500 hover:text-primary-light dark:hover:text-primary-dark">
-            ← Zurück zum Schichtplan
+        <div class="pt-2 text-center">
+          <NuxtLink
+            to="/"
+            class="text-sm font-medium text-[var(--text-2)] underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
+          >
+            Zurück zum Schichtplan
           </NuxtLink>
         </div>
       </form>

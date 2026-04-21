@@ -52,7 +52,7 @@ onMounted(() => {
             v-if="isInstallable"
             label="Installieren"
             icon="pi pi-download"
-            size="small"
+            class="min-h-11"
             @click="install"
           />
 
@@ -61,8 +61,9 @@ onMounted(() => {
             text
             rounded
             icon="pi pi-times"
-            size="small"
+            class="!h-11 !w-11"
             severity="secondary"
+            aria-label="Hinweis ausblenden"
             v-tooltip="'Nicht mehr anzeigen'"
             @click="dismiss"
           />

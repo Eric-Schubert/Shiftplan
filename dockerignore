@@ -12,6 +12,7 @@ dist
 .github
 .vscode
 .idea
+.impeccable.md
 
 # DB-Dateien nicht in den Build
 db/*.sqlite

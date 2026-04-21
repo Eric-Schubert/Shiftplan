@@ -1,245 +1,272 @@
 <script setup lang="ts">
-/**
- * HolidayInfo Component
- * 
- * Zeigt Feiertage und Schulferien für eine bestimmte Kalenderwoche an.
- * Nutzt die OpenHolidays API über interne Server-Endpoints.
- */
-
 interface Props {
   year: number;
   week: number;
   compact?: boolean;
+  banner?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  compact: false
+  compact: false,
+  banner: false,
 });
 
-interface PublicHoliday {
-  date: string;
-  name: string;
-  type: 'national' | 'saxony';
-  nationwide: boolean;
-}
-
-interface SchoolHolidayPeriod {
-  name: string;
-  start: string;
-  end: string;
-  states: Array<{ code: string; name: string }>;
-}
-
-// State
-const holidays = ref<PublicHoliday[]>([]);
-const schoolHolidays = ref<SchoolHolidayPeriod[]>([]);
-const loading = ref(false);
-const error = ref<string | null>(null);
-
-// Daten laden - nur clientseitig
-async function loadData() {
-  if (import.meta.server) return;
-  
-  loading.value = true;
-  error.value = null;
-  
-  try {
-    const [holidayData, schoolData] = await Promise.all([
-      $fetch<PublicHoliday[]>(`/api/holidays/public`, {
-        query: { year: props.year, week: props.week }
-      }),
-      $fetch<{ grouped: SchoolHolidayPeriod[] }>(`/api/holidays/school`, {
-        query: { year: props.year, week: props.week, states: 'SN,BB' }
-      })
-    ]);
-    
-    holidays.value = holidayData;
-    schoolHolidays.value = schoolData.grouped || [];
-  } catch (e: any) {
-    error.value = e.message || 'Fehler beim Laden';
-    console.error('HolidayInfo error:', e);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Initialer Load nach Mount + bei Prop-Änderungen
-onMounted(() => {
-  loadData();
-});
-
-watch(
-  () => [props.year, props.week],
-  () => loadData()
+const { holidays, schoolHolidays, loading, error } = useHolidayWeek(
+  toRef(props, "year"),
+  toRef(props, "week")
 );
 
-// Prüft ob es etwas anzuzeigen gibt
-const hasContent = computed(() => {
-  return holidays.value.length > 0 || schoolHolidays.value.length > 0;
+const hasContent = computed(() => holidays.value.length > 0 || schoolHolidays.value.length > 0);
+
+const bannerTitle = computed(() => {
+  if (holidays.value.length > 0 && schoolHolidays.value.length > 0) return "Kalenderlage";
+  if (holidays.value.length > 0) return "Feiertage";
+  return "Schulferien";
 });
 
-// Formatiert das Datum eines Feiertags
+const bannerTone = computed(() => {
+  if (holidays.value.length > 0 && schoolHolidays.value.length > 0) return "planner-holiday-banner--mixed";
+  return holidays.value.length > 0 ? "planner-holiday-banner--holiday" : "planner-holiday-banner--school";
+});
+
+const bannerItems = computed(() => {
+  const holidayItems = holidays.value.map((holiday) => ({
+    key: `holiday-${holiday.date}-${holiday.name}`,
+    label: holiday.name,
+    meta: formatHolidayDate(holiday.date),
+    tone: holiday.type === "national" ? "holiday" : "warning",
+    states: [] as string[],
+  }));
+
+  const schoolItems = schoolHolidays.value.map((period) => ({
+    key: `school-${period.name}-${period.start}`,
+    label: period.name,
+    meta: formatHolidayPeriod(period.start, period.end),
+    tone: "school",
+    states: period.states.map((state) => state.name),
+  }));
+
+  return [...holidayItems, ...schoolItems];
+});
+
 function formatHolidayDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('de-DE', { 
-    weekday: 'short', 
-    day: '2-digit', 
-    month: '2-digit' 
+  return date.toLocaleDateString("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
   });
 }
 
-// Formatiert Zeitraum der Schulferien
 function formatHolidayPeriod(start: string, end: string): string {
   const startDate = new Date(start);
   const endDate = new Date(end);
-  const formatDate = (d: Date) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  const formatDate = (date: Date) => date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }
 
-// Kürzt den Feiertagnamen für kompakte Ansicht
 function shortenHolidayName(name: string): string {
   const shortNames: Record<string, string> = {
-    'Neujahr': 'Neujahr',
-    'Tag der Arbeit': '1. Mai',
-    'Tag der Deutschen Einheit': 'Einheit',
-    '1. Weihnachtstag': '1. Weihn.',
-    '2. Weihnachtstag': '2. Weihn.',
-    'Erster Weihnachtstag': '1. Weihn.',
-    'Zweiter Weihnachtstag': '2. Weihn.',
-    'Karfreitag': 'Karfreitag',
-    'Ostersonntag': 'Ostern',
-    'Ostermontag': 'Ostermo.',
-    'Christi Himmelfahrt': 'Himmelfahrt',
-    'Pfingstsonntag': 'Pfingsten',
-    'Pfingstmontag': 'Pfingstmo.',
-    'Buß- und Bettag': 'Buß+Bettag',
-    'Reformationstag': 'Reformation'
+    Neujahr: "Neujahr",
+    "Tag der Arbeit": "1. Mai",
+    "Tag der Deutschen Einheit": "Einheit",
+    "1. Weihnachtstag": "1. Weihn.",
+    "2. Weihnachtstag": "2. Weihn.",
+    "Erster Weihnachtstag": "1. Weihn.",
+    "Zweiter Weihnachtstag": "2. Weihn.",
+    Karfreitag: "Karfreitag",
+    Ostersonntag: "Ostern",
+    Ostermontag: "Ostermo.",
+    "Christi Himmelfahrt": "Himmelfahrt",
+    Pfingstsonntag: "Pfingsten",
+    Pfingstmontag: "Pfingstmo.",
+    "Buß- und Bettag": "Buß+Bettag",
+    Reformationstag: "Reformation",
   };
   return shortNames[name] || name;
 }
 </script>
 
 <template>
-  <!-- Loading State -->
-  <div v-if="loading && !hasContent" class="flex items-center gap-2 text-xs text-gray-400">
+  <div v-if="loading && !hasContent" class="flex items-center gap-2 text-sm text-[var(--text-2)]">
     <i class="pi pi-spin pi-spinner"></i>
-    <span v-if="!compact">Lade Feiertage...</span>
+    <span v-if="!compact && !banner">Kalenderhinweise werden geladen.</span>
   </div>
-  
-  <!-- Error State -->
-  <div v-else-if="error && !hasContent" class="text-xs text-red-500">
+
+  <div
+    v-else-if="error && !hasContent && !banner"
+    class="rounded-[18px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--danger-ink)]"
+  >
     <span v-if="!compact">{{ error }}</span>
   </div>
-  
-  <!-- Content -->
-  <div v-else-if="hasContent" :class="compact ? '' : 'space-y-2'">
-    <!-- Kompakte Ansicht für WeekPreview -->
-    <template v-if="compact">
-      <!-- Feiertage kompakt -->
-      <div 
-        v-for="holiday in holidays" 
-        :key="holiday.date"
-        class="flex items-center gap-1 text-xs"
-      >
-        <span 
-          class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          :class="holiday.type === 'national' ? 'bg-red-500' : 'bg-orange-400'"
-        ></span>
-        <span class="text-red-600 dark:text-red-400 truncate">
-          {{ shortenHolidayName(holiday.name) }}
+
+  <div
+    v-else-if="banner && hasContent"
+    class="planner-holiday-banner"
+    :class="bannerTone"
+  >
+    <div class="planner-holiday-banner__header">
+      <div class="flex items-center gap-2">
+        <span class="planner-holiday-banner__icon">
+          <i :class="holidays.length > 0 ? 'pi pi-calendar' : 'pi pi-book'" class="text-xs"></i>
         </span>
+        <div>
+          <p class="planner-kicker">{{ bannerTitle }}</p>
+        </div>
       </div>
-      
-      <!-- Schulferien kompakt -->
-      <div 
-        v-for="period in schoolHolidays" 
-        :key="`${period.name}-${period.start}`"
-        class="flex items-center gap-1 text-xs"
+      <span class="planner-chip planner-chip--muted !min-h-8 !px-3 !py-1 text-[11px]">Diese Woche</span>
+    </div>
+
+    <div class="space-y-2">
+      <div
+        v-for="item in bannerItems"
+        :key="item.key"
+        class="planner-holiday-banner__row"
       >
-        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0"></span>
-        <span class="text-blue-600 dark:text-blue-400 truncate">
+        <div class="flex min-w-0 flex-1 items-start gap-2">
+          <span
+            class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full"
+            :class="{
+              'bg-rose-500': item.tone === 'holiday',
+              'bg-amber-500': item.tone === 'warning',
+              'bg-sky-500': item.tone === 'school',
+            }"
+          ></span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium text-[var(--text-1)]">{{ item.label }}</p>
+            <div v-if="item.states.length > 0" class="mt-2 flex flex-wrap gap-1.5">
+              <span
+                v-for="state in item.states"
+                :key="`${item.key}-${state}`"
+                class="planner-holiday-banner__state"
+              >
+                {{ state }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <span class="flex-shrink-0 text-xs text-[var(--text-2)]">{{ item.meta }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div v-else-if="hasContent" :class="compact ? 'space-y-2' : 'space-y-3'">
+    <template v-if="compact">
+      <div
+        v-for="holiday in holidays"
+        :key="holiday.date"
+        class="flex items-center gap-2 rounded-full bg-[var(--surface-muted)] px-2.5 py-1.5 text-xs text-[var(--text-2)]"
+      >
+        <span
+          class="h-2 w-2 flex-shrink-0 rounded-full"
+          :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"
+        ></span>
+        <span class="truncate">{{ shortenHolidayName(holiday.name) }}</span>
+      </div>
+
+      <div
+        v-for="period in schoolHolidays"
+        :key="`${period.name}-${period.start}`"
+        class="flex items-center gap-2 rounded-full bg-[var(--surface-muted)] px-2.5 py-1.5 text-xs text-[var(--text-2)]"
+      >
+        <span class="h-2 w-2 flex-shrink-0 rounded-full bg-sky-500"></span>
+        <span class="truncate">
           {{ period.name }}
-          <span class="text-gray-400 text-[10px]">
-            ({{ period.states.map(s => s.code).join('/') }})
+          <span class="text-[10px] text-[var(--text-3)]">
+            ({{ period.states.map((state) => state.code).join("/") }})
           </span>
         </span>
       </div>
     </template>
-    
-    <!-- Ausführliche Ansicht für Hauptseite -->
+
     <template v-else>
-      <!-- Feiertage Box -->
-      <div 
+      <div
         v-if="holidays.length > 0"
-        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3"
+        class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-4"
       >
-        <h4 class="text-sm font-medium text-red-700 dark:text-red-400 mb-2 flex items-center gap-2">
-          <i class="pi pi-calendar text-xs"></i>
-          Feiertage
-        </h4>
-        <div class="space-y-1">
-          <div 
-            v-for="holiday in holidays" 
+        <div class="mb-3 flex items-center gap-2">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--danger-soft)] text-[var(--danger-ink)]">
+            <i class="pi pi-calendar text-xs"></i>
+          </span>
+          <div>
+            <p class="planner-kicker">Feiertage</p>
+            <h4 class="mt-1 text-sm font-semibold text-[var(--text-1)]">Wichtige Kalendereinträge</h4>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div
+            v-for="holiday in holidays"
             :key="holiday.date"
-            class="flex items-center justify-between text-sm"
+            class="flex items-center justify-between gap-3 rounded-[16px] bg-[var(--surface-muted)] px-3 py-2"
           >
-            <div class="flex items-center gap-2">
-              <span 
-                class="w-2 h-2 rounded-full"
-                :class="holiday.type === 'national' ? 'bg-red-500' : 'bg-orange-400'"
+            <div class="flex min-w-0 items-center gap-2">
+              <span
+                class="h-2 w-2 flex-shrink-0 rounded-full"
+                :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"
               ></span>
-              <span class="text-gray-900 dark:text-gray-100">
-                {{ holiday.name }}
-              </span>
-              <span 
+              <span class="truncate text-sm font-medium text-[var(--text-1)]">{{ holiday.name }}</span>
+              <span
                 v-if="holiday.type === 'saxony'"
-                class="text-[10px] px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded"
+                class="rounded-full bg-[var(--warning-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--warning-ink)]"
               >
                 SN
               </span>
             </div>
-            <span class="text-gray-500 dark:text-gray-400 text-xs">
+            <span class="flex-shrink-0 text-xs text-[var(--text-3)]">
               {{ formatHolidayDate(holiday.date) }}
             </span>
           </div>
         </div>
       </div>
-      
-      <!-- Schulferien Box -->
-      <div 
+
+      <div
         v-if="schoolHolidays.length > 0"
-        class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3"
+        class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-4"
       >
-        <h4 class="text-sm font-medium text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-2">
-          <i class="pi pi-book text-xs"></i>
-          Schulferien
-        </h4>
+        <div class="mb-3 flex items-center gap-2">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+            <i class="pi pi-book text-xs"></i>
+          </span>
+          <div>
+            <p class="planner-kicker">Schulferien</p>
+            <h4 class="mt-1 text-sm font-semibold text-[var(--text-1)]">Relevante Ferienzeiten</h4>
+          </div>
+        </div>
+
         <div class="space-y-2">
-          <div 
-            v-for="period in schoolHolidays" 
+          <div
+            v-for="period in schoolHolidays"
             :key="`${period.name}-${period.start}`"
-            class="text-sm"
+            class="rounded-[16px] bg-[var(--surface-muted)] px-3 py-3"
           >
-            <div class="flex items-center justify-between">
-              <span class="text-gray-900 dark:text-gray-100 font-medium">
-                {{ period.name }}
-              </span>
-              <span class="text-gray-500 dark:text-gray-400 text-xs">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-[var(--text-1)]">{{ period.name }}</p>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                  <span
+                    v-for="state in period.states"
+                    :key="state.code"
+                    class="rounded-full bg-sky-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700 dark:bg-sky-900/30 dark:text-sky-300"
+                  >
+                    {{ state.name }}
+                  </span>
+                </div>
+              </div>
+              <span class="flex-shrink-0 text-xs text-[var(--text-3)]">
                 {{ formatHolidayPeriod(period.start, period.end) }}
-              </span>
-            </div>
-            <div class="flex gap-1 mt-1">
-              <span 
-                v-for="state in period.states" 
-                :key="state.code"
-                class="text-[10px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded"
-              >
-                {{ state.name }}
               </span>
             </div>
           </div>
         </div>
       </div>
     </template>
+  </div>
+
+  <div
+    v-else-if="!banner"
+    class="rounded-[20px] border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-4 py-5 text-sm text-[var(--text-2)]"
+  >
+    Keine Feiertage oder Ferien in dieser Kalenderwoche.
   </div>
 </template>

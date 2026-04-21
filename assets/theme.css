@@ -1,0 +1,738 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo+SemiExpanded:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --brand-red: #e30613;
+  --brand-ink: #000000;
+  --brand-cream: #f8f5f5;
+  color-scheme: light;
+  --app-bg: color-mix(in oklab, var(--brand-cream) 97%, oklch(0.94 0.004 18) 3%);
+  --app-bg-strong: color-mix(in oklab, var(--brand-cream) 91%, oklch(0.9 0.006 18) 9%);
+  --surface: color-mix(in oklab, var(--brand-cream) 97%, white 3%);
+  --surface-muted: color-mix(in oklab, var(--brand-cream) 92%, oklch(0.92 0.006 18) 8%);
+  --surface-strong: color-mix(in oklab, var(--brand-cream) 82%, oklch(0.87 0.008 18) 18%);
+  --panel: color-mix(in oklab, var(--surface) 98%, var(--brand-red) 2%);
+  --panel-strong: color-mix(in oklab, var(--surface) 94%, var(--brand-red) 6%);
+  --border-soft: color-mix(in oklab, var(--brand-ink) 10%, var(--brand-cream) 90%);
+  --border-strong: color-mix(in oklab, var(--brand-ink) 18%, var(--brand-cream) 82%);
+  --text-1: color-mix(in oklab, var(--brand-ink) 86%, oklch(0.28 0.014 18) 14%);
+  --text-2: color-mix(in oklab, var(--brand-ink) 60%, oklch(0.55 0.012 18) 40%);
+  --text-3: color-mix(in oklab, var(--brand-ink) 38%, oklch(0.7 0.01 18) 62%);
+  --accent: var(--brand-red);
+  --accent-strong: color-mix(in oklab, var(--brand-red) 78%, var(--brand-ink) 22%);
+  --accent-soft: color-mix(in oklab, var(--brand-red) 8%, var(--brand-cream) 92%);
+  --positive-soft: oklch(0.95 0.04 150);
+  --positive-ink: oklch(0.45 0.08 150);
+  --warning-soft: oklch(0.96 0.05 85);
+  --warning-ink: oklch(0.52 0.09 80);
+  --danger-soft: color-mix(in oklab, var(--brand-red) 10%, var(--brand-cream) 90%);
+  --danger-ink: color-mix(in oklab, var(--brand-red) 82%, var(--brand-ink) 18%);
+  --name-pill-bg: color-mix(in oklab, var(--surface) 84%, white 16%);
+  --name-pill-border: color-mix(in oklab, var(--border-strong) 72%, var(--accent) 28%);
+  --name-pill-text: color-mix(in oklab, var(--brand-ink) 88%, oklch(0.28 0.012 18) 12%);
+  --shadow-sm: 0 18px 40px -28px color-mix(in oklab, black 42%, var(--accent) 18%);
+  --shadow-lg: 0 30px 70px -42px color-mix(in oklab, black 55%, var(--accent) 30%);
+  --font-body: "Public Sans", "Segoe UI", sans-serif;
+  --font-display: "Archivo Semi Expanded", "Segoe UI", sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: oklch(0.19 0.006 22);
+  --app-bg-strong: oklch(0.22 0.007 22);
+  --surface: oklch(0.24 0.006 22);
+  --surface-muted: oklch(0.27 0.007 22);
+  --surface-strong: oklch(0.31 0.009 22);
+  --panel: color-mix(in oklab, var(--surface) 97%, var(--brand-red) 3%);
+  --panel-strong: color-mix(in oklab, var(--surface) 93%, var(--brand-red) 7%);
+  --border-soft: color-mix(in oklab, var(--brand-cream) 18%, var(--surface) 82%);
+  --border-strong: color-mix(in oklab, var(--brand-cream) 28%, var(--surface-strong) 72%);
+  --text-1: color-mix(in oklab, var(--brand-cream) 94%, white 6%);
+  --text-2: color-mix(in oklab, var(--brand-cream) 72%, oklch(0.7 0.01 18) 28%);
+  --text-3: color-mix(in oklab, var(--brand-cream) 54%, oklch(0.58 0.01 18) 46%);
+  --accent: color-mix(in oklab, var(--brand-red) 72%, white 28%);
+  --accent-strong: color-mix(in oklab, var(--brand-cream) 84%, var(--brand-red) 16%);
+  --accent-soft: color-mix(in oklab, var(--brand-red) 12%, var(--surface) 88%);
+  --positive-soft: oklch(0.31 0.045 150);
+  --positive-ink: oklch(0.86 0.07 150);
+  --warning-soft: oklch(0.32 0.045 80);
+  --warning-ink: oklch(0.88 0.07 80);
+  --danger-soft: color-mix(in oklab, var(--brand-red) 22%, var(--surface) 78%);
+  --danger-ink: color-mix(in oklab, var(--brand-cream) 82%, var(--brand-red) 18%);
+  --name-pill-bg: color-mix(in oklab, var(--surface-strong) 88%, white 12%);
+  --name-pill-border: color-mix(in oklab, var(--border-strong) 62%, var(--accent) 38%);
+  --name-pill-text: color-mix(in oklab, var(--brand-cream) 94%, white 6%);
+  --shadow-sm: 0 20px 46px -30px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 34px 80px -46px rgba(0, 0, 0, 0.78);
+}
+
+html {
+  background: var(--app-bg);
+  font-family: var(--font-body);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--accent-soft) 65%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent) 0%, transparent 26%),
+    linear-gradient(180deg, var(--app-bg), var(--app-bg-strong));
+  color: var(--text-1);
+  font-family: var(--font-body);
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--accent) 8%, transparent) 0%, transparent 22%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--brand-cream) 5%, transparent) 0%, transparent 20%),
+    linear-gradient(180deg, var(--app-bg), var(--app-bg-strong));
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 22%, white 78%);
+  color: var(--text-1);
+}
+
+.dark ::selection {
+  background: color-mix(in oklab, var(--accent) 28%, black 72%);
+  color: var(--text-1);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-header {
+  border-bottom: 1px solid color-mix(in oklab, var(--border-soft) 84%, transparent);
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  box-shadow: 0 10px 40px -32px rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.app-main {
+  position: relative;
+}
+
+.app-logo-mark {
+  border: 1px solid color-mix(in oklab, var(--brand-ink) 8%, var(--border-soft) 92%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-soft),
+    color-mix(in oklab, var(--surface) 64%, white 36%)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), var(--shadow-sm);
+  color: var(--accent-strong);
+}
+
+.dark .app-logo-mark {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent-soft) 88%, var(--surface) 12%),
+    color-mix(in oklab, var(--surface-strong) 82%, transparent)
+  );
+  color: var(--text-1);
+}
+
+.planner-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.planner-hero,
+.planner-slab,
+.planner-panel,
+.planner-preview-card,
+.planner-shift-card {
+  position: relative;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(24px) saturate(125%);
+}
+
+.planner-hero {
+  overflow: hidden;
+  border-radius: 28px;
+  padding: clamp(1.1rem, 1rem + 0.8vw, 1.75rem);
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--surface) 82%, transparent),
+    color-mix(in oklab, var(--surface-muted) 76%, transparent)
+  );
+  box-shadow: var(--shadow-lg);
+}
+
+.planner-hero::after {
+  content: "";
+  position: absolute;
+  right: -3.5rem;
+  bottom: -4.5rem;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--accent) 18%, transparent) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.dark .planner-hero::after {
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--accent) 10%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+.planner-slab {
+  border-radius: 24px;
+  padding: 1.1rem;
+}
+
+.planner-panel {
+  border-radius: 24px;
+  padding: 1rem;
+  background: color-mix(in oklab, var(--panel) 88%, transparent);
+}
+
+.planner-week-hero {
+  padding-block: 1.1rem;
+}
+
+.planner-kicker {
+  margin: 0;
+  color: var(--text-3);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.planner-headline {
+  font-size: clamp(2rem, 1.7rem + 1.3vw, 3rem);
+  line-height: 1;
+}
+
+.planner-supporting {
+  max-width: 60ch;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.planner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.planner-chip--accent {
+  border-color: color-mix(in oklab, var(--accent) 26%, var(--border-soft) 74%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent-soft) 84%, var(--surface) 16%),
+    color-mix(in oklab, var(--surface) 88%, transparent)
+  );
+  color: var(--accent-strong);
+}
+
+.planner-chip--muted {
+  background: color-mix(in oklab, var(--surface-muted) 76%, transparent);
+}
+
+.planner-holiday-banner {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 22px;
+  border: 1px solid var(--border-soft);
+  padding: 0.95rem 1rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 95%, transparent),
+      color-mix(in oklab, var(--surface-muted) 92%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    var(--shadow-sm);
+  backdrop-filter: blur(22px) saturate(120%);
+}
+
+.planner-holiday-banner--holiday {
+  border-color: color-mix(in oklab, var(--danger-ink) 36%, var(--border-soft) 64%);
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--danger-ink) 18%, transparent) 0%, transparent 40%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--danger-soft) 34%, var(--surface) 66%),
+      color-mix(in oklab, var(--surface-muted) 92%, transparent)
+    );
+}
+
+.planner-holiday-banner--school {
+  border-color: color-mix(in oklab, oklch(0.58 0.08 230) 32%, var(--border-soft) 68%);
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, oklch(0.58 0.08 230) 22%, transparent) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, oklch(0.94 0.03 230) 34%, var(--surface) 66%),
+      color-mix(in oklab, var(--surface-muted) 92%, transparent)
+    );
+}
+
+.planner-holiday-banner--mixed {
+  border-color: color-mix(in oklab, var(--border-soft) 56%, oklch(0.6 0.09 245) 22%, var(--danger-ink) 22%);
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--danger-ink) 24%, transparent) 0%, transparent 40%),
+    radial-gradient(circle at top right, color-mix(in oklab, oklch(0.6 0.09 245) 26%, transparent) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 96%, transparent),
+      color-mix(in oklab, var(--surface-muted) 92%, transparent)
+    );
+}
+
+.dark .planner-holiday-banner--holiday {
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--danger-ink) 28%, transparent) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--danger-soft) 44%, var(--surface) 56%),
+      color-mix(in oklab, var(--surface) 92%, transparent)
+    );
+}
+
+.dark .planner-holiday-banner--school {
+  background:
+    radial-gradient(circle at top right, color-mix(in oklab, oklch(0.7 0.08 245) 24%, transparent) 0%, transparent 42%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, oklch(0.34 0.05 230) 46%, var(--surface) 54%),
+      color-mix(in oklab, var(--surface) 92%, transparent)
+    );
+}
+
+.dark .planner-holiday-banner--mixed {
+  background:
+    radial-gradient(circle at top left, color-mix(in oklab, var(--danger-ink) 32%, transparent) 0%, transparent 42%),
+    radial-gradient(circle at top right, color-mix(in oklab, oklch(0.72 0.08 245) 30%, transparent) 0%, transparent 44%),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 94%, transparent),
+      color-mix(in oklab, var(--surface-muted) 90%, transparent)
+    );
+}
+
+.planner-holiday-banner__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.planner-holiday-banner__icon {
+  display: inline-flex;
+  height: 1.9rem;
+  width: 1.9rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  color: var(--danger-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.planner-holiday-banner--school .planner-holiday-banner__icon {
+  color: oklch(0.5 0.08 230);
+}
+
+.planner-holiday-banner--mixed .planner-holiday-banner__icon {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--danger-soft) 66%, var(--surface) 34%),
+      color-mix(in oklab, oklch(0.9 0.04 245) 62%, var(--surface) 38%)
+    );
+  color: var(--text-1);
+}
+
+.dark .planner-holiday-banner--school .planner-holiday-banner__icon {
+  color: oklch(0.82 0.05 230);
+}
+
+.planner-holiday-banner__row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--border-soft) 76%, transparent);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  padding: 0.65rem 0.75rem;
+}
+
+.planner-holiday-banner__state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, oklch(0.58 0.08 230) 34%, var(--border-soft) 66%);
+  background: color-mix(in oklab, oklch(0.94 0.03 230) 62%, var(--surface) 38%);
+  padding: 0.15rem 0.5rem;
+  color: oklch(0.42 0.07 240);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.dark .planner-holiday-banner__state {
+  background: color-mix(in oklab, oklch(0.34 0.05 230) 72%, var(--surface) 28%);
+  color: oklch(0.9 0.03 240);
+}
+
+.planner-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.planner-stat {
+  border-radius: 20px;
+  border: 1px solid var(--border-soft);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 82%, transparent),
+    color-mix(in oklab, var(--surface-muted) 78%, transparent)
+  );
+  padding: 0.95rem 1rem;
+}
+
+.planner-stat-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planner-stat-value {
+  display: block;
+  color: var(--text-1);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.planner-stat-note {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-2);
+  font-size: 0.85rem;
+}
+
+.planner-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.planner-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--surface-muted) 85%, transparent);
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.planner-preview-card {
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.planner-preview-card__header {
+  border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--surface-muted) 86%, transparent);
+}
+
+.planner-shift-card {
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 0.95rem 1rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface) 82%, transparent),
+    color-mix(in oklab, var(--surface-muted) 80%, transparent)
+  );
+}
+
+.planner-assignee {
+  border: 1px solid var(--name-pill-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--name-pill-bg) 92%, white 8%),
+      color-mix(in oklab, var(--name-pill-bg) 86%, transparent)
+    );
+  color: var(--name-pill-text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 10px 22px -18px rgba(15, 23, 42, 0.45);
+}
+
+.planner-assignee__name {
+  color: var(--name-pill-text);
+  letter-spacing: -0.01em;
+}
+
+.dark .planner-assignee {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 24px -20px rgba(0, 0, 0, 0.68);
+}
+
+.planner-shift-rail {
+  position: relative;
+  width: 0.9rem;
+  flex-shrink: 0;
+  align-self: stretch;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--shift-accent) 82%, white 18%),
+      color-mix(in oklab, var(--shift-accent) 66%, black 34%)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -10px 18px -14px rgba(0, 0, 0, 0.55),
+    0 10px 24px -16px color-mix(in oklab, var(--shift-accent) 65%, black 35%);
+}
+
+.planner-shift-rail::after {
+  content: "";
+  position: absolute;
+  inset: 0.18rem;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, white 58%, transparent),
+    color-mix(in oklab, var(--shift-accent) 28%, transparent)
+  );
+  opacity: 0.42;
+}
+
+.dark .planner-shift-rail {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -10px 18px -14px rgba(0, 0, 0, 0.7),
+    0 14px 28px -18px color-mix(in oklab, var(--shift-accent) 58%, black 42%);
+}
+
+.planner-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-muted) 92%, transparent);
+  padding: 0.45rem 0.75rem;
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.planner-pill-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  color: var(--text-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.p-button {
+  border-radius: 16px;
+  font-weight: 650;
+}
+
+.p-button.p-button-text {
+  color: var(--text-2);
+}
+
+.p-button.p-button-text:hover {
+  background: color-mix(in oklab, var(--accent-soft) 42%, var(--surface-muted) 58%);
+}
+
+.p-inputtext,
+.p-inputnumber-input,
+.p-password-input,
+.p-select-label,
+.p-select-dropdown,
+.p-textarea {
+  border-color: var(--border-soft) !important;
+  border-radius: 16px !important;
+  background: color-mix(in oklab, var(--surface) 96%, transparent) !important;
+  box-shadow: none !important;
+  color: var(--text-1) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-inputnumber-input:enabled:focus,
+.p-password-input:enabled:focus,
+.p-textarea:enabled:focus {
+  border-color: color-mix(in oklab, var(--accent) 44%, var(--border-soft) 56%) !important;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 14%, transparent) !important;
+}
+
+.p-dialog {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 28px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.p-dialog-header,
+.p-dialog-content,
+.p-dialog-footer {
+  background: color-mix(in oklab, var(--surface) 97%, transparent) !important;
+  color: var(--text-1) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a,
+  button,
+  .p-button,
+  .planner-panel,
+  .planner-hero,
+  .planner-stat,
+  .planner-preview-card,
+  .planner-shift-card {
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease,
+      color 180ms ease,
+      opacity 180ms ease;
+  }
+
+  .planner-preview-card:hover,
+  .planner-preview-card:focus-visible,
+  .planner-shift-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .planner-shell {
+    gap: 0.75rem;
+  }
+
+  .planner-hero,
+  .planner-slab,
+  .planner-panel {
+    border-radius: 22px;
+  }
+
+  .planner-week-hero {
+    padding: 1rem;
+  }
+
+  .planner-current-week {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
+  }
+
+  .planner-current-week .planner-section-heading {
+    margin-bottom: 0.75rem;
+  }
+
+  .planner-holiday-banner {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .planner-holiday-banner__row {
+    padding: 0.55rem 0.7rem;
+  }
+
+  .planner-shift-card {
+    padding: 0.8rem 0.85rem;
+  }
+
+  .planner-shift-rail {
+    width: 0.72rem;
+  }
+
+  .planner-time-badge {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+}

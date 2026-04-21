@@ -1,152 +1,170 @@
 <script setup lang="ts">
 import { useAppStore } from "~/stores/app.store";
+import type { WeeklyShiftplan } from "~/types/shiftplan";
 
 const appStore = useAppStore();
 
-// Anzahl der Vorschau-Wochen
 const previewWeekCount = 3;
-
-// Die nächsten Wochen aus dem Store
 const upcomingWeeks = computed(() => appStore.getUpcomingWeeks(previewWeekCount));
 
-// Lade Schichtpläne für die Vorschau-Wochen (Object statt Map für Reaktivität)
-const previewData = ref<Record<string, any>>({});
+type PreviewWeekData = WeeklyShiftplan | null;
+
+const previewData = ref<Record<string, PreviewWeekData>>({});
 const loading = ref(true);
 
 async function loadPreviewWeeks() {
   loading.value = true;
-  const newData: Record<string, any> = {};
-  
-  for (const week of upcomingWeeks.value) {
-    const key = `${week.year}-${week.week}`;
-    try {
-      const response = await $fetch("/api/shiftplan", {
-        query: {
-          year: week.year,
-          week: week.week,
-        },
-      });
-      newData[key] = response;
-    } catch (e) {
-      newData[key] = null;
-    }
-  }
-  
-  // Komplettes Object ersetzen für Reaktivität
-  previewData.value = newData;
+
+  const responses = await Promise.all(
+    upcomingWeeks.value.map(async (week) => {
+      const key = `${week.year}-${week.week}`;
+
+      try {
+        const response = await $fetch<WeeklyShiftplan>("/api/shiftplan", {
+          query: {
+            year: week.year,
+            week: week.week,
+          },
+        });
+
+        return [key, response] as const;
+      } catch {
+        return [key, null] as const;
+      }
+    })
+  );
+
+  previewData.value = Object.fromEntries(responses);
   loading.value = false;
 }
 
-// Initiales Laden und bei Wochenwechsel
 watch(
   () => [appStore.selectedYear, appStore.selectedWeek],
   () => loadPreviewWeeks(),
   { immediate: true }
 );
 
-// Hilfsfunktion: Schichtinformationen für eine Vorschau-Woche
 function getWeekShifts(year: number, week: number) {
   const key = `${year}-${week}`;
   const data = previewData.value[key];
-  
-  // API gibt { week, shifts, pattern_week } zurück
-  // shifts enthält assigned_staff Array
+
   if (!data?.shifts || data.shifts.length === 0) {
     return null;
   }
-  
-  // Nur Schichten mit zugewiesenen Mitarbeitern
+
   const shiftsWithStaff = data.shifts
-    .filter((shift: any) => shift.assigned_staff && shift.assigned_staff.length > 0)
-    .map((shift: any) => ({
+    .filter((shift) => shift.assigned_staff && shift.assigned_staff.length > 0)
+    .map((shift) => ({
       name: shift.name,
       color: shift.color || "#6366f1",
-      staff: shift.assigned_staff.map((s: any) => s.name),
+      staff: shift.assigned_staff.map((staff) => staff.name),
     }));
-  
+
   return shiftsWithStaff.length > 0 ? shiftsWithStaff : null;
 }
 
-// Zur Woche navigieren
+function getWeekSummary(year: number, week: number) {
+  const key = `${year}-${week}`;
+  const data = previewData.value[key];
+
+  if (!data?.shifts) {
+    return { shiftCount: 0, assignmentCount: 0 };
+  }
+
+  return {
+    shiftCount: data.shifts.length,
+    assignmentCount: data.shifts.reduce((sum, shift) => sum + shift.assigned_staff.length, 0),
+  };
+}
+
 function goToWeek(year: number, week: number) {
   appStore.setWeek(year, week);
-  // Scroll nach oben
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 </script>
 
 <template>
-  <div class="mt-4 pt-4 border-t dark:border-gray-700">
-    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-      <i class="pi pi-calendar-plus text-primary-light dark:text-primary-dark"></i>
-      Nächste Wochen
-    </h3>
+  <section class="planner-slab">
+    <div class="planner-section-heading">
+      <div>
+        <p class="planner-kicker">Ausblick</p>
+        <h3 class="mt-2 text-xl font-semibold text-[var(--text-1)]">Nächste Wochen</h3>
+      </div>
+    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <div
+    <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <button
         v-for="week in upcomingWeeks"
         :key="`${week.year}-${week.week}`"
-        class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+        type="button"
+        class="planner-preview-card flex w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         @click="goToWeek(week.year, week.week)"
       >
-        <!-- Header - Kompakt -->
-        <div class="bg-gray-50 dark:bg-gray-700 px-3 py-2 border-b border-gray-200 dark:border-gray-600">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold text-gray-900 dark:text-white text-sm">
-              KW {{ week.week }}
-            </span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              {{ week.dateRange }}
+        <div class="planner-preview-card__header px-4 py-3">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="planner-kicker">Kalenderwoche</p>
+              <h4 class="mt-2 text-lg font-semibold text-[var(--text-1)]">KW {{ week.week }}</h4>
+            </div>
+            <span class="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-[var(--text-2)] shadow-sm">
+              {{ week.year }}
             </span>
           </div>
+          <p class="mt-2 text-sm text-[var(--text-2)]">{{ week.dateRange }}</p>
         </div>
 
-        <!-- Content - Kompakt -->
-        <div class="p-2 min-h-[60px]">
-          <!-- Loading State -->
-          <div v-if="loading" class="flex items-center justify-center py-2">
-            <i class="pi pi-spin pi-spinner text-gray-400 text-sm"></i>
+        <div class="flex flex-1 flex-col gap-3 p-4">
+          <div class="flex flex-wrap gap-2">
+            <span class="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">
+              {{ getWeekSummary(week.year, week.week).shiftCount }} Schichten
+            </span>
+            <span class="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">
+              {{ getWeekSummary(week.year, week.week).assignmentCount }} Zuweisungen
+            </span>
           </div>
 
-          <!-- Content anzeigen -->
+          <div v-if="loading" class="flex items-center justify-center py-4 text-[var(--text-3)]">
+            <i class="pi pi-spin pi-spinner text-sm"></i>
+          </div>
+
           <template v-else>
-            <!-- Feiertage & Schulferien - Kompakt -->
-            <HolidayInfo 
-              :year="week.year" 
-              :week="week.week" 
-              compact 
+            <HolidayInfo
+              :year="week.year"
+              :week="week.week"
+              compact
             />
 
-            <!-- Schichten anzeigen -->
             <div
               v-if="getWeekShifts(week.year, week.week)"
-              class="space-y-1 mt-1"
+              class="space-y-2"
             >
               <div
                 v-for="shift in getWeekShifts(week.year, week.week)"
                 :key="shift.name"
-                class="flex items-center gap-1.5"
+                class="flex items-start gap-2 rounded-[16px] bg-[var(--surface-muted)] px-3 py-2"
               >
-                <div
-                  class="w-2 h-2 rounded-full flex-shrink-0"
+                <span
+                  class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full"
                   :style="{ backgroundColor: shift.color }"
-                ></div>
-                <span class="text-xs text-gray-600 dark:text-gray-400 truncate">
-                  {{ shift.name }}: {{ shift.staff.join(", ") }}
-                </span>
+                ></span>
+                <div class="min-w-0">
+                  <p class="text-xs font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
+                  <p class="mt-1 text-xs leading-5 text-[var(--text-1)]/90">
+                    {{ shift.staff.join(", ") }}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <!-- Keine Schicht-Daten -->
             <div
-              v-else-if="!getWeekShifts(week.year, week.week)"
-              class="text-center py-2 text-gray-400 dark:text-gray-500"
+              v-else
+              class="flex flex-1 items-center rounded-[18px] border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-4 py-5 text-sm text-[var(--text-2)]"
             >
-              <p class="text-xs">Nicht geplant</p>
+              Noch nicht geplant.
             </div>
           </template>
         </div>
-      </div>
+      </button>
     </div>
-  </div>
+  </section>
 </template>

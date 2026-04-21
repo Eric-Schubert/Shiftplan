@@ -12,3 +12,4 @@ node_modules
 db/*.sqlite
 db/*.sqlite-*
 .idea
+.impeccable.md

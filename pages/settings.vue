@@ -18,28 +18,24 @@ watch(
 
 <template>
   <div>
-    <!-- Nicht eingeloggt: Login-Formular anzeigen -->
     <AdminLogin v-if="!authStore.isAuthenticated" />
 
-    <!-- Eingeloggt aber ohne Planungsrechte: Zugriff verweigert -->
     <div v-else-if="!authStore.canEditShifts" class="min-h-[60vh] flex items-center justify-center">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-sm text-center">
-        <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Icon name="mdi:shield-alert" class="text-3xl text-yellow-600 dark:text-yellow-400" />
+      <div class="planner-slab w-full max-w-md text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--warning-soft)] text-[var(--warning-ink)]">
+          <Icon name="mdi:shield-alert" class="text-3xl" />
         </div>
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          Kein Zugriff
-        </h2>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
-          Dieser Bereich ist nur fuer Planer und Administratoren verfuegbar.
+        <h2 class="text-2xl font-semibold text-[var(--text-1)]">Kein Zugriff</h2>
+        <p class="mx-auto mt-3 max-w-[28rem] text-sm leading-6 text-[var(--text-2)]">
+          Dieser Bereich ist nur für Planer und Administratoren verfügbar.
         </p>
-        <div class="flex flex-col gap-2">
+        <div class="mt-5 flex flex-col gap-2">
           <NuxtLink to="/">
             <PrimeButton
               label="Zum Schichtplan"
               icon="pi pi-arrow-left"
               severity="secondary"
-              class="w-full"
+              class="w-full min-h-11"
             />
           </NuxtLink>
           <PrimeButton
@@ -47,93 +43,85 @@ watch(
             icon="pi pi-sign-out"
             severity="secondary"
             outlined
-            size="small"
+            class="min-h-11"
             @click="authStore.logout()"
           />
         </div>
       </div>
     </div>
 
-    <!-- Admin/Planer: Settings anzeigen -->
-    <div v-else class="space-y-6" @click="extendSession" @keydown="extendSession">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-            Einstellungen
-          </h2>
-          <p class="text-gray-500 dark:text-gray-400">
-            <template v-if="authStore.isAdmin">
-              Verwalte Mitarbeiter, Schichten, Benutzer und Rotationsmuster
-            </template>
-            <template v-else>
-              Pflege Rotationsmuster und erstelle Schichtplaene aus Vorlagen
-            </template>
-          </p>
+    <div v-else class="planner-shell" @click="extendSession" @keydown="extendSession">
+      <section class="planner-slab">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div class="space-y-3">
+            <p class="planner-kicker">Administration</p>
+            <div>
+              <h2 class="text-2xl font-semibold text-[var(--text-1)] sm:text-3xl">Einstellungen</h2>
+              <p class="mt-2 max-w-[50rem] text-sm leading-6 text-[var(--text-2)]">
+                <template v-if="authStore.isAdmin">
+                  Mitarbeiter, Schichten, Benutzer und Rotationsmuster werden hier zentral gepflegt.
+                </template>
+                <template v-else>
+                  Rotationsmuster können gepflegt und Schichtpläne aus Vorlagen erzeugt werden.
+                </template>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="planner-chip planner-chip--muted">{{ authStore.username }}</span>
+            <PrimeButton
+              label="Passwort ändern"
+              icon="pi pi-key"
+              severity="secondary"
+              class="min-h-11 !rounded-full"
+              @click="showChangePasswordDialog = true"
+            />
+            <PrimeButton
+              label="Abmelden"
+              icon="pi pi-sign-out"
+              severity="secondary"
+              outlined
+              class="min-h-11 !rounded-full"
+              @click="authStore.logout()"
+            />
+          </div>
         </div>
+      </section>
 
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-gray-400 dark:text-gray-500">
-            {{ authStore.username }}
-          </span>
-          <PrimeButton
-            label="Passwort aendern"
-            icon="pi pi-key"
-            severity="secondary"
-            size="small"
-            @click="showChangePasswordDialog = true"
-          />
-          <PrimeButton
-            label="Abmelden"
-            icon="pi pi-sign-out"
-            severity="secondary"
-            size="small"
-            outlined
-            @click="authStore.logout()"
-          />
-        </div>
-      </div>
+      <section class="planner-slab !p-0 overflow-hidden">
+        <PrimeTabs v-model:value="activeTab">
+          <PrimeTabList class="overflow-x-auto border-b border-[var(--border-soft)] bg-[var(--surface-muted)] px-2 py-2">
+            <PrimeTab v-if="authStore.isAdmin" value="0" class="whitespace-nowrap">Mitarbeiter</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="1" class="whitespace-nowrap">Schichten</PrimeTab>
+            <PrimeTab value="2" class="whitespace-nowrap">Rotationsmuster</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="3" class="whitespace-nowrap">Benutzer</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="4" class="whitespace-nowrap">Änderungslog</PrimeTab>
+          </PrimeTabList>
 
-      <PrimeTabs v-model:value="activeTab">
-        <PrimeTabList>
-          <PrimeTab v-if="authStore.isAdmin" value="0">Mitarbeiter</PrimeTab>
-          <PrimeTab v-if="authStore.isAdmin" value="1">Schichten</PrimeTab>
-          <PrimeTab value="2">Rotationsmuster</PrimeTab>
-          <PrimeTab v-if="authStore.isAdmin" value="3">Benutzer</PrimeTab>
-          <PrimeTab v-if="authStore.isAdmin" value="4">Aenderungslog</PrimeTab>
-        </PrimeTabList>
-
-        <PrimeTabPanels>
-          <PrimeTabPanel v-if="authStore.isAdmin" value="0">
-            <div class="pt-4">
+          <PrimeTabPanels class="p-4 sm:p-5">
+            <PrimeTabPanel v-if="authStore.isAdmin" value="0">
               <StaffManager />
-            </div>
-          </PrimeTabPanel>
+            </PrimeTabPanel>
 
-          <PrimeTabPanel v-if="authStore.isAdmin" value="1">
-            <div class="pt-4">
+            <PrimeTabPanel v-if="authStore.isAdmin" value="1">
               <ShiftManager />
-            </div>
-          </PrimeTabPanel>
+            </PrimeTabPanel>
 
-          <PrimeTabPanel value="2">
-            <div class="pt-4">
+            <PrimeTabPanel value="2">
               <RotationManager />
-            </div>
-          </PrimeTabPanel>
+            </PrimeTabPanel>
 
-          <PrimeTabPanel v-if="authStore.isAdmin" value="3">
-            <div class="pt-4">
+            <PrimeTabPanel v-if="authStore.isAdmin" value="3">
               <UserManager />
-            </div>
-          </PrimeTabPanel>
+            </PrimeTabPanel>
 
-          <PrimeTabPanel v-if="authStore.isAdmin" value="4">
-            <div class="pt-4">
+            <PrimeTabPanel v-if="authStore.isAdmin" value="4">
               <AuditLog />
-            </div>
-          </PrimeTabPanel>
-        </PrimeTabPanels>
-      </PrimeTabs>
+            </PrimeTabPanel>
+          </PrimeTabPanels>
+        </PrimeTabs>
+      </section>
 
       <ChangePasswordDialog v-model:visible="showChangePasswordDialog" />
     </div>

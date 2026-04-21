@@ -8,6 +8,7 @@ const confirmPassword = ref("");
 const error = ref("");
 const success = ref(false);
 const loading = ref(false);
+const passwordErrorId = "change-password-error";
 
 async function changePassword() {
   error.value = "";
@@ -23,8 +24,8 @@ async function changePassword() {
     return;
   }
 
-  if (newPassword.value.length < 4) {
-    error.value = "Passwort muss mindestens 4 Zeichen haben";
+  if (newPassword.value.length < 8) {
+    error.value = "Das neue Passwort braucht mindestens 8 Zeichen.";
     return;
   }
 
@@ -38,12 +39,12 @@ async function changePassword() {
         newPassword: newPassword.value,
       },
     });
+
     success.value = true;
     currentPassword.value = "";
     newPassword.value = "";
     confirmPassword.value = "";
-    
-    // Dialog nach 2 Sekunden schließen
+
     setTimeout(() => {
       visible.value = false;
       success.value = false;
@@ -67,62 +68,73 @@ function onHide() {
 <template>
   <PrimeDialog
     v-model:visible="visible"
-    header="Admin-Passwort ändern"
+    header="Passwort ändern"
     modal
-    :style="{ width: '25rem' }"
+    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     @hide="onHide"
   >
     <div class="space-y-4">
-      <div v-if="success" class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
-        <Icon name="mdi:check-circle" class="text-3xl text-green-500 mb-2" />
-        <p class="text-green-700 dark:text-green-400 font-medium">
-          Passwort erfolgreich geändert!
+      <div
+        v-if="success"
+        class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
+      >
+        <Icon name="mdi:check-circle" class="mb-2 text-3xl text-[var(--positive-ink)]" />
+        <p class="font-medium text-[var(--positive-ink)]">
+          Passwort erfolgreich geändert.
         </p>
       </div>
 
       <template v-else>
-        <div class="flex flex-col gap-2">
-          <label class="font-medium">Aktuelles Passwort</label>
+        <div class="space-y-1.5">
+          <label for="current-password" class="block text-sm font-medium text-[var(--text-2)]">Aktuelles Passwort</label>
           <PrimeInputText
             v-model="currentPassword"
+            id="current-password"
             type="password"
             placeholder="Aktuelles Passwort eingeben"
+            :aria-describedby="error ? passwordErrorId : undefined"
           />
         </div>
 
-        <div class="flex flex-col gap-2">
-          <label class="font-medium">Neues Passwort</label>
+        <div class="space-y-1.5">
+          <label for="new-password" class="block text-sm font-medium text-[var(--text-2)]">Neues Passwort</label>
           <PrimeInputText
             v-model="newPassword"
+            id="new-password"
             type="password"
-            placeholder="Neues Passwort eingeben"
+            placeholder="Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl"
+            :aria-describedby="error ? passwordErrorId : undefined"
           />
         </div>
 
-        <div class="flex flex-col gap-2">
-          <label class="font-medium">Neues Passwort bestätigen</label>
+        <div class="space-y-1.5">
+          <label for="confirm-password" class="block text-sm font-medium text-[var(--text-2)]">Neues Passwort bestätigen</label>
           <PrimeInputText
             v-model="confirmPassword"
+            id="confirm-password"
             type="password"
             placeholder="Neues Passwort wiederholen"
+            :aria-describedby="error ? passwordErrorId : undefined"
           />
         </div>
 
-        <small v-if="error" class="text-red-500 block">
+        <small
+          v-if="error"
+          :id="passwordErrorId"
+          class="block text-sm text-[var(--danger-ink)]"
+          role="alert"
+        >
           {{ error }}
         </small>
       </template>
     </div>
 
     <template #footer>
-      <PrimeButton
-        label="Abbrechen"
-        text
-        @click="visible = false"
-      />
+      <PrimeButton label="Abbrechen" text @click="visible = false" />
       <PrimeButton
         v-if="!success"
         label="Passwort ändern"
+        class="min-h-11"
         :loading="loading"
         @click="changePassword"
       />

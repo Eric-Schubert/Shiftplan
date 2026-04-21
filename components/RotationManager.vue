@@ -373,7 +373,7 @@ async function generatePreview() {
           label="Excel-Vorlage"
           icon="pi pi-download"
           severity="secondary"
-          size="small"
+          class="min-h-11"
           :loading="downloadingTemplate"
           @click="downloadExcelTemplate"
         />
@@ -381,7 +381,7 @@ async function generatePreview() {
           label="Excel importieren"
           icon="pi pi-upload"
           severity="secondary"
-          size="small"
+          class="min-h-11"
           :loading="importingExcel"
           @click="openExcelImport"
         />
@@ -389,14 +389,14 @@ async function generatePreview() {
           label="Konfiguration"
           icon="pi pi-cog"
           severity="secondary"
-          size="small"
+          class="min-h-11"
           @click="openConfigDialog"
         />
         <YearCopy />
         <PrimeButton
           label="Plan generieren"
           icon="pi pi-sparkles"
-          size="small"
+          class="min-h-11"
           @click="showPreviewDialog = true"
         />
       </div>
@@ -404,32 +404,32 @@ async function generatePreview() {
 
     <div
       v-if="excelImportResult"
-      class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm text-green-700 dark:text-green-300"
+      class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
     >
       Import abgeschlossen: {{ excelImportResult.importedRows }} Zeilen gelesen,
-      {{ excelImportResult.importedAssignments }} Zuweisungen uebernommen.
+      {{ excelImportResult.importedAssignments }} Zuweisungen übernommen.
       Zyklus: {{ excelImportResult.config.cycle_length }} Wochen ab KW
       {{ excelImportResult.config.start_week }}/{{ excelImportResult.config.start_year }}.
     </div>
 
     <div
       v-if="excelImportError"
-      class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-700 dark:text-red-300"
+      class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
     >
       {{ excelImportError }}
     </div>
 
     <!-- Info Box -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div class="flex items-start gap-3">
-        <Icon name="mdi:information" class="text-xl text-blue-500 mt-0.5" />
-        <div class="text-sm text-blue-700 dark:text-blue-300">
+        <Icon name="mdi:information" class="mt-0.5 text-xl text-primary-light dark:text-primary-dark" />
+        <div class="text-sm text-gray-700 dark:text-gray-300">
           <p class="font-medium mb-1">So funktioniert das Rotationsmuster:</p>
           <p class="mb-2">
             Lege fest, wer in welcher Woche des Zyklus welche Schicht arbeitet.
             Das Muster wiederholt sich alle <strong>{{ dataStore.rotationPattern?.config.cycle_length || 4 }} Wochen</strong>.
           </p>
-          <p class="text-xs opacity-80">
+          <p class="text-xs text-gray-500 dark:text-gray-400">
             <Icon name="mdi:calendar" class="mr-1" />
             Musterwoche 1 beginnt in KW {{ dataStore.rotationPattern?.config.start_week }}/{{ dataStore.rotationPattern?.config.start_year }}
           </p>
@@ -513,7 +513,9 @@ async function generatePreview() {
               >
                 {{ staff.name }}
                 <button
+                  type="button"
                   class="ml-0.5 text-gray-400 hover:text-red-500 text-xs"
+                  :aria-label="`${staff.name} aus Musterwoche ${weekData.pattern_week} und Schicht ${assignment.shift.name} entfernen`"
                   @click="unassignStaff(weekData.pattern_week, staff.staff_id, assignment.shift.shift_id)"
                 >
                   ✕
@@ -532,7 +534,8 @@ async function generatePreview() {
                 icon="pi pi-plus"
                 text
                 rounded
-                size="small"
+                class="!h-11 !w-11"
+                :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufügen`"
                 @click="openAssignDialog(weekData.pattern_week, assignment.shift.shift_id, assignment.shift.name)"
                 v-tooltip="'Mitarbeiter hinzufügen'"
               />
@@ -553,24 +556,25 @@ async function generatePreview() {
       v-model:visible="showConfigDialog"
       header="Rotationsmuster einrichten"
       modal
-      :style="{ width: '35rem' }"
+      :style="{ width: '35rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-6">
-        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div class="flex items-start gap-3">
-            <Icon name="mdi:information" class="text-xl text-blue-500 mt-0.5" />
-            <div class="text-sm text-blue-700 dark:text-blue-300">
+            <Icon name="mdi:information" class="mt-0.5 text-xl text-primary-light dark:text-primary-dark" />
+            <div class="text-sm text-gray-700 dark:text-gray-300">
               <p class="font-medium mb-1">So funktioniert die Rotation:</p>
               <p>Das Schichtmuster wiederholt sich regelmäßig. Lege die Zykluslänge und den Startpunkt fest.</p>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div class="flex flex-col gap-2">
-            <label class="font-medium">Zykluslänge</label>
+            <label for="rotation-cycle-length" class="font-medium">Zykluslänge</label>
             <PrimeInputNumber
               v-model="configForm.cycle_length"
+              input-id="rotation-cycle-length"
               :min="1"
               :max="52"
               show-buttons
@@ -578,18 +582,20 @@ async function generatePreview() {
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="font-medium">Startjahr</label>
+            <label for="rotation-start-year" class="font-medium">Startjahr</label>
             <PrimeInputNumber
               v-model="configForm.start_year"
+              input-id="rotation-start-year"
               :min="2020"
               :max="2030"
               :use-grouping="false"
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="font-medium">Startwoche</label>
+            <label for="rotation-start-week" class="font-medium">Startwoche</label>
             <PrimeInputNumber
               v-model="configForm.start_week"
+              input-id="rotation-start-week"
               :min="1"
               :max="53"
               show-buttons
@@ -634,16 +640,17 @@ async function generatePreview() {
       v-model:visible="showAssignDialog"
       :header="`Mitarbeiter zu '${assignContext?.shiftName}' (Woche ${assignContext?.patternWeek}) hinzufügen`"
       modal
-      :style="{ width: '25rem' }"
+      :style="{ width: '25rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-2">
         <p v-if="availableStaffForAssign.length === 0" class="text-gray-500">
           Alle aktiven Mitarbeiter sind bereits zugewiesen.
         </p>
-        <div
+        <button
           v-for="staff in availableStaffForAssign"
           :key="staff.staff_id"
-          class="flex justify-between items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+          type="button"
+          class="flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
           @click="assignStaff(staff.staff_id)"
         >
           <span class="text-gray-900 dark:text-white">{{ staff.name }}</span>
@@ -653,7 +660,7 @@ async function generatePreview() {
             severity="secondary"
             class="text-xs"
           />
-        </div>
+        </button>
       </div>
     </PrimeDialog>
 
@@ -662,27 +669,29 @@ async function generatePreview() {
       v-model:visible="showPreviewDialog"
       header="Schichtplan aus Muster generieren"
       modal
-      :style="{ width: '30rem' }"
+      :style="{ width: '30rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-4">
         <p class="text-gray-600 dark:text-gray-400">
           Generiert Schichtpläne basierend auf dem definierten Rotationsmuster.
         </p>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col gap-2">
-            <label class="font-medium">Startjahr</label>
+            <label for="preview-start-year" class="font-medium">Startjahr</label>
             <PrimeInputNumber
               v-model="previewYear"
+              input-id="preview-start-year"
               :min="2020"
               :max="2030"
               :use-grouping="false"
             />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="font-medium">Startwoche</label>
+            <label for="preview-start-week" class="font-medium">Startwoche</label>
             <PrimeInputNumber
               v-model="previewWeek"
+              input-id="preview-start-week"
               :min="1"
               :max="53"
               show-buttons
@@ -691,9 +700,10 @@ async function generatePreview() {
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="font-medium">Anzahl Wochen</label>
+          <label for="preview-weeks-count" class="font-medium">Anzahl Wochen</label>
           <PrimeInputNumber
             v-model="previewWeeks"
+            input-id="preview-weeks-count"
             :min="1"
             :max="52"
             show-buttons
@@ -735,6 +745,7 @@ async function generatePreview() {
         <PrimeButton
           label="Generieren"
           icon="pi pi-sparkles"
+          class="min-h-11"
           :loading="generating"
           @click="generatePreview"
         />

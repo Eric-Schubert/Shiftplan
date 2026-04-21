@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import type { WeeklyShiftplan } from "~/types/shiftplan";
+import type { ShiftWithStaff, WeeklyShiftplan } from "~/types/shiftplan";
 import { useSwipe } from "~/composables/useSwipe";
 
 const appStore = useAppStore();
 const authStore = useAuthStore();
-const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
 
-// Erweiterter Typ mit pattern_week
 interface WeeklyShiftplanWithPattern extends WeeklyShiftplan {
   pattern_week: number;
 }
 
-// Lade Schichtplan
 const {
   data: shiftplan,
   pending,
@@ -25,9 +22,6 @@ const {
   watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
 });
 
-// ============================================
-// SWIPE NAVIGATION
-// ============================================
 const swipeContainer = ref<HTMLElement | null>(null);
 
 const { isSwiping, swipeDirection, swipeOffset } = useSwipe(swipeContainer, {
@@ -35,17 +29,28 @@ const { isSwiping, swipeDirection, swipeOffset } = useSwipe(swipeContainer, {
   onSwipeRight: () => appStore.previousWeek(),
 });
 
-// Nur Content-Bereich animieren, nicht Header/Nav
 const contentSlideClass = computed(() => {
   if (swipeDirection.value === "left") return "content-slide-left";
   if (swipeDirection.value === "right") return "content-slide-right";
   return "";
 });
 
-// ============================================
-// GENERIERUNG (nur Admin)
-// ============================================
 const generating = ref(false);
+const showBulkDialog = ref(false);
+const bulkWeeks = ref(4);
+const bulkGenerating = ref(false);
+const bulkResult = ref<{ generated: number } | null>(null);
+
+const shiftList = computed<ShiftWithStaff[]>(() => shiftplan.value?.shifts ?? []);
+const totalAssigned = computed(() =>
+  shiftList.value.reduce((sum, shift) => sum + shift.assigned_staff.length, 0)
+);
+const fullyStaffedShifts = computed(() =>
+  shiftList.value.filter((shift) => shift.assigned_staff.length >= shift.min_staff).length
+);
+const coverageNote = computed(() =>
+  shiftList.value.length === 0 ? "Noch keine Planbasis" : `${fullyStaffedShifts.value}/${shiftList.value.length} Schichten im Soll`
+);
 
 async function generateFromPattern() {
   generating.value = true;
@@ -62,12 +67,6 @@ async function generateFromPattern() {
     generating.value = false;
   }
 }
-
-// Mehrere Wochen generieren
-const showBulkDialog = ref(false);
-const bulkWeeks = ref(4);
-const bulkGenerating = ref(false);
-const bulkResult = ref<{ generated: number } | null>(null);
 
 async function generateBulk() {
   bulkGenerating.value = true;
@@ -88,183 +87,220 @@ async function generateBulk() {
 </script>
 
 <template>
-  <div
-    ref="swipeContainer"
-    class="space-y-4"
-  >
-    <!-- Header mit Navigation - Kompakter -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-      <div>
-        <div class="flex items-center gap-3">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-            KW {{ appStore.selectedWeek }}
-          </h2>
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            {{ appStore.formattedWeekRange }} · {{ appStore.selectedYear }}
-          </span>
-          <span v-if="shiftplan?.pattern_week" class="text-xs px-2 py-0.5 bg-primary-light/10 dark:bg-primary-dark/20 text-primary-light dark:text-primary-dark rounded">
-            Muster {{ shiftplan.pattern_week }}
-          </span>
-        </div>
-      </div>
+  <div ref="swipeContainer" class="planner-shell">
+    <section class="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.95fr)]">
+      <div class="planner-hero planner-week-hero h-full space-y-4">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="space-y-3">
+            <p class="planner-kicker hidden sm:block">Wochenansicht</p>
+            <div class="flex flex-wrap items-end gap-3">
+              <h2 class="planner-headline text-[var(--text-1)]">
+                KW {{ appStore.selectedWeek }}
+              </h2>
+              <span class="planner-chip planner-chip--muted">{{ appStore.selectedYear }}</span>
+              <span v-if="shiftplan?.pattern_week" class="planner-chip planner-chip--accent">
+                Muster {{ shiftplan.pattern_week }}
+              </span>
+            </div>
+            <p class="text-sm text-[var(--text-2)] sm:text-base">
+              {{ appStore.formattedWeekRange }}
+            </p>
+          </div>
 
-      <div class="flex items-center gap-1">
-        <PrimeButton
-            icon="pi pi-chevron-left"
-            text
-            rounded
-            size="small"
-            @click="appStore.previousWeek"
-        />
-        <PrimeButton
-            label="Heute"
-            text
-            size="small"
-            @click="appStore.goToCurrentWeek"
-        />
-        <PrimeButton
-            icon="pi pi-chevron-right"
-            text
-            rounded
-            size="small"
-            @click="appStore.nextWeek"
-        />
-
-        <!-- Quick Jump -->
-        <div class="hidden sm:flex items-center gap-1 ml-2 border-l dark:border-gray-700 pl-2">
-          <PrimeButton
-              v-for="offset in [1, 2, 4]"
-              :key="offset"
-              :label="`+${offset}`"
+          <div class="flex flex-wrap items-center gap-2">
+            <PrimeButton
+              icon="pi pi-chevron-left"
               text
-              size="small"
-              severity="secondary"
-              class="!px-2"
-              @click="() => { for(let i = 0; i < offset; i++) appStore.nextWeek() }"
-          />
+              rounded
+              class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
+              aria-label="Vorherige Woche anzeigen"
+              @click="appStore.previousWeek"
+            />
+            <PrimeButton
+              label="Heute"
+              text
+              class="min-h-11 !rounded-full border !border-[var(--border-soft)] !bg-[var(--surface)] !px-4"
+              @click="appStore.goToCurrentWeek"
+            />
+            <PrimeButton
+              icon="pi pi-chevron-right"
+              text
+              rounded
+              class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
+              aria-label="Nächste Woche anzeigen"
+              @click="appStore.nextWeek"
+            />
+            <div class="hidden items-center gap-2 sm:ml-2 sm:flex">
+              <PrimeButton
+                v-for="offset in [1, 2, 4]"
+                :key="offset"
+                :label="`+${offset}`"
+                text
+                class="min-h-11 !rounded-full border !border-[var(--border-soft)] !bg-[var(--surface)] !px-3"
+                :aria-label="`${offset} Wochen vorspringen`"
+                @click="() => { for (let i = 0; i < offset; i += 1) appStore.nextWeek(); }"
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Feiertage & Schulferien Anzeige -->
-    <HolidayInfo 
-      :year="appStore.selectedYear" 
-      :week="appStore.selectedWeek" 
-    />
-
-    <!-- Swipe-animierter Content-Bereich -->
-    <div
-      class="swipe-content space-y-4"
-      :class="contentSlideClass"
-      :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
-    >
-      <!-- Admin Actions - Nur für Admin (Generieren aus Muster) -->
-      <div v-if="authStore.canEditShifts" class="flex gap-2">
-        <PrimeButton
+        <div v-if="authStore.canEditShifts" class="flex flex-wrap gap-2">
+          <PrimeButton
             label="Aus Muster füllen"
             icon="pi pi-sync"
             severity="secondary"
-            size="small"
+            class="min-h-11 !rounded-full !px-5"
             :loading="generating"
             @click="generateFromPattern"
-        />
-        <PrimeButton
+          />
+          <PrimeButton
+            label="Mehrere Wochen"
             icon="pi pi-calendar-plus"
             severity="secondary"
-            size="small"
+            class="min-h-11 !rounded-full !px-5"
+            aria-label="Mehrere Wochen aus dem Muster generieren"
             @click="showBulkDialog = true"
-            v-tooltip="'Mehrere Wochen generieren'"
+          />
+        </div>
+      </div>
+
+      <aside class="planner-panel hidden min-h-[15rem] lg:block">
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p class="planner-kicker">Kalenderlage</p>
+            <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">Hinweise für diese Woche</h3>
+          </div>
+          <span class="planner-chip planner-chip--muted">
+            {{ pending ? "Wird aktualisiert" : "Live" }}
+          </span>
+        </div>
+        <HolidayInfo
+          :year="appStore.selectedYear"
+          :week="appStore.selectedWeek"
+        />
+      </aside>
+    </section>
+
+    <div
+      class="swipe-content space-y-4 sm:space-y-5"
+      :class="contentSlideClass"
+      :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
+    >
+      <div class="lg:hidden">
+        <HolidayInfo
+          :year="appStore.selectedYear"
+          :week="appStore.selectedWeek"
+          banner
         />
       </div>
 
-      <!-- Planner Hinweis -->
-      <div v-else-if="authStore.isPlanner" class="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-3 py-2">
-        <Icon name="mdi:information" class="text-lg flex-shrink-0" />
-        <span>Planermodus — Du kannst Mitarbeiter zu Schichten zuweisen und entfernen</span>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="pending" class="flex justify-center py-8">
-        <PrimeProgressSpinner />
-      </div>
-
-      <!-- Schichtplan -->
-      <div v-else-if="shiftplan">
-        <!-- Keine Schichten -->
-        <div
-            v-if="shiftplan.shifts.length === 0"
-            class="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow"
-        >
-          <Icon name="mdi:calendar-blank" class="text-4xl text-gray-400 mb-2" />
-          <h3 class="font-medium text-gray-900 dark:text-white">
-            Keine Schichten definiert
-          </h3>
-          <NuxtLink v-if="authStore.isAdmin" to="/settings" class="text-primary-light dark:text-primary-dark text-sm">
-            → Einstellungen
-          </NuxtLink>
+      <section class="planner-slab planner-current-week">
+        <div class="planner-section-heading !hidden sm:!flex">
+          <div>
+            <p class="planner-kicker hidden sm:block">Einsatzplan</p>
+            <h3 class="text-lg font-semibold text-[var(--text-1)] sm:mt-2 sm:text-xl">Schichten dieser Woche</h3>
+          </div>
+          <span v-if="shiftList.length > 0" class="planner-chip planner-chip--muted !hidden sm:!inline-flex">
+            {{ coverageNote }}
+          </span>
         </div>
 
-        <!-- Schichten Liste - Vertikal aber kompakt -->
-        <div v-else class="space-y-2">
-          <ShiftCard
-              v-for="shift in shiftplan.shifts"
+        <div v-if="pending" class="flex justify-center py-10">
+          <PrimeProgressSpinner />
+        </div>
+
+        <template v-else-if="shiftplan">
+          <div v-if="shiftList.length === 0" class="planner-empty">
+            <Icon name="mdi:calendar-blank-outline" class="text-4xl text-[var(--text-3)]" />
+            <div class="space-y-2">
+              <h4 class="text-lg font-semibold text-[var(--text-1)]">Diese Woche hat noch keine Struktur</h4>
+              <p class="mx-auto max-w-[36rem] text-sm leading-6">
+                Lege zuerst die Schichten an. Danach wirkt der Plan sofort geordneter und das Team kann verteilt werden.
+              </p>
+            </div>
+            <NuxtLink v-if="authStore.isAdmin" to="/settings">
+              <PrimeButton label="Zu den Einstellungen" icon="pi pi-arrow-right" class="min-h-11 !rounded-full !px-5" />
+            </NuxtLink>
+          </div>
+
+          <div v-else class="space-y-2.5 sm:space-y-3">
+            <ShiftCard
+              v-for="shift in shiftList"
               :key="shift.shift_id"
               :shift="shift"
               :year="appStore.selectedYear"
               :week="appStore.selectedWeek"
               @updated="refresh"
-          />
-        </div>
+            />
+          </div>
 
-        <!-- Hinweis wenn leer - Kompakter -->
-        <div
-            v-if="shiftplan.shifts.length > 0 && shiftplan.shifts.every(s => s.assigned_staff.length === 0)"
-            class="text-center py-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 text-sm"
-        >
-          <span class="text-yellow-700 dark:text-yellow-300">
-            ⚠ Diese Woche ist noch nicht befüllt.
-            <template v-if="authStore.canEditShifts">
-              <button class="underline hover:no-underline" @click="generateFromPattern">
+          <div
+            v-if="shiftList.length > 0 && totalAssigned === 0"
+            class="mt-4 rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-2)]"
+          >
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-[var(--warning-soft)] px-3 py-1 text-xs font-semibold text-[var(--warning-ink)]">
+                Noch unbesetzt
+              </span>
+              <span>Die Schichten sind angelegt, aber es wurde noch niemand zugewiesen.</span>
+              <button
+                v-if="authStore.canEditShifts"
+                type="button"
+                class="font-semibold text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+                @click="generateFromPattern"
+              >
                 Jetzt aus Muster generieren
               </button>
-            </template>
-          </span>
-        </div>
+            </div>
+          </div>
+        </template>
+      </section>
+
+      <div class="mt-1 sm:mt-0">
+        <WeekPreview />
       </div>
     </div>
 
-    <!-- Wochenvorschau -->
-    <WeekPreview />
-
-    <!-- Bulk Generate Dialog (Admin only) -->
     <PrimeDialog
-        v-model:visible="showBulkDialog"
-        modal
-        header="Mehrere Wochen generieren"
-        :style="{ width: '400px' }"
+      v-model:visible="showBulkDialog"
+      modal
+      header="Mehrere Wochen generieren"
+      :style="{ width: '30rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     >
       <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Generiert ab KW {{ appStore.selectedWeek }}/{{ appStore.selectedYear }} aus dem Rotationsmuster.
+        <p class="text-sm leading-6 text-[var(--text-2)]">
+          Generiert ab KW {{ appStore.selectedWeek }}/{{ appStore.selectedYear }} mehrere Wochen direkt aus dem Rotationsmuster.
         </p>
 
-        <div>
-          <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Anzahl Wochen</label>
-          <PrimeInputNumber v-model="bulkWeeks" :min="1" :max="52" class="w-full" />
+        <div class="space-y-1.5">
+          <label for="bulk-weeks" class="block text-sm font-medium text-[var(--text-2)]">
+            Anzahl Wochen
+          </label>
+          <PrimeInputNumber
+            v-model="bulkWeeks"
+            input-id="bulk-weeks"
+            :min="1"
+            :max="52"
+            class="w-full"
+          />
         </div>
 
-        <div v-if="bulkResult" class="bg-green-50 dark:bg-green-900/20 rounded p-3 text-sm text-green-700 dark:text-green-300">
-          ✅ {{ bulkResult.generated }} Wochen erfolgreich generiert
+        <div
+          v-if="bulkResult"
+          class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
+        >
+          {{ bulkResult.generated }} Wochen erfolgreich generiert.
         </div>
       </div>
 
       <template #footer>
         <PrimeButton label="Abbrechen" severity="secondary" text @click="showBulkDialog = false" />
         <PrimeButton
-            label="Generieren"
-            icon="pi pi-sync"
-            :loading="bulkGenerating"
-            @click="generateBulk"
+          label="Generieren"
+          icon="pi pi-sync"
+          class="min-h-11"
+          :loading="bulkGenerating"
+          @click="generateBulk"
         />
       </template>
     </PrimeDialog>
