@@ -64,6 +64,20 @@ export interface RotationGenerateResult {
   weeks: Array<{ year: number; week: number; pattern_week: number }>;
 }
 
+export interface RotationYearCopyPreview {
+  year: number;
+  totalWeeks: number;
+  totalAssignments: number;
+  weeks: Array<{ week: number; assignments: number }>;
+}
+
+export interface RotationYearCopyResult {
+  success: boolean;
+  copiedWeeks: number;
+  skippedWeeks: number;
+  copiedAssignments: number;
+}
+
 export interface RotationConfigUpdateDTO {
   cycle_length?: number;
   start_year?: number;
