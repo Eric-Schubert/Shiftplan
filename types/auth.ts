@@ -8,6 +8,12 @@ export interface User {
   created_at: string;
 }
 
+export interface UserCreatePayload {
+  username: string;
+  password: string;
+  role: UserRole;
+}
+
 export interface UserWithHash extends User {
   password_hash: string;
 }
