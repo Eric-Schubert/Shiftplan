@@ -7,18 +7,18 @@
 ![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?logo=sqlite)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Ein webbasierter Dienstplan fuer kleine und mittlere Teams. Der Plan laeuft wochenbasiert, unterstuetzt feste Schichtrotationen und laesst sich direkt im Browser pflegen.
+Ein webbasierter Dienstplan für kleine und mittlere Teams. Der Plan läuft wochenbasiert, unterstützt feste Schichtrotationen und lässt sich direkt im Browser pflegen.
 
 ## Was die App kann
 
 - Wochenplan mit Kalenderwochen, Feiertagen und Schulferien
-- Schichtrotation mit Startwoche, Zykluslaenge und Musterwochen
+- Schichtrotation mit Startwoche, Zykluslänge und Musterwochen
 - Excel-Vorlage herunterladen, bearbeiten und wieder importieren
 - Mitarbeiter, Schichten und Rotationsmuster verwalten
-- Planer-Rolle fuer Schichtzuweisungen ohne volle Admin-Rechte
-- Admin-Bereich fuer Benutzer, Stammdaten und Einstellungen
-- Audit-Log fuer manuelle Aenderungen am Schichtplan
-- Automatische Releases, Changelog und Docker-Image ueber GitHub Actions
+- Planer-Rolle für Schichtzuweisungen ohne volle Admin-Rechte
+- Admin-Bereich für Benutzer, Stammdaten und Einstellungen
+- Audit-Log für manuelle Änderungen am Schichtplan
+- Automatische Releases, Changelog und Docker-Image über GitHub Actions
 
 ## Schnellstart
 
@@ -40,7 +40,7 @@ Standardzugang nach frischer Datenbank:
 |----------|----------|-------|
 | `admin` | `admin` | Admin |
 
-Das Passwort sollte nach dem ersten Login geaendert werden.
+Das Passwort sollte nach dem ersten Login geändert werden.
 
 ## Docker
 
@@ -66,12 +66,12 @@ ghcr.io/eric-schubert/shiftplanv2:<version>
 
 ## Schichtrotation per Excel
 
-Planer und Admins koennen die Rotation ueber eine Excel-Datei pflegen:
+Planer und Admins können die Rotation über eine Excel-Datei pflegen:
 
 1. In den Einstellungen die Excel-Vorlage herunterladen.
 2. Im ersten Blatt die Anleitung lesen.
-3. Startjahr, Startwoche und Zykluslaenge pruefen.
-4. Musterwochen befuellen oder anpassen.
+3. Startjahr, Startwoche und Zykluslänge prüfen.
+4. Musterwochen befüllen oder anpassen.
 5. Datei wieder importieren.
 6. Schichtplan aus dem neuen Muster generieren.
 
@@ -81,7 +81,7 @@ Interne IDs werden in der Vorlage nicht zur Bearbeitung angezeigt. Die sichtbare
 
 ```bash
 npm run dev          # Entwicklungsserver
-npm run test:run     # Tests einmalig ausfuehren
+npm run test:run     # Tests einmalig ausführen
 npm run build        # Produktionsbuild
 npm run docs         # README-Abschnitte neu generieren
 ```
@@ -111,7 +111,7 @@ security:
 
 Nicht sichtbare Wartungscommits wie `docs:`, `test:`, `ci:` oder `chore:` erzeugen kein Release und kein Docker-Image.
 
-Der Versionsverlauf ist in der App ueber die Versionsanzeige im Header erreichbar. Neue Versionen zeigen beim ersten Besuch nur den neuesten Eintrag; der komplette Verlauf bleibt separat abrufbar.
+Der Versionsverlauf ist in der App über die Versionsanzeige im Header erreichbar. Neue Versionen zeigen beim ersten Besuch nur den neuesten Eintrag; der komplette Verlauf bleibt separat abrufbar.
 
 ## Automatisch generierte Details
 
