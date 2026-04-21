@@ -138,7 +138,15 @@ schichtplaner/
 |   |-- RotationPatternWeekCard.vue
 |   |-- RotationToolbar.vue
 |   |-- ShiftCard.vue
+|   |-- ShiftDeleteDialog.vue
+|   |-- ShiftFormDialog.vue
+|   |-- ShiftManagementHeader.vue
+|   |-- ShiftManagementList.vue
 |   |-- ShiftManager.vue
+|   |-- StaffDeleteDialog.vue
+|   |-- StaffFormDialog.vue
+|   |-- StaffManagementHeader.vue
+|   |-- StaffManagementList.vue
 |   |-- StaffManager.vue
 |   |-- UserCreateDialog.vue
 |   |-- UserDeleteDialog.vue
@@ -262,7 +270,15 @@ schichtplaner/
 | `RotationPatternWeekCard` | RotationPatternWeekCard.vue | - |
 | `RotationToolbar` | RotationToolbar.vue | - |
 | `ShiftCard` | ShiftCard.vue | - |
+| `ShiftDeleteDialog` | ShiftDeleteDialog.vue | - |
+| `ShiftFormDialog` | ShiftFormDialog.vue | - |
+| `ShiftManagementHeader` | ShiftManagementHeader.vue | - |
+| `ShiftManagementList` | ShiftManagementList.vue | - |
 | `ShiftManager` | ShiftManager.vue | - |
+| `StaffDeleteDialog` | StaffDeleteDialog.vue | - |
+| `StaffFormDialog` | StaffFormDialog.vue | - |
+| `StaffManagementHeader` | StaffManagementHeader.vue | - |
+| `StaffManagementList` | StaffManagementList.vue | - |
 | `StaffManager` | StaffManager.vue | - |
 | `UserCreateDialog` | UserCreateDialog.vue | - |
 | `UserDeleteDialog` | UserDeleteDialog.vue | - |
