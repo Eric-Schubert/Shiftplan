@@ -1,5 +1,11 @@
 import bcrypt from "bcryptjs";
 
+const DEFAULT_ADMIN_USERNAME = "admin";
+const DEFAULT_ADMIN_PASSWORD = "admin";
+const BOOTSTRAP_ADMIN_PASSWORD_ENV = "SHIFTPLAN_ADMIN_PASSWORD";
+const MIN_BOOTSTRAP_PASSWORD_LENGTH = 8;
+const MAX_BOOTSTRAP_PASSWORD_LENGTH = 256;
+
 function tableExists(database, table) {
   const row = database
     .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
@@ -52,9 +58,12 @@ function recordMigration(database, migration) {
     .run(migration.id, migration.description);
 }
 
-function normalizePasswordHash(password) {
-  const value = typeof password === "string" && password.length > 0 ? password : "admin";
-  return /^\$2[aby]\$\d{2}\$/.test(value) ? value : bcrypt.hashSync(value, 10);
+function isPasswordHash(value) {
+  return typeof value === "string" && /^\$2[aby]\$\d{2}\$/.test(value);
+}
+
+function hashPassword(value) {
+  return isPasswordHash(value) ? value : bcrypt.hashSync(value, 10);
 }
 
 function getLegacyAdminPassword(database) {
@@ -62,6 +71,103 @@ function getLegacyAdminPassword(database) {
   return database
     .prepare("SELECT value FROM settings WHERE key = 'admin_password'")
     .get()?.value;
+}
+
+function deleteLegacyAdminPasswordSetting(database) {
+  if (!tableExists(database, "settings")) return;
+  database.prepare("DELETE FROM settings WHERE key = 'admin_password'").run();
+}
+
+function validateBootstrapAdminPassword(password) {
+  if (password.length < MIN_BOOTSTRAP_PASSWORD_LENGTH) {
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens ${MIN_BOOTSTRAP_PASSWORD_LENGTH} Zeichen haben`;
+  }
+  if (password.length > MAX_BOOTSTRAP_PASSWORD_LENGTH) {
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} darf maximal ${MAX_BOOTSTRAP_PASSWORD_LENGTH} Zeichen haben`;
+  }
+  if (!/[A-Z]/.test(password)) {
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens einen Grossbuchstaben enthalten`;
+  }
+  if (!/[a-z]/.test(password)) {
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens einen Kleinbuchstaben enthalten`;
+  }
+  if (!/[0-9]/.test(password)) {
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens eine Zahl enthalten`;
+  }
+  return null;
+}
+
+function readBootstrapAdminPassword(options = {}) {
+  const directValue =
+    typeof options.bootstrapAdminPassword === "string"
+      ? options.bootstrapAdminPassword
+      : process.env[BOOTSTRAP_ADMIN_PASSWORD_ENV];
+
+  if (typeof directValue !== "string") return undefined;
+
+  const password = directValue.trim();
+  if (password.length === 0) return undefined;
+
+  const validationMessage = validateBootstrapAdminPassword(password);
+  if (validationMessage) {
+    throw new Error(validationMessage);
+  }
+
+  return password;
+}
+
+function resolveSeedPasswordHash(database, options = {}) {
+  const legacyPassword = getLegacyAdminPassword(database);
+  if (legacyPassword) {
+    return hashPassword(legacyPassword);
+  }
+
+  const bootstrapPassword = readBootstrapAdminPassword(options);
+  if (bootstrapPassword) {
+    return hashPassword(bootstrapPassword);
+  }
+
+  return undefined;
+}
+
+function getMissingPasswordHashCount(database) {
+  if (!tableExists(database, "users")) return 0;
+  const row = database
+    .prepare("SELECT COUNT(*) AS count FROM users WHERE password_hash IS NULL OR password_hash = ''")
+    .get();
+  return row?.count || 0;
+}
+
+function getDefaultAdminUser(database) {
+  if (!tableExists(database, "users")) return undefined;
+  return database
+    .prepare(
+      "SELECT user_id, username, password_hash, active FROM users WHERE username = ? LIMIT 1"
+    )
+    .get(DEFAULT_ADMIN_USERNAME);
+}
+
+function hasDefaultAdminCredentials(database) {
+  const adminUser = getDefaultAdminUser(database);
+  if (!adminUser || Number(adminUser.active) !== 1) return false;
+  if (typeof adminUser.password_hash !== "string" || adminUser.password_hash.length === 0) {
+    return false;
+  }
+
+  if (!isPasswordHash(adminUser.password_hash)) {
+    return adminUser.password_hash === DEFAULT_ADMIN_PASSWORD;
+  }
+
+  return bcrypt.compareSync(DEFAULT_ADMIN_PASSWORD, adminUser.password_hash);
+}
+
+function requireBootstrapPasswordHash(database, options = {}, contextMessage) {
+  const passwordHash = resolveSeedPasswordHash(database, options);
+  if (passwordHash) return passwordHash;
+
+  throw new Error(
+    `${contextMessage} Setze ${BOOTSTRAP_ADMIN_PASSWORD_ENV} auf ein starkes Passwort und fuehre setup.js erneut aus.`
+  );
 }
 
 const MAIN_MIGRATIONS = [
@@ -171,7 +277,9 @@ const MAIN_MIGRATIONS = [
       addColumnIfMissing(database, "rotation_config", "start_year", "INTEGER");
       addColumnIfMissing(database, "rotation_config", "start_week", "INTEGER");
       database.exec("UPDATE rotation_config SET cycle_length = 4 WHERE cycle_length IS NULL");
-      database.exec(`UPDATE rotation_config SET start_year = CAST(strftime('%Y', 'now') AS INTEGER) WHERE start_year IS NULL`);
+      database.exec(
+        "UPDATE rotation_config SET start_year = CAST(strftime('%Y', 'now') AS INTEGER) WHERE start_year IS NULL"
+      );
       database.exec("UPDATE rotation_config SET start_week = 1 WHERE start_week IS NULL");
 
       database.exec(`
@@ -262,7 +370,7 @@ const ADMIN_MIGRATIONS = [
         !indexExists(database, "idx_users_username")
       );
     },
-    up(database) {
+    up(database, options) {
       database.exec(`
         CREATE TABLE IF NOT EXISTS users (
           user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -285,37 +393,142 @@ const ADMIN_MIGRATIONS = [
       database.exec("UPDATE users SET active = 1 WHERE active IS NULL");
       database.exec("UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL");
 
-      const defaultPasswordHash = normalizePasswordHash(getLegacyAdminPassword(database));
-      database
-        .prepare("UPDATE users SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''")
-        .run(defaultPasswordHash);
+      const missingPasswordHashCount = getMissingPasswordHashCount(database);
+      if (missingPasswordHashCount > 0) {
+        const fallbackPasswordHash = requireBootstrapPasswordHash(
+          database,
+          options,
+          "Es existieren Benutzer ohne Passwort-Hash."
+        );
+        database
+          .prepare("UPDATE users SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''")
+          .run(fallbackPasswordHash);
+      }
 
       database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)");
     },
   },
   {
-    id: "003_admin_seed_default_user",
-    description: "Seed admin user from legacy settings or default credentials",
+    id: "003_admin_bootstrap_user",
+    description: "Seed admin user from legacy settings or bootstrap password",
     shouldRun(database) {
       if (!tableExists(database, "users")) return true;
       const existingUsers = database.prepare("SELECT COUNT(*) AS count FROM users").get();
       return existingUsers.count === 0;
     },
-    up(database) {
-      const legacyPassword = getLegacyAdminPassword(database);
-      const passwordHash = normalizePasswordHash(legacyPassword);
+    up(database, options) {
+      const passwordHash = requireBootstrapPasswordHash(
+        database,
+        options,
+        "Kein Admin-Benutzer vorhanden."
+      );
 
       database
         .prepare(
           "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, 'admin', 1, datetime('now'))"
         )
-        .run("admin", passwordHash);
+        .run(DEFAULT_ADMIN_USERNAME, passwordHash);
+    },
+  },
+  {
+    id: "004_admin_auth_state_schema",
+    description: "Create persistent auth session and login throttle tables",
+    shouldRun(database) {
+      return (
+        !tableExists(database, "auth_sessions") ||
+        !tableExists(database, "login_rate_limits") ||
+        hasMissingColumns(database, "auth_sessions", [
+          "session_token",
+          "user_id",
+          "username",
+          "role",
+          "csrf_token",
+          "created_at",
+          "expires_at",
+          "last_activity",
+        ]) ||
+        hasMissingColumns(database, "login_rate_limits", [
+          "ip",
+          "count",
+          "first_attempt",
+          "blocked_until",
+        ]) ||
+        !indexExists(database, "idx_auth_sessions_expires_at") ||
+        !indexExists(database, "idx_login_rate_limits_blocked_until")
+      );
+    },
+    up(database) {
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS auth_sessions (
+          session_token TEXT PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          username TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('admin', 'planner')),
+          csrf_token TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL,
+          last_activity INTEGER NOT NULL
+        )
+      `);
 
-      if (!legacyPassword) {
-        database
-          .prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)")
-          .run("admin_password", passwordHash);
+      addColumnIfMissing(database, "auth_sessions", "user_id", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "auth_sessions", "username", "TEXT NOT NULL DEFAULT ''");
+      addColumnIfMissing(database, "auth_sessions", "role", "TEXT NOT NULL DEFAULT 'planner'");
+      addColumnIfMissing(database, "auth_sessions", "csrf_token", "TEXT NOT NULL DEFAULT ''");
+      addColumnIfMissing(database, "auth_sessions", "created_at", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "auth_sessions", "expires_at", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "auth_sessions", "last_activity", "INTEGER NOT NULL DEFAULT 0");
+      database.exec(
+        "CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at)"
+      );
+
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS login_rate_limits (
+          ip TEXT PRIMARY KEY,
+          count INTEGER NOT NULL DEFAULT 0,
+          first_attempt INTEGER NOT NULL DEFAULT 0,
+          blocked_until INTEGER
+        )
+      `);
+
+      addColumnIfMissing(database, "login_rate_limits", "count", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "login_rate_limits", "first_attempt", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "login_rate_limits", "blocked_until", "INTEGER");
+      database.exec(
+        "CREATE INDEX IF NOT EXISTS idx_login_rate_limits_blocked_until ON login_rate_limits(blocked_until)"
+      );
+    },
+  },
+  {
+    id: "005_admin_secure_default_credentials",
+    description: "Block or rotate default admin credentials",
+    shouldRun(database) {
+      return hasDefaultAdminCredentials(database);
+    },
+    up(database, options) {
+      const bootstrapPassword = readBootstrapAdminPassword(options);
+      if (!bootstrapPassword) {
+        throw new Error(
+          `Unsichere Standard-Anmeldedaten erkannt. Setze ${BOOTSTRAP_ADMIN_PASSWORD_ENV} auf ein starkes Passwort und fuehre setup.js erneut aus, um den Admin zu rotieren.`
+        );
       }
+
+      database
+        .prepare("UPDATE users SET password_hash = ? WHERE username = ? AND active = 1")
+        .run(hashPassword(bootstrapPassword), DEFAULT_ADMIN_USERNAME);
+    },
+  },
+  {
+    id: "006_admin_remove_legacy_password_setting",
+    description: "Remove deprecated legacy admin password setting",
+    shouldRun(database) {
+      if (!tableExists(database, "settings")) return false;
+      return Boolean(
+        database.prepare("SELECT 1 FROM settings WHERE key = 'admin_password'").get()
+      );
+    },
+    up(database) {
+      deleteLegacyAdminPasswordSetting(database);
     },
   },
 ];
@@ -325,10 +538,10 @@ function runMigrations(database, databaseName, migrations, options = {}) {
 
   const applied = [];
   for (const migration of migrations) {
-    if (!migration.shouldRun(database)) continue;
+    if (!migration.shouldRun(database, options)) continue;
 
     const run = database.transaction(() => {
-      migration.up(database);
+      migration.up(database, options);
       recordMigration(database, migration);
     });
     run();
@@ -359,6 +572,8 @@ export function migrateAdminDatabase(database, options = {}) {
 
 export const databaseMigrationInternals = {
   getTableColumns,
+  hashPassword,
+  hasDefaultAdminCredentials,
+  readBootstrapAdminPassword,
   tableExists,
-  normalizePasswordHash,
 };

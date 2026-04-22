@@ -41,6 +41,7 @@ type ApiClient = {
 type CookieJar = Map<string, string>;
 
 const originalCwd = process.cwd();
+const originalBootstrapPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
 let tempDir: string | null = null;
 let closeDatabase: (() => void) | null = null;
 let client: ApiClient;
@@ -113,6 +114,7 @@ function cookieHeader(jar?: CookieJar) {
 async function createApiClient(): Promise<ApiClient> {
   tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-auth-e2e-"));
   process.chdir(tempDir);
+  process.env.SHIFTPLAN_ADMIN_PASSWORD = "BootstrapPass1";
   vi.resetModules();
   installH3Globals();
 
@@ -248,6 +250,11 @@ describe("auth and planner e2e", () => {
     closeDatabase?.();
     closeDatabase = null;
     process.chdir(originalCwd);
+    if (originalBootstrapPassword === undefined) {
+      delete process.env.SHIFTPLAN_ADMIN_PASSWORD;
+    } else {
+      process.env.SHIFTPLAN_ADMIN_PASSWORD = originalBootstrapPassword;
+    }
     vi.resetModules();
 
     if (tempDir) {
@@ -427,7 +434,7 @@ describe("auth and planner e2e", () => {
     }>("POST", "/api/auth/users", {
       jar,
       csrf: true,
-      body: { username: "newplanner", password: "newplanner1234", role: "planner" },
+      body: { username: "newplanner", password: "Newplanner1234", role: "planner" },
     });
     const user = client.adminDb
       .prepare("SELECT username, role, active FROM users WHERE username = ?")
@@ -444,5 +451,21 @@ describe("auth and planner e2e", () => {
       role: "planner",
       active: 1,
     });
+  });
+
+  it("rejects weak passwords when admins create users", async () => {
+    const jar = await loginAs(client, "admin", "admin1234");
+
+    const created = await client.request("POST", "/api/auth/users", {
+      jar,
+      csrf: true,
+      body: { username: "weakplanner", password: "weakpass1", role: "planner" },
+    });
+    const user = client.adminDb
+      .prepare("SELECT username FROM users WHERE username = ?")
+      .get("weakplanner");
+
+    expect(created.status).toBe(400);
+    expect(user).toBeUndefined();
   });
 });

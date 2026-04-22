@@ -1,7 +1,8 @@
-import { getAdminDatabase } from "~/server/utils/database";
-import { requireAdmin } from "~/server/utils/auth";
 import bcrypt from "bcryptjs";
 import type { UserRole } from "~/types/auth";
+import { requireAdmin } from "~/server/utils/auth";
+import { getAdminDatabase } from "~/server/utils/database";
+import { validatePasswordStrength } from "~/utils/password-policy";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -12,9 +13,6 @@ export default defineEventHandler(async (event) => {
     role: UserRole;
   }>(event);
 
-  // ============================================
-  // VALIDATION
-  // ============================================
   if (!body.username || !body.password || !body.role) {
     throw createError({
       statusCode: 400,
@@ -22,17 +20,19 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (body.username.length < 3) {
+  const username = body.username.trim();
+  if (username.length < 3) {
     throw createError({
       statusCode: 400,
       statusMessage: "Benutzername muss mindestens 3 Zeichen haben",
     });
   }
 
-  if (body.password.length < 8) {
+  const strength = validatePasswordStrength(body.password);
+  if (!strength.valid) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Passwort muss mindestens 8 Zeichen haben",
+      statusMessage: strength.message,
     });
   }
 
@@ -43,13 +43,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // ============================================
-  // CHECK DUPLICATE
-  // ============================================
   const db = getAdminDatabase();
   const existing = db
     .prepare("SELECT user_id FROM users WHERE username = ?")
-    .get(body.username);
+    .get(username);
 
   if (existing) {
     throw createError({
@@ -58,21 +55,17 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // ============================================
-  // CREATE USER
-  // ============================================
   const passwordHash = await bcrypt.hash(body.password, 12);
-
   const result = db
     .prepare(
       "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))"
     )
-    .run(body.username, passwordHash, body.role);
+    .run(username, passwordHash, body.role);
 
   return {
     success: true,
     user_id: result.lastInsertRowid,
-    username: body.username,
+    username,
     role: body.role,
   };
 });

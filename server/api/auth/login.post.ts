@@ -7,6 +7,7 @@ import {
   getClientIP,
 } from "~/server/utils/session";
 import type { SessionUser, UserWithHash } from "~/types/auth";
+import { MAX_PASSWORD_LENGTH } from "~/utils/password-policy";
 import bcrypt from "bcryptjs";
 
 export default defineEventHandler(async (event) => {
@@ -52,7 +53,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Passwort-Länge begrenzen (verhindert DoS über bcrypt mit extrem langen Strings)
-  if (body.password.length > 256) {
+  if (body.password.length > MAX_PASSWORD_LENGTH) {
     throw createError({
       statusCode: 400,
       statusMessage: "Passwort zu lang",

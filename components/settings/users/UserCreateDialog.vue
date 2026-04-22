@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PASSWORD_POLICY_HINT, validatePasswordStrength } from "~/utils/password-policy";
 import type { UserCreatePayload, UserRole } from "~/types/auth";
 
 const props = defineProps<{
@@ -61,8 +62,9 @@ async function createUser() {
     return;
   }
 
-  if (form.value.password.length < 8) {
-    createError.value = "Das Passwort braucht mindestens 8 Zeichen.";
+  const strength = validatePasswordStrength(form.value.password);
+  if (!strength.valid) {
+    createError.value = strength.message;
     return;
   }
 
@@ -120,7 +122,7 @@ async function createUser() {
           id="create-password"
           type="password"
           class="w-full"
-          placeholder="Mindestens 8 Zeichen"
+          :placeholder="PASSWORD_POLICY_HINT"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
         />

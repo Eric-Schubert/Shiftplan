@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PASSWORD_POLICY_HINT, validatePasswordStrength } from "~/utils/password-policy";
+
 const { authFetch } = useAuthFetch();
 const visible = defineModel<boolean>("visible");
 
@@ -24,8 +26,9 @@ async function changePassword() {
     return;
   }
 
-  if (newPassword.value.length < 8) {
-    error.value = "Das neue Passwort braucht mindestens 8 Zeichen.";
+  const strength = validatePasswordStrength(newPassword.value);
+  if (!strength.valid) {
+    error.value = strength.message;
     return;
   }
 
@@ -49,8 +52,8 @@ async function changePassword() {
       visible.value = false;
       success.value = false;
     }, 2000);
-  } catch (e: any) {
-    error.value = e.data?.message || "Passwort konnte nicht geändert werden";
+  } catch (requestError: any) {
+    error.value = requestError.data?.message || "Passwort konnte nicht geändert werden";
   } finally {
     loading.value = false;
   }
@@ -86,7 +89,9 @@ function onHide() {
 
       <template v-else>
         <div class="space-y-1.5">
-          <label for="current-password" class="block text-sm font-medium text-[var(--text-2)]">Aktuelles Passwort</label>
+          <label for="current-password" class="block text-sm font-medium text-[var(--text-2)]">
+            Aktuelles Passwort
+          </label>
           <PrimeInputText
             v-model="currentPassword"
             id="current-password"
@@ -97,18 +102,22 @@ function onHide() {
         </div>
 
         <div class="space-y-1.5">
-          <label for="new-password" class="block text-sm font-medium text-[var(--text-2)]">Neues Passwort</label>
+          <label for="new-password" class="block text-sm font-medium text-[var(--text-2)]">
+            Neues Passwort
+          </label>
           <PrimeInputText
             v-model="newPassword"
             id="new-password"
             type="password"
-            placeholder="Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl"
+            :placeholder="PASSWORD_POLICY_HINT"
             :aria-describedby="error ? passwordErrorId : undefined"
           />
         </div>
 
         <div class="space-y-1.5">
-          <label for="confirm-password" class="block text-sm font-medium text-[var(--text-2)]">Neues Passwort bestätigen</label>
+          <label for="confirm-password" class="block text-sm font-medium text-[var(--text-2)]">
+            Neues Passwort bestätigen
+          </label>
           <PrimeInputText
             v-model="confirmPassword"
             id="confirm-password"

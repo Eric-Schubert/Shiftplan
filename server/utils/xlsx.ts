@@ -30,6 +30,13 @@ const CONTENT_TYPES = "application/vnd.openxmlformats-officedocument.spreadsheet
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
 const DOC_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+const MAX_ZIP_ENTRY_COUNT = 128;
+const MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE = 4 * 1024 * 1024;
+const MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE = 16 * 1024 * 1024;
+const MAX_ZIP_EXPANSION_RATIO = 40;
+const MAX_WORKSHEET_COUNT = 16;
+const MAX_WORKSHEET_ROWS = 10000;
+const MAX_WORKSHEET_COLUMNS = 128;
 
 const CRC_TABLE = new Uint32Array(256);
 
@@ -112,6 +119,10 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
     const target = relationships.get(relId)!;
     const path = normalizeWorkbookTarget(target);
     const xml = readXml(zip, path);
+
+    if (sheets.length >= MAX_WORKSHEET_COUNT) {
+      throw new Error("Die Excel-Datei enthaelt zu viele Arbeitsblaetter");
+    }
 
     sheets.push({
       name,
@@ -368,6 +379,11 @@ function readZip(buffer: Buffer): Map<string, Buffer> {
   const eocdOffset = findEndOfCentralDirectory(buffer);
   const entryCount = buffer.readUInt16LE(eocdOffset + 10);
   let centralOffset = buffer.readUInt32LE(eocdOffset + 16);
+  let totalUncompressedSize = 0;
+
+  if (entryCount > MAX_ZIP_ENTRY_COUNT) {
+    throw new Error("Die Excel-Datei enthaelt zu viele ZIP-Eintraege");
+  }
 
   for (let i = 0; i < entryCount; i++) {
     if (buffer.readUInt32LE(centralOffset) !== 0x02014b50) {
@@ -379,6 +395,7 @@ function readZip(buffer: Buffer): Map<string, Buffer> {
     const extraLength = buffer.readUInt16LE(centralOffset + 30);
     const commentLength = buffer.readUInt16LE(centralOffset + 32);
     const name = buffer.subarray(centralOffset + 46, centralOffset + 46 + nameLength).toString("utf-8");
+    totalUncompressedSize = validateZipEntry(name, entry, totalUncompressedSize);
 
     entries.set(name.replace(/\\/g, "/"), readLocalEntry(buffer, entry));
     centralOffset += 46 + nameLength + extraLength + commentLength;
@@ -419,10 +436,34 @@ function readLocalEntry(buffer: Buffer, entry: ParsedZipEntry): Buffer {
   const nameLength = buffer.readUInt16LE(offset + 26);
   const extraLength = buffer.readUInt16LE(offset + 28);
   const dataOffset = offset + 30 + nameLength + extraLength;
+  if (dataOffset + entry.compressedSize > buffer.length) {
+    throw new Error("Ungueltige Excel-Datei: ZIP-Daten abgeschnitten");
+  }
   const data = buffer.subarray(dataOffset, dataOffset + entry.compressedSize);
 
-  if (entry.method === 0) return data;
-  if (entry.method === 8) return inflateRawSync(data);
+  if (entry.method === 0) {
+    if (data.length !== entry.uncompressedSize) {
+      throw new Error("Ungueltige Excel-Datei: ZIP-Groesse passt nicht zum Inhalt");
+    }
+    return data;
+  }
+
+  if (entry.method === 8) {
+    try {
+      const inflated = inflateRawSync(data, {
+        maxOutputLength: Math.max(1, entry.uncompressedSize),
+      });
+      if (inflated.length !== entry.uncompressedSize) {
+        throw new Error("Ungueltige Excel-Datei: ZIP-Groesse passt nicht zum Inhalt");
+      }
+      return inflated;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("passt nicht")) {
+        throw error;
+      }
+      throw new Error("Die Excel-Datei enthaelt ungueltige oder zu grosse ZIP-Daten");
+    }
+  }
 
   throw new Error(`ZIP-Kompressionsmethode ${entry.method} wird nicht unterstuetzt`);
 }
@@ -488,6 +529,7 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
   const rowRegex = /<row\b([^>]*)>([\s\S]*?)<\/row>/g;
   let rowMatch: RegExpExecArray | null;
   let fallbackRow = 1;
+  let parsedRows = 0;
 
   while ((rowMatch = rowRegex.exec(xml)) !== null) {
     const rowAttrsXml = rowMatch[1];
@@ -496,6 +538,15 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
 
     const rowAttrs = parseAttrs(rowAttrsXml);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
+    if (!Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > MAX_WORKSHEET_ROWS) {
+      throw new Error(`Die Excel-Datei enthaelt zu viele Zeilen in einem Arbeitsblatt`);
+    }
+
+    parsedRows++;
+    if (parsedRows > MAX_WORKSHEET_ROWS) {
+      throw new Error("Die Excel-Datei enthaelt zu viele Zeilen in einem Arbeitsblatt");
+    }
+
     const row: XlsxCellValue[] = [];
     let fallbackCol = 1;
     const cellRegex = /<c\b([^>]*)>([\s\S]*?)<\/c>/g;
@@ -508,6 +559,9 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
 
       const cellAttrs = parseAttrs(cellAttrsXml);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;
+      if (!Number.isInteger(colNumber) || colNumber < 1 || colNumber > MAX_WORKSHEET_COLUMNS) {
+        throw new Error("Die Excel-Datei enthaelt zu viele Spalten in einem Arbeitsblatt");
+      }
       row[colNumber - 1] = parseCellValue(cellXml, cellAttrs.t, sharedStrings);
       fallbackCol = colNumber + 1;
     }
@@ -517,6 +571,36 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
   }
 
   return rows.map((row) => row || []);
+}
+
+function validateZipEntry(
+  name: string,
+  entry: ParsedZipEntry,
+  totalUncompressedSize: number
+): number {
+  if (entry.uncompressedSize > MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE) {
+    throw new Error(`ZIP-Eintrag '${name}' ist zu gross fuer den Excel-Import`);
+  }
+
+  const nextTotalSize = totalUncompressedSize + entry.uncompressedSize;
+  if (nextTotalSize > MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE) {
+    throw new Error("Die entpackte Excel-Datei ist zu gross fuer den Import");
+  }
+
+  if (entry.method === 8) {
+    if (entry.compressedSize === 0 && entry.uncompressedSize > 0) {
+      throw new Error(`ZIP-Eintrag '${name}' ist ungueltig`);
+    }
+
+    if (
+      entry.compressedSize > 0 &&
+      entry.uncompressedSize / entry.compressedSize > MAX_ZIP_EXPANSION_RATIO
+    ) {
+      throw new Error(`ZIP-Eintrag '${name}' expandiert zu stark fuer den Excel-Import`);
+    }
+  }
+
+  return nextTotalSize;
 }
 
 function parseCellValue(xml: string, type: string | undefined, sharedStrings: string[]): XlsxCellValue {

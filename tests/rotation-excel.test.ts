@@ -164,4 +164,18 @@ describe("Rotation Excel import/export", () => {
       { pattern_week: 2, staff_name: "Ben Wagner", shift_name: "Spaet" },
     ]);
   });
+
+  it("rejects oversized compressed worksheet entries before import", () => {
+    const hugeCell = "A".repeat(4 * 1024 * 1024 + 1024);
+    const file = createXlsx({
+      sheets: [
+        {
+          name: "Rotation",
+          rows: [[hugeCell]],
+        },
+      ],
+    });
+
+    expect(() => parseXlsx(file)).toThrow(/zu gross/);
+  });
 });

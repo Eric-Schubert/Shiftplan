@@ -1,31 +1,10 @@
-import { getAdminDatabase } from "~/server/utils/database";
-import { getSessionUser } from "~/server/utils/auth";
 import bcrypt from "bcryptjs";
-
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 256;
-const REQUIRE_UPPERCASE = true;
-const REQUIRE_LOWERCASE = true;
-const REQUIRE_NUMBER = true;
-
-function validatePasswordStrength(password: string): { valid: boolean; message: string } {
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { valid: false, message: `Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen haben` };
-  }
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    return { valid: false, message: `Passwort darf maximal ${MAX_PASSWORD_LENGTH} Zeichen haben` };
-  }
-  if (REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens einen Großbuchstaben enthalten" };
-  }
-  if (REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens einen Kleinbuchstaben enthalten" };
-  }
-  if (REQUIRE_NUMBER && !/[0-9]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens eine Zahl enthalten" };
-  }
-  return { valid: true, message: "" };
-}
+import {
+  MAX_PASSWORD_LENGTH,
+  validatePasswordStrength,
+} from "~/utils/password-policy";
+import { getSessionUser } from "~/server/utils/auth";
+import { getAdminDatabase } from "~/server/utils/database";
 
 export default defineEventHandler(async (event) => {
   const currentUser = getSessionUser(event);
@@ -42,7 +21,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Neues Passwort erforderlich" });
   }
 
-  // DoS-Schutz: bcrypt ist absichtlich langsam
+  // DoS-Schutz: bcrypt ist absichtlich langsam.
   if (body.currentPassword.length > MAX_PASSWORD_LENGTH) {
     throw createError({ statusCode: 400, statusMessage: "Passwort zu lang" });
   }

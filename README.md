@@ -34,19 +34,21 @@ npm run dev
 
 Die App startet lokal unter `http://localhost:3000`.
 
-Standardzugang nach frischer Datenbank:
+Beim ersten Start muss ein Bootstrap-Passwort gesetzt werden:
 
-| Benutzer | Passwort | Rolle |
-|----------|----------|-------|
-| `admin` | `admin` | Admin |
+```powershell
+$env:SHIFTPLAN_ADMIN_PASSWORD = "SicheresPasswort1"
+npm run dev
+```
 
 Das Passwort sollte nach dem ersten Login geändert werden.
+Die App legt damit den initialen Admin-Benutzer `admin` an. Vorhersagbare Default-Credentials wie `admin/admin` werden nicht mehr erzeugt. Falls eine bestehende Datenbank noch einen unveraenderten Default-Admin enthaelt, blockiert der Start, bis `SHIFTPLAN_ADMIN_PASSWORD` gesetzt und `node setup.js` erneut ausgefuehrt wurde.
 
 ## Docker
 
 ```bash
 docker build -t schichtplaner .
-docker run --rm -p 3000:3000 -v ${PWD}/db:/app/db schichtplaner
+docker run --rm -p 3000:3000 -e SHIFTPLAN_ADMIN_PASSWORD=SicheresPasswort1 -v ${PWD}/db:/app/db schichtplaner
 ```
 
 Aktuelle Images werden nach Releases nach GHCR gepusht:

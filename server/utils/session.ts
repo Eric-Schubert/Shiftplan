@@ -1,197 +1,209 @@
 import { randomBytes, timingSafeEqual } from "crypto";
 import type { SessionUser } from "~/types/auth";
+import { getAdminDatabase } from "~/server/utils/database";
 
-// ============================================
-// SESSION STORE (In-Memory — für Production: Redis/SQLite empfohlen)
-// ============================================
-const sessions = new Map<
-  string,
-  {
-    createdAt: number;
-    expiresAt: number;
-    lastActivity: number;
-    csrfToken: string;
-    user: SessionUser;
-  }
->();
+type PersistedSession = {
+  user_id: number;
+  username: string;
+  role: SessionUser["role"];
+  csrf_token: string;
+  created_at: number;
+  expires_at: number;
+  last_activity: number;
+};
 
-// Rate Limiting Store
-const loginAttempts = new Map<
-  string,
-  {
-    count: number;
-    firstAttempt: number;
-    blockedUntil: number | null;
-  }
->();
+type PersistedLoginAttempt = {
+  count: number;
+  first_attempt: number;
+  blocked_until: number | null;
+};
 
-// Konfiguration
-const SESSION_DURATION = 30 * 60 * 1000; // 30 Minuten
+const SESSION_DURATION = 30 * 60 * 1000;
 const SESSION_EXTEND_ON_ACTIVITY = true;
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOGIN_WINDOW = 15 * 60 * 1000; // 15 Minuten
-const BLOCK_DURATION = 15 * 60 * 1000; // 15 Minuten Sperre
+const LOGIN_WINDOW = 15 * 60 * 1000;
+const BLOCK_DURATION = 15 * 60 * 1000;
 
-// ============================================
-// SESSION MANAGEMENT
-// ============================================
+function getAuthDatabase() {
+  return getAdminDatabase();
+}
 
-/**
- * Erstellt eine neue Session und gibt den Token zurück
- */
+function cleanupExpiredSessions(now = Date.now()): void {
+  getAuthDatabase().prepare("DELETE FROM auth_sessions WHERE expires_at <= ?").run(now);
+}
+
+function cleanupExpiredRateLimits(now = Date.now()): void {
+  getAuthDatabase()
+    .prepare(
+      `
+        DELETE FROM login_rate_limits
+        WHERE (blocked_until IS NULL AND ? - first_attempt > ?)
+           OR (blocked_until IS NOT NULL AND blocked_until <= ?)
+      `
+    )
+    .run(now, LOGIN_WINDOW, now);
+}
+
+function getSessionRecord(token: string | undefined): PersistedSession | null {
+  if (!token) return null;
+
+  const session = getAuthDatabase()
+    .prepare(
+      `
+        SELECT user_id, username, role, csrf_token, created_at, expires_at, last_activity
+        FROM auth_sessions
+        WHERE session_token = ?
+      `
+    )
+    .get(token) as PersistedSession | undefined;
+
+  return session || null;
+}
+
+function toSessionUser(session: PersistedSession): SessionUser {
+  return {
+    userId: session.user_id,
+    username: session.username,
+    role: session.role,
+  };
+}
+
 export function createSession(user: SessionUser): { sessionToken: string; csrfToken: string } {
-  // Cleanup alte Sessions
   cleanupExpiredSessions();
 
   const sessionToken = randomBytes(32).toString("hex");
   const csrfToken = randomBytes(32).toString("hex");
   const now = Date.now();
 
-  sessions.set(sessionToken, {
-    createdAt: now,
-    expiresAt: now + SESSION_DURATION,
-    lastActivity: now,
-    csrfToken,
-    user,
-  });
+  getAuthDatabase()
+    .prepare(
+      `
+        INSERT INTO auth_sessions (
+          session_token,
+          user_id,
+          username,
+          role,
+          csrf_token,
+          created_at,
+          expires_at,
+          last_activity
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `
+    )
+    .run(
+      sessionToken,
+      user.userId,
+      user.username,
+      user.role,
+      csrfToken,
+      now,
+      now + SESSION_DURATION,
+      now
+    );
 
   return { sessionToken, csrfToken };
 }
 
-/**
- * Validiert einen Session-Token
- */
 export function validateSession(token: string | undefined): boolean {
   return getSessionData(token) !== null;
 }
 
-/**
- * Holt den Benutzer zu einem gÃ¼ltigen Session-Token.
- */
 export function getSessionData(token: string | undefined): SessionUser | null {
-  if (!token) return null;
-
-  const session = sessions.get(token);
-  if (!session) return null;
+  const session = getSessionRecord(token);
+  if (!session || !token) return null;
 
   const now = Date.now();
-
-  // Session abgelaufen?
-  if (now > session.expiresAt) {
-    sessions.delete(token);
+  if (now > session.expires_at) {
+    destroySession(token);
     return null;
   }
 
-  // Session verlängern bei Aktivität
   if (SESSION_EXTEND_ON_ACTIVITY) {
-    session.lastActivity = now;
-    session.expiresAt = now + SESSION_DURATION;
+    getAuthDatabase()
+      .prepare(
+        "UPDATE auth_sessions SET last_activity = ?, expires_at = ? WHERE session_token = ?"
+      )
+      .run(now, now + SESSION_DURATION, token);
   }
 
-  return session.user;
+  return toSessionUser(session);
 }
 
-/**
- * Validiert den CSRF-Token für eine Session
- */
 export function validateCsrfToken(
   sessionToken: string | undefined,
   csrfToken: string | undefined
 ): boolean {
   if (!sessionToken || !csrfToken) return false;
 
-  const session = sessions.get(sessionToken);
+  const session = getSessionRecord(sessionToken);
   if (!session) return false;
 
   const now = Date.now();
-  if (now > session.expiresAt) {
-    sessions.delete(sessionToken);
+  if (now > session.expires_at) {
+    destroySession(sessionToken);
     return false;
   }
 
-  // Timing-safe comparison um Timing-Attacks zu verhindern
-  if (session.csrfToken.length !== csrfToken.length) return false;
+  if (session.csrf_token.length !== csrfToken.length) return false;
 
   try {
-    return timingSafeEqual(
-      Buffer.from(session.csrfToken),
-      Buffer.from(csrfToken)
-    );
+    return timingSafeEqual(Buffer.from(session.csrf_token), Buffer.from(csrfToken));
   } catch {
     return false;
   }
 }
 
-/**
- * Holt den CSRF-Token für eine gültige Session
- */
 export function getCsrfToken(sessionToken: string | undefined): string | null {
-  if (!sessionToken) return null;
-
-  const session = sessions.get(sessionToken);
-  if (!session) return null;
+  const session = getSessionRecord(sessionToken);
+  if (!session || !sessionToken) return null;
 
   const now = Date.now();
-  if (now > session.expiresAt) return null;
+  if (now > session.expires_at) {
+    destroySession(sessionToken);
+    return null;
+  }
 
-  return session.csrfToken;
+  return session.csrf_token;
 }
 
-/**
- * Löscht eine Session (Logout)
- */
 export function destroySession(token: string | undefined): boolean {
   if (!token) return false;
-  return sessions.delete(token);
+  const result = getAuthDatabase()
+    .prepare("DELETE FROM auth_sessions WHERE session_token = ?")
+    .run(token);
+  return result.changes > 0;
 }
 
-/**
- * Bereinigt abgelaufene Sessions
- */
-function cleanupExpiredSessions(): void {
-  const now = Date.now();
-  for (const [token, session] of sessions.entries()) {
-    if (now > session.expiresAt) {
-      sessions.delete(token);
-    }
-  }
-}
-
-// ============================================
-// RATE LIMITING
-// ============================================
-
-/**
- * Prüft ob eine IP blockiert ist und zählt Versuche
- */
 export function checkRateLimit(ip: string): {
   allowed: boolean;
   remainingAttempts: number;
   blockedForSeconds: number;
 } {
   const now = Date.now();
-  const record = loginAttempts.get(ip);
+  cleanupExpiredRateLimits(now);
 
-  // Kein Record = erster Versuch
+  const record = getAuthDatabase()
+    .prepare(
+      "SELECT count, first_attempt, blocked_until FROM login_rate_limits WHERE ip = ?"
+    )
+    .get(ip) as PersistedLoginAttempt | undefined;
+
   if (!record) {
     return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
   }
 
-  // Aktuell blockiert?
-  if (record.blockedUntil && now < record.blockedUntil) {
-    const blockedForSeconds = Math.ceil((record.blockedUntil - now) / 1000);
+  if (record.blocked_until && now < record.blocked_until) {
+    const blockedForSeconds = Math.ceil((record.blocked_until - now) / 1000);
     return { allowed: false, remainingAttempts: 0, blockedForSeconds };
   }
 
-  // Block abgelaufen? Reset
-  if (record.blockedUntil && now >= record.blockedUntil) {
-    loginAttempts.delete(ip);
+  if (record.blocked_until && now >= record.blocked_until) {
+    resetRateLimit(ip);
     return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
   }
 
-  // Zeitfenster abgelaufen? Reset
-  if (now - record.firstAttempt > LOGIN_WINDOW) {
-    loginAttempts.delete(ip);
+  if (now - record.first_attempt > LOGIN_WINDOW) {
+    resetRateLimit(ip);
     return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
   }
 
@@ -199,48 +211,50 @@ export function checkRateLimit(ip: string): {
   return { allowed: remainingAttempts > 0, remainingAttempts, blockedForSeconds: 0 };
 }
 
-/**
- * Registriert einen fehlgeschlagenen Login-Versuch
- */
 export function recordFailedLogin(ip: string): void {
   const now = Date.now();
-  let record = loginAttempts.get(ip);
+  cleanupExpiredRateLimits(now);
 
-  if (!record || now - record.firstAttempt > LOGIN_WINDOW) {
-    record = { count: 1, firstAttempt: now, blockedUntil: null };
-  } else {
-    record.count++;
+  const db = getAuthDatabase();
+  const record = db
+    .prepare(
+      "SELECT count, first_attempt, blocked_until FROM login_rate_limits WHERE ip = ?"
+    )
+    .get(ip) as PersistedLoginAttempt | undefined;
 
-    if (record.count >= MAX_LOGIN_ATTEMPTS) {
-      record.blockedUntil = now + BLOCK_DURATION;
-    }
+  if (!record || now - record.first_attempt > LOGIN_WINDOW) {
+    db.prepare(
+      `
+        INSERT INTO login_rate_limits (ip, count, first_attempt, blocked_until)
+        VALUES (?, 1, ?, NULL)
+        ON CONFLICT(ip) DO UPDATE SET count = excluded.count, first_attempt = excluded.first_attempt, blocked_until = NULL
+      `
+    ).run(ip, now);
+    return;
   }
 
-  loginAttempts.set(ip, record);
+  const count = record.count + 1;
+  const blockedUntil = count >= MAX_LOGIN_ATTEMPTS ? now + BLOCK_DURATION : null;
+
+  db.prepare(
+    `
+      UPDATE login_rate_limits
+      SET count = ?, first_attempt = ?, blocked_until = ?
+      WHERE ip = ?
+    `
+  ).run(count, record.first_attempt, blockedUntil, ip);
 }
 
-/**
- * Setzt Rate Limit bei erfolgreichem Login zurück
- */
 export function resetRateLimit(ip: string): void {
-  loginAttempts.delete(ip);
+  getAuthDatabase().prepare("DELETE FROM login_rate_limits WHERE ip = ?").run(ip);
 }
 
-// ============================================
-// HELPER
-// ============================================
-
-/**
- * Extrahiert den Session-Token aus dem Request
- */
 export function getSessionToken(event: any): string | undefined {
-  // 1. Aus Authorization Header
   const authHeader = getHeader(event, "authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
   }
 
-  // 2. Aus Cookie
   const cookieToken = getCookie(event, "session_token");
   if (cookieToken) {
     return cookieToken;
@@ -249,22 +263,14 @@ export function getSessionToken(event: any): string | undefined {
   return undefined;
 }
 
-/**
- * Extrahiert den CSRF-Token aus dem Request
- */
 export function getCsrfTokenFromRequest(event: any): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
-/**
- * Holt die Client-IP (berücksichtigt Proxies wie Cloudflare/Traefik)
- */
 export function getClientIP(event: any): string {
-  // Cloudflare
   const cfIP = getHeader(event, "cf-connecting-ip");
   if (cfIP) return cfIP;
 
-  // Standard Proxy Header
   const xForwardedFor = getHeader(event, "x-forwarded-for");
   if (xForwardedFor) {
     const forwardedIp = xForwardedFor.split(",")[0]?.trim();
@@ -274,6 +280,5 @@ export function getClientIP(event: any): string {
   const xRealIP = getHeader(event, "x-real-ip");
   if (xRealIP) return xRealIP;
 
-  // Fallback
   return event.node?.req?.socket?.remoteAddress || "unknown";
 }
