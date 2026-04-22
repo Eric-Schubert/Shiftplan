@@ -40,6 +40,25 @@ export interface RotationAssignContext {
   shiftName: string;
 }
 
+export interface RotationDropPayload {
+  event: DragEvent;
+  patternWeek: number;
+  shiftId: number;
+}
+
+export interface RotationStaffDragPayload extends RotationDropPayload {
+  staffId: number;
+  staffName: string;
+}
+
+export interface RotationTransferPayload {
+  staffId: number;
+  staffName: string;
+  source: "pool" | "rotation";
+  sourceShiftId?: number;
+  sourcePatternWeek?: number;
+}
+
 export interface RotationExcelImportResult {
   importedRows: number;
   importedAssignments: number;
