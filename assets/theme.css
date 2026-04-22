@@ -649,6 +649,331 @@ select {
   color: var(--text-1) !important;
 }
 
+.p-dialog.changelog-dialog {
+  border-color: color-mix(in oklab, var(--border-soft) 82%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 94%, transparent),
+      color-mix(in oklab, var(--surface-muted) 90%, transparent)
+    ) !important;
+}
+
+.p-dialog.changelog-dialog .p-dialog-header {
+  padding: 1.35rem 1.35rem 0.75rem !important;
+  border-bottom: 0 !important;
+}
+
+.p-dialog.changelog-dialog .p-dialog-content {
+  padding: 0 1.35rem 1rem !important;
+}
+
+.p-dialog.changelog-dialog .p-dialog-footer {
+  padding: 0.9rem 1.35rem 1.35rem !important;
+  border-top: 0 !important;
+}
+
+.changelog-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95rem;
+  width: 100%;
+}
+
+.changelog-dialog__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border-soft) 80%);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--accent-soft) 78%, var(--surface) 22%),
+      color-mix(in oklab, var(--surface) 88%, transparent)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    var(--shadow-sm);
+  color: var(--accent-strong);
+}
+
+.changelog-dialog__eyebrow {
+  margin: 0 0 0.3rem;
+  color: var(--text-3);
+  font-family: var(--font-display, "Archivo Semi Expanded", "Segoe UI", sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.changelog-dialog__title {
+  margin: 0;
+  color: var(--text-1);
+  font-size: clamp(1.4rem, 1.2rem + 0.45vw, 1.8rem);
+  line-height: 1.08;
+}
+
+.changelog-dialog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.changelog-shell,
+.changelog-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.changelog-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.28rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  color: var(--text-2);
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.changelog-badge--accent {
+  border-color: color-mix(in oklab, var(--accent) 28%, var(--border-soft) 72%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent-soft) 86%, var(--surface) 14%),
+      color-mix(in oklab, var(--surface) 90%, transparent)
+    );
+  color: var(--accent-strong);
+}
+
+.changelog-badge--success {
+  border-color: color-mix(in oklab, var(--positive-ink) 26%, var(--border-soft) 74%);
+  background: color-mix(in oklab, var(--positive-soft) 72%, var(--surface) 28%);
+  color: var(--positive-ink);
+}
+
+.changelog-release,
+.changelog-detail__hero,
+.changelog-detail__panel,
+.changelog-empty {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--border-soft);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface) 92%, transparent),
+      color-mix(in oklab, var(--surface-muted) 88%, transparent)
+    );
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(20px) saturate(118%);
+}
+
+.changelog-release {
+  display: grid;
+  grid-template-columns: minmax(7rem, 8.5rem) minmax(0, 1fr) auto;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1rem 1rem 1.05rem;
+  text-align: left;
+}
+
+.changelog-release__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.changelog-release__relative {
+  color: var(--text-1);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.changelog-release__date {
+  color: var(--text-3);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.changelog-release__body {
+  min-width: 0;
+}
+
+.changelog-release__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.65rem;
+  align-items: center;
+}
+
+.changelog-release__title,
+.changelog-detail__release-title,
+.changelog-detail__panel-title {
+  margin: 0;
+  color: var(--text-1);
+  font-size: 1.18rem;
+  line-height: 1.15;
+}
+
+.changelog-release__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.changelog-release__preview,
+.changelog-detail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.changelog-release__preview-item,
+.changelog-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.changelog-release__preview-icon,
+.changelog-change__icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--accent);
+}
+
+.changelog-release__preview-more {
+  color: var(--text-3);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.changelog-release__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: center;
+  min-height: 2.3rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border-soft) 78%);
+  background: color-mix(in oklab, var(--surface) 86%, transparent);
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.changelog-detail__hero,
+.changelog-detail__panel {
+  padding: 1.05rem 1.1rem;
+}
+
+.changelog-detail__hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.changelog-detail__copy {
+  min-width: 0;
+  flex: 1 1 20rem;
+}
+
+.changelog-detail__release-link {
+  color: var(--text-1);
+  font-family: var(--font-display, "Archivo Semi Expanded", "Segoe UI", sans-serif);
+  font-size: clamp(1.35rem, 1.2rem + 0.35vw, 1.8rem);
+  line-height: 1.08;
+  text-decoration: none;
+}
+
+.changelog-detail__release-link:hover {
+  color: var(--accent-strong);
+}
+
+.changelog-detail__summary {
+  margin: 0.55rem 0 0;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.changelog-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.changelog-link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--border-soft) 76%);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent-soft) 82%, var(--surface) 18%),
+      color-mix(in oklab, var(--surface) 88%, transparent)
+    );
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.changelog-detail__panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.changelog-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.05rem;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.changelog-empty strong {
+  display: block;
+  color: var(--text-1);
+}
+
+.changelog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: 100%;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   a,
   button,
@@ -657,7 +982,9 @@ select {
   .planner-hero,
   .planner-stat,
   .planner-preview-card,
-  .planner-shift-card {
+  .planner-shift-card,
+  .changelog-release,
+  .changelog-link-button {
     transition:
       transform 180ms ease,
       box-shadow 180ms ease,
@@ -669,7 +996,9 @@ select {
 
   .planner-preview-card:hover,
   .planner-preview-card:focus-visible,
-  .planner-shift-card:hover {
+  .planner-shift-card:hover,
+  .changelog-release:hover,
+  .changelog-release:focus-visible {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
   }
@@ -735,5 +1064,39 @@ select {
   .planner-time-badge {
     padding: 0.35rem 0.65rem;
     font-size: 0.78rem;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-header {
+    padding: 1.1rem 1rem 0.7rem !important;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-content {
+    padding: 0 1rem 0.9rem !important;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-footer {
+    padding: 0.8rem 1rem 1rem !important;
+  }
+
+  .changelog-release {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .changelog-release__cta {
+    justify-self: flex-start;
+  }
+
+  .changelog-detail__hero,
+  .changelog-detail__panel {
+    padding: 0.95rem;
+  }
+
+  .changelog-footer {
+    flex-direction: column-reverse;
+  }
+
+  .changelog-footer > * {
+    width: 100%;
   }
 }

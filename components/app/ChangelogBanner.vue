@@ -13,13 +13,18 @@ const visibleEntries = computed(() => entries.value);
 const latestEntry = computed(() => visibleEntries.value[0] || null);
 const detailEntry = computed(() => selectedEntry.value || (isHistoryMode.value ? null : latestEntry.value));
 const showReleaseList = computed(() => isHistoryMode.value && !selectedEntry.value);
+const hasBuildMetadata = computed(() => /\+\d+$/.test(currentVersion));
 
-const dialogWidth = computed(() => (showReleaseList.value ? "820px" : "680px"));
+const dialogWidth = computed(() => (showReleaseList.value ? "880px" : "720px"));
 const displayCurrentVersion = computed(() => formatVersion(currentVersion));
+const dialogEyebrow = computed(() => {
+  if (showReleaseList.value) return "Versionsarchiv";
+  return mode.value === "update" ? "Neu in dieser Version" : "Änderungsprotokoll";
+});
 const dialogTitle = computed(() => {
   if (showReleaseList.value) return "Versionsverlauf";
-  if (detailEntry.value) return `Änderungsprotokoll ${formatReleaseTitle(detailEntry.value)}`;
-  return mode.value === "update" ? "Was ist neu?" : "Versionsverlauf";
+  if (detailEntry.value) return formatReleaseTitle(detailEntry.value);
+  return mode.value === "update" ? "Was sich geändert hat" : "Versionsverlauf";
 });
 
 watch(isVisible, (visible) => {
@@ -35,6 +40,11 @@ onMounted(() => check());
 function extractVersion(value: string): string | null {
   const match = value.match(/v?\d+(?:\.\d+)+(?:[-+][A-Za-z0-9.-]+)?/);
   return match ? formatVersion(match[0]) : null;
+}
+
+function normalizeVersion(value: string): string | null {
+  const version = extractVersion(value);
+  return version ? version.replace(/\+.*$/, "") : null;
 }
 
 function formatVersion(value: string): string {
@@ -53,13 +63,20 @@ function isLatest(entry: ChangelogEntry): boolean {
 }
 
 function isCurrent(entry: ChangelogEntry): boolean {
-  const version = extractVersion(entry.title);
-  return version === displayCurrentVersion.value;
+  return normalizeVersion(entry.title) === normalizeVersion(displayCurrentVersion.value);
 }
 
 function releaseUrl(entry: ChangelogEntry): string | null {
-  const version = extractVersion(entry.title);
+  const version = normalizeVersion(entry.title);
   return version ? `https://github.com/Eric-Schubert/Shiftplanv2/releases/tag/${version}` : null;
+}
+
+function previewChanges(entry: ChangelogEntry): string[] {
+  return entry.changes.slice(0, 2);
+}
+
+function remainingChangeCount(entry: ChangelogEntry): number {
+  return Math.max(0, entry.changes.length - previewChanges(entry).length);
 }
 
 function openEntry(entry: ChangelogEntry) {
@@ -71,120 +88,219 @@ function openEntry(entry: ChangelogEntry) {
   <PrimeDialog
     v-model:visible="isVisible"
     modal
+    class="changelog-dialog"
     :closable="true"
     :draggable="false"
-    :style="{ width: dialogWidth, maxWidth: '95vw' }"
+    :style="{ width: dialogWidth, maxWidth: '96vw' }"
     @hide="dismiss"
   >
     <template #header>
-      <div class="flex items-start gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-light/10 text-primary-light dark:bg-primary-dark/10 dark:text-primary-dark">
+      <div class="changelog-dialog__header">
+        <div class="changelog-dialog__icon">
           <Icon
             :name="showReleaseList ? 'mdi:history' : 'mdi:file-document-outline'"
             class="text-xl"
           />
         </div>
-        <div>
-          <h2 class="m-0 text-xl font-bold text-gray-900 dark:text-white">
+
+        <div class="min-w-0 flex-1">
+          <p class="changelog-dialog__eyebrow">
+            {{ dialogEyebrow }}
+          </p>
+          <h2 class="changelog-dialog__title">
             {{ dialogTitle }}
           </h2>
-          <p class="m-0 mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Aktuell installiert: {{ displayCurrentVersion }}
-          </p>
+          <div class="changelog-dialog__meta">
+            <span class="changelog-badge changelog-badge--accent">
+              Installiert {{ displayCurrentVersion }}
+            </span>
+            <span
+              v-if="hasBuildMetadata"
+              class="changelog-badge"
+            >
+              Entwicklungsstand
+            </span>
+          </div>
         </div>
       </div>
     </template>
 
-    <div v-if="showReleaseList" class="space-y-3">
+    <div
+      v-if="showReleaseList"
+      class="changelog-shell"
+    >
       <button
         v-for="entry in visibleEntries"
         :key="`${entry.date}:${entry.title}`"
         type="button"
-        class="flex w-full flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-primary-light/50 hover:bg-white dark:border-gray-700 dark:bg-gray-800/70 dark:hover:border-primary-dark/50 dark:hover:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"
+        class="changelog-release"
         @click="openEntry(entry)"
       >
-        <span class="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:w-24">
-            <span>{{ formatRelativeChangelogDate(entry.date) }}</span>
-            <span class="mt-0.5 block text-[11px] font-medium normal-case tracking-normal text-gray-400 dark:text-gray-500">
-              {{ entry.date }}
-            </span>
+        <div class="changelog-release__meta">
+          <span class="changelog-release__relative">
+            {{ formatRelativeChangelogDate(entry.date) }}
           </span>
-          <span class="flex min-w-0 flex-wrap items-center gap-2">
-            <span class="truncate text-lg font-bold text-gray-900 dark:text-white">
-              {{ formatReleaseTitle(entry) }}
-            </span>
-            <span
-              v-if="isLatest(entry)"
-              class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300"
-            >
-              neueste
-            </span>
-            <span
-              v-if="isCurrent(entry)"
-              class="rounded-full bg-primary-light/10 px-2 py-0.5 text-xs font-semibold text-primary-light dark:bg-primary-dark/20 dark:text-primary-dark"
-            >
-              Aktuell
-            </span>
+          <span class="changelog-release__date">
+            {{ entry.date }}
           </span>
-        </span>
+        </div>
 
-        <span class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-light px-3 py-2 text-sm font-semibold text-white dark:bg-primary-dark dark:text-gray-950">
-          <Icon name="mdi:file-document-outline" class="text-base" />
-          Änderungsprotokoll anzeigen
+        <div class="changelog-release__body">
+          <div class="changelog-release__header">
+            <h3 class="changelog-release__title">
+              {{ formatReleaseTitle(entry) }}
+            </h3>
+            <div class="changelog-release__badges">
+              <span
+                v-if="isLatest(entry)"
+                class="changelog-badge changelog-badge--success"
+              >
+                Neueste Version
+              </span>
+              <span
+                v-if="isCurrent(entry)"
+                class="changelog-badge changelog-badge--accent"
+              >
+                Aktuell
+              </span>
+            </div>
+          </div>
+
+          <ul
+            v-if="entry.changes.length"
+            class="changelog-release__preview"
+          >
+            <li
+              v-for="change in previewChanges(entry)"
+              :key="change"
+              class="changelog-release__preview-item"
+            >
+              <Icon
+                name="mdi:check-circle"
+                class="changelog-release__preview-icon"
+              />
+              <span>{{ change }}</span>
+            </li>
+            <li
+              v-if="remainingChangeCount(entry)"
+              class="changelog-release__preview-more"
+            >
+              +{{ remainingChangeCount(entry) }} weitere Punkte
+            </li>
+          </ul>
+        </div>
+
+        <span class="changelog-release__cta">
+          <span>Ansehen</span>
+          <Icon
+            name="mdi:arrow-right"
+            class="text-base"
+          />
         </span>
       </button>
     </div>
 
-    <div v-else-if="detailEntry" class="space-y-5">
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/70">
-        <a
-          v-if="extractVersion(detailEntry.title)"
-          :href="releaseUrl(detailEntry) || undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-lg font-bold text-primary-light underline-offset-4 hover:underline dark:text-primary-dark"
-        >
-          {{ extractVersion(detailEntry.title) }}
-        </a>
-        <h3
-          v-else
-          class="m-0 text-lg font-bold text-gray-900 dark:text-white"
-        >
-          {{ detailEntry.title }}
-        </h3>
-        <p class="m-0 mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ detailEntry.date }}
-        </p>
-      </div>
+    <div
+      v-else-if="detailEntry"
+      class="changelog-detail"
+    >
+      <section class="changelog-detail__hero">
+        <div class="changelog-detail__copy">
+          <p class="changelog-dialog__eyebrow">
+            Veröffentlicht am {{ detailEntry.date }}
+          </p>
+          <a
+            v-if="extractVersion(detailEntry.title)"
+            :href="releaseUrl(detailEntry) || undefined"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="changelog-detail__release-link"
+          >
+            {{ formatReleaseTitle(detailEntry) }}
+          </a>
+          <h3
+            v-else
+            class="changelog-detail__release-title"
+          >
+            {{ detailEntry.title }}
+          </h3>
+          <p class="changelog-detail__summary">
+            {{ detailEntry.changes.length }} Änderungen in diesem Stand.
+          </p>
+        </div>
 
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/70">
-        <h4 class="m-0 mb-3 flex items-center gap-2 text-base font-bold text-gray-800 dark:text-gray-200">
-          <Icon name="mdi:sparkles" class="text-primary-light dark:text-primary-dark" />
-          Änderungen
-        </h4>
-        <ul class="m-0 space-y-3 p-0">
+        <div class="changelog-detail__actions">
+          <span
+            v-if="isCurrent(detailEntry)"
+            class="changelog-badge changelog-badge--accent"
+          >
+            Aktuell installiert
+          </span>
+          <a
+            v-if="releaseUrl(detailEntry)"
+            :href="releaseUrl(detailEntry) || undefined"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="changelog-link-button"
+          >
+            <Icon
+              name="mdi:github"
+              class="text-base"
+            />
+            Release auf GitHub
+          </a>
+        </div>
+      </section>
+
+      <section class="changelog-detail__panel">
+        <div class="changelog-detail__panel-header">
+          <div>
+            <p class="changelog-dialog__eyebrow">
+              Überblick
+            </p>
+            <h4 class="changelog-detail__panel-title">
+              Was neu ist
+            </h4>
+          </div>
+          <span class="changelog-badge">
+            {{ detailEntry.changes.length }} Punkte
+          </span>
+        </div>
+
+        <ul class="changelog-detail__list">
           <li
             v-for="change in detailEntry.changes"
             :key="change"
-            class="flex items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-300"
+            class="changelog-change"
           >
             <Icon
               name="mdi:check-circle"
-              class="mt-0.5 flex-shrink-0 text-green-500 dark:text-green-400"
+              class="changelog-change__icon"
             />
             <span>{{ change }}</span>
           </li>
         </ul>
+      </section>
+    </div>
+
+    <div
+      v-else
+      class="changelog-empty"
+    >
+      <Icon
+        name="mdi:file-document-outline"
+        class="text-xl"
+      />
+      <div>
+        <strong>Noch kein Änderungsprotokoll vorhanden.</strong>
+        <p class="m-0 mt-1">
+          Sobald für diese Version ein Release erzeugt wurde, taucht er hier auf.
+        </p>
       </div>
     </div>
 
-    <div v-else class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-      Für diese Version ist noch kein Änderungsprotokoll vorhanden.
-    </div>
-
     <template #footer>
-      <div class="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+      <div class="changelog-footer">
         <PrimeButton
           v-if="selectedEntry"
           label="Zurück"
@@ -193,16 +309,6 @@ function openEntry(entry: ChangelogEntry) {
           outlined
           @click="selectedEntry = null"
         />
-        <a
-          v-if="detailEntry && releaseUrl(detailEntry)"
-          :href="releaseUrl(detailEntry) || undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-light px-4 py-2 text-sm font-semibold text-white hover:opacity-90 dark:bg-primary-dark dark:text-gray-950"
-        >
-          <Icon name="mdi:github" class="text-base" />
-          Auf GitHub anzeigen
-        </a>
         <PrimeButton
           label="Schließen"
           severity="secondary"

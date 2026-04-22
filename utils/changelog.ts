@@ -1,9 +1,9 @@
 /**
- * Changelog-Daten fuer das Update-Banner.
+ * Changelog-Daten für das Update-Banner.
  *
- * Eintraege werden im Docker-Build aus Git-Tags via git-cliff generiert.
- * Die App zeigt nur diese generierten Eintraege; wenn keine vorhanden sind,
- * bleibt der Versionsverlauf leer.
+ * Einträge werden im Docker-Build aus Git-Tags via git-cliff generiert.
+ * In der lokalen Entwicklung darf der Verlauf auf Archiv-Einträge zurückfallen,
+ * damit die UI ohne CI-Artefakte testbar bleibt.
  */
 
 export interface ChangelogEntry {
@@ -12,7 +12,7 @@ export interface ChangelogEntry {
   changes: string[]
 }
 
-// Automatisch generierte Eintraege (aus git-cliff via scripts/generate-changelog.js)
+// Automatisch generierte Einträge (aus git-cliff via scripts/generate-changelog.js)
 let generatedEntries: ChangelogEntry[] = []
 try {
   // @ts-ignore - Datei wird beim Docker-Build generiert.
@@ -23,11 +23,11 @@ try {
 }
 
 /**
- * Archiv-Eintraege aus der Zeit vor der automatischen Release-Generierung.
+ * Archiv-Einträge aus der Zeit vor der automatischen Release-Generierung.
  *
- * Diese Eintraege werden nur an einen erfolgreich generierten Changelog
- * angehaengt. Sie sind kein Fallback, damit ein kaputter Build nicht so wirkt,
- * als waere der Versionsverlauf aktuell.
+ * Diese Einträge werden an den generierten Changelog angehängt. In der lokalen
+ * Entwicklung dienen sie zusätzlich als Vorschau, falls noch keine generierte
+ * Datei vorliegt.
  */
 const LEGACY_CHANGELOG: ChangelogEntry[] = [
   {
@@ -131,7 +131,9 @@ const LEGACY_CHANGELOG: ChangelogEntry[] = [
 ]
 
 function mergeChangelogs(generated: ChangelogEntry[], legacy: ChangelogEntry[]): ChangelogEntry[] {
-  if (generated.length === 0) return []
+  if (generated.length === 0) {
+    return import.meta.dev ? [...legacy].sort(compareChangelogEntries) : []
+  }
 
   const seen = new Set(generated.map(entry => `${entry.date}:${entry.title.toLowerCase()}`))
   const archivedEntries = legacy.filter(entry => !seen.has(`${entry.date}:${entry.title.toLowerCase()}`))
