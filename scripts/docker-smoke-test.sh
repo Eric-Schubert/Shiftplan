@@ -5,6 +5,7 @@ IMAGE_NAME="${IMAGE_NAME:-schichtplaner:smoke}"
 CONTAINER_NAME="${CONTAINER_NAME:-schichtplaner-smoke}"
 HOST_PORT="${HOST_PORT:-3000}"
 BASE_URL="http://127.0.0.1:${HOST_PORT}"
+ADMIN_PASSWORD="${SHIFTPLAN_ADMIN_PASSWORD:-SmokeAdminPass1}"
 
 cleanup() {
   status=$?
@@ -21,7 +22,10 @@ docker build --build-arg APP_VERSION=smoke -t "$IMAGE_NAME" .
 
 echo "[smoke] Starting container ${CONTAINER_NAME}"
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
-docker run -d --name "$CONTAINER_NAME" -p "127.0.0.1:${HOST_PORT}:3000" "$IMAGE_NAME" >/dev/null
+docker run -d --name "$CONTAINER_NAME" \
+  -e "SHIFTPLAN_ADMIN_PASSWORD=${ADMIN_PASSWORD}" \
+  -p "127.0.0.1:${HOST_PORT}:3000" \
+  "$IMAGE_NAME" >/dev/null
 
 echo "[smoke] Waiting for ${BASE_URL}"
 for attempt in $(seq 1 60); do
@@ -51,7 +55,7 @@ login_response="$(
   curl -fsS \
     -H "Content-Type: application/json" \
     -X POST \
-    --data '{"username":"admin","password":"admin"}' \
+    --data "{\"username\":\"admin\",\"password\":\"${ADMIN_PASSWORD}\"}" \
     "${BASE_URL}/api/auth/login"
 )"
 compact_login_response="$(printf '%s' "$login_response" | tr -d '\n\r\t ')"
