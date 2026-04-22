@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import type { PatternWeekData, RotationAssignContext } from "~/types/rotation";
-
-interface RotationDropPayload {
-  event: DragEvent;
-  patternWeek: number;
-  shiftId: number;
-}
-
-interface RotationStaffDragPayload extends RotationDropPayload {
-  staffId: number;
-  staffName: string;
-}
+import type {
+  PatternWeekData,
+  RotationAssignContext,
+  RotationDropPayload,
+  RotationStaffDragPayload,
+} from "~/types/rotation";
 
 const props = defineProps<{
   weekData: PatternWeekData;
