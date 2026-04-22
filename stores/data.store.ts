@@ -2,41 +2,47 @@ import { defineStore } from "pinia";
 import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import type { Shift, ShiftCreateDTO, ShiftUpdateDTO } from "~/types/shift";
 import type { FullRotationPattern, RotationConfig } from "~/types/rotation";
-
-/**
- * Helper: Gibt CSRF-Header aus dem Auth-Store zurück
- */
-function csrfHeaders(): Record<string, string> {
-  const authStore = useAuthStore();
-  if (authStore.csrfToken) {
-    return { "x-csrf-token": authStore.csrfToken };
-  }
-  return {};
-}
+import {
+  fetchStaffData,
+  createStaffRecord,
+  updateStaffRecord,
+  deleteStaffRecord,
+  toggleStaffActiveStatus,
+} from "./data/staff";
+import {
+  fetchShiftsData,
+  createShiftRecord,
+  updateShiftRecord,
+  deleteShiftRecord,
+  toggleShiftActiveStatus,
+} from "./data/shifts";
+import {
+  fetchRotationData,
+  updateRotationConfigData,
+  assignToRotationData,
+  unassignFromRotationData,
+} from "./data/rotation";
 
 export const useDataStore = defineStore("data", {
   state: () => ({
-    // Daten
     staff: [] as Staff[],
     shifts: [] as Shift[],
     rotationPattern: null as FullRotationPattern | null,
 
-    // Loading States
     loadingStaff: false,
     loadingShifts: false,
     loadingRotation: false,
 
-    // Initialisierung
     initialized: false,
   }),
 
   getters: {
     activeStaff(): Staff[] {
-      return this.staff.filter((s) => s.active);
+      return this.staff.filter((staff) => staff.active);
     },
 
     activeShifts(): Shift[] {
-      return this.shifts.filter((s) => s.active);
+      return this.shifts.filter((shift) => shift.active);
     },
 
     rotationConfig(): RotationConfig | null {
@@ -44,18 +50,15 @@ export const useDataStore = defineStore("data", {
     },
 
     getStaffById: (state) => (id: number) => {
-      return state.staff.find((s) => s.staff_id === id);
+      return state.staff.find((staff) => staff.staff_id === id);
     },
 
     getShiftById: (state) => (id: number) => {
-      return state.shifts.find((s) => s.shift_id === id);
+      return state.shifts.find((shift) => shift.shift_id === id);
     },
   },
 
   actions: {
-    // ============================================
-    // INITIALISIERUNG
-    // ============================================
     async init() {
       if (this.initialized) return;
 
@@ -68,133 +71,52 @@ export const useDataStore = defineStore("data", {
       this.initialized = true;
     },
 
-    // ============================================
-    // STAFF
-    // ============================================
     async fetchStaff() {
-      this.loadingStaff = true;
-      try {
-        this.staff = await $fetch<Staff[]>("/api/staff");
-      } finally {
-        this.loadingStaff = false;
-      }
+      await fetchStaffData(this);
     },
 
     async createStaff(data: StaffCreateDTO): Promise<Staff> {
-      const newStaff = await $fetch<Staff>("/api/staff", {
-        method: "POST",
-        body: data,
-        headers: csrfHeaders(),
-      });
-      this.staff.push(newStaff);
-      return newStaff;
+      return createStaffRecord(this, data);
     },
 
     async updateStaff(id: number, data: StaffUpdateDTO): Promise<Staff | null> {
-      const updated = await $fetch<Staff>(`/api/staff/${id}`, {
-        method: "PATCH",
-        body: data,
-        headers: csrfHeaders(),
-      });
-      const index = this.staff.findIndex((s) => s.staff_id === id);
-      if (index !== -1) {
-        this.staff[index] = updated;
-      }
-      return updated;
+      return updateStaffRecord(this, id, data);
     },
 
     async deleteStaff(id: number): Promise<boolean> {
-      await $fetch(`/api/staff/${id}`, {
-        method: "DELETE",
-        headers: csrfHeaders(),
-      });
-      this.staff = this.staff.filter((s) => s.staff_id !== id);
-      await this.fetchRotation();
-      return true;
+      return deleteStaffRecord(this, id);
     },
 
     async toggleStaffActive(id: number): Promise<void> {
-      const staff = this.getStaffById(id);
-      if (staff) {
-        await this.updateStaff(id, { active: staff.active ? 0 : 1 });
-      }
+      await toggleStaffActiveStatus(this, id);
     },
 
-    // ============================================
-    // SHIFTS
-    // ============================================
     async fetchShifts() {
-      this.loadingShifts = true;
-      try {
-        this.shifts = await $fetch<Shift[]>("/api/shift");
-      } finally {
-        this.loadingShifts = false;
-      }
+      await fetchShiftsData(this);
     },
 
     async createShift(data: ShiftCreateDTO): Promise<Shift> {
-      const newShift = await $fetch<Shift>("/api/shift", {
-        method: "POST",
-        body: data,
-        headers: csrfHeaders(),
-      });
-      this.shifts.push(newShift);
-      await this.fetchRotation();
-      return newShift;
+      return createShiftRecord(this, data);
     },
 
     async updateShift(id: number, data: ShiftUpdateDTO): Promise<Shift | null> {
-      const updated = await $fetch<Shift>(`/api/shift/${id}`, {
-        method: "PATCH",
-        body: data,
-        headers: csrfHeaders(),
-      });
-      const index = this.shifts.findIndex((s) => s.shift_id === id);
-      if (index !== -1) {
-        this.shifts[index] = updated;
-      }
-      if (data.active !== undefined) {
-        await this.fetchRotation();
-      }
-      return updated;
+      return updateShiftRecord(this, id, data);
     },
 
     async deleteShift(id: number): Promise<boolean> {
-      await $fetch(`/api/shift/${id}`, {
-        method: "DELETE",
-        headers: csrfHeaders(),
-      });
-      this.shifts = this.shifts.filter((s) => s.shift_id !== id);
-      await this.fetchRotation();
-      return true;
+      return deleteShiftRecord(this, id);
     },
 
     async toggleShiftActive(id: number): Promise<void> {
-      const shift = this.getShiftById(id);
-      if (shift) {
-        await this.updateShift(id, { active: shift.active ? 0 : 1 });
-      }
+      await toggleShiftActiveStatus(this, id);
     },
 
-    // ============================================
-    // ROTATION
-    // ============================================
     async fetchRotation() {
-      this.loadingRotation = true;
-      try {
-        this.rotationPattern = await $fetch<FullRotationPattern>("/api/rotation");
-      } finally {
-        this.loadingRotation = false;
-      }
+      await fetchRotationData(this);
     },
 
     async updateRotationConfig(data: Partial<RotationConfig>): Promise<void> {
-      await $fetch("/api/rotation/config", {
-        method: "PATCH",
-        body: data,
-        headers: csrfHeaders(),
-      });
-      await this.fetchRotation();
+      await updateRotationConfigData(this, data);
     },
 
     async assignToRotation(
@@ -202,12 +124,7 @@ export const useDataStore = defineStore("data", {
       staffId: number,
       shiftId: number
     ): Promise<void> {
-      await $fetch("/api/rotation/assign", {
-        method: "POST",
-        body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },
-        headers: csrfHeaders(),
-      });
-      await this.fetchRotation();
+      await assignToRotationData(this, patternWeek, staffId, shiftId);
     },
 
     async unassignFromRotation(
@@ -215,12 +132,7 @@ export const useDataStore = defineStore("data", {
       staffId: number,
       shiftId: number
     ): Promise<void> {
-      await $fetch("/api/rotation/unassign", {
-        method: "POST",
-        body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },
-        headers: csrfHeaders(),
-      });
-      await this.fetchRotation();
+      await unassignFromRotationData(this, patternWeek, staffId, shiftId);
     },
   },
 });
