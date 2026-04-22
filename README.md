@@ -132,6 +132,9 @@ schichtplaner/
 |   |   |   |-- HolidayBannerCard.vue
 |   |   |   |-- HolidayCompactList.vue
 |   |   |   `-- HolidayDetailPanels.vue
+|   |   |-- shift/
+|   |   |   |-- ShiftAssignDialog.vue
+|   |   |   `-- ShiftAssigneeList.vue
 |   |   |-- HolidayInfo.vue
 |   |   |-- ShiftCard.vue
 |   |   `-- WeekPreview.vue
