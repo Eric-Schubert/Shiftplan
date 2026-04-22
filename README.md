@@ -132,6 +132,10 @@ schichtplaner/
 |   |   |   |-- HolidayBannerCard.vue
 |   |   |   |-- HolidayCompactList.vue
 |   |   |   `-- HolidayDetailPanels.vue
+|   |   |-- page/
+|   |   |   |-- PlannerBulkGenerateDialog.vue
+|   |   |   |-- PlannerCurrentWeekSection.vue
+|   |   |   `-- PlannerWeekHero.vue
 |   |   |-- shift/
 |   |   |   |-- ShiftAssignDialog.vue
 |   |   |   `-- ShiftAssigneeList.vue
@@ -246,6 +250,11 @@ schichtplaner/
 |       |-- validation.ts
 |       `-- xlsx.ts
 |-- stores/
+|   |-- data/
+|   |   |-- rotation.ts
+|   |   |-- shared.ts
+|   |   |-- shifts.ts
+|   |   `-- staff.ts
 |   |-- app.store.ts
 |   |-- auth.store.ts
 |   `-- data.store.ts
