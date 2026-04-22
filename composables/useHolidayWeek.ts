@@ -1,18 +1,5 @@
 import type { Ref } from "vue";
-
-interface PublicHoliday {
-  date: string;
-  name: string;
-  type: "national" | "saxony";
-  nationwide: boolean;
-}
-
-interface SchoolHolidayPeriod {
-  name: string;
-  start: string;
-  end: string;
-  states: Array<{ code: string; name: string }>;
-}
+import type { PublicHoliday, SchoolHolidayPeriod } from "~/types/holiday";
 
 interface HolidayWeekEntry {
   holidays: PublicHoliday[];
