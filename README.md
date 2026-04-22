@@ -128,6 +128,10 @@ schichtplaner/
 |   |   |-- ChangelogBanner.vue
 |   |   `-- InstallBanner.vue
 |   |-- planner/
+|   |   |-- holiday/
+|   |   |   |-- HolidayBannerCard.vue
+|   |   |   |-- HolidayCompactList.vue
+|   |   |   `-- HolidayDetailPanels.vue
 |   |   |-- HolidayInfo.vue
 |   |   |-- ShiftCard.vue
 |   |   `-- WeekPreview.vue
@@ -244,6 +248,7 @@ schichtplaner/
 |   `-- data.store.ts
 |-- types/
 |   |-- auth.ts
+|   |-- holiday.ts
 |   |-- rotation.ts
 |   |-- shift.ts
 |   |-- shiftplan.ts
