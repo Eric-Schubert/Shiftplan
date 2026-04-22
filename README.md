@@ -154,7 +154,9 @@ schichtplaner/
 |       |   |-- RotationGenerateDialog.vue
 |       |   |-- RotationManager.vue
 |       |   |-- RotationPatternBoard.vue
+|       |   |-- RotationPatternIntro.vue
 |       |   |-- RotationPatternWeekCard.vue
+|       |   |-- RotationStaffPool.vue
 |       |   |-- RotationToolbar.vue
 |       |   |-- YearCopy.vue
 |       |   |-- YearCopyDialog.vue
