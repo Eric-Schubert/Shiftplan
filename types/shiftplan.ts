@@ -15,3 +15,11 @@ export interface WeeklyShiftplan {
   week: Week;
   shifts: ShiftWithStaff[];
 }
+
+export interface WeeklyShiftplanWithPattern extends WeeklyShiftplan {
+  pattern_week: number;
+}
+
+export interface ShiftplanGenerateResult {
+  generated: number;
+}
