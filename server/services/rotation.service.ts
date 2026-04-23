@@ -247,10 +247,26 @@ export const RotationService = {
     endYear: number,
     endWeek: number
   ): number {
-    // Vereinfachte Berechnung: Annahme 52 Wochen pro Jahr
-    const startTotal = startYear * 52 + startWeek;
-    const endTotal = endYear * 52 + endWeek;
-    return endTotal - startTotal;
+    const startDate = this.getISOWeekStartDate(startYear, startWeek);
+    const endDate = this.getISOWeekStartDate(endYear, endWeek);
+    const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+
+    return Math.round((endDate.getTime() - startDate.getTime()) / millisecondsPerWeek);
+  },
+
+  /**
+   * Hilfsfunktion: Liefert den Montag einer ISO-Kalenderwoche in UTC.
+   * So bleibt die Rotationslogik auch bei ISO-Jahren mit 53 Wochen stabil.
+   */
+  getISOWeekStartDate(year: number, week: number): Date {
+    const januaryFourth = new Date(Date.UTC(year, 0, 4));
+    const dayOfWeek = januaryFourth.getUTCDay() || 7;
+    const firstIsoWeekMonday = new Date(januaryFourth);
+
+    firstIsoWeekMonday.setUTCDate(januaryFourth.getUTCDate() - dayOfWeek + 1);
+    firstIsoWeekMonday.setUTCDate(firstIsoWeekMonday.getUTCDate() + (week - 1) * 7);
+
+    return firstIsoWeekMonday;
   },
 
   /**

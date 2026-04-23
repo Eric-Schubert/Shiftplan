@@ -5,6 +5,7 @@ import {
   getTestDatabase,
   insertTestData,
 } from "./setup";
+import { RotationService } from "../server/services/rotation.service";
 
 describe("Rotation Operations", () => {
   beforeEach(() => {
@@ -154,17 +155,12 @@ describe("Rotation Operations", () => {
 
   describe("Pattern Week Calculation", () => {
     it("should calculate correct pattern week for sequential weeks", () => {
-      // Formel: ((weeksFromStart % cycleLength) + cycleLength) % cycleLength + 1
-      // Mit: startWeek = 1, startYear = 2025, cycleLength = 4
-
       const startYear = 2025;
       const startWeek = 1;
       const cycleLength = 4;
 
       function calculatePatternWeek(year: number, week: number): number {
-        const startTotal = startYear * 52 + startWeek;
-        const endTotal = year * 52 + week;
-        const weeksFromStart = endTotal - startTotal;
+        const weeksFromStart = RotationService.weeksBetween(startYear, startWeek, year, week);
         const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
         return patternIndex + 1;
       }
@@ -195,9 +191,7 @@ describe("Rotation Operations", () => {
       const cycleLength = 4;
 
       function calculatePatternWeek(year: number, week: number): number {
-        const startTotal = startYear * 52 + startWeek;
-        const endTotal = year * 52 + week;
-        const weeksFromStart = endTotal - startTotal;
+        const weeksFromStart = RotationService.weeksBetween(startYear, startWeek, year, week);
         const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
         return patternIndex + 1;
       }
@@ -227,6 +221,31 @@ describe("Rotation Operations", () => {
         expect(result).toBeGreaterThanOrEqual(1);
         expect(result).toBeLessThanOrEqual(cycleLength);
       }
+    });
+
+    it("should keep a 6-week rhythm stable after an ISO year with 53 weeks", () => {
+      const startYear = 2026;
+      const startWeek = 18;
+      const cycleLength = 6;
+
+      function calculatePatternWeek(year: number, week: number): number {
+        const weeksFromStart = RotationService.weeksBetween(startYear, startWeek, year, week);
+        const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
+        return patternIndex + 1;
+      }
+
+      expect(calculatePatternWeek(2026, 18)).toBe(1);
+      expect(calculatePatternWeek(2026, 19)).toBe(2);
+      expect(calculatePatternWeek(2026, 20)).toBe(3);
+      expect(calculatePatternWeek(2026, 21)).toBe(4);
+      expect(calculatePatternWeek(2026, 22)).toBe(5);
+      expect(calculatePatternWeek(2026, 23)).toBe(6);
+      expect(calculatePatternWeek(2026, 24)).toBe(1);
+      expect(calculatePatternWeek(2026, 25)).toBe(2);
+    });
+
+    it("should count 53 ISO weeks across 2020 correctly", () => {
+      expect(RotationService.weeksBetween(2020, 1, 2021, 1)).toBe(53);
     });
   });
 });
