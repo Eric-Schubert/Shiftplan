@@ -151,6 +151,7 @@ async function readResponseError(response: Response): Promise<string> {
       {{ excelImportResult.importedAssignments }} Zuweisungen übernommen.
       Zyklus: {{ excelImportResult.config.cycle_length }} Wochen ab KW
       {{ excelImportResult.config.start_week }}/{{ excelImportResult.config.start_year }}.
+      Bestehende Wochenplaene bleiben unveraendert, bis du sie neu aus dem Muster generierst.
     </div>
 
     <div

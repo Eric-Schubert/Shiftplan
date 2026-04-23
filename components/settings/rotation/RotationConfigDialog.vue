@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RotationConfig, RotationConfigPreviewItem } from "~/types/rotation";
+import { getIsoWeeksInYear, getPatternWeekForCalendarWeek } from "~/utils/rotation";
 
 const props = defineProps<{
   visible: boolean;
@@ -42,22 +43,24 @@ const configPreview = computed<RotationConfigPreviewItem[]>(() => {
   let week = startWeek - 2;
 
   while (week < 1) {
-    week += 52;
     year--;
+    week += getIsoWeeksInYear(year);
   }
 
   for (let index = 0; index < 8; index++) {
-    const startTotal = startYear * 52 + startWeek;
-    const currentTotal = year * 52 + week;
-    const weeksFromStart = currentTotal - startTotal;
-    const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
-    const patternWeek = patternIndex + 1;
+    const patternWeek = getPatternWeekForCalendarWeek(
+      cycleLength,
+      startYear,
+      startWeek,
+      year,
+      week
+    );
     const isStart = year === startYear && week === startWeek;
 
     preview.push({ year, week, patternWeek, isStart });
 
     week++;
-    if (week > 52) {
+    if (week > getIsoWeeksInYear(year)) {
       week = 1;
       year++;
     }

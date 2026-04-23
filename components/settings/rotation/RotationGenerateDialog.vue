@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RotationGeneratePreviewItem, RotationGenerateResult } from "~/types/rotation";
+import { getIsoWeeksInYear, getPatternWeekForCalendarWeek } from "~/utils/rotation";
 
 const props = defineProps<{
   visible: boolean;
@@ -41,16 +42,18 @@ const generatePreviewList = computed<RotationGeneratePreviewItem[]>(() => {
   let week = previewWeek.value;
 
   for (let index = 0; index < previewWeeks.value; index++) {
-    const startTotal = config.start_year * 52 + config.start_week;
-    const currentTotal = year * 52 + week;
-    const weeksFromStart = currentTotal - startTotal;
-    const patternIndex = ((weeksFromStart % config.cycle_length) + config.cycle_length) % config.cycle_length;
-    const patternWeek = patternIndex + 1;
+    const patternWeek = getPatternWeekForCalendarWeek(
+      config.cycle_length,
+      config.start_year,
+      config.start_week,
+      year,
+      week
+    );
 
     preview.push({ year, week, patternWeek });
 
     week++;
-    if (week > 52) {
+    if (week > getIsoWeeksInYear(year)) {
       week = 1;
       year++;
     }
