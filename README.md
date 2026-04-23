@@ -153,13 +153,13 @@ schichtplaner/
 |       |-- rotation/
 |       |   |-- RotationAssignDialog.vue
 |       |   |-- RotationConfigDialog.vue
-|       |   |-- RotationGenerateDialog.vue
 |       |   |-- RotationManager.vue
 |       |   |-- RotationPatternBoard.vue
 |       |   |-- RotationPatternIntro.vue
 |       |   |-- RotationPatternWeekCard.vue
 |       |   |-- RotationStaffPool.vue
 |       |   |-- RotationToolbar.vue
+|       |   |-- RotationWizardDialog.vue
 |       |   |-- YearCopy.vue
 |       |   |-- YearCopyDialog.vue
 |       |   `-- YearCopyStatusPanel.vue
