@@ -40,7 +40,7 @@ const totalAssigned = computed(() =>
 
     <template v-else-if="hasShiftplan">
       <div v-if="shiftList.length === 0" class="planner-empty">
-        <Icon name="mdi:calendar-blank-outline" class="text-4xl text-[var(--text-3)]" />
+        <i class="pi pi-calendar text-4xl text-[var(--text-3)]" aria-hidden="true"></i>
         <div class="space-y-2">
           <h4 class="text-lg font-semibold text-[var(--text-1)]">Diese Woche hat noch keine Struktur</h4>
           <p class="mx-auto max-w-[36rem] text-sm leading-6">

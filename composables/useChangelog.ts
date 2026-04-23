@@ -26,6 +26,7 @@ export function useChangelog() {
    */
   function check() {
     if (!import.meta.client) return
+    if (isVisible.value) return
 
     const lastSeen = localStorage.getItem(STORAGE_KEY)
 

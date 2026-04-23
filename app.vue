@@ -1,7 +1,10 @@
+<script setup lang="ts">
+const showChangelogDialog = useState<boolean>("showChangelogDialog", () => false);
+</script>
+
 <template>
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
-  <ChangelogBanner />
-  <InstallBanner />
+  <LazyChangelogBanner v-if="showChangelogDialog" />
 </template>

@@ -90,7 +90,7 @@ async function saveConfig() {
     <div class="space-y-6">
       <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div class="flex items-start gap-3">
-          <Icon name="mdi:information" class="mt-0.5 text-xl text-primary-light dark:text-primary-dark" />
+          <i class="pi pi-info-circle mt-0.5 text-xl text-primary-light dark:text-primary-dark" aria-hidden="true"></i>
           <div class="text-sm text-gray-700 dark:text-gray-300">
             <p class="mb-1 font-medium">So funktioniert die Rotation:</p>
             <p>Das Schichtmuster wiederholt sich regelmäßig. Lege die Zykluslänge und den Startpunkt fest.</p>

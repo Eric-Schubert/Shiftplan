@@ -1,7 +1,5 @@
 import fs from "fs";
 import path from "path";
-import Aura from "@primevue/themes/aura";
-import { definePreset } from "@primevue/themes";
 
 // Version aus .version-Datei lesen (wird vom prebuild-Script erzeugt)
 function getAppVersion(): string {
@@ -21,44 +19,14 @@ function getAppVersion(): string {
   }
 }
 
-const BrandPreset = definePreset(Aura, {
-  semantic: {
-    primary: {
-      50: "#fff1f2",
-      100: "#ffe2e5",
-      200: "#ffc8cd",
-      300: "#ff9aa5",
-      400: "#ff6674",
-      500: "#e30613",
-      600: "#c70512",
-      700: "#a70410",
-      800: "#88050f",
-      900: "#69050d",
-      950: "#3b0206",
-    },
-    colorScheme: {
-      light: {
-        primary: {
-          color: "{primary.500}",
-          contrastColor: "#f8f5f5",
-          hoverColor: "{primary.600}",
-          activeColor: "{primary.700}",
-        },
-      },
-      dark: {
-        primary: {
-          color: "{primary.500}",
-          contrastColor: "#f8f5f5",
-          hoverColor: "{primary.600}",
-          activeColor: "{primary.700}",
-        },
-      },
-    },
-  },
-});
+const primevueThemePath = path.resolve(__dirname, "theme/primevue-theme.ts");
 
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
+  sourcemap: {
+    client: true,
+    server: false,
+  },
 
   // Version aus .version als Runtime-Config bereitstellen
   runtimeConfig: {
@@ -69,10 +37,26 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: {
+        lang: "de",
+      },
       title: "Schichtplaner",
+      meta: [
+        {
+          name: "description",
+          content: "Schichtplaner fuer Wochenplanung, Rotation und Teamverwaltung.",
+        },
+      ],
       link: [
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
         { rel: "manifest", href: "/manifest.json" },
+        {
+          rel: "preload",
+          href: "/fonts/public-sans-latin.woff2",
+          as: "font",
+          type: "font/woff2",
+          crossorigin: "anonymous",
+        },
       ],
       // Dark Mode Script - lädt vor allem anderen um Flash zu vermeiden
       script: [
@@ -92,11 +76,30 @@ export default defineNuxtConfig({
     },
   },
 
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+
+  nitro: {
+    compressPublicAssets: {
+      gzip: true,
+      brotli: true,
+    },
+    minify: true,
+    routeRules: {
+      "/_nuxt/**": {
+        headers: {
+          "cache-control": "public, max-age=31536000, immutable",
+        },
+      },
+      "/fonts/**": {
+        headers: {
+          "cache-control": "public, max-age=31536000, immutable",
+        },
+      },
+    },
+  },
 
   modules: [
     "@primevue/nuxt-module",
-    "@nuxt/icon",
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
   ],
@@ -108,12 +111,21 @@ export default defineNuxtConfig({
     },
   ],
 
-  css: ["primeicons/primeicons.css", "~/assets/theme.css"],
+  css: ["~/assets/primeicons-subset.css", "~/assets/theme.css"],
 
   primevue: {
     autoImport: true,
     components: {
       prefix: "Prime",
+      include: [
+        "Button",
+        "Dialog",
+        "ProgressSpinner",
+      ],
+    },
+    importTheme: {
+      as: "PrimeVueTheme",
+      from: primevueThemePath,
     },
     options: {
       locale: {
@@ -127,14 +139,6 @@ export default defineNuxtConfig({
       },
       ripple: true,
       inputVariant: "filled",
-      theme: {
-        preset: BrandPreset,
-        options: {
-          prefix: "p",
-          darkModeSelector: ".dark",
-          cssLayer: false,
-        },
-      },
     },
   },
 });

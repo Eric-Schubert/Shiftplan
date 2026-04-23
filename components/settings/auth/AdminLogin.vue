@@ -39,7 +39,7 @@ async function handleLogin() {
     <div class="planner-slab w-full max-w-md">
       <div class="mb-6 text-center">
         <div class="app-logo-mark mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl">
-          <Icon name="mdi:shield-lock" class="text-3xl" />
+          <i class="pi pi-lock text-3xl" aria-hidden="true"></i>
         </div>
         <p class="planner-kicker">Geschützter Bereich</p>
         <h2 class="mt-2 text-2xl font-semibold text-[var(--text-1)]">Anmelden</h2>

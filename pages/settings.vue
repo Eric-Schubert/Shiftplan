@@ -18,12 +18,19 @@ watch(
 
 <template>
   <div>
-    <AdminLogin v-if="!authStore.isAuthenticated" />
+    <div v-if="authStore.isChecking" class="flex min-h-[60vh] items-center justify-center">
+      <div class="planner-slab flex items-center gap-3 px-5 py-4 text-[var(--text-2)]">
+        <PrimeProgressSpinner class="!h-6 !w-6" />
+        <span class="text-sm font-semibold">Session wird geprueft.</span>
+      </div>
+    </div>
+
+    <AdminLogin v-else-if="!authStore.isAuthenticated" />
 
     <div v-else-if="!authStore.canEditShifts" class="min-h-[60vh] flex items-center justify-center">
       <div class="planner-slab w-full max-w-md text-center">
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--warning-soft)] text-[var(--warning-ink)]">
-          <Icon name="mdi:shield-alert" class="text-3xl" />
+          <i class="pi pi-exclamation-triangle text-3xl" aria-hidden="true"></i>
         </div>
         <h2 class="text-2xl font-semibold text-[var(--text-1)]">Kein Zugriff</h2>
         <p class="mx-auto mt-3 max-w-[28rem] text-sm leading-6 text-[var(--text-2)]">

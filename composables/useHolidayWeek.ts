@@ -21,7 +21,7 @@ function ensureCacheEntry(key: string): HolidayWeekEntry {
     holidayWeekCache[key] = {
       holidays: [],
       schoolHolidays: [],
-      loading: false,
+      loading: true,
       loaded: false,
       error: null,
     };

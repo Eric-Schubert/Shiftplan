@@ -81,7 +81,7 @@ function onHide() {
         v-if="success"
         class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
       >
-        <Icon name="mdi:check-circle" class="mb-2 text-3xl text-[var(--positive-ink)]" />
+        <i class="pi pi-check-circle mb-2 text-3xl text-[var(--positive-ink)]" aria-hidden="true"></i>
         <p class="font-medium text-[var(--positive-ink)]">
           Passwort erfolgreich geändert.
         </p>

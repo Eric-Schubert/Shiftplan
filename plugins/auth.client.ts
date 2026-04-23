@@ -1,8 +1,8 @@
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(() => {
   const authStore = useAuthStore();
 
-  // Session beim App-Start prüfen (nur clientseitig)
+  // Nicht blockieren: Hydration und erster Paint sollen nicht auf /api/auth/session warten.
   if (import.meta.client) {
-    await authStore.checkSession();
+    void authStore.checkSession();
   }
 });

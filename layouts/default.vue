@@ -3,17 +3,34 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 const dataStore = useDataStore();
 const route = useRoute();
-const { openHistory, currentVersion } = useChangelog();
+const runtimeConfig = useRuntimeConfig();
+const showChangelogDialog = useState<boolean>("showChangelogDialog", () => false);
 
 const isSettingsPage = computed(() => route.path === "/settings");
+const currentVersion = String(runtimeConfig.public.appVersion || "").trim();
 const displayCurrentVersion = computed(() => {
-  const version = currentVersion.trim();
+  const version = currentVersion;
   return version.startsWith("v") ? version : `v${version}`;
 });
 
+async function openVersionHistory() {
+  showChangelogDialog.value = true;
+  const { useChangelog } = await import("~/composables/useChangelog");
+  useChangelog().openHistory();
+}
+
+watch(
+  () => authStore.canEditShifts,
+  (canEditShifts) => {
+    if (canEditShifts) {
+      void dataStore.init();
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   appStore.initDarkMode();
-  dataStore.init();
 });
 </script>
 
@@ -23,7 +40,7 @@ onMounted(() => {
       <div class="mx-auto flex max-w-[86rem] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <NuxtLink to="/" class="group flex min-w-0 items-center gap-3 rounded-2xl">
           <span class="app-logo-mark inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
-            <Icon name="mdi:calendar-clock" class="text-2xl" />
+            <i class="pi pi-calendar text-2xl" aria-hidden="true"></i>
           </span>
           <div class="min-w-0">
             <p class="planner-kicker">Teamplanung</p>
@@ -36,28 +53,30 @@ onMounted(() => {
             v-if="authStore.isAuthenticated"
             class="planner-chip planner-chip--accent hidden sm:flex"
           >
-            <Icon name="mdi:shield-check" class="text-sm" />
+            <i class="pi pi-shield text-sm" aria-hidden="true"></i>
             <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
           </div>
 
           <button
             type="button"
             class="hidden sm:inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-2)] shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
-            @click="openHistory"
-            v-tooltip="'Versionsverlauf anzeigen'"
+            title="Versionsverlauf anzeigen"
+            @click="openVersionHistory"
           >
-            <Icon name="mdi:history" class="text-base" />
+            <i class="pi pi-history text-sm" aria-hidden="true"></i>
             <span>{{ displayCurrentVersion }}</span>
           </button>
-          <PrimeButton
-            class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)] sm:!hidden"
-            text
-            rounded
-            icon="pi pi-info-circle"
-            aria-label="Versionsverlauf anzeigen"
-            @click="openHistory"
-            v-tooltip="'Versionsverlauf anzeigen'"
-          />
+          <div class="sm:hidden">
+            <PrimeButton
+              class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
+              text
+              rounded
+              icon="pi pi-info-circle"
+              aria-label="Versionsverlauf anzeigen"
+              title="Versionsverlauf anzeigen"
+              @click="openVersionHistory"
+            />
+          </div>
 
           <PrimeButton
             text
@@ -65,18 +84,18 @@ onMounted(() => {
             class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
             :icon="appStore.isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
             :aria-label="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
+            :title="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
             @click="appStore.toggleDarkMode"
-            v-tooltip="'Dark Mode'"
           />
 
-          <NuxtLink :to="isSettingsPage ? '/' : '/settings'">
+          <NuxtLink :to="isSettingsPage ? '/' : '/settings'" :prefetch="false">
             <PrimeButton
               text
               rounded
               class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
               :icon="isSettingsPage ? 'pi pi-arrow-left' : 'pi pi-cog'"
-              :aria-label="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
-              v-tooltip="isSettingsPage ? 'Zurück' : 'Einstellungen'"
+              :aria-label="isSettingsPage ? 'Zurueck zum Schichtplan' : 'Einstellungen oeffnen'"
+              :title="isSettingsPage ? 'Zurueck zum Schichtplan' : 'Einstellungen oeffnen'"
             />
           </NuxtLink>
         </div>

@@ -25,7 +25,7 @@ onMounted(() => {
       >
         <!-- Icon -->
         <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
-          <Icon name="mdi:cellphone-arrow-down" class="text-xl text-indigo-600 dark:text-indigo-400" />
+          <i class="pi pi-download text-xl text-indigo-600 dark:text-indigo-400" aria-hidden="true"></i>
         </div>
 
         <!-- Text -->
@@ -36,7 +36,7 @@ onMounted(() => {
           <!-- iOS Anleitung -->
           <p v-if="isIOS" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Tippe auf
-            <Icon name="mdi:export-variant" class="inline text-sm align-middle" />
+            <i class="pi pi-share-alt inline text-sm align-middle" aria-hidden="true"></i>
             und dann „Zum Home-Bildschirm"
           </p>
           <!-- Chrome/Android -->
@@ -64,7 +64,7 @@ onMounted(() => {
             class="!h-11 !w-11"
             severity="secondary"
             aria-label="Hinweis ausblenden"
-            v-tooltip="'Nicht mehr anzeigen'"
+            title="Nicht mehr anzeigen"
             @click="dismiss"
           />
         </div>

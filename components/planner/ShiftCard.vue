@@ -74,7 +74,7 @@ const {
             <p class="text-base font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
 
             <div class="planner-time-badge">
-              <Icon name="mdi:clock-outline" class="text-sm" />
+              <i class="pi pi-clock text-sm" aria-hidden="true"></i>
               <span>{{ shift.start_time }} - {{ shift.end_time }}</span>
             </div>
           </div>

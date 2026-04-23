@@ -1,0 +1,186 @@
+@font-face {
+  font-family: "primeicons";
+  font-display: swap;
+  font-style: normal;
+  font-weight: normal;
+  src: url("/fonts/primeicons.woff2") format("woff2");
+}
+
+.pi {
+  display: inline-block;
+  font-family: "primeicons";
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  line-height: 1;
+  speak: none;
+  text-transform: none;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pi:before {
+  backface-visibility: hidden;
+}
+
+.pi-fw {
+  width: 1.28571429em;
+  text-align: center;
+}
+
+.pi-spin {
+  animation: pi-spin 2s infinite linear;
+}
+
+@keyframes pi-spin {
+  100% {
+    transform: rotate(359deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pi-spin {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
+  }
+}
+
+.pi-calendar:before {
+  content: "\e927";
+}
+
+.pi-book:before {
+  content: "\e9ba";
+}
+
+.pi-spinner:before {
+  content: "\e926";
+}
+
+.pi-arrow-left:before {
+  content: "\e91a";
+}
+
+.pi-arrow-right:before {
+  content: "\e91b";
+}
+
+.pi-sign-out:before {
+  content: "\e971";
+}
+
+.pi-key:before {
+  content: "\e981";
+}
+
+.pi-download:before {
+  content: "\e956";
+}
+
+.pi-times:before {
+  content: "\e90b";
+}
+
+.pi-chevron-left:before {
+  content: "\e900";
+}
+
+.pi-chevron-right:before {
+  content: "\e901";
+}
+
+.pi-sync:before {
+  content: "\e9e6";
+}
+
+.pi-calendar-plus:before {
+  content: "\e954";
+}
+
+.pi-lock-open:before {
+  content: "\e96a";
+}
+
+.pi-plus:before {
+  content: "\e90d";
+}
+
+.pi-compass:before {
+  content: "\e9ab";
+}
+
+.pi-upload:before {
+  content: "\e934";
+}
+
+.pi-cog:before {
+  content: "\e94a";
+}
+
+.pi-copy:before {
+  content: "\e957";
+}
+
+.pi-pencil:before {
+  content: "\e942";
+}
+
+.pi-eye:before {
+  content: "\e966";
+}
+
+.pi-eye-slash:before {
+  content: "\e965";
+}
+
+.pi-trash:before {
+  content: "\e93d";
+}
+
+.pi-check:before {
+  content: "\e909";
+}
+
+.pi-user-plus:before {
+  content: "\e93f";
+}
+
+.pi-info-circle:before {
+  content: "\e924";
+}
+
+.pi-history:before {
+  content: "\e9da";
+}
+
+.pi-shield:before {
+  content: "\e9b9";
+}
+
+.pi-clock:before {
+  content: "\e940";
+}
+
+.pi-share-alt:before {
+  content: "\e97a";
+}
+
+.pi-lock:before {
+  content: "\e95f";
+}
+
+.pi-exclamation-triangle:before {
+  content: "\e922";
+}
+
+.pi-check-circle:before {
+  content: "\e90a";
+}
+
+.pi-sun:before {
+  content: "\e9c8";
+}
+
+.pi-moon:before {
+  content: "\e9c7";
+}

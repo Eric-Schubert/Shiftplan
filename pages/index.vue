@@ -19,8 +19,11 @@ const {
 });
 
 const swipeContainer = ref<HTMLElement | null>(null);
+const weekPreviewSentinel = ref<HTMLElement | null>(null);
 const generating = ref(false);
 const showBulkDialog = ref(false);
+const showWeekPreview = ref(false);
+let weekPreviewObserver: IntersectionObserver | null = null;
 
 const { isSwiping, swipeDirection, swipeOffset } = useSwipe(swipeContainer, {
   onSwipeLeft: () => appStore.nextWeek(),
@@ -64,6 +67,30 @@ function jumpWeeks(offset: number) {
     appStore.nextWeek();
   }
 }
+
+onMounted(() => {
+  if (!weekPreviewSentinel.value || !("IntersectionObserver" in window)) {
+    showWeekPreview.value = true;
+    return;
+  }
+
+  weekPreviewObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        showWeekPreview.value = true;
+        weekPreviewObserver?.disconnect();
+        weekPreviewObserver = null;
+      }
+    },
+    { rootMargin: "240px 0px" }
+  );
+
+  weekPreviewObserver.observe(weekPreviewSentinel.value);
+});
+
+onBeforeUnmount(() => {
+  weekPreviewObserver?.disconnect();
+});
 </script>
 
 <template>
@@ -127,12 +154,13 @@ function jumpWeeks(offset: number) {
         @generate="generateFromPattern"
       />
 
-      <div class="mt-1 sm:mt-0">
-        <WeekPreview />
+      <div ref="weekPreviewSentinel" class="mt-1 sm:mt-0">
+        <LazyWeekPreview v-if="showWeekPreview" />
       </div>
     </div>
 
-    <PlannerBulkGenerateDialog
+    <LazyPlannerBulkGenerateDialog
+      v-if="showBulkDialog"
       :visible="showBulkDialog"
       :year="appStore.selectedYear"
       :week="appStore.selectedWeek"

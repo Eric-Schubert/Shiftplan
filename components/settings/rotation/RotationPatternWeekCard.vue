@@ -136,9 +136,9 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             text
             rounded
             class="!h-11 !w-11"
-            :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufügen`"
+            :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufÃ¼gen`"
+            title="Mitarbeiter hinzufuegen"
             @click="handleOpenAssign(assignment.shift.shift_id, assignment.shift.name)"
-            v-tooltip="'Mitarbeiter hinzufügen'"
           />
         </div>
 
@@ -146,7 +146,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
           v-if="assignment.staff.length < assignment.shift.min_staff"
           class="flex items-center gap-1 text-yellow-600 dark:text-yellow-400"
         >
-          <Icon name="mdi:alert" class="text-lg" />
+          <span class="text-lg" aria-hidden="true">!</span>
           <span class="text-sm">{{ assignment.shift.min_staff - assignment.staff.length }} fehlt</span>
         </div>
       </div>

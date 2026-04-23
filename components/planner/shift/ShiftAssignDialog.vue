@@ -27,7 +27,7 @@ const dialogVisible = computed({
     :style="{ width: '24rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div v-if="availableStaff.length === 0" class="planner-empty !py-8">
-      <Icon name="mdi:account-check-outline" class="text-3xl text-[var(--text-3)]" />
+      <i class="pi pi-user-plus text-3xl text-[var(--text-3)]" aria-hidden="true"></i>
       <p class="text-sm">Alle verfügbaren Mitarbeiter sind dieser Schicht bereits zugeordnet.</p>
     </div>
 

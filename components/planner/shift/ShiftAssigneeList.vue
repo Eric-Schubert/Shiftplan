@@ -37,7 +37,7 @@ const emit = defineEmits<{
         :aria-label="`${staff.name} aus ${props.shift.name} entfernen`"
         @click.stop="emit('unassign', staff.staff_id)"
       >
-        <Icon name="mdi:close" class="text-xs" />
+        <i class="pi pi-times text-xs" aria-hidden="true"></i>
       </button>
     </span>
 
@@ -48,7 +48,7 @@ const emit = defineEmits<{
       :aria-label="`Mitarbeiter zu ${props.shift.name} hinzufügen`"
       @click="emit('add')"
     >
-      <Icon name="mdi:plus" class="text-sm" />
+      <i class="pi pi-plus text-sm" aria-hidden="true"></i>
       <span>Hinzufügen</span>
     </button>
   </div>
