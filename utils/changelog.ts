@@ -1,3 +1,5 @@
+import generatedChangelog from './changelog.generated.json'
+
 /**
  * Changelog-Daten für das Update-Banner.
  *
@@ -12,15 +14,10 @@ export interface ChangelogEntry {
   changes: string[]
 }
 
-// Automatisch generierte Einträge (aus git-cliff via scripts/generate-changelog.js)
-let generatedEntries: ChangelogEntry[] = []
-try {
-  // @ts-ignore - Datei wird beim Docker-Build generiert.
-  generatedEntries = await import('./changelog.generated.json').then(m => m.default || m)
-} catch {
-  // Datei existiert noch nicht (erster Dev-Start oder fehlgeschlagene Generierung).
-  generatedEntries = []
-}
+// Die generierte JSON-Datei ist bewusst eingecheckt und wird im Build aktualisiert.
+const generatedEntries: ChangelogEntry[] = Array.isArray(generatedChangelog)
+  ? generatedChangelog as ChangelogEntry[]
+  : []
 
 /**
  * Archiv-Einträge aus der Zeit vor der automatischen Release-Generierung.
