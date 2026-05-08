@@ -6,7 +6,11 @@ import {
 } from "~/server/utils/session";
 
 // Routen die IMMER öffentlich sind (auch POST/PATCH/DELETE)
-const PUBLIC_ROUTES = new Set(["/api/auth/login", "/api/auth/session"]);
+const PUBLIC_ROUTES = new Set([
+  "/api/auth/login",
+  "/api/auth/session",
+  "/api/analytics/visit",
+]);
 
 // Routen-Prefixe die nur mit GET öffentlich sind
 const PUBLIC_GET_PREFIXES = [

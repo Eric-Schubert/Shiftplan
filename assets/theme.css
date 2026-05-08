@@ -77,10 +77,12 @@
 html {
   background: var(--app-bg);
   font-family: var(--font-body, "Public Sans", "Segoe UI", sans-serif);
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, color-mix(in oklab, var(--accent-soft) 65%, transparent) 0%, transparent 34%),
     radial-gradient(circle at top right, color-mix(in oklab, var(--accent) 12%, transparent) 0%, transparent 26%),
@@ -621,6 +623,28 @@ select {
 
 .p-button.p-button-text:hover {
   background: color-mix(in oklab, var(--accent-soft) 42%, var(--surface-muted) 58%);
+}
+
+.p-tabs,
+.p-tabpanels,
+.p-tabpanel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p-tablist,
+.p-tablist-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p-tablist-content {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.p-tablist-tab-list {
+  min-width: max-content;
 }
 
 .p-inputtext,

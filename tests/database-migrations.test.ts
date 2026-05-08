@@ -22,12 +22,16 @@ describe("database migrations", () => {
       "001_main_core_schema",
       "002_main_rotation_schema",
       "003_main_audit_schema",
+      "004_main_page_visits_schema",
     ]);
     expect(second.applied).toHaveLength(0);
     expect(columnNames(db, "staff")).toEqual(
       expect.arrayContaining(["staff_id", "name", "active", "is_parttime"])
     );
     expect(columnNames(db, "audit_log")).toContain("created_at");
+    expect(columnNames(db, "page_visits")).toEqual(
+      expect.arrayContaining(["visit_date", "path", "visitor_hash", "country_code", "created_at"])
+    );
 
     db.close();
   });

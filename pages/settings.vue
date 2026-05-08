@@ -96,17 +96,18 @@ watch(
         </div>
       </section>
 
-      <section class="planner-slab !p-0 overflow-hidden">
-        <PrimeTabs v-model:value="activeTab">
-          <PrimeTabList class="overflow-x-auto border-b border-[var(--border-soft)] bg-[var(--surface-muted)] px-2 py-2">
+      <section class="planner-slab !p-0 max-w-full overflow-hidden">
+        <PrimeTabs v-model:value="activeTab" class="max-w-full">
+          <PrimeTabList class="max-w-full overflow-x-auto border-b border-[var(--border-soft)] bg-[var(--surface-muted)] px-2 py-2">
             <PrimeTab v-if="authStore.isAdmin" value="0" class="whitespace-nowrap">Mitarbeiter</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="1" class="whitespace-nowrap">Schichten</PrimeTab>
             <PrimeTab value="2" class="whitespace-nowrap">Rotationsmuster</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="3" class="whitespace-nowrap">Benutzer</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="5" class="whitespace-nowrap">Besuche</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="4" class="whitespace-nowrap">Änderungslog</PrimeTab>
           </PrimeTabList>
 
-          <PrimeTabPanels class="p-4 sm:p-5">
+          <PrimeTabPanels class="min-w-0 max-w-full p-4 sm:p-5">
             <PrimeTabPanel v-if="authStore.isAdmin" value="0">
               <StaffManager />
             </PrimeTabPanel>
@@ -121,6 +122,10 @@ watch(
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="3">
               <UserManager />
+            </PrimeTabPanel>
+
+            <PrimeTabPanel v-if="authStore.isAdmin" value="5">
+              <VisitAnalytics />
             </PrimeTabPanel>
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="4">
