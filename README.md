@@ -144,7 +144,22 @@ schichtplaner/
 |   |   |-- HolidayInfo.vue
 |   |   |-- ShiftCard.vue
 |   |   `-- WeekPreview.vue
+|   |-- prime/
+|   |   |-- PrimeCheckbox.vue
+|   |   |-- PrimeColumn.vue
+|   |   |-- PrimeDataTable.vue
+|   |   |-- PrimeInputNumber.vue
+|   |   |-- PrimeInputText.vue
+|   |   |-- PrimeSelect.vue
+|   |   |-- PrimeTab.vue
+|   |   |-- PrimeTabList.vue
+|   |   |-- PrimeTabPanel.vue
+|   |   |-- PrimeTabPanels.vue
+|   |   |-- PrimeTabs.vue
+|   |   `-- PrimeTag.vue
 |   `-- settings/
+|       |-- analytics/
+|       |   `-- VisitAnalytics.vue
 |       |-- audit/
 |       |   `-- AuditLog.vue
 |       |-- auth/
@@ -196,6 +211,9 @@ schichtplaner/
 |   `-- resolve-version.js
 |-- server/
 |   |-- api/
+|   |   |-- analytics/
+|   |   |   |-- index.get.ts
+|   |   |   `-- visit.post.ts
 |   |   |-- audit/
 |   |   |   `-- index.get.ts
 |   |   |-- auth/
@@ -239,7 +257,10 @@ schichtplaner/
 |   |       `-- index.post.ts
 |   |-- middleware/
 |   |   `-- auth.ts
+|   |-- plugins/
+|   |   `-- compression.ts
 |   |-- services/
+|   |   |-- analytics.service.ts
 |   |   |-- audit.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
@@ -247,6 +268,7 @@ schichtplaner/
 |   |   |-- shiftplan.service.ts
 |   |   `-- staff.service.ts
 |   `-- utils/
+|       |-- analytics.ts
 |       |-- auth.ts
 |       |-- database-migrations.js
 |       |-- database.ts
@@ -263,6 +285,7 @@ schichtplaner/
 |   |-- auth.store.ts
 |   `-- data.store.ts
 |-- types/
+|   |-- analytics.ts
 |   |-- auth.ts
 |   |-- holiday.ts
 |   |-- rotation.ts
@@ -362,6 +385,13 @@ schichtplaner/
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/holidays/public` | Public | No | `week`, `year` | - | Read public holidays |
 | `GET` | `/api/holidays/school` | Public | No | `states`, `week`, `year` | - | Read school holidays |
+
+### Analytics API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/analytics` | Admin | No | `days` | - | List analytics records |
+| `POST` | `/api/analytics/visit` | Authenticated | Yes | `path` | `path` | Create or update analytics data |
 <!-- AUTO-GENERATED-API-END -->
 
 </details>
@@ -405,6 +435,8 @@ schichtplaner/
 | `GET` | `/api/audit` | No | No | Yes | No |
 | `GET` | `/api/holidays/public` | Yes | Yes | Yes | No |
 | `GET` | `/api/holidays/school` | Yes | Yes | Yes | No |
+| `GET` | `/api/analytics` | No | No | Yes | No |
+| `POST` | `/api/analytics/visit` | No | Yes | Yes | Yes |
 <!-- AUTO-GENERATED-RBAC-END -->
 
 </details>
