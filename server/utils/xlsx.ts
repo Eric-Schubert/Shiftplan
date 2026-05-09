@@ -121,7 +121,7 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
     const xml = readXml(zip, path);
 
     if (sheets.length >= MAX_WORKSHEET_COUNT) {
-      throw new Error("Die Excel-Datei enthaelt zu viele Arbeitsblaetter");
+      throw new Error("Die Excel-Datei enthält zu viele Arbeitsblätter");
     }
 
     sheets.push({
@@ -274,6 +274,7 @@ function columnWidthsXml(widths: number[] | undefined, colCount: number): string
   const cols = Array.from({ length: colCount }, (_, index) => {
     const width = widths[index];
     if (!width) return "";
+    // language=XML
     return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`;
   })
     .filter(Boolean)
@@ -382,12 +383,12 @@ function readZip(buffer: Buffer): Map<string, Buffer> {
   let totalUncompressedSize = 0;
 
   if (entryCount > MAX_ZIP_ENTRY_COUNT) {
-    throw new Error("Die Excel-Datei enthaelt zu viele ZIP-Eintraege");
+    throw new Error("Die Excel-Datei enthält zu viele ZIP-Einträge");
   }
 
   for (let i = 0; i < entryCount; i++) {
     if (buffer.readUInt32LE(centralOffset) !== 0x02014b50) {
-      throw new Error("Ungueltige Excel-Datei: ZIP-Zentralverzeichnis defekt");
+      throw new Error("Ungültige Excel-Datei: ZIP-Zentralverzeichnis defekt");
     }
 
     const entry = readCentralEntry(buffer, centralOffset);
@@ -407,15 +408,15 @@ function readZip(buffer: Buffer): Map<string, Buffer> {
 function readCentralEntry(buffer: Buffer, offset: number): ParsedZipEntry {
   const flags = buffer.readUInt16LE(offset + 8);
 
-  if (flags & 1) {
-    throw new Error("Passwortgeschuetzte Excel-Dateien koennen nicht importiert werden");
+  if (flags % 2 === 1) {
+    throw new Error("Passwortgeschützte Excel-Dateien können nicht importiert werden");
   }
 
   const compressedSize = buffer.readUInt32LE(offset + 20);
   const uncompressedSize = buffer.readUInt32LE(offset + 24);
 
   if (compressedSize === 0xffffffff || uncompressedSize === 0xffffffff) {
-    throw new Error("ZIP64 Excel-Dateien werden nicht unterstuetzt");
+    throw new Error("ZIP64 Excel-Dateien werden nicht unterstützt");
   }
 
   return {
@@ -430,42 +431,41 @@ function readLocalEntry(buffer: Buffer, entry: ParsedZipEntry): Buffer {
   const offset = entry.localHeaderOffset;
 
   if (buffer.readUInt32LE(offset) !== 0x04034b50) {
-    throw new Error("Ungueltige Excel-Datei: lokaler ZIP-Header defekt");
+    throw new Error("Ungültige Excel-Datei: lokaler ZIP-Header defekt");
   }
 
   const nameLength = buffer.readUInt16LE(offset + 26);
   const extraLength = buffer.readUInt16LE(offset + 28);
   const dataOffset = offset + 30 + nameLength + extraLength;
   if (dataOffset + entry.compressedSize > buffer.length) {
-    throw new Error("Ungueltige Excel-Datei: ZIP-Daten abgeschnitten");
+    throw new Error("Ungültige Excel-Datei: ZIP-Daten abgeschnitten");
   }
   const data = buffer.subarray(dataOffset, dataOffset + entry.compressedSize);
 
   if (entry.method === 0) {
     if (data.length !== entry.uncompressedSize) {
-      throw new Error("Ungueltige Excel-Datei: ZIP-Groesse passt nicht zum Inhalt");
+      throw new Error("Ungültige Excel-Datei: ZIP-Größe passt nicht zum Inhalt");
     }
     return data;
   }
 
   if (entry.method === 8) {
+    let inflated: Buffer;
     try {
-      const inflated = inflateRawSync(data, {
+      inflated = inflateRawSync(data, {
         maxOutputLength: Math.max(1, entry.uncompressedSize),
       });
-      if (inflated.length !== entry.uncompressedSize) {
-        throw new Error("Ungueltige Excel-Datei: ZIP-Groesse passt nicht zum Inhalt");
-      }
-      return inflated;
     } catch (error) {
-      if (error instanceof Error && error.message.includes("passt nicht")) {
-        throw error;
-      }
-      throw new Error("Die Excel-Datei enthaelt ungueltige oder zu grosse ZIP-Daten");
+      throw new Error("Die Excel-Datei enthält ungültige oder zu große ZIP-Daten");
     }
+
+    if (inflated.length !== entry.uncompressedSize) {
+      throw new Error("Ungültige Excel-Datei: ZIP-Größe passt nicht zum Inhalt");
+    }
+    return inflated;
   }
 
-  throw new Error(`ZIP-Kompressionsmethode ${entry.method} wird nicht unterstuetzt`);
+  throw new Error(`ZIP-Kompressionsmethode ${entry.method} wird nicht unterstützt`);
 }
 
 function findEndOfCentralDirectory(buffer: Buffer): number {
@@ -477,13 +477,13 @@ function findEndOfCentralDirectory(buffer: Buffer): number {
     }
   }
 
-  throw new Error("Keine gueltige Excel-Datei: ZIP-Ende nicht gefunden");
+  throw new Error("Keine gültige Excel-Datei: ZIP-Ende nicht gefunden");
 }
 
 function readXml(zip: Map<string, Buffer>, path: string): string {
   const entry = zip.get(path);
   if (!entry) {
-    throw new Error(`Excel-Datei ist unvollstaendig: ${path} fehlt`);
+    throw new Error(`Excel-Datei ist unvollständig: ${path} fehlt`);
   }
 
   return entry.toString("utf-8");
@@ -539,12 +539,12 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
     const rowAttrs = parseAttrs(rowAttrsXml);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
     if (!Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > MAX_WORKSHEET_ROWS) {
-      throw new Error(`Die Excel-Datei enthaelt zu viele Zeilen in einem Arbeitsblatt`);
+      throw new Error(`Die Excel-Datei enthält zu viele Zeilen in einem Arbeitsblatt`);
     }
 
     parsedRows++;
     if (parsedRows > MAX_WORKSHEET_ROWS) {
-      throw new Error("Die Excel-Datei enthaelt zu viele Zeilen in einem Arbeitsblatt");
+      throw new Error("Die Excel-Datei enthält zu viele Zeilen in einem Arbeitsblatt");
     }
 
     const row: XlsxCellValue[] = [];
@@ -560,7 +560,7 @@ function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue
       const cellAttrs = parseAttrs(cellAttrsXml);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;
       if (!Number.isInteger(colNumber) || colNumber < 1 || colNumber > MAX_WORKSHEET_COLUMNS) {
-        throw new Error("Die Excel-Datei enthaelt zu viele Spalten in einem Arbeitsblatt");
+        throw new Error("Die Excel-Datei enthält zu viele Spalten in einem Arbeitsblatt");
       }
       row[colNumber - 1] = parseCellValue(cellXml, cellAttrs.t, sharedStrings);
       fallbackCol = colNumber + 1;
@@ -579,24 +579,24 @@ function validateZipEntry(
   totalUncompressedSize: number
 ): number {
   if (entry.uncompressedSize > MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE) {
-    throw new Error(`ZIP-Eintrag '${name}' ist zu gross fuer den Excel-Import`);
+    throw new Error(`ZIP-Eintrag '${name}' ist zu groß für den Excel-Import`);
   }
 
   const nextTotalSize = totalUncompressedSize + entry.uncompressedSize;
   if (nextTotalSize > MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE) {
-    throw new Error("Die entpackte Excel-Datei ist zu gross fuer den Import");
+    throw new Error("Die entpackte Excel-Datei ist zu groß für den Import");
   }
 
   if (entry.method === 8) {
     if (entry.compressedSize === 0 && entry.uncompressedSize > 0) {
-      throw new Error(`ZIP-Eintrag '${name}' ist ungueltig`);
+      throw new Error(`ZIP-Eintrag '${name}' ist ungültig`);
     }
 
     if (
       entry.compressedSize > 0 &&
       entry.uncompressedSize / entry.compressedSize > MAX_ZIP_EXPANSION_RATIO
     ) {
-      throw new Error(`ZIP-Eintrag '${name}' expandiert zu stark fuer den Excel-Import`);
+      throw new Error(`ZIP-Eintrag '${name}' expandiert zu stark für den Excel-Import`);
     }
   }
 

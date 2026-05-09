@@ -19,12 +19,12 @@ const dialogWidth = computed(() => (showReleaseList.value ? "880px" : "720px"));
 const displayCurrentVersion = computed(() => formatVersion(currentVersion));
 const dialogEyebrow = computed(() => {
   if (showReleaseList.value) return "Versionsarchiv";
-  return mode.value === "update" ? "Neu in dieser Version" : "Aenderungsprotokoll";
+  return mode.value === "update" ? "Neu in dieser Version" : "Änderungsprotokoll";
 });
 const dialogTitle = computed(() => {
   if (showReleaseList.value) return "Versionsverlauf";
   if (detailEntry.value) return formatReleaseTitle(detailEntry.value);
-  return mode.value === "update" ? "Was sich geaendert hat" : "Versionsverlauf";
+  return mode.value === "update" ? "Was sich geändert hat" : "Versionsverlauf";
 });
 
 watch(isVisible, (visible) => {
@@ -201,7 +201,7 @@ function openEntry(entry: ChangelogEntry) {
       <section class="changelog-detail__hero">
         <div class="changelog-detail__copy">
           <p class="changelog-dialog__eyebrow">
-            Veroeffentlicht am {{ detailEntry.date }}
+            Veröffentlicht am {{ detailEntry.date }}
           </p>
           <a
             v-if="extractVersion(detailEntry.title)"
@@ -219,7 +219,7 @@ function openEntry(entry: ChangelogEntry) {
             {{ detailEntry.title }}
           </h3>
           <p class="changelog-detail__summary">
-            {{ detailEntry.changes.length }} Aenderungen in diesem Stand.
+            {{ detailEntry.changes.length }} Änderungen in diesem Stand.
           </p>
         </div>
 
@@ -247,7 +247,7 @@ function openEntry(entry: ChangelogEntry) {
         <div class="changelog-detail__panel-header">
           <div>
             <p class="changelog-dialog__eyebrow">
-              Ueberblick
+              Überblick
             </p>
             <h4 class="changelog-detail__panel-title">
               Was neu ist
@@ -277,9 +277,9 @@ function openEntry(entry: ChangelogEntry) {
     >
       <i class="pi pi-info-circle text-xl" aria-hidden="true"></i>
       <div>
-        <strong>Noch kein Aenderungsprotokoll vorhanden.</strong>
+        <strong>Noch kein Änderungsprotokoll vorhanden.</strong>
         <p class="m-0 mt-1">
-          Sobald fuer diese Version ein Release erzeugt wurde, taucht er hier auf.
+          Sobald für diese Version ein Release erzeugt wurde, taucht er hier auf.
         </p>
       </div>
     </div>
@@ -288,7 +288,7 @@ function openEntry(entry: ChangelogEntry) {
       <div class="changelog-footer">
         <PrimeButton
           v-if="selectedEntry"
-          label="Zurueck"
+          label="Zurück"
           icon="pi pi-arrow-left"
           severity="secondary"
           outlined

@@ -24,14 +24,14 @@ const steps = [
     text: "Importieren oder Startpunkt festlegen",
   },
   {
-    title: "Pruefen",
+    title: "Prüfen",
     eyebrow: "2",
     text: "Besetzung je Musterwoche kontrollieren",
   },
   {
     title: "Ausrollen",
     eyebrow: "3",
-    text: "Wochenplaene erzeugen",
+    text: "Wochenpläne erzeugen",
   },
 ];
 
@@ -173,7 +173,8 @@ async function downloadExcelTemplate() {
     });
 
     if (!response.ok) {
-      throw new Error(await readResponseError(response));
+      excelImportError.value = await readResponseError(response);
+      return;
     }
 
     const blob = await response.blob();
@@ -300,8 +301,8 @@ async function readResponseError(response: Response): Promise<string> {
           </div>
           <p class="mt-3 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
             Lade eine Excel-Vorlage herunter, importiere ein fertiges Muster oder passe den
-            Startpunkt direkt in der App an. Nach einem Import bleiben bestehende Wochenplaene
-            unveraendert, bis du sie im letzten Schritt ausrollst.
+            Startpunkt direkt in der App an. Nach einem Import bleiben bestehende Wochenpläne
+            unverändert, bis du sie im letzten Schritt ausrollst.
           </p>
         </div>
 
@@ -339,7 +340,7 @@ async function readResponseError(response: Response): Promise<string> {
           <div class="rounded-[22px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="font-semibold text-[var(--text-1)]">Startpunkt setzen</p>
             <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
-              Zykluslaenge, Startjahr und Startwoche feinjustieren.
+              Zykluslänge, Startjahr und Startwoche feinjustieren.
             </p>
             <PrimeButton
               label="Konfiguration"
@@ -356,7 +357,7 @@ async function readResponseError(response: Response): Promise<string> {
           class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
         >
           Import abgeschlossen: {{ excelImportResult.importedRows }} Zeilen gelesen,
-          {{ excelImportResult.importedAssignments }} Zuweisungen uebernommen.
+          {{ excelImportResult.importedAssignments }} Zuweisungen übernommen.
         </div>
 
         <div
@@ -369,13 +370,13 @@ async function readResponseError(response: Response): Promise<string> {
 
       <section v-else-if="activeStep === 1" class="space-y-4">
         <div class="rounded-[24px] border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
-          <p class="planner-kicker">Pruefschritt</p>
+          <p class="planner-kicker">Prüfschritt</p>
           <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
             Kontrolliere das Muster unten im Board
           </h3>
           <p class="mt-2 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-            Der Assistent laesst das Muster sichtbar auf der Seite. Wenn du hier weitergehst,
-            wird noch nichts veraendert. Erst im naechsten Schritt werden Wochenplaene erzeugt.
+            Der Assistent lässt das Muster sichtbar auf der Seite. Wenn du hier weitergehst,
+            wird noch nichts verändert. Erst im nächsten Schritt werden Wochenpläne erzeugt.
           </p>
         </div>
 
@@ -405,7 +406,7 @@ async function readResponseError(response: Response): Promise<string> {
 
         <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
           Tipp: Wenn die Musterkarten unten passen, gehe auf <strong>Weiter</strong>.
-          Falls noch Namen fehlen, kannst du sie direkt im Board per Drag & Drop ergaenzen.
+          Falls noch Namen fehlen, kannst du sie direkt im Board per Drag & Drop ergänzen.
         </div>
       </section>
 
@@ -413,10 +414,10 @@ async function readResponseError(response: Response): Promise<string> {
         <div class="rounded-[24px] border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Ausrollen</p>
           <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
-            Wochenplaene aus dem aktuellen Muster erzeugen
+            Wochenpläne aus dem aktuellen Muster erzeugen
           </h3>
           <p class="mt-2 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-            Die ausgewaehlten Wochen werden mit dem aktuellen Rotationsmuster neu befuellt.
+            Die ausgewählten Wochen werden mit dem aktuellen Rotationsmuster neu befüllt.
             Vorhandene Zuweisungen in diesen Wochen werden ersetzt.
           </p>
         </div>
@@ -534,7 +535,7 @@ async function readResponseError(response: Response): Promise<string> {
         />
         <div class="flex justify-end gap-2">
           <PrimeButton
-            label="Zurueck"
+            label="Zurück"
             severity="secondary"
             text
             class="min-h-11"

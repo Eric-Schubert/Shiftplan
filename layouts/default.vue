@@ -94,8 +94,8 @@ onMounted(() => {
               rounded
               class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
               :icon="isSettingsPage ? 'pi pi-arrow-left' : 'pi pi-cog'"
-              :aria-label="isSettingsPage ? 'Zurueck zum Schichtplan' : 'Einstellungen oeffnen'"
-              :title="isSettingsPage ? 'Zurueck zum Schichtplan' : 'Einstellungen oeffnen'"
+              :aria-label="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
+              :title="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
             />
           </NuxtLink>
         </div>
@@ -105,5 +105,14 @@ onMounted(() => {
     <main class="app-main mx-auto max-w-[86rem] px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pt-8">
       <slot />
     </main>
+
+    <footer class="mx-auto flex max-w-[86rem] items-center justify-center px-4 pb-8 text-sm text-[var(--text-3)] sm:px-6 lg:px-8">
+      <NuxtLink
+        to="/impressum"
+        class="font-medium underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
+      >
+        Impressum
+      </NuxtLink>
+    </footer>
   </div>
 </template>

@@ -10,6 +10,7 @@ const PUBLIC_ROUTES = new Set([
   "/api/auth/login",
   "/api/auth/session",
   "/api/analytics/visit",
+  "/api/contact",
 ]);
 
 // Routen-Prefixe die nur mit GET öffentlich sind

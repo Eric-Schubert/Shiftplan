@@ -46,12 +46,12 @@ function seedDatabase(database: DatabaseType) {
     .prepare(
       "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES (?, 1, ?, ?, ?, 1, 1)"
     )
-    .run("Frueh", "06:00", "14:00", "#22c55e");
+    .run("Früh", "06:00", "14:00", "#22c55e");
   database
     .prepare(
       "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES (?, 1, ?, ?, ?, 1, 2)"
     )
-    .run("Spaet", "14:00", "22:00", "#3b82f6");
+    .run("Spät", "14:00", "22:00", "#3b82f6");
 
   database
     .prepare(
@@ -103,7 +103,7 @@ describe("Rotation Excel import/export", () => {
       "Schicht",
       "Mitarbeiter (Komma getrennt)",
     ]);
-    expect(rotation?.rows[9]).toEqual([1, "Frueh", "Anna Becker"]);
+    expect(rotation?.rows[9]).toEqual([1, "Früh", "Anna Becker"]);
     expect(staff?.rows[0]).toEqual(["Name", "Teilzeit", "So muss der Name in Rotation stehen"]);
     expect(shifts?.rows[0]).toEqual([
       "Schicht",
@@ -124,11 +124,11 @@ describe("Rotation Excel import/export", () => {
             [],
             ["Startjahr", 2026],
             ["Startwoche", 3],
-            ["Zykluslaenge", 2],
+            ["Zykluslänge", 2],
             [],
             ["Musterwoche", "Schicht", "Mitarbeiter (Komma getrennt)"],
-            [1, "Frueh", "Anna Becker, Ben Wagner"],
-            [2, "Spaet", "Ben Wagner"],
+            [1, "Früh", "Anna Becker, Ben Wagner"],
+            [2, "Spät", "Ben Wagner"],
           ],
         },
       ],
@@ -159,9 +159,9 @@ describe("Rotation Excel import/export", () => {
       start_week: 3,
     });
     expect(assignments).toEqual([
-      { pattern_week: 1, staff_name: "Anna Becker", shift_name: "Frueh" },
-      { pattern_week: 1, staff_name: "Ben Wagner", shift_name: "Frueh" },
-      { pattern_week: 2, staff_name: "Ben Wagner", shift_name: "Spaet" },
+      { pattern_week: 1, staff_name: "Anna Becker", shift_name: "Früh" },
+      { pattern_week: 1, staff_name: "Ben Wagner", shift_name: "Früh" },
+      { pattern_week: 2, staff_name: "Ben Wagner", shift_name: "Spät" },
     ]);
   });
 
@@ -176,6 +176,6 @@ describe("Rotation Excel import/export", () => {
       ],
     });
 
-    expect(() => parseXlsx(file)).toThrow(/zu gross/);
+    expect(() => parseXlsx(file)).toThrow(/zu groß/);
   });
 });

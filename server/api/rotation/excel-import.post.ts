@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   if (file.data.length > MAX_IMPORT_SIZE) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Die Excel-Datei darf maximal 2 MB gross sein",
+      statusMessage: "Die Excel-Datei darf maximal 2 MB groß sein",
     });
   }
 

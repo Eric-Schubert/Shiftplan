@@ -42,14 +42,16 @@ npm run dev
 ```
 
 Das Passwort sollte nach dem ersten Login geändert werden.
-Die App legt damit den initialen Admin-Benutzer `admin` an. Vorhersagbare Default-Credentials wie `admin/admin` werden nicht mehr erzeugt. Falls eine bestehende Datenbank noch einen unveraenderten Default-Admin enthaelt, blockiert der Start, bis `SHIFTPLAN_ADMIN_PASSWORD` gesetzt und `node setup.js` erneut ausgefuehrt wurde.
+Die App legt damit den initialen Admin-Benutzer `admin` an. Vorhersagbare Default-Credentials wie `admin/admin` werden nicht mehr erzeugt. Falls eine bestehende Datenbank noch einen unveränderten Default-Admin enthält, blockiert der Start, bis `SHIFTPLAN_ADMIN_PASSWORD` gesetzt und `node setup.js` erneut ausgeführt wurde.
 
 ## Docker
 
 ```bash
 docker build -t schichtplaner .
-docker run --rm -p 3000:3000 -e SHIFTPLAN_ADMIN_PASSWORD=SicheresPasswort1 -v ${PWD}/db:/app/db schichtplaner
+docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SicheresPasswort1 -v ${PWD}/db:/app/db schichtplaner
 ```
+
+Die lokale `.env` wird nicht in das Image kopiert. Übergib sie beim Start mit `--env-file .env` oder in Docker Compose per `env_file`, damit Impressums- und weitere Laufzeitvariablen im Container verfügbar sind.
 
 Aktuelle Images werden nach Releases nach GHCR gepusht:
 

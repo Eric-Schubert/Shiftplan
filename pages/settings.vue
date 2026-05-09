@@ -21,7 +21,7 @@ watch(
     <div v-if="authStore.isChecking" class="flex min-h-[60vh] items-center justify-center">
       <div class="planner-slab flex items-center gap-3 px-5 py-4 text-[var(--text-2)]">
         <PrimeProgressSpinner class="!h-6 !w-6" />
-        <span class="text-sm font-semibold">Session wird geprueft.</span>
+        <span class="text-sm font-semibold">Session wird geprüft.</span>
       </div>
     </div>
 
@@ -104,6 +104,7 @@ watch(
             <PrimeTab value="2" class="whitespace-nowrap">Rotationsmuster</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="3" class="whitespace-nowrap">Benutzer</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="5" class="whitespace-nowrap">Besuche</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="6" class="whitespace-nowrap">Kontakt</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="4" class="whitespace-nowrap">Änderungslog</PrimeTab>
           </PrimeTabList>
 
@@ -126,6 +127,10 @@ watch(
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="5">
               <VisitAnalytics />
+            </PrimeTabPanel>
+
+            <PrimeTabPanel v-if="authStore.isAdmin" value="6">
+              <ContactMessages />
             </PrimeTabPanel>
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="4">

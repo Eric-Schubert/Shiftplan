@@ -37,12 +37,12 @@ export const RotationExcelService = {
     const rotationRows: XlsxCellValue[][] = [
       ["Rotation bearbeiten"],
       [
-        "Aendere oben den Startpunkt und unten nur die Mitarbeiter-Namen. Schichtnamen muessen so bleiben wie im Blatt 'Schichten'.",
+        "Ändere oben den Startpunkt und unten nur die Mitarbeiter-Namen. Schichtnamen müssen so bleiben wie im Blatt 'Schichten'.",
       ],
       ["Startjahr", pattern.config.start_year, "Jahr, in dem Musterwoche 1 beginnt."],
       ["Startwoche", pattern.config.start_week, "Kalenderwoche, in der Musterwoche 1 gilt."],
       [
-        "Zykluslaenge",
+        "Zykluslänge",
         pattern.config.cycle_length,
         "Anzahl der Musterwochen. Danach startet die Rotation wieder bei Musterwoche 1.",
       ],
@@ -123,7 +123,7 @@ export const RotationExcelService = {
       workbook.sheets[0];
 
     if (!rotationSheet) {
-      badRequest("Die Excel-Datei enthaelt kein Arbeitsblatt");
+      badRequest("Die Excel-Datei enthält kein Arbeitsblatt");
     }
 
     const config = parseConfig(rotationSheet.rows);
@@ -220,7 +220,7 @@ function createInstructionRows(
     ["Was ist eine Schichtrotation?"],
     [
       "Rotation",
-      "Die Rotation ist ein wiederholendes Muster. Bei einer Zykluslaenge von 4 gibt es Musterwoche 1, 2, 3 und 4. Danach beginnt wieder Musterwoche 1.",
+      "Die Rotation ist ein wiederholendes Muster. Bei einer Zykluslänge von 4 gibt es Musterwoche 1, 2, 3 und 4. Danach beginnt wieder Musterwoche 1.",
     ],
     [
       "Musterwoche",
@@ -232,19 +232,19 @@ function createInstructionRows(
     ],
     [
       "Beispiel",
-      `Bei Start KW ${config.start_week}/${config.start_year} und Zykluslaenge ${config.cycle_length} ist diese KW Musterwoche 1. Die naechste KW ist Musterwoche 2, bis der Zyklus wieder bei 1 beginnt.`,
+      `Bei Start KW ${config.start_week}/${config.start_year} und Zykluslänge ${config.cycle_length} ist diese KW Musterwoche 1. Die nächste KW ist Musterwoche 2, bis der Zyklus wieder bei 1 beginnt.`,
     ],
     [
       "Generieren",
-      "Wenn die App einen Plan aus dem Muster generiert, rechnet sie zuerst aus, welche Musterwoche fuer die Kalenderwoche gilt, und uebernimmt dann die Namen aus dieser Musterwoche.",
+      "Wenn die App einen Plan aus dem Muster generiert, rechnet sie zuerst aus, welche Musterwoche für die Kalenderwoche gilt, und übernimmt dann die Namen aus dieser Musterwoche.",
     ],
     [],
     [],
     ["So bearbeitest du die Datei"],
-    ["1", "Oeffne das Blatt 'Rotation'."],
+    ["1", "Öffne das Blatt 'Rotation'."],
     [
       "2",
-      "Passe oben Startjahr, Startwoche und Zykluslaenge an, falls der Rotationsstart geaendert werden soll.",
+      "Passe oben Startjahr, Startwoche und Zykluslänge an, falls der Rotationsstart geändert werden soll.",
     ],
     [
       "3",
@@ -252,7 +252,7 @@ function createInstructionRows(
     ],
     [
       "4",
-      `Beispiel fuer eine Zelle: ${firstStaff}, ${secondStaff}`,
+      `Beispiel für eine Zelle: ${firstStaff}, ${secondStaff}`,
     ],
     [
       "5",
@@ -260,18 +260,18 @@ function createInstructionRows(
     ],
     [
       "6",
-      "Schichtnamen bitte nicht aendern. Verwende exakt die Namen aus dem Blatt 'Schichten'.",
+      "Schichtnamen bitte nicht ändern. Verwende exakt die Namen aus dem Blatt 'Schichten'.",
     ],
     [
       "7",
       "Speichere die Datei als .xlsx und lade sie wieder in der App hoch.",
     ],
     [],
-    ["Was darf geaendert werden?"],
-    ["Ja", "Startjahr, Startwoche, Zykluslaenge im Blatt 'Rotation'."],
+    ["Was darf geändert werden?"],
+    ["Ja", "Startjahr, Startwoche, Zykluslänge im Blatt 'Rotation'."],
     ["Ja", "Mitarbeiter-Namen in der Spalte 'Mitarbeiter (Komma getrennt)'."],
     ["Ja", "Weitere Zeilen mit vorhandenen Musterwochen und vorhandenen Schichten, falls du die Tabelle erweiterst."],
-    ["Nein", "Blattname 'Rotation' und die Spaltenueberschriften."],
+    ["Nein", "Blattname 'Rotation' und die Spaltenüberschriften."],
     ["Nein", "Schichtnamen, wenn sie nicht exakt so auch im Blatt 'Schichten' stehen."],
     ["Nein", "Mitarbeiter-Namen, wenn sie nicht exakt so auch im Blatt 'Mitarbeiter' stehen."],
     [],
@@ -280,7 +280,7 @@ function createInstructionRows(
     ["Mehrere Personen", `${firstStaff}, ${secondStaff}`],
     ["Keine Person", "Zelle leer lassen"],
     ["Schichtzeile", `Musterwoche 1 | ${firstShift} | ${firstStaff}, ${secondStaff}`],
-    ["Naechste Schicht", `Musterwoche 1 | ${secondShift} | ${secondStaff}`],
+    ["Nächste Schicht", `Musterwoche 1 | ${secondShift} | ${secondStaff}`],
     [],
     ["Nachschlageblaetter"],
     [
@@ -302,7 +302,7 @@ function parseConfig(rows: XlsxCellValue[][]): Omit<RotationConfig, "config_id">
   return {
     start_year: integerInRange(readCell(rows, 2, 1), "Startjahr", 2020, 2100),
     start_week: integerInRange(readCell(rows, 3, 1), "Startwoche", 1, 53),
-    cycle_length: integerInRange(readCell(rows, 4, 1), "Zykluslaenge", 1, 52),
+    cycle_length: integerInRange(readCell(rows, 4, 1), "Zykluslänge", 1, 52),
   };
 }
 

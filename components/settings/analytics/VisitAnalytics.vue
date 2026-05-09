@@ -140,7 +140,7 @@ onMounted(fetchSummary);
     <div v-else-if="errorMessage" class="planner-empty">
       <i class="pi pi-exclamation-triangle text-2xl text-[var(--danger-ink)]" aria-hidden="true"></i>
       <div>
-        <strong class="block text-[var(--text-1)]">Statistik nicht verfuegbar</strong>
+        <strong class="block text-[var(--text-1)]">Statistik nicht verfügbar</strong>
         <span class="text-sm">{{ errorMessage }}</span>
       </div>
     </div>

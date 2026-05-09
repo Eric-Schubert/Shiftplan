@@ -113,7 +113,7 @@ export const ShiftplanService = {
   },
 
   /**
-   * Prueft ob eine Zuweisung bereits existiert
+   * Prüft ob eine Zuweisung bereits existiert
    */
   hasAssignment(staffId: number, shiftId: number, weekId: number): boolean {
     const db = getDatabase();

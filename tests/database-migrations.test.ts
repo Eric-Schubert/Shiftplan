@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   migrateAdminDatabase,
   migrateMainDatabase,
-} from "../server/utils/database-migrations.js";
+} from "~/server/utils/database-migrations.js";
 
 function columnNames(db: DatabaseType, table: string): string[] {
   return db.prepare(`PRAGMA table_info(${table})`).all().map((column: any) => column.name);
@@ -115,6 +115,9 @@ describe("database migrations", () => {
     expect(user.active).toBe(1);
     expect(user.created_at).toBeTruthy();
     expect(await bcrypt.compare("BootstrapPass1", user.password_hash)).toBe(true);
+    expect(columnNames(db, "contact_messages")).toEqual(
+      expect.arrayContaining(["contact_id", "name", "reply_to", "message", "created_at", "read_at"])
+    );
 
     db.close();
   });

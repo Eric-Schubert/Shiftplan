@@ -23,6 +23,7 @@ declare module 'vue' {
     PrimeTabPanels: typeof import('primevue/tabpanels')['default']
     PrimeTabs: typeof import('primevue/tabs')['default']
     PrimeTag: typeof import('primevue/tag')['default']
+    PrimeTextarea: typeof import('primevue/textarea')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

@@ -30,7 +30,7 @@ const dataStore = useDataStore();
     </div>
 
     <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
-      Fuehrt dich durch Excel-Import, Musterpruefung und Jahresausrollung in einem Ablauf.
+      Führt dich durch Excel-Import, Musterprüfung und Jahresausrollung in einem Ablauf.
     </div>
   </div>
 </template>

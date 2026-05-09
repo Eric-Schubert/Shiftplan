@@ -32,6 +32,19 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       appVersion: getAppVersion(),
+      imprint: {
+        providerName: process.env.NUXT_PUBLIC_IMPRINT_PROVIDER_NAME || "",
+        streetAddress: process.env.NUXT_PUBLIC_IMPRINT_STREET_ADDRESS || "",
+        postalCode: process.env.NUXT_PUBLIC_IMPRINT_POSTAL_CODE || "",
+        city: process.env.NUXT_PUBLIC_IMPRINT_CITY || "",
+        country: process.env.NUXT_PUBLIC_IMPRINT_COUNTRY || "Deutschland",
+        publicEmail: process.env.NUXT_PUBLIC_IMPRINT_PUBLIC_EMAIL || "",
+        phone: process.env.NUXT_PUBLIC_IMPRINT_PHONE || "",
+        representedBy: process.env.NUXT_PUBLIC_IMPRINT_REPRESENTED_BY || "",
+        registerCourt: process.env.NUXT_PUBLIC_IMPRINT_REGISTER_COURT || "",
+        registerNumber: process.env.NUXT_PUBLIC_IMPRINT_REGISTER_NUMBER || "",
+        vatId: process.env.NUXT_PUBLIC_IMPRINT_VAT_ID || "",
+      },
     },
   },
 
@@ -44,7 +57,7 @@ export default defineNuxtConfig({
       meta: [
         {
           name: "description",
-          content: "Schichtplaner fuer Wochenplanung, Rotation und Teamverwaltung.",
+          content: "Schichtplaner für Wochenplanung, Rotation und Teamverwaltung.",
         },
       ],
       link: [
