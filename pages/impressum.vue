@@ -347,6 +347,15 @@ async function submitContact() {
             <p id="contact-message-help" class="text-xs leading-5 text-[var(--text-3)]">
               {{ messageHelpText }}
             </p>
+            <p class="text-xs leading-5 text-[var(--text-3)]">
+              Details zur Verarbeitung findest du in der
+              <NuxtLink
+                to="/datenschutz"
+                class="font-medium text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+              >
+                Datenschutzerklärung
+              </NuxtLink>.
+            </p>
           </div>
 
           <div

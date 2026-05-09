@@ -106,12 +106,19 @@ onMounted(() => {
       <slot />
     </main>
 
-    <footer class="mx-auto flex max-w-[86rem] items-center justify-center px-4 pb-8 text-sm text-[var(--text-3)] sm:px-6 lg:px-8">
+    <footer class="mx-auto flex max-w-[86rem] items-center justify-center gap-3 px-4 pb-8 text-sm text-[var(--text-3)] sm:px-6 lg:px-8">
       <NuxtLink
         to="/impressum"
         class="font-medium underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
       >
         Impressum
+      </NuxtLink>
+      <span aria-hidden="true">·</span>
+      <NuxtLink
+        to="/datenschutz"
+        class="font-medium underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
+      >
+        Datenschutz
       </NuxtLink>
     </footer>
   </div>
