@@ -158,7 +158,8 @@ schichtplaner/
 |   |   |-- PrimeTabPanel.vue
 |   |   |-- PrimeTabPanels.vue
 |   |   |-- PrimeTabs.vue
-|   |   `-- PrimeTag.vue
+|   |   |-- PrimeTag.vue
+|   |   `-- PrimeTextarea.vue
 |   `-- settings/
 |       |-- analytics/
 |       |   `-- VisitAnalytics.vue
@@ -167,6 +168,8 @@ schichtplaner/
 |       |-- auth/
 |       |   |-- AdminLogin.vue
 |       |   `-- ChangePasswordDialog.vue
+|       |-- contact/
+|       |   `-- ContactMessages.vue
 |       |-- rotation/
 |       |   |-- RotationAssignDialog.vue
 |       |   |-- RotationConfigDialog.vue
@@ -201,6 +204,7 @@ schichtplaner/
 |-- layouts/
 |   `-- default.vue
 |-- pages/
+|   |-- impressum.vue
 |   |-- index.vue
 |   `-- settings.vue
 |-- scripts/
@@ -227,6 +231,10 @@ schichtplaner/
 |   |   |   |-- session.get.ts
 |   |   |   |-- users.get.ts
 |   |   |   `-- users.post.ts
+|   |   |-- contact/
+|   |   |   |-- messages/
+|   |   |   |   `-- [id].patch.ts
+|   |   |   `-- messages.get.ts
 |   |   |-- holidays/
 |   |   |   |-- public.get.ts
 |   |   |   `-- school.get.ts
@@ -251,12 +259,13 @@ schichtplaner/
 |   |   |   |-- index.get.ts
 |   |   |   |-- unassign.post.ts
 |   |   |   `-- year-summary.get.ts
-|   |   `-- staff/
-|   |       |-- [id].delete.ts
-|   |       |-- [id].get.ts
-|   |       |-- [id].patch.ts
-|   |       |-- index.get.ts
-|   |       `-- index.post.ts
+|   |   |-- staff/
+|   |   |   |-- [id].delete.ts
+|   |   |   |-- [id].get.ts
+|   |   |   |-- [id].patch.ts
+|   |   |   |-- index.get.ts
+|   |   |   `-- index.post.ts
+|   |   `-- contact.post.ts
 |   |-- middleware/
 |   |   `-- auth.ts
 |   |-- plugins/
@@ -264,6 +273,7 @@ schichtplaner/
 |   |-- services/
 |   |   |-- analytics.service.ts
 |   |   |-- audit.service.ts
+|   |   |-- contact.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
 |   |   |-- shift.service.ts
@@ -289,6 +299,7 @@ schichtplaner/
 |-- types/
 |   |-- analytics.ts
 |   |-- auth.ts
+|   |-- contact.ts
 |   |-- holiday.ts
 |   |-- rotation.ts
 |   |-- shift.ts
@@ -394,6 +405,14 @@ schichtplaner/
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/analytics` | Admin | No | `days` | - | List analytics records |
 | `POST` | `/api/analytics/visit` | Authenticated | Yes | `path` | `path` | Create or update analytics data |
+
+### Contact API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/contact` | Authenticated | Yes | - | `company`, `message`, `name`, `replyTo`, `subject` | Create or update contact data |
+| `GET` | `/api/contact/messages` | Admin | No | `limit`, `offset` | - | List contact records |
+| `PATCH` | `/api/contact/messages/:id` | Admin | Yes | - | - | Update one contact record |
 <!-- AUTO-GENERATED-API-END -->
 
 </details>
@@ -439,6 +458,9 @@ schichtplaner/
 | `GET` | `/api/holidays/school` | Yes | Yes | Yes | No |
 | `GET` | `/api/analytics` | No | No | Yes | No |
 | `POST` | `/api/analytics/visit` | No | Yes | Yes | Yes |
+| `POST` | `/api/contact` | No | Yes | Yes | Yes |
+| `GET` | `/api/contact/messages` | No | No | Yes | No |
+| `PATCH` | `/api/contact/messages/:id` | No | No | Yes | Yes |
 <!-- AUTO-GENERATED-RBAC-END -->
 
 </details>
