@@ -51,7 +51,13 @@ docker build -t schichtplaner .
 docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SicheresPasswort1 -v ${PWD}/db:/app/db schichtplaner
 ```
 
-Die lokale `.env` wird nicht in das Image kopiert. Übergib sie beim Start mit `--env-file .env` oder in Docker Compose per `env_file`, damit Impressums- und weitere Laufzeitvariablen im Container verfügbar sind.
+Mit Docker Compose startet das veröffentlichte Image über die mitgelieferte `compose.yaml`:
+
+```bash
+docker compose up -d
+```
+
+Die lokale `.env` wird nicht in das Image kopiert. Übergib sie beim Start mit `--env-file .env` oder in Docker Compose per `env_file`, damit Impressums- und weitere Laufzeitvariablen im Container verfügbar sind. Compose liest `.env` zwar für Variablen in der YAML, reicht die Werte aber nur mit `env_file` an den Container weiter.
 
 Aktuelle Images werden nach Releases nach GHCR gepusht:
 
@@ -59,6 +65,25 @@ Aktuelle Images werden nach Releases nach GHCR gepusht:
 ghcr.io/eric-schubert/shiftplanv2:latest
 ghcr.io/eric-schubert/shiftplanv2:<version>
 ```
+
+## Kontaktformular per E-Mail
+
+Kontaktanfragen werden lokal im Admin-Bereich gespeichert. Optional kann der Server zusätzlich eine Benachrichtigung über Microsoft Graph an ein Exchange-Online-Postfach senden.
+
+Benötigte `.env`-Werte:
+
+```env
+CONTACT_MAIL_PROVIDER=graph
+CONTACT_MAIL_TO=ziel@example.com
+CONTACT_MAIL_GRAPH_TENANT_ID=
+CONTACT_MAIL_GRAPH_CLIENT_ID=
+CONTACT_MAIL_GRAPH_CLIENT_SECRET=
+CONTACT_MAIL_GRAPH_FROM=postfach@example.com
+CONTACT_MAIL_SUBJECT_PREFIX=[Schichtplaner]
+CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
+```
+
+Dafür in Microsoft Entra eine App-Registrierung mit Microsoft-Graph-Anwendungsberechtigung `Mail.Send` anlegen, Admin Consent erteilen und idealerweise den Zugriff der App auf das Versandpostfach begrenzen. Ohne diese Variablen bleibt das Formular funktionsfähig und speichert Anfragen nur lokal.
 
 ## Rollen
 

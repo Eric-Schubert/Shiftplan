@@ -1,4 +1,5 @@
 import { ContactService } from "~/server/services/contact.service";
+import { ContactMailService } from "~/server/services/contact-mail.service";
 import { getClientIP } from "~/server/utils/session";
 import { sanitizeString, validateString } from "~/server/utils/validation";
 
@@ -83,13 +84,17 @@ export default defineEventHandler(async (event) => {
     })
   )!;
 
-  ContactService.createMessage({
+  const savedMessage = ContactService.createMessage({
     name,
     replyTo,
     subject,
     message,
     ip,
     userAgent: getHeader(event, "user-agent") || "",
+  });
+
+  await ContactMailService.sendMessageNotification(savedMessage).catch((error) => {
+    console.error("[contact] E-Mail-Benachrichtigung konnte nicht versendet werden", error);
   });
 
   return { success: true };

@@ -1,0 +1,31 @@
+services:
+  schichtplaner:
+    image: ghcr.io/eric-schubert/shiftplanv2:latest
+    container_name: schichtplaner
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - schichtplaner-db:/app/db
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  schichtplaner-db:
+    driver: local
+
+networks: {}
