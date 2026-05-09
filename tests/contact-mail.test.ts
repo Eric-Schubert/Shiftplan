@@ -90,7 +90,12 @@ describe("ContactMailService", () => {
     await ContactMailService.sendMessageNotification(contactMessage);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(String(fetchMock.mock.calls[1][0])).toContain(
+    const sendMailCall = fetchMock.mock.calls.at(1);
+    if (!sendMailCall) {
+      throw new Error("Microsoft Graph sendMail request wurde nicht ausgeführt");
+    }
+
+    expect(String(sendMailCall[0])).toContain(
       "https://graph.microsoft.com/v1.0/users/postfach%40example.com/sendMail"
     );
     expect(sendMailPayload?.message.subject).toBe("[Schichtplaner] Dienstplan");
