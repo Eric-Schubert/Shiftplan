@@ -12,6 +12,15 @@ const contactForm = reactive({
 const sending = ref(false);
 const sent = ref(false);
 const error = ref("");
+const submitAttempted = ref(false);
+const MIN_MESSAGE_LENGTH = 10;
+
+type ContactValidation = {
+  name?: string;
+  replyTo?: string;
+  subject?: string;
+  message?: string;
+};
 
 const addressLines = computed(() => {
   const postalCity = [imprint.value.postalCode, imprint.value.city].filter(Boolean).join(" ");
@@ -31,13 +40,57 @@ const hasCoreImprint = computed(
     Boolean(imprint.value.city)
 );
 
-const canSubmit = computed(
-  () =>
-    contactForm.name.trim().length >= 2 &&
-    contactForm.replyTo.trim().length >= 5 &&
-    contactForm.message.trim().length >= 10 &&
-    !sending.value
+const contactValidation = computed<ContactValidation>(() => {
+  const validation: ContactValidation = {};
+  const name = contactForm.name.trim();
+  const replyTo = contactForm.replyTo.trim();
+  const subject = contactForm.subject.trim();
+  const message = contactForm.message.trim();
+
+  if (!name) {
+    validation.name = "Bitte gib deinen Namen ein.";
+  } else if (name.length < 2) {
+    validation.name = "Der Name braucht mindestens 2 Zeichen.";
+  }
+
+  if (!replyTo) {
+    validation.replyTo = "Bitte gib eine E-Mail-Adresse oder Telefonnummer an.";
+  } else if (replyTo.length < 5) {
+    validation.replyTo = "Der Rückkontakt ist zu kurz.";
+  }
+
+  if (subject && subject.length < 2) {
+    validation.subject = "Der Betreff braucht mindestens 2 Zeichen.";
+  }
+
+  if (!message) {
+    validation.message = "Bitte gib eine Nachricht ein.";
+  } else if (message.length < MIN_MESSAGE_LENGTH) {
+    validation.message = `Die Nachricht braucht mindestens ${MIN_MESSAGE_LENGTH} Zeichen.`;
+  }
+
+  return validation;
+});
+
+const hasValidationErrors = computed(() => Object.keys(contactValidation.value).length > 0);
+const canSubmit = computed(() => !hasValidationErrors.value && !sending.value);
+const showValidation = computed(() => submitAttempted.value);
+const messageCharactersRemaining = computed(() =>
+  Math.max(0, MIN_MESSAGE_LENGTH - contactForm.message.trim().length)
 );
+const messageHelpText = computed(() => {
+  if (messageCharactersRemaining.value > 0 && contactForm.message.trim().length > 0) {
+    return `Noch ${messageCharactersRemaining.value} Zeichen bis zum Senden.`;
+  }
+
+  return "Die Angaben werden zur Bearbeitung der Anfrage gespeichert.";
+});
+const contactFieldIds: Record<keyof ContactValidation, string> = {
+  name: "contact-name",
+  replyTo: "contact-reply-to",
+  subject: "contact-subject",
+  message: "contact-message",
+};
 
 useSeoMeta({
   title: "Impressum | Schichtplaner",
@@ -45,11 +98,22 @@ useSeoMeta({
 });
 
 async function submitContact() {
-  if (!canSubmit.value) return;
-
-  sending.value = true;
+  submitAttempted.value = true;
   sent.value = false;
   error.value = "";
+
+  if (!canSubmit.value) {
+    await nextTick();
+    const firstInvalidField = Object.keys(contactValidation.value)[0] as
+      | keyof ContactValidation
+      | undefined;
+    if (firstInvalidField) {
+      document.getElementById(contactFieldIds[firstInvalidField])?.focus();
+    }
+    return;
+  }
+
+  sending.value = true;
 
   try {
     await $fetch("/api/contact", {
@@ -68,6 +132,7 @@ async function submitContact() {
     contactForm.subject = "";
     contactForm.message = "";
     contactForm.company = "";
+    submitAttempted.value = false;
     sent.value = true;
   } catch (contactError: any) {
     error.value =
@@ -198,7 +263,17 @@ async function submitContact() {
                 class="w-full"
                 autocomplete="name"
                 :disabled="sending"
+                :invalid="showValidation && Boolean(contactValidation.name)"
+                :aria-invalid="showValidation && Boolean(contactValidation.name)"
+                aria-describedby="contact-name-error"
               />
+              <p
+                v-if="showValidation && contactValidation.name"
+                id="contact-name-error"
+                class="text-xs font-medium leading-5 text-[var(--danger-ink)]"
+              >
+                {{ contactValidation.name }}
+              </p>
             </div>
 
             <div class="space-y-1.5">
@@ -212,7 +287,17 @@ async function submitContact() {
                 placeholder="E-Mail oder Telefon"
                 autocomplete="email"
                 :disabled="sending"
+                :invalid="showValidation && Boolean(contactValidation.replyTo)"
+                :aria-invalid="showValidation && Boolean(contactValidation.replyTo)"
+                aria-describedby="contact-reply-to-error"
               />
+              <p
+                v-if="showValidation && contactValidation.replyTo"
+                id="contact-reply-to-error"
+                class="text-xs font-medium leading-5 text-[var(--danger-ink)]"
+              >
+                {{ contactValidation.replyTo }}
+              </p>
             </div>
           </div>
 
@@ -225,7 +310,17 @@ async function submitContact() {
               v-model="contactForm.subject"
               class="w-full"
               :disabled="sending"
+              :invalid="showValidation && Boolean(contactValidation.subject)"
+              :aria-invalid="showValidation && Boolean(contactValidation.subject)"
+              aria-describedby="contact-subject-error"
             />
+            <p
+              v-if="showValidation && contactValidation.subject"
+              id="contact-subject-error"
+              class="text-xs font-medium leading-5 text-[var(--danger-ink)]"
+            >
+              {{ contactValidation.subject }}
+            </p>
           </div>
 
           <div class="space-y-1.5">
@@ -238,10 +333,28 @@ async function submitContact() {
               class="min-h-36 w-full resize-y"
               auto-resize
               :disabled="sending"
+              :invalid="showValidation && Boolean(contactValidation.message)"
+              :aria-invalid="showValidation && Boolean(contactValidation.message)"
+              aria-describedby="contact-message-help contact-message-error"
             />
-            <p class="text-xs leading-5 text-[var(--text-3)]">
-              Die Angaben werden zur Bearbeitung der Anfrage gespeichert.
+            <p
+              v-if="showValidation && contactValidation.message"
+              id="contact-message-error"
+              class="text-xs font-medium leading-5 text-[var(--danger-ink)]"
+            >
+              {{ contactValidation.message }}
             </p>
+            <p id="contact-message-help" class="text-xs leading-5 text-[var(--text-3)]">
+              {{ messageHelpText }}
+            </p>
+          </div>
+
+          <div
+            v-if="showValidation && hasValidationErrors"
+            class="rounded-2xl border border-[color-mix(in_oklab,var(--danger-ink)_24%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
+            role="alert"
+          >
+            Bitte korrigiere die markierten Felder. Danach kannst du die Nachricht senden.
           </div>
 
           <div
@@ -266,7 +379,7 @@ async function submitContact() {
             icon="pi pi-send"
             class="min-h-11 w-full sm:w-auto"
             :loading="sending"
-            :disabled="!canSubmit"
+            :disabled="sending"
           />
         </form>
       </section>
