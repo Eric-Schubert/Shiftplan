@@ -217,6 +217,10 @@ useSeoMeta({
               Interesse liegt im sicheren, nachvollziehbaren und bedarfsgerechten Betrieb der
               Anwendung.
             </p>
+            <p>
+              Wenn im Browser Do Not Track aktiviert ist, wird kein Besuchsaufruf an die
+              Statistikroute gesendet.
+            </p>
           </div>
         </section>
 

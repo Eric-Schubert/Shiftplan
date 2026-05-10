@@ -3,7 +3,14 @@ export default defineNuxtPlugin(() => {
   let lastTrackedPath = "";
   let lastTrackedAt = 0;
 
+  function hasDoNotTrackEnabled() {
+    const nav = navigator as Navigator & { msDoNotTrack?: string | null };
+    const win = window as Window & { doNotTrack?: string | null };
+    return [nav.doNotTrack, nav.msDoNotTrack, win.doNotTrack].includes("1");
+  }
+
   function track(path: string) {
+    if (hasDoNotTrackEnabled()) return;
     if (!path || path === "/settings" || path.startsWith("/settings/")) return;
 
     const now = Date.now();
