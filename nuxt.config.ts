@@ -24,7 +24,7 @@ const primevueThemePath = path.resolve(__dirname, "theme/primevue-theme.ts");
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   sourcemap: {
-    client: true,
+    client: false,
     server: false,
   },
 
