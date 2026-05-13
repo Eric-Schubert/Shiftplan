@@ -1,7 +1,6 @@
 import { RotationExcelService } from "~/server/services/rotation-excel.service";
 import { requirePlanner } from "~/server/utils/auth";
-
-const MAX_IMPORT_SIZE = 2 * 1024 * 1024;
+import { getRotationValidationConfig } from "~/server/config/domain-config";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
@@ -16,10 +15,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (file.data.length > MAX_IMPORT_SIZE) {
+  const maxImportBytes = getRotationValidationConfig().excelImportMaxBytes;
+  if (file.data.length > maxImportBytes) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Die Excel-Datei darf maximal 2 MB groß sein",
+      statusMessage: `Die Excel-Datei darf maximal ${Math.floor(maxImportBytes / 1024 / 1024)} MB groß sein`,
     });
   }
 

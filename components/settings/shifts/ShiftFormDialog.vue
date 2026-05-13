@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Shift, ShiftCreateDTO } from "~/types/shift";
+import backendConfig from "../../../config/backend.config.json";
 
 const props = defineProps<{
   visible: boolean;
@@ -13,7 +14,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 
-const defaultColor = "#6366f1";
+const defaultColor = backendConfig.validation.shift.defaultColor;
 const colorOptions = [
   { value: "#22c55e" },
   { value: "#3b82f6" },
@@ -48,7 +49,7 @@ function createDefaultForm(nextSortOrder: number): ShiftCreateDTO {
     start_time: "08:00",
     end_time: "16:00",
     color: defaultColor,
-    min_staff: 1,
+    min_staff: backendConfig.validation.shift.minStaff.default,
     sort_order: nextSortOrder,
   };
 }

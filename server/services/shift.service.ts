@@ -1,5 +1,6 @@
 import type { Shift, ShiftCreateDTO, ShiftUpdateDTO } from "~/types/shift";
 import { getDatabase } from "~/server/utils/database";
+import { getShiftDefaults } from "~/server/config/domain-config";
 
 export const ShiftService = {
   getAll(): Shift[] {
@@ -19,6 +20,7 @@ export const ShiftService = {
 
   create(data: ShiftCreateDTO): Shift {
     const db = getDatabase();
+    const defaults = getShiftDefaults();
     const stmt = db.prepare(
       "INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
     );
@@ -26,9 +28,9 @@ export const ShiftService = {
       data.name,
       data.start_time,
       data.end_time,
-      data.color ?? "#6366f1",
-      data.min_staff ?? 1,
-      data.sort_order ?? 0
+      data.color ?? defaults.color,
+      data.min_staff ?? defaults.minStaff,
+      data.sort_order ?? defaults.sortOrder
     );
     return this.getById(result.lastInsertRowid as number)!;
   },

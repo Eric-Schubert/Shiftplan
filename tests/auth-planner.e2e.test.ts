@@ -22,6 +22,10 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Database as DatabaseType } from "better-sqlite3";
+import backendConfig from "../config/backend.config.json";
+
+const sessionCookieName = backendConfig.auth.session.cookies.sessionName;
+const csrfCookieName = backendConfig.auth.session.cookies.csrfName;
 
 type ApiClient = {
   mainDb: DatabaseType;
@@ -181,8 +185,8 @@ function requestWithCookies(handler: PlainHandler): ApiClient["request"] {
 
     if (cookie) headers.cookie = cookie;
     if (options.body !== undefined) headers["content-type"] = "application/json";
-    if (options.csrf && options.jar?.get("csrf_token")) {
-      headers["x-csrf-token"] = options.jar.get("csrf_token")!;
+    if (options.csrf && options.jar?.get(csrfCookieName)) {
+      headers["x-csrf-token"] = options.jar.get(csrfCookieName)!;
     }
 
     const response = await handler({
@@ -283,8 +287,8 @@ describe("auth and planner e2e", () => {
     });
     expect(login.json?.token).toBeUndefined();
     expect(login.json?.sessionToken).toBeUndefined();
-    expect(jar.get("session_token")).toBeTruthy();
-    expect(jar.get("csrf_token")).toBeTruthy();
+    expect(jar.get(sessionCookieName)).toBeTruthy();
+    expect(jar.get(csrfCookieName)).toBeTruthy();
 
     const session = await client.request<{
       authenticated: boolean;
@@ -296,7 +300,7 @@ describe("auth and planner e2e", () => {
     expect(session.json).toMatchObject({
       authenticated: true,
       user: { username: "planner", role: "planner" },
-      csrfToken: jar.get("csrf_token"),
+      csrfToken: jar.get(csrfCookieName),
     });
   });
 

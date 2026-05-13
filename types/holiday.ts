@@ -1,11 +1,12 @@
 export interface PublicHoliday {
   date: string;
   name: string;
-  type: "national" | "saxony";
+  type: "national" | "regional";
   nationwide: boolean;
+  states: HolidaySubdivision[];
 }
 
-export interface SchoolHolidayState {
+export interface HolidaySubdivision {
   code: string;
   name: string;
 }
@@ -14,7 +15,7 @@ export interface SchoolHolidayPeriod {
   name: string;
   start: string;
   end: string;
-  states: SchoolHolidayState[];
+  states: HolidaySubdivision[];
 }
 
 export type HolidayBannerTone = "holiday" | "warning" | "school";

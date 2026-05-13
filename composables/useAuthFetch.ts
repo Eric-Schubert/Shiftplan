@@ -8,6 +8,8 @@
  *   const { authFetch } = useAuthFetch();
  *   await authFetch('/api/staff', { method: 'POST', body: data });
  */
+import backendConfig from "../config/backend.config.json";
+
 export function useAuthFetch() {
   const authStore = useAuthStore();
 
@@ -19,7 +21,7 @@ export function useAuthFetch() {
     options: Parameters<typeof $fetch>[1] = {}
   ): Promise<T> {
     const method = String(options.method || "GET").toUpperCase();
-    const needsCsrf = ["POST", "PATCH", "PUT", "DELETE"].includes(method);
+    const needsCsrf = backendConfig.auth.routes.csrfMethods.includes(method);
 
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> || {}),

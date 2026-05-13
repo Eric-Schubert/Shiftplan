@@ -5,12 +5,13 @@
  * die OpenHolidays API (https://openholidaysapi.org) abfragt.
  * 
  * Features:
- * - Schulferien für Sachsen (SN) und Brandenburg (BB)
+ * - Schulferien für die im Backend konfigurierten Bundesländer
  * - Automatisches Caching auf Client-Seite
  * - Gruppierung nach Ferienname für übersichtliche Anzeige
  */
 
 import { ref, computed, watch, type Ref } from 'vue';
+import type { HolidaySubdivision } from "~/types/holiday";
 
 export interface SchoolHoliday {
   name: string;        // Name der Ferien (z.B. "Winterferien")
@@ -24,7 +25,7 @@ export interface SchoolHolidayPeriod {
   name: string;
   start: string;
   end: string;
-  states: Array<{ code: string; name: string }>;
+  states: HolidaySubdivision[];
 }
 
 interface SchoolHolidayResponse {
@@ -41,9 +42,10 @@ const schoolHolidayCache = new Map<string, SchoolHolidayResponse>();
 async function fetchSchoolHolidays(
   year: number, 
   week?: number, 
-  states: string[] = ['SN', 'BB']
+  states?: string[]
 ): Promise<SchoolHolidayResponse> {
-  const cacheKey = week ? `${year}-${week}-${states.join(',')}` : `${year}-${states.join(',')}`;
+  const statesKey = states?.join(",") || "default";
+  const cacheKey = week ? `${year}-${week}-${statesKey}` : `${year}-${statesKey}`;
   
   // Cache prüfen
   if (schoolHolidayCache.has(cacheKey)) {
@@ -51,10 +53,8 @@ async function fetchSchoolHolidays(
   }
   
   // Von API laden
-  const params = new URLSearchParams({ 
-    year: year.toString(),
-    states: states.join(',')
-  });
+  const params = new URLSearchParams({ year: year.toString() });
+  if (states?.length) params.append("states", states.join(","));
   if (week) params.append('week', week.toString());
   
   const response = await $fetch<SchoolHolidayResponse>(`/api/holidays/school?${params}`);
@@ -178,7 +178,7 @@ export function useSchoolHolidays() {
 export function useSchoolHolidaysReactive(
   year: Ref<number>, 
   week: Ref<number>,
-  states: string[] = ['SN', 'BB']
+  states?: string[]
 ) {
   const holidays = ref<SchoolHolidayPeriod[]>([]);
   const loading = ref(false);

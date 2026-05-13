@@ -13,6 +13,7 @@ services:
       - "3000:3000"
     volumes:
       - schichtplaner-db:/app/db
+      - ./config/backend.config.json:/app/config/backend.config.json:ro
     healthcheck:
       test:
         - CMD

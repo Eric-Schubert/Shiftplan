@@ -7,7 +7,12 @@ import {
   getClientIP,
 } from "~/server/utils/session";
 import type { SessionUser, UserWithHash } from "~/types/auth";
-import { MAX_PASSWORD_LENGTH } from "~/utils/password-policy";
+import {
+  getAuthConfig,
+  getMaxPasswordLength,
+  getSessionCookieMaxAgeSeconds,
+  getUserValidationConfig,
+} from "~/server/config/auth-config";
 import bcrypt from "bcryptjs";
 
 export default defineEventHandler(async (event) => {
@@ -45,7 +50,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const username = body.username.trim();
-  if (username.length < 3 || username.length > 100) {
+  const userConfig = getUserValidationConfig();
+  if (username.length < userConfig.usernameMinLength || username.length > userConfig.usernameMaxLength) {
     throw createError({
       statusCode: 400,
       statusMessage: "UngÃ¼ltige Zugangsdaten",
@@ -53,7 +59,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Passwort-Länge begrenzen (verhindert DoS über bcrypt mit extrem langen Strings)
-  if (body.password.length > MAX_PASSWORD_LENGTH) {
+  if (body.password.length > getMaxPasswordLength()) {
     throw createError({
       statusCode: 400,
       statusMessage: "Passwort zu lang",
@@ -99,24 +105,26 @@ export default defineEventHandler(async (event) => {
     role: user!.role,
   };
   const { sessionToken, csrfToken } = createSession(sessionUser);
+  const cookieConfig = getAuthConfig().session.cookies;
+  const cookieMaxAge = getSessionCookieMaxAgeSeconds();
 
   // Session-Cookie setzen (HttpOnly — nicht per JS lesbar)
-  setCookie(event, "session_token", sessionToken, {
+  setCookie(event, cookieConfig.sessionName, sessionToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 30 * 60, // 30 Minuten
-    path: "/",
+    secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
+    sameSite: cookieConfig.sameSite,
+    maxAge: cookieMaxAge,
+    path: cookieConfig.path,
   });
 
   // CSRF-Token als separates, JS-lesbares Cookie
   // (NICHT httpOnly — Frontend muss es lesen können um es als Header zu senden)
-  setCookie(event, "csrf_token", csrfToken, {
+  setCookie(event, cookieConfig.csrfName, csrfToken, {
     httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 30 * 60,
-    path: "/",
+    secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
+    sameSite: cookieConfig.sameSite,
+    maxAge: cookieMaxAge,
+    path: cookieConfig.path,
   });
 
   // NUR success zurückgeben — KEIN Token im Body!

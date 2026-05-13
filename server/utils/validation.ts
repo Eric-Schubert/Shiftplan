@@ -8,6 +8,8 @@
  * - Ungültige Integer-Bereiche
  */
 
+import { getValidationConfig } from "~/server/config/domain-config";
+
 // ============================================
 // STRING VALIDATION
 // ============================================
@@ -26,7 +28,12 @@ export function validateString(
     patternMessage?: string;
   } = {}
 ): string | undefined {
-  const { required = false, minLength = 1, maxLength = 255 } = options;
+  const stringConfig = getValidationConfig().string;
+  const {
+    required = false,
+    minLength = stringConfig.defaultMinLength,
+    maxLength = stringConfig.defaultMaxLength,
+  } = options;
 
   if (value === undefined || value === null) {
     if (required) {
@@ -88,7 +95,7 @@ export function validateName(
   fieldName: string,
   options: { required?: boolean; maxLength?: number } = {}
 ): string | undefined {
-  const { required = false, maxLength = 100 } = options;
+  const { required = false, maxLength = getValidationConfig().name.defaultMaxLength } = options;
 
   const validated = validateString(value, fieldName, {
     required,
@@ -194,10 +201,12 @@ export function validateColor(
   fieldName: string,
   options: { required?: boolean } = {}
 ): string | undefined {
+  const defaultColor = getValidationConfig().shift.defaultColor;
+
   return validateString(value, fieldName, {
     ...options,
     pattern: /^#[0-9a-fA-F]{6}$/,
-    patternMessage: `${fieldName} muss ein Hex-Farbwert sein (z.B. #6366f1)`,
+    patternMessage: `${fieldName} muss ein Hex-Farbwert sein (z.B. ${defaultColor})`,
     maxLength: 7,
   });
 }
@@ -210,10 +219,12 @@ export function validateYear(
   fieldName: string,
   options: { required?: boolean } = {}
 ): number | undefined {
+  const range = getValidationConfig().year;
+
   return validateInteger(value, fieldName, {
     ...options,
-    min: 2020,
-    max: 2100,
+    min: range.min,
+    max: range.max,
   });
 }
 
@@ -225,10 +236,12 @@ export function validateWeek(
   fieldName: string,
   options: { required?: boolean } = {}
 ): number | undefined {
+  const range = getValidationConfig().week;
+
   return validateInteger(value, fieldName, {
     ...options,
-    min: 1,
-    max: 53,
+    min: range.min,
+    max: range.max,
   });
 }
 
@@ -236,10 +249,11 @@ export function validateWeek(
  * Validiert eine Entity-ID
  */
 export function validateId(value: unknown, fieldName: string): number {
+  const range = getValidationConfig().id;
   const id = validateInteger(value, fieldName, {
     required: true,
-    min: 1,
-    max: 2147483647, // SQLite INTEGER max
+    min: range.min,
+    max: range.max,
   });
   return id!;
 }

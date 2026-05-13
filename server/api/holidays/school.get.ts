@@ -2,15 +2,25 @@
  * API Route: /api/holidays/school
  * 
  * Ruft Schulferien von der OpenHolidays API ab.
- * Unterstützt Sachsen (DE-SN) und Brandenburg (DE-BB).
+ * Nutzt die Bundesländer aus config/backend.config.json.
  * 
  * Query Parameter:
  * - year: Jahr (required)
  * - week: Kalenderwoche (optional, filtert auf diese Woche)
- * - states: Komma-separierte Bundesländer (optional, default: "SN,BB")
+ * - states: Komma-separierte Bundesländer (optional, sonst Config-Default)
  */
 
 import { defineEventHandler, getQuery, createError } from 'h3';
+import type { HolidaySubdivision } from "~/types/holiday";
+import {
+  getHolidayApiUrl,
+  getHolidayCacheDurationMs,
+  getHolidayConfig,
+  getHolidaySubdivisionName,
+  getSchoolHolidayLookupRange,
+  resolveSchoolHolidaySubdivisionCodes,
+  toHolidaySubdivisionCode,
+} from "~/server/config/holiday-config";
 
 // OpenHolidays API Response Type für Schulferien
 interface OpenSchoolHolidayResponse {
@@ -36,20 +46,11 @@ export interface SchoolHolidayPeriod {
   name: string;
   start: string;
   end: string;
-  states: Array<{ code: string; name: string }>;
+  states: HolidaySubdivision[];
 }
-
-// Bundesland-Mapping
-const STATE_NAMES: Record<string, string> = {
-  'SN': 'Sachsen',
-  'BB': 'Brandenburg',
-  'DE-SN': 'Sachsen',
-  'DE-BB': 'Brandenburg'
-};
 
 // Cache für API-Responses
 const schoolHolidayCache = new Map<string, { data: SchoolHoliday[]; timestamp: number }>();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Stunden
 
 /**
  * Berechnet Start- und Enddatum einer Kalenderwoche (ISO 8601)
@@ -83,15 +84,21 @@ function periodsOverlap(start1: string, end1: string, start2: string, end2: stri
  * Holt Schulferien von der OpenHolidays API für ein Bundesland
  */
 async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Promise<SchoolHoliday[]> {
-  // OpenHolidays braucht das volle ISO-Format (DE-SN)
-  const fullStateCode = stateCode.startsWith('DE-') ? stateCode : `DE-${stateCode}`;
-  const shortCode = stateCode.replace('DE-', '');
+  const config = getHolidayConfig();
+  // OpenHolidays braucht das volle ISO-Format (z.B. DE-SN)
+  const fullStateCode = toHolidaySubdivisionCode(stateCode);
+  const shortCode = stateCode.replace('DE-', '').toUpperCase();
   
   // Zeitraum: Schuljahr geht über zwei Jahre, also großzügig abfragen
-  const validFrom = `${year - 1}-07-01`;
-  const validTo = `${year + 1}-06-30`;
+  const { validFrom, validTo } = getSchoolHolidayLookupRange(year);
   
-  const url = `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=DE&subdivisionCode=${fullStateCode}&languageIsoCode=DE&validFrom=${validFrom}&validTo=${validTo}`;
+  const url = getHolidayApiUrl("SchoolHolidays", {
+    countryIsoCode: config.countryIsoCode,
+    subdivisionCode: fullStateCode,
+    languageIsoCode: config.languageIsoCode,
+    validFrom,
+    validTo,
+  });
   
   const response = await fetch(url, {
     headers: { 'Accept': 'application/json' }
@@ -114,7 +121,7 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
       start: holiday.startDate,
       end: holiday.endDate,
       state: shortCode,
-      stateName: STATE_NAMES[shortCode] || shortCode
+      stateName: getHolidaySubdivisionName(shortCode)
     };
   });
   
@@ -125,15 +132,16 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
  * Holt Schulferien mit Caching
  */
 async function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
-  const cacheKey = `${year}-${states.sort().join(',')}`;
+  const normalizedStates = [...states].sort();
+  const cacheKey = `${year}-${normalizedStates.join(',')}`;
   const cached = schoolHolidayCache.get(cacheKey);
   
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+  if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {
     return cached.data;
   }
   
   // Parallel für alle Bundesländer abrufen
-  const promises = states.map(state => fetchSchoolHolidaysFromAPI(year, state));
+  const promises = normalizedStates.map(state => fetchSchoolHolidaysFromAPI(year, state));
   const results = await Promise.all(promises);
   const holidays = results.flat();
   
@@ -183,8 +191,10 @@ export default defineEventHandler(async (event) => {
   
   const year = parseInt(query.year as string);
   const week = query.week ? parseInt(query.week as string) : null;
-  const statesParam = (query.states as string) || 'SN,BB';
-  const states = statesParam.split(',').map(s => s.trim().toUpperCase());
+  const statesParam = Array.isArray(query.states)
+    ? query.states.join(",")
+    : query.states as string | undefined;
+  const states = resolveSchoolHolidaySubdivisionCodes(statesParam);
   
   if (!year || isNaN(year)) {
     throw createError({

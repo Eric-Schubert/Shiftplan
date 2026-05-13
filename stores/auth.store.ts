@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import type { SessionUser } from "~/types/auth";
+import backendConfig from "../config/backend.config.json";
 
 type AuthSessionResponse =
   | { authenticated: false }
@@ -49,7 +50,9 @@ export const useAuthStore = defineStore("auth", {
      */
     _readCsrfCookie(): string | null {
       if (import.meta.server) return null;
-      const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
+      const cookieName = backendConfig.auth.session.cookies.csrfName;
+      const escapedName = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${escapedName}=([^;]*)`));
       return match?.[1] ? decodeURIComponent(match[1]) : null;
     },
 

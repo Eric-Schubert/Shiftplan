@@ -6,7 +6,7 @@ export default defineEventHandler((event) => {
 
   const query = getQuery(event);
 
-  const limit = Number(query.limit) || 50;
+  const limit = query.limit ? Number(query.limit) : undefined;
   const offset = Number(query.offset) || 0;
   const year = query.year ? Number(query.year) : undefined;
   const weekNumber = query.week ? Number(query.week) : undefined;

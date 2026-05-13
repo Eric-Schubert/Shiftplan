@@ -53,7 +53,7 @@ export function buildHolidayBannerItems(
     label: holiday.name,
     meta: formatHolidayDate(holiday.date),
     tone: holiday.type === "national" ? "holiday" : "warning",
-    states: [] as string[],
+    states: holiday.states.map((state) => state.name),
   }));
 
   const schoolItems: HolidayBannerItem[] = schoolHolidays.map((period) => ({

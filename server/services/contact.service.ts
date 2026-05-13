@@ -1,5 +1,6 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
+import { getContactListConfig, getContactStorageConfig } from "~/server/config/contact-config";
 import type { ContactMessage, ContactMessagesResponse } from "~/types/contact";
 
 type ContactCreateInput = {
@@ -12,12 +13,11 @@ type ContactCreateInput = {
 };
 
 const CONTACT_SALT_KEY = "contact_message_salt";
-const DEFAULT_LIMIT = 20;
-const MAX_LIMIT = 100;
 
 function normalizeLimit(value?: number): number {
-  if (!Number.isFinite(value)) return DEFAULT_LIMIT;
-  return Math.min(MAX_LIMIT, Math.max(1, Math.trunc(value || DEFAULT_LIMIT)));
+  const config = getContactListConfig();
+  if (!Number.isFinite(value)) return config.defaultLimit;
+  return Math.min(config.maxLimit, Math.max(1, Math.trunc(value || config.defaultLimit)));
 }
 
 function normalizeOffset(value?: number): number {
@@ -58,6 +58,7 @@ function hashContactSource(ip: string, userAgent: string): string {
 export class ContactService {
   static createMessage(params: ContactCreateInput): ContactMessage {
     const db = getAdminDatabase();
+    const storageConfig = getContactStorageConfig();
     const result = db
       .prepare(
         `
@@ -75,10 +76,10 @@ export class ContactService {
       .run(
         params.name,
         params.replyTo,
-        normalizeStoredText(params.subject, 160),
+        normalizeStoredText(params.subject, storageConfig.subjectMaxLength),
         params.message,
         hashContactSource(params.ip, params.userAgent),
-        normalizeStoredText(params.userAgent, 280)
+        normalizeStoredText(params.userAgent, storageConfig.userAgentMaxLength)
       );
 
     return this.getMessage(Number(result.lastInsertRowid));

@@ -37,10 +37,11 @@ defineProps<{
             ></span>
             <span class="truncate text-sm font-medium text-[var(--text-1)]">{{ holiday.name }}</span>
             <span
-              v-if="holiday.type === 'saxony'"
+              v-for="state in holiday.states"
+              :key="`${holiday.date}-${state.code}`"
               class="rounded-full bg-[var(--warning-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--warning-ink)]"
             >
-              SN
+              {{ state.code }}
             </span>
           </div>
           <span class="flex-shrink-0 text-xs text-[var(--text-3)]">

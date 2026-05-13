@@ -3,15 +3,13 @@ import type { Database as DatabaseType } from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { migrateAdminDatabase, migrateMainDatabase } from "./database-migrations.js";
-
-const DATABASE_PATH = process.cwd() + "/db/db.sqlite";
-const ADMIN_DB_PATH = process.cwd() + "/db/admin.sqlite";
+import { applyConfiguredPragmas, getDatabasePaths } from "~/server/config/database-config";
 
 let db: DatabaseType | null = null;
 let adminDb: DatabaseType | null = null;
 
-function ensureDatabaseFolder(): void {
-  fs.mkdirSync(path.dirname(DATABASE_PATH), { recursive: true });
+function ensureDatabaseFolder(databasePath: string): void {
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 }
 
 function logMigration(message: string): void {
@@ -21,10 +19,10 @@ function logMigration(message: string): void {
 // Haupt-Datenbank (Schichten, Mitarbeiter, Rotation)
 export function getDatabase(): DatabaseType {
   if (!db) {
-    ensureDatabaseFolder();
-    db = new Database(DATABASE_PATH);
-    db.pragma("foreign_keys = ON");
-    db.pragma("journal_mode = WAL");
+    const databasePath = getDatabasePaths().main;
+    ensureDatabaseFolder(databasePath);
+    db = new Database(databasePath);
+    applyConfiguredPragmas(db);
     migrateMainDatabase(db, { logger: logMigration });
   }
   return db;
@@ -33,10 +31,10 @@ export function getDatabase(): DatabaseType {
 // Admin-Datenbank (Passwort, Einstellungen)
 export function getAdminDatabase(): DatabaseType {
   if (!adminDb) {
-    ensureDatabaseFolder();
-    adminDb = new Database(ADMIN_DB_PATH);
-    adminDb.pragma("foreign_keys = ON");
-    adminDb.pragma("journal_mode = WAL");
+    const databasePath = getDatabasePaths().admin;
+    ensureDatabaseFolder(databasePath);
+    adminDb = new Database(databasePath);
+    applyConfiguredPragmas(adminDb);
     migrateAdminDatabase(adminDb, { logger: logMigration });
   }
   return adminDb;

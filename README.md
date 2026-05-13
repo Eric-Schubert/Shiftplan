@@ -44,6 +44,27 @@ npm run dev
 Das Passwort sollte nach dem ersten Login geändert werden.
 Die App legt damit den initialen Admin-Benutzer `admin` an. Vorhersagbare Default-Credentials wie `admin/admin` werden nicht mehr erzeugt. Falls eine bestehende Datenbank noch einen unveränderten Default-Admin enthält, blockiert der Start, bis `SHIFTPLAN_ADMIN_PASSWORD` gesetzt und `node setup.js` erneut ausgeführt wurde.
 
+## Backend-Konfiguration
+
+Nicht-geheime Backend-Einstellungen liegen zentral in `config/backend.config.json`. Dort werden u. a. Feiertags-Bundesländer, Schulferien-Bundesländer, Session-Dauer, Rate-Limits, Validierungsgrenzen, Schicht-Defaults, Analytics-Aufbewahrung und XLSX-Limits gepflegt.
+
+Secrets bleiben bewusst in `.env`, z. B. `SHIFTPLAN_ADMIN_PASSWORD` oder Microsoft-Graph-Zugangsdaten. Wenn eine andere Config-Datei genutzt werden soll, kann der Pfad über `SHIFTPLAN_BACKEND_CONFIG_PATH` gesetzt werden.
+
+Beispiel für Feiertage:
+
+```json
+{
+  "holidays": {
+    "public": {
+      "subdivisionCodes": ["SN"]
+    },
+    "school": {
+      "defaultSubdivisionCodes": ["SN", "BB"]
+    }
+  }
+}
+```
+
 ## Docker
 
 ```bash
@@ -58,6 +79,7 @@ docker compose up -d
 ```
 
 Die lokale `.env` wird nicht in das Image kopiert. Übergib sie beim Start mit `--env-file .env` oder in Docker Compose per `env_file`, damit Impressums- und weitere Laufzeitvariablen im Container verfügbar sind. Compose liest `.env` zwar für Variablen in der YAML, reicht die Werte aber nur mit `env_file` an den Container weiter.
+Die Compose-Datei mountet `./config/backend.config.json` nach `/app/config/backend.config.json`, damit Backend-Settings ohne Image-Rebuild angepasst werden können.
 
 Aktuelle Images werden nach Releases nach GHCR gepusht:
 

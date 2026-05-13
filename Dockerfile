@@ -42,6 +42,7 @@ COPY --from=builder /app/.output ./.output
 
 # setup.js + seine Dependencies für DB-Initialisierung
 COPY --from=builder /app/setup.js ./setup.js
+COPY --from=builder /app/config ./config
 COPY --from=builder /app/server/utils/database-migrations.js ./server/utils/database-migrations.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3

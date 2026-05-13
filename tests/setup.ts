@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import type { Database as DatabaseType } from "better-sqlite3";
+import backendConfig from "../config/backend.config.json";
 
 let testDb: DatabaseType | null = null;
 
@@ -31,8 +32,8 @@ export function setupTestDatabase(): DatabaseType {
                                         name TEXT NOT NULL,
                                         start_time TEXT NOT NULL,
                                         end_time TEXT NOT NULL,
-                                        color TEXT DEFAULT '#6366f1',
-                                        min_staff INTEGER DEFAULT 1,
+                                        color TEXT DEFAULT '${backendConfig.validation.shift.defaultColor}',
+                                        min_staff INTEGER DEFAULT ${backendConfig.validation.shift.minStaff.default},
                                         active INTEGER DEFAULT 1,
                                         sort_order INTEGER DEFAULT 0
     )

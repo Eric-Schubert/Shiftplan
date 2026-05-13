@@ -1,4 +1,5 @@
 import { getDatabase } from "~/server/utils/database";
+import { getAuditConfig } from "~/server/config/domain-config";
 import type { AuditEntry } from "~/types/auth";
 
 export class AuditService {
@@ -64,7 +65,9 @@ export class AuditService {
     weekNumber?: number;
   }): { entries: AuditEntry[]; total: number } {
     const db = getDatabase();
-    const limit = options?.limit || 50;
+    const auditConfig = getAuditConfig();
+    const requestedLimit = Number.isFinite(options?.limit) ? Math.trunc(options!.limit!) : auditConfig.defaultLimit;
+    const limit = Math.min(auditConfig.maxLimit, Math.max(1, requestedLimit));
     const offset = options?.offset || 0;
 
     let whereClause = "";

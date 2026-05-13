@@ -1,13 +1,15 @@
 import Database from "better-sqlite3";
 import * as fs from "node:fs";
+import path from "node:path";
 import {
   migrateAdminDatabase,
   migrateMainDatabase,
 } from "./server/utils/database-migrations.js";
 
-const DATABASE_FOLDER = "db";
-const DATABASE_PATH = `./${DATABASE_FOLDER}/db.sqlite`;
-const ADMIN_DB_PATH = `./${DATABASE_FOLDER}/admin.sqlite`;
+const backendConfig = loadBackendConfig();
+const DATABASE_FOLDER = backendConfig.database.directory;
+const DATABASE_PATH = path.join(DATABASE_FOLDER, backendConfig.database.mainFile);
+const ADMIN_DB_PATH = path.join(DATABASE_FOLDER, backendConfig.database.adminFile);
 
 console.log(`[setup.js] => setting up databases...`);
 
@@ -21,7 +23,7 @@ if (!fs.existsSync(DATABASE_FOLDER)) {
 // ============================================
 console.log(`[setup.js] => creating '${DATABASE_PATH}'...`);
 const db = new Database(DATABASE_PATH);
-db.pragma("foreign_keys = ON");
+applyConfiguredPragmas(db);
 migrateMainDatabase(db, { logger: console.log });
 
 // ============================================
@@ -29,7 +31,7 @@ migrateMainDatabase(db, { logger: console.log });
 // ============================================
 console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
 const adminDb = new Database(ADMIN_DB_PATH);
-adminDb.pragma("foreign_keys = ON");
+applyConfiguredPragmas(adminDb);
 migrateAdminDatabase(adminDb, { logger: console.log });
 
 adminDb.close();
@@ -64,10 +66,33 @@ if (staffCount.count === 0) {
   if (rotationConfigCount.count === 0) {
     db.prepare(
       "INSERT INTO rotation_config (cycle_length, start_year, start_week) VALUES (?, ?, ?)"
-    ).run(4, 2025, 1);
+    ).run(
+      backendConfig.rotation.defaultCycleLength,
+      2025,
+      backendConfig.rotation.defaultStartWeek
+    );
   }
 }
 
 console.log("[setup.js] => setup finished!");
 
 db.close();
+
+function loadBackendConfig() {
+  const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();
+  const configPath = configuredPath
+    ? path.resolve(configuredPath)
+    : path.resolve(process.cwd(), "config", "backend.config.json");
+
+  return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+}
+
+function applyConfiguredPragmas(database) {
+  if (backendConfig.database.pragmas.foreignKeys) {
+    database.pragma("foreign_keys = ON");
+  }
+
+  if (backendConfig.database.pragmas.journalMode) {
+    database.pragma(`journal_mode = ${backendConfig.database.pragmas.journalMode}`);
+  }
+}

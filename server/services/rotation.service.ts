@@ -8,6 +8,7 @@ import type {
 import type { Staff } from "~/types/staff";
 import type { Shift } from "~/types/shift";
 import { getDatabase } from "~/server/utils/database";
+import { getRotationDefaults } from "~/server/config/domain-config";
 
 export const RotationService = {
   // ============================================
@@ -26,16 +27,17 @@ export const RotationService = {
     // Falls keine Konfiguration existiert, erstelle eine Standard-Konfiguration
     if (!config) {
       const currentYear = new Date().getFullYear();
+      const defaults = getRotationDefaults();
       const result = db
         .prepare(
           "INSERT INTO rotation_config (cycle_length, start_year, start_week) VALUES (?, ?, ?)"
         )
-        .run(4, currentYear, 1);
+        .run(defaults.cycleLength, currentYear, defaults.startWeek);
       config = {
         config_id: result.lastInsertRowid as number,
-        cycle_length: 4,
+        cycle_length: defaults.cycleLength,
         start_year: currentYear,
-        start_week: 1,
+        start_week: defaults.startWeek,
       };
     }
 

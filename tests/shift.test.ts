@@ -4,6 +4,7 @@ import {
   cleanupTestDatabase,
   getTestDatabase,
 } from "./setup";
+import backendConfig from "../config/backend.config.json";
 
 describe("Shift Operations", () => {
   beforeEach(() => {
@@ -38,8 +39,8 @@ describe("Shift Operations", () => {
         .prepare("SELECT * FROM shifts WHERE name = ?")
         .get("Minimal") as any;
 
-      expect(shift.color).toBe("#6366f1");
-      expect(shift.min_staff).toBe(1);
+      expect(shift.color).toBe(backendConfig.validation.shift.defaultColor);
+      expect(shift.min_staff).toBe(backendConfig.validation.shift.minStaff.default);
       expect(shift.active).toBe(1);
     });
   });

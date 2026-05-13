@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
-import {
-  MAX_PASSWORD_LENGTH,
-  validatePasswordStrength,
-} from "~/utils/password-policy";
 import { getSessionUser } from "~/server/utils/auth";
 import { getAdminDatabase } from "~/server/utils/database";
+import {
+  getMaxPasswordLength,
+  getPasswordHashCost,
+  validateConfiguredPasswordStrength,
+} from "~/server/config/auth-config";
 
 export default defineEventHandler(async (event) => {
   const currentUser = getSessionUser(event);
@@ -22,11 +23,11 @@ export default defineEventHandler(async (event) => {
   }
 
   // DoS-Schutz: bcrypt ist absichtlich langsam.
-  if (body.currentPassword.length > MAX_PASSWORD_LENGTH) {
+  if (body.currentPassword.length > getMaxPasswordLength()) {
     throw createError({ statusCode: 400, statusMessage: "Passwort zu lang" });
   }
 
-  const strength = validatePasswordStrength(body.newPassword);
+  const strength = validateConfiguredPasswordStrength(body.newPassword);
   if (!strength.valid) {
     throw createError({ statusCode: 400, statusMessage: strength.message });
   }
@@ -45,7 +46,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: "Passwort-Änderung fehlgeschlagen" });
   }
 
-  const hashedNewPassword = await bcrypt.hash(body.newPassword, 12);
+  const hashedNewPassword = await bcrypt.hash(body.newPassword, getPasswordHashCost());
   db.prepare("UPDATE users SET password_hash = ? WHERE user_id = ?").run(
     hashedNewPassword,
     currentUser.userId

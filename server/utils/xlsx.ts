@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import { deflateRawSync, inflateRawSync } from "node:zlib";
+import { getXlsxConfig } from "~/server/config/domain-config";
 
 export type XlsxCellValue = string | number | boolean | null | undefined;
 
@@ -30,13 +31,14 @@ const CONTENT_TYPES = "application/vnd.openxmlformats-officedocument.spreadsheet
 const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships";
 const DOC_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-const MAX_ZIP_ENTRY_COUNT = 128;
-const MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE = 4 * 1024 * 1024;
-const MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE = 16 * 1024 * 1024;
-const MAX_ZIP_EXPANSION_RATIO = 40;
-const MAX_WORKSHEET_COUNT = 16;
-const MAX_WORKSHEET_ROWS = 10000;
-const MAX_WORKSHEET_COLUMNS = 128;
+const XLSX_LIMITS = getXlsxConfig();
+const MAX_ZIP_ENTRY_COUNT = XLSX_LIMITS.maxZipEntryCount;
+const MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE = XLSX_LIMITS.maxZipEntryUncompressedBytes;
+const MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE = XLSX_LIMITS.maxZipTotalUncompressedBytes;
+const MAX_ZIP_EXPANSION_RATIO = XLSX_LIMITS.maxZipExpansionRatio;
+const MAX_WORKSHEET_COUNT = XLSX_LIMITS.maxWorksheetCount;
+const MAX_WORKSHEET_ROWS = XLSX_LIMITS.maxWorksheetRows;
+const MAX_WORKSHEET_COLUMNS = XLSX_LIMITS.maxWorksheetColumns;
 
 const CRC_TABLE = new Uint32Array(256);
 

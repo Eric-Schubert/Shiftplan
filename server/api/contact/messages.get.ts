@@ -5,7 +5,7 @@ export default defineEventHandler((event) => {
   requireAdmin(event);
 
   const query = getQuery(event);
-  const limit = Number(query.limit) || 20;
+  const limit = query.limit ? Number(query.limit) : undefined;
   const offset = Number(query.offset) || 0;
 
   return ContactService.getMessages({ limit, offset });

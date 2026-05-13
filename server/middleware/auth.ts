@@ -4,27 +4,7 @@ import {
   validateCsrfToken,
   getCsrfTokenFromRequest,
 } from "~/server/utils/session";
-
-// Routen die IMMER öffentlich sind (auch POST/PATCH/DELETE)
-const PUBLIC_ROUTES = new Set([
-  "/api/auth/login",
-  "/api/auth/session",
-  "/api/analytics/visit",
-  "/api/contact",
-]);
-
-// Routen-Prefixe die nur mit GET öffentlich sind
-const PUBLIC_GET_PREFIXES = [
-  "/api/_nuxt_icon",
-  "/api/staff",
-  "/api/shift",
-  "/api/shiftplan",
-  "/api/rotation",
-  "/api/holidays",
-];
-
-// HTTP-Methoden die CSRF-Schutz brauchen
-const CSRF_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
+import { getAuthConfig } from "~/server/config/auth-config";
 
 /**
  * Prüft ob ein Pfad zu einem öffentlichen GET-Prefix gehört.
@@ -32,7 +12,7 @@ const CSRF_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
  * z.B. /api/staff → ✅, /api/staff/1 → ✅, /api/staff-secret → ❌
  */
 function isPublicGetRoute(path: string): boolean {
-  return PUBLIC_GET_PREFIXES.some(
+  return getAuthConfig().routes.publicGetPrefixes.some(
     (prefix) => path === prefix || path.startsWith(prefix + "/")
   );
 }
@@ -47,7 +27,7 @@ export default defineEventHandler((event) => {
   }
 
   // Komplett öffentliche Routen (exakter Match)
-  if (PUBLIC_ROUTES.has(path)) {
+  if (getAuthConfig().routes.public.includes(path)) {
     return;
   }
 
@@ -68,7 +48,7 @@ export default defineEventHandler((event) => {
   }
 
   // CSRF-Schutz für state-ändernde Methoden
-  if (CSRF_METHODS.has(method)) {
+  if (getAuthConfig().routes.csrfMethods.includes(method)) {
     const csrfToken = getCsrfTokenFromRequest(event);
     const csrfValid = validateCsrfToken(token, csrfToken);
 

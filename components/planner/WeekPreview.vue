@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAppStore } from "~/stores/app.store";
 import type { WeeklyShiftplan } from "~/types/shiftplan";
+import backendConfig from "../../config/backend.config.json";
 
 const appStore = useAppStore();
 
@@ -56,7 +57,7 @@ function getWeekShifts(year: number, week: number) {
     .filter((shift) => shift.assigned_staff && shift.assigned_staff.length > 0)
     .map((shift) => ({
       name: shift.name,
-      color: shift.color || "#6366f1",
+      color: shift.color || backendConfig.validation.shift.defaultColor,
       staff: shift.assigned_staff.map((staff) => staff.name),
     }));
 

@@ -1,10 +1,33 @@
 import bcrypt from "bcryptjs";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const BACKEND_CONFIG = loadBackendConfig();
 const DEFAULT_ADMIN_USERNAME = "admin";
 const DEFAULT_ADMIN_PASSWORD = "admin";
 const BOOTSTRAP_ADMIN_PASSWORD_ENV = "SHIFTPLAN_ADMIN_PASSWORD";
-const MIN_BOOTSTRAP_PASSWORD_LENGTH = 8;
-const MAX_BOOTSTRAP_PASSWORD_LENGTH = 256;
+const MIN_BOOTSTRAP_PASSWORD_LENGTH = BACKEND_CONFIG.auth.passwordPolicy.minLength;
+const MAX_BOOTSTRAP_PASSWORD_LENGTH = BACKEND_CONFIG.auth.passwordPolicy.maxLength;
+const BOOTSTRAP_PASSWORD_HASH_COST = BACKEND_CONFIG.auth.bootstrapPasswordHashCost;
+const DEFAULT_SHIFT_COLOR = BACKEND_CONFIG.validation.shift.defaultColor;
+const DEFAULT_SHIFT_MIN_STAFF = BACKEND_CONFIG.validation.shift.minStaff.default;
+const DEFAULT_SHIFT_SORT_ORDER = BACKEND_CONFIG.validation.shift.sortOrder.default;
+const DEFAULT_ROTATION_CYCLE_LENGTH = BACKEND_CONFIG.rotation.defaultCycleLength;
+const DEFAULT_ROTATION_START_WEEK = BACKEND_CONFIG.rotation.defaultStartWeek;
+
+function loadBackendConfig() {
+  const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();
+  const cwdPath = path.resolve(process.cwd(), "config", "backend.config.json");
+  const sourcePath = fileURLToPath(new URL("../../config/backend.config.json", import.meta.url));
+  const configPath = configuredPath
+    ? path.resolve(configuredPath)
+    : fs.existsSync(cwdPath)
+      ? cwdPath
+      : sourcePath;
+
+  return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+}
 
 function tableExists(database, table) {
   const row = database
@@ -63,7 +86,7 @@ function isPasswordHash(value) {
 }
 
 function hashPassword(value) {
-  return isPasswordHash(value) ? value : bcrypt.hashSync(value, 10);
+  return isPasswordHash(value) ? value : bcrypt.hashSync(value, BOOTSTRAP_PASSWORD_HASH_COST);
 }
 
 function getLegacyAdminPassword(database) {
@@ -208,20 +231,20 @@ const MAIN_MIGRATIONS = [
           active INTEGER NOT NULL DEFAULT 1,
           start_time TEXT NOT NULL,
           end_time TEXT NOT NULL,
-          color TEXT DEFAULT '#6366f1',
-          min_staff INTEGER NOT NULL DEFAULT 1,
-          sort_order INTEGER NOT NULL DEFAULT 0
+          color TEXT DEFAULT '${DEFAULT_SHIFT_COLOR}',
+          min_staff INTEGER NOT NULL DEFAULT ${DEFAULT_SHIFT_MIN_STAFF},
+          sort_order INTEGER NOT NULL DEFAULT ${DEFAULT_SHIFT_SORT_ORDER}
         )
       `);
 
       addColumnIfMissing(database, "shifts", "active", "INTEGER NOT NULL DEFAULT 1");
-      addColumnIfMissing(database, "shifts", "color", "TEXT DEFAULT '#6366f1'");
-      addColumnIfMissing(database, "shifts", "min_staff", "INTEGER NOT NULL DEFAULT 1");
-      addColumnIfMissing(database, "shifts", "sort_order", "INTEGER NOT NULL DEFAULT 0");
+      addColumnIfMissing(database, "shifts", "color", `TEXT DEFAULT '${DEFAULT_SHIFT_COLOR}'`);
+      addColumnIfMissing(database, "shifts", "min_staff", `INTEGER NOT NULL DEFAULT ${DEFAULT_SHIFT_MIN_STAFF}`);
+      addColumnIfMissing(database, "shifts", "sort_order", `INTEGER NOT NULL DEFAULT ${DEFAULT_SHIFT_SORT_ORDER}`);
       database.exec("UPDATE shifts SET active = 1 WHERE active IS NULL");
-      database.exec("UPDATE shifts SET color = '#6366f1' WHERE color IS NULL OR color = ''");
-      database.exec("UPDATE shifts SET min_staff = 1 WHERE min_staff IS NULL");
-      database.exec("UPDATE shifts SET sort_order = 0 WHERE sort_order IS NULL");
+      database.prepare("UPDATE shifts SET color = ? WHERE color IS NULL OR color = ''").run(DEFAULT_SHIFT_COLOR);
+      database.prepare("UPDATE shifts SET min_staff = ? WHERE min_staff IS NULL").run(DEFAULT_SHIFT_MIN_STAFF);
+      database.prepare("UPDATE shifts SET sort_order = ? WHERE sort_order IS NULL").run(DEFAULT_SHIFT_SORT_ORDER);
 
       database.exec(`
         CREATE TABLE IF NOT EXISTS weeks (
@@ -267,20 +290,29 @@ const MAIN_MIGRATIONS = [
       database.exec(`
         CREATE TABLE IF NOT EXISTS rotation_config (
           config_id INTEGER PRIMARY KEY AUTOINCREMENT,
-          cycle_length INTEGER NOT NULL DEFAULT 4,
+          cycle_length INTEGER NOT NULL DEFAULT ${DEFAULT_ROTATION_CYCLE_LENGTH},
           start_year INTEGER NOT NULL,
-          start_week INTEGER NOT NULL
+          start_week INTEGER NOT NULL DEFAULT ${DEFAULT_ROTATION_START_WEEK}
         )
       `);
 
-      addColumnIfMissing(database, "rotation_config", "cycle_length", "INTEGER NOT NULL DEFAULT 4");
+      addColumnIfMissing(
+        database,
+        "rotation_config",
+        "cycle_length",
+        `INTEGER NOT NULL DEFAULT ${DEFAULT_ROTATION_CYCLE_LENGTH}`
+      );
       addColumnIfMissing(database, "rotation_config", "start_year", "INTEGER");
       addColumnIfMissing(database, "rotation_config", "start_week", "INTEGER");
-      database.exec("UPDATE rotation_config SET cycle_length = 4 WHERE cycle_length IS NULL");
+      database
+        .prepare("UPDATE rotation_config SET cycle_length = ? WHERE cycle_length IS NULL")
+        .run(DEFAULT_ROTATION_CYCLE_LENGTH);
       database.exec(
         "UPDATE rotation_config SET start_year = CAST(strftime('%Y', 'now') AS INTEGER) WHERE start_year IS NULL"
       );
-      database.exec("UPDATE rotation_config SET start_week = 1 WHERE start_week IS NULL");
+      database
+        .prepare("UPDATE rotation_config SET start_week = ? WHERE start_week IS NULL")
+        .run(DEFAULT_ROTATION_START_WEEK);
 
       database.exec(`
         CREATE TABLE IF NOT EXISTS rotation_pattern (

@@ -1,6 +1,7 @@
 import { randomBytes, timingSafeEqual } from "crypto";
 import type { SessionUser } from "~/types/auth";
 import { getAdminDatabase } from "~/server/utils/database";
+import { getAuthConfig, getLoginRateLimitConfig, getSessionDurationMs } from "~/server/config/auth-config";
 
 type PersistedSession = {
   user_id: number;
@@ -17,12 +18,6 @@ type PersistedLoginAttempt = {
   first_attempt: number;
   blocked_until: number | null;
 };
-
-const SESSION_DURATION = 30 * 60 * 1000;
-const SESSION_EXTEND_ON_ACTIVITY = true;
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOGIN_WINDOW = 15 * 60 * 1000;
-const BLOCK_DURATION = 15 * 60 * 1000;
 
 function getAuthDatabase() {
   return getAdminDatabase();
@@ -41,7 +36,7 @@ function cleanupExpiredRateLimits(now = Date.now()): void {
            OR (blocked_until IS NOT NULL AND blocked_until <= ?)
       `
     )
-    .run(now, LOGIN_WINDOW, now);
+    .run(now, getLoginRateLimitConfig().windowMs, now);
 }
 
 function getSessionRecord(token: string | undefined): PersistedSession | null {
@@ -71,9 +66,11 @@ function toSessionUser(session: PersistedSession): SessionUser {
 export function createSession(user: SessionUser): { sessionToken: string; csrfToken: string } {
   cleanupExpiredSessions();
 
-  const sessionToken = randomBytes(32).toString("hex");
-  const csrfToken = randomBytes(32).toString("hex");
+  const sessionConfig = getAuthConfig().session;
+  const sessionToken = randomBytes(sessionConfig.tokenBytes).toString("hex");
+  const csrfToken = randomBytes(sessionConfig.csrfTokenBytes).toString("hex");
   const now = Date.now();
+  const sessionDuration = getSessionDurationMs();
 
   getAuthDatabase()
     .prepare(
@@ -97,7 +94,7 @@ export function createSession(user: SessionUser): { sessionToken: string; csrfTo
       user.role,
       csrfToken,
       now,
-      now + SESSION_DURATION,
+      now + sessionDuration,
       now
     );
 
@@ -118,12 +115,13 @@ export function getSessionData(token: string | undefined): SessionUser | null {
     return null;
   }
 
-  if (SESSION_EXTEND_ON_ACTIVITY) {
+  if (getAuthConfig().session.extendOnActivity) {
+    const sessionDuration = getSessionDurationMs();
     getAuthDatabase()
       .prepare(
         "UPDATE auth_sessions SET last_activity = ?, expires_at = ? WHERE session_token = ?"
       )
-      .run(now, now + SESSION_DURATION, token);
+      .run(now, now + sessionDuration, token);
   }
 
   return toSessionUser(session);
@@ -180,6 +178,7 @@ export function checkRateLimit(ip: string): {
   blockedForSeconds: number;
 } {
   const now = Date.now();
+  const rateLimit = getLoginRateLimitConfig();
   cleanupExpiredRateLimits(now);
 
   const record = getAuthDatabase()
@@ -189,7 +188,7 @@ export function checkRateLimit(ip: string): {
     .get(ip) as PersistedLoginAttempt | undefined;
 
   if (!record) {
-    return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
+    return { allowed: true, remainingAttempts: rateLimit.maxAttempts, blockedForSeconds: 0 };
   }
 
   if (record.blocked_until && now < record.blocked_until) {
@@ -199,20 +198,21 @@ export function checkRateLimit(ip: string): {
 
   if (record.blocked_until && now >= record.blocked_until) {
     resetRateLimit(ip);
-    return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
+    return { allowed: true, remainingAttempts: rateLimit.maxAttempts, blockedForSeconds: 0 };
   }
 
-  if (now - record.first_attempt > LOGIN_WINDOW) {
+  if (now - record.first_attempt > rateLimit.windowMs) {
     resetRateLimit(ip);
-    return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS, blockedForSeconds: 0 };
+    return { allowed: true, remainingAttempts: rateLimit.maxAttempts, blockedForSeconds: 0 };
   }
 
-  const remainingAttempts = MAX_LOGIN_ATTEMPTS - record.count;
+  const remainingAttempts = rateLimit.maxAttempts - record.count;
   return { allowed: remainingAttempts > 0, remainingAttempts, blockedForSeconds: 0 };
 }
 
 export function recordFailedLogin(ip: string): void {
   const now = Date.now();
+  const rateLimit = getLoginRateLimitConfig();
   cleanupExpiredRateLimits(now);
 
   const db = getAuthDatabase();
@@ -222,7 +222,7 @@ export function recordFailedLogin(ip: string): void {
     )
     .get(ip) as PersistedLoginAttempt | undefined;
 
-  if (!record || now - record.first_attempt > LOGIN_WINDOW) {
+  if (!record || now - record.first_attempt > rateLimit.windowMs) {
     db.prepare(
       `
         INSERT INTO login_rate_limits (ip, count, first_attempt, blocked_until)
@@ -234,7 +234,7 @@ export function recordFailedLogin(ip: string): void {
   }
 
   const count = record.count + 1;
-  const blockedUntil = count >= MAX_LOGIN_ATTEMPTS ? now + BLOCK_DURATION : null;
+  const blockedUntil = count >= rateLimit.maxAttempts ? now + rateLimit.blockMs : null;
 
   db.prepare(
     `
@@ -255,7 +255,7 @@ export function getSessionToken(event: any): string | undefined {
     return authHeader.slice(7);
   }
 
-  const cookieToken = getCookie(event, "session_token");
+  const cookieToken = getCookie(event, getAuthConfig().session.cookies.sessionName);
   if (cookieToken) {
     return cookieToken;
   }

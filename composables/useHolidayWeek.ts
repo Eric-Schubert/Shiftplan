@@ -12,8 +12,8 @@ interface HolidayWeekEntry {
 const holidayWeekCache = reactive<Record<string, HolidayWeekEntry>>({});
 const holidayWeekRequests = new Map<string, Promise<void>>();
 
-function getCacheKey(year: number, week: number, states: string) {
-  return `${year}-${week}-${states}`;
+function getCacheKey(year: number, week: number, states?: string) {
+  return `${year}-${week}-${states || "default"}`;
 }
 
 function ensureCacheEntry(key: string): HolidayWeekEntry {
@@ -30,7 +30,7 @@ function ensureCacheEntry(key: string): HolidayWeekEntry {
   return holidayWeekCache[key];
 }
 
-async function loadHolidayWeek(year: number, week: number, states: string) {
+async function loadHolidayWeek(year: number, week: number, states?: string) {
   if (import.meta.server) {
     return;
   }
@@ -56,7 +56,7 @@ async function loadHolidayWeek(year: number, week: number, states: string) {
       query: { year, week },
     }),
     $fetch<{ grouped: SchoolHolidayPeriod[] }>("/api/holidays/school", {
-      query: { year, week, states },
+      query: states ? { year, week, states } : { year, week },
     }),
   ])
     .then(([holidays, school]) => {
@@ -80,7 +80,7 @@ async function loadHolidayWeek(year: number, week: number, states: string) {
 export function useHolidayWeek(
   year: number | Ref<number>,
   week: number | Ref<number>,
-  states = "SN,BB"
+  states?: string
 ) {
   const resolvedYear = computed(() => unref(year));
   const resolvedWeek = computed(() => unref(week));

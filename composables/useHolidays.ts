@@ -11,13 +11,7 @@
  */
 
 import { ref, computed, watch, type Ref } from 'vue';
-
-export interface PublicHoliday {
-  date: string;        // ISO date string YYYY-MM-DD
-  name: string;        // Name des Feiertags
-  type: 'national' | 'saxony';  // Bundesweit oder nur Sachsen
-  nationwide: boolean;
-}
+import type { PublicHoliday } from "~/types/holiday";
 
 // Client-seitiger Cache
 const holidayCache = new Map<string, PublicHoliday[]>();

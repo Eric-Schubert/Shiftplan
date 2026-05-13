@@ -2,7 +2,11 @@ import bcrypt from "bcryptjs";
 import type { UserRole } from "~/types/auth";
 import { requireAdmin } from "~/server/utils/auth";
 import { getAdminDatabase } from "~/server/utils/database";
-import { validatePasswordStrength } from "~/utils/password-policy";
+import {
+  getPasswordHashCost,
+  getUserValidationConfig,
+  validateConfiguredPasswordStrength,
+} from "~/server/config/auth-config";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -21,14 +25,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const username = body.username.trim();
-  if (username.length < 3) {
+  const userConfig = getUserValidationConfig();
+  if (username.length < userConfig.usernameMinLength || username.length > userConfig.usernameMaxLength) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Benutzername muss mindestens 3 Zeichen haben",
+      statusMessage: `Benutzername muss zwischen ${userConfig.usernameMinLength} und ${userConfig.usernameMaxLength} Zeichen haben`,
     });
   }
 
-  const strength = validatePasswordStrength(body.password);
+  const strength = validateConfiguredPasswordStrength(body.password);
   if (!strength.valid) {
     throw createError({
       statusCode: 400,
@@ -55,7 +60,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const passwordHash = await bcrypt.hash(body.password, 12);
+  const passwordHash = await bcrypt.hash(body.password, getPasswordHashCost());
   const result = db
     .prepare(
       "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))"

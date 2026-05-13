@@ -3,6 +3,7 @@ import { createXlsx, parseXlsx, type XlsxCellValue } from "~/server/utils/xlsx";
 import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
+import { getRotationValidationConfig, getValidationConfig } from "~/server/config/domain-config";
 import type { RotationConfig } from "~/types/rotation";
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
@@ -299,10 +300,28 @@ function createInstructionRows(
 }
 
 function parseConfig(rows: XlsxCellValue[][]): Omit<RotationConfig, "config_id"> {
+  const validation = getValidationConfig();
+  const rotation = getRotationValidationConfig();
+
   return {
-    start_year: integerInRange(readCell(rows, 2, 1), "Startjahr", 2020, 2100),
-    start_week: integerInRange(readCell(rows, 3, 1), "Startwoche", 1, 53),
-    cycle_length: integerInRange(readCell(rows, 4, 1), "Zykluslänge", 1, 52),
+    start_year: integerInRange(
+      readCell(rows, 2, 1),
+      "Startjahr",
+      validation.year.min,
+      validation.year.max
+    ),
+    start_week: integerInRange(
+      readCell(rows, 3, 1),
+      "Startwoche",
+      validation.week.min,
+      validation.week.max
+    ),
+    cycle_length: integerInRange(
+      readCell(rows, 4, 1),
+      "Zykluslänge",
+      rotation.cycleLengthMin,
+      rotation.cycleLengthMax
+    ),
   };
 }
 

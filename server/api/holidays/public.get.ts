@@ -2,7 +2,7 @@
  * API Route: /api/holidays/public
  * 
  * Ruft deutsche Feiertage von der OpenHolidays API ab.
- * Filtert auf bundesweite + sächsische Feiertage.
+ * Filtert auf bundesweite + konfigurierte regionale Feiertage.
  * 
  * Query Parameter:
  * - year: Jahr (required)
@@ -10,6 +10,15 @@
  */
 
 import { defineEventHandler, getQuery, createError } from 'h3';
+import type { HolidaySubdivision } from "~/types/holiday";
+import {
+  getHolidayApiUrl,
+  getHolidayCacheDurationMs,
+  getHolidayConfig,
+  getHolidaySubdivisionName,
+  getPublicHolidaySubdivisionCodes,
+  normalizeHolidaySubdivisionCode,
+} from "~/server/config/holiday-config";
 
 // OpenHolidays API Response Type
 interface OpenHolidayResponse {
@@ -26,13 +35,13 @@ interface OpenHolidayResponse {
 export interface PublicHoliday {
   date: string;
   name: string;
-  type: 'national' | 'saxony';
+  type: 'national' | 'regional';
   nationwide: boolean;
+  states: HolidaySubdivision[];
 }
 
 // Cache für API-Responses (In-Memory, pro Jahr)
 const holidayCache = new Map<number, { data: PublicHoliday[]; timestamp: number }>();
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Stunden
 
 /**
  * Berechnet Start- und Enddatum einer Kalenderwoche (ISO 8601)
@@ -59,10 +68,16 @@ function getWeekDateRange(year: number, week: number): { start: string; end: str
  * Holt Feiertage von der OpenHolidays API
  */
 async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
+  const config = getHolidayConfig();
   const validFrom = `${year}-01-01`;
   const validTo = `${year}-12-31`;
   
-  const url = `https://openholidaysapi.org/PublicHolidays?countryIsoCode=DE&languageIsoCode=DE&validFrom=${validFrom}&validTo=${validTo}`;
+  const url = getHolidayApiUrl("PublicHolidays", {
+    countryIsoCode: config.countryIsoCode,
+    languageIsoCode: config.languageIsoCode,
+    validFrom,
+    validTo,
+  });
   
   const response = await fetch(url, {
     headers: { 'Accept': 'application/json' }
@@ -86,18 +101,26 @@ async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
       || holiday.name[0]?.text 
       || 'Unbekannt';
     
-    // Prüfen ob bundesweit oder Sachsen-spezifisch
+    // Prüfen ob bundesweit oder für konfigurierte Bundesländer relevant
     const isNational = holiday.nationwide;
-    const isSaxony = holiday.subdivisions?.some(s => s.code === 'DE-SN') ?? false;
+    const configuredCodes = new Set(getPublicHolidaySubdivisionCodes());
+    const states = (holiday.subdivisions || [])
+      .map((subdivision) => normalizeHolidaySubdivisionCode(subdivision.code))
+      .filter((code) => configuredCodes.has(code))
+      .map((code) => ({
+        code,
+        name: getHolidaySubdivisionName(code),
+      }));
     
-    // Nur bundesweite ODER sächsische Feiertage
-    if (!isNational && !isSaxony) continue;
+    // Nur bundesweite ODER konfigurierte regionale Feiertage
+    if (!(isNational && config.public.includeNationwide) && states.length === 0) continue;
     
     holidays.push({
       date: holiday.startDate,
       name: germanName,
-      type: isNational ? 'national' : 'saxony',
-      nationwide: isNational
+      type: isNational ? 'national' : config.public.regionalType,
+      nationwide: isNational,
+      states: isNational ? [] : states,
     });
   }
   
@@ -113,7 +136,7 @@ async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
 async function getHolidays(year: number): Promise<PublicHoliday[]> {
   const cached = holidayCache.get(year);
   
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+  if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {
     return cached.data;
   }
   

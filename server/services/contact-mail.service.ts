@@ -1,4 +1,5 @@
 import type { ContactMessage } from "~/types/contact";
+import { getContactMailDefaults } from "~/server/config/contact-mail-config";
 
 type ContactMailConfig = {
   provider: "graph";
@@ -24,8 +25,6 @@ type CachedGraphToken = {
   expiresAt: number;
 };
 
-const GRAPH_TOKEN_SKEW_MS = 60 * 1000;
-const DEFAULT_SUBJECT_PREFIX = "[Schichtplaner]";
 let cachedGraphToken: CachedGraphToken | null = null;
 
 function envValue(name: string): string {
@@ -71,8 +70,11 @@ function getContactMailConfig(): ContactMailConfig | null {
     clientId: envValue("CONTACT_MAIL_GRAPH_CLIENT_ID"),
     clientSecret: envValue("CONTACT_MAIL_GRAPH_CLIENT_SECRET"),
     from: envValue("CONTACT_MAIL_GRAPH_FROM"),
-    subjectPrefix: envValue("CONTACT_MAIL_SUBJECT_PREFIX") || DEFAULT_SUBJECT_PREFIX,
-    saveToSentItems: boolEnv("CONTACT_MAIL_SAVE_TO_SENT_ITEMS", false),
+    subjectPrefix: envValue("CONTACT_MAIL_SUBJECT_PREFIX") || getContactMailDefaults().subjectPrefix,
+    saveToSentItems: boolEnv(
+      "CONTACT_MAIL_SAVE_TO_SENT_ITEMS",
+      getContactMailDefaults().saveToSentItemsDefault
+    ),
   };
 
   const missingFields = [
@@ -96,16 +98,16 @@ function formatMessageDate(value: string): string {
   const date = new Date(value.endsWith("Z") ? value : `${value}Z`);
   if (Number.isNaN(date.getTime())) return value;
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(getContactMailDefaults().dateLocale, {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: "Europe/Berlin",
+    timeZone: getContactMailDefaults().timezone,
   }).format(date);
 }
 
 function buildSubject(message: ContactMessage, subjectPrefix: string): string {
   const subject = message.subject || `Kontaktanfrage von ${message.name}`;
-  return `${subjectPrefix} ${subject}`.slice(0, 240);
+  return `${subjectPrefix} ${subject}`.slice(0, getContactMailDefaults().subjectMaxLength);
 }
 
 function buildMailText(message: ContactMessage): string {
@@ -124,7 +126,10 @@ function buildMailText(message: ContactMessage): string {
 }
 
 async function readResponseText(response: Response): Promise<string> {
-  return (await response.text().catch(() => "")).slice(0, 800);
+  return (await response.text().catch(() => "")).slice(
+    0,
+    getContactMailDefaults().errorBodyMaxLength
+  );
 }
 
 async function getGraphAccessToken(config: ContactMailConfig): Promise<string> {
@@ -132,7 +137,7 @@ async function getGraphAccessToken(config: ContactMailConfig): Promise<string> {
   const now = Date.now();
   if (
     cachedGraphToken?.cacheKey === cacheKey &&
-    cachedGraphToken.expiresAt - GRAPH_TOKEN_SKEW_MS > now
+    cachedGraphToken.expiresAt - getContactMailDefaults().tokenSkewSeconds * 1000 > now
   ) {
     return cachedGraphToken.accessToken;
   }
@@ -141,7 +146,7 @@ async function getGraphAccessToken(config: ContactMailConfig): Promise<string> {
     client_id: config.clientId,
     client_secret: config.clientSecret,
     grant_type: "client_credentials",
-    scope: "https://graph.microsoft.com/.default",
+    scope: getContactMailDefaults().graphScope,
   });
 
   const response = await fetch(

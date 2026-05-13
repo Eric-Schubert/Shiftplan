@@ -1,5 +1,6 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
+import { getAnalyticsConfig } from "~/server/config/analytics-config";
 import type {
   AnalyticsDailyMetric,
   AnalyticsLocationMetric,
@@ -39,18 +40,16 @@ type LocationRow = {
 };
 
 const ANALYTICS_SALT_KEY = "analytics_salt";
-const ANALYTICS_RETENTION_DAYS = 90;
-const DEFAULT_SUMMARY_DAYS = 30;
-const MAX_SUMMARY_DAYS = 90;
 
 function clampSummaryDays(days?: number): number {
-  if (!Number.isFinite(days)) return DEFAULT_SUMMARY_DAYS;
-  return Math.min(MAX_SUMMARY_DAYS, Math.max(1, Math.trunc(days || DEFAULT_SUMMARY_DAYS)));
+  const config = getAnalyticsConfig().summary;
+  if (!Number.isFinite(days)) return config.defaultDays;
+  return Math.min(config.maxDays, Math.max(1, Math.trunc(days || config.defaultDays)));
 }
 
 function getBerlinDate(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Berlin",
+    timeZone: getAnalyticsConfig().timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -107,29 +106,30 @@ function normalizeText(value: string | null | undefined, maxLength: number): str
 
 function normalizePath(path: string): string {
   const cleaned = path.trim() || "/";
-  return cleaned.slice(0, 180);
+  return cleaned.slice(0, getAnalyticsConfig().text.pathMaxLength);
 }
 
 function normalizeReferrer(referrer: string | null | undefined): string | null {
-  const value = normalizeText(referrer, 300);
+  const textConfig = getAnalyticsConfig().text;
+  const value = normalizeText(referrer, textConfig.referrerMaxLength);
   if (!value) return null;
 
   try {
     const url = new URL(value);
-    return normalizeText(url.hostname, 160);
+    return normalizeText(url.hostname, textConfig.referrerHostMaxLength);
   } catch {
     return null;
   }
 }
 
 function normalizeCountryCode(value: string | null | undefined): string | null {
-  const normalized = normalizeText(value, 12)?.toUpperCase() || null;
+  const normalized = normalizeText(value, getAnalyticsConfig().text.countryCodeMaxLength)?.toUpperCase() || null;
   if (!normalized || normalized === "XX" || normalized === "ZZ") return null;
   return normalized;
 }
 
 function cleanupOldVisits(today: string): void {
-  const cutoffDate = shiftDate(today, -(ANALYTICS_RETENTION_DAYS - 1));
+  const cutoffDate = shiftDate(today, -(getAnalyticsConfig().retentionDays - 1));
   getDatabase().prepare("DELETE FROM page_visits WHERE visit_date < ?").run(cutoffDate);
 }
 
@@ -162,7 +162,8 @@ export class AnalyticsService {
 
   static recordVisit(params: VisitRecord): void {
     const date = params.date || getBerlinDate();
-    const userAgent = normalizeText(params.userAgent, 280) || "unknown";
+    const textConfig = getAnalyticsConfig().text;
+    const userAgent = normalizeText(params.userAgent, textConfig.userAgentMaxLength) || "unknown";
     const visitorHash = hashDailyVisitor(date, params.ip, userAgent);
 
     getDatabase()
@@ -188,8 +189,8 @@ export class AnalyticsService {
         userAgent,
         normalizeReferrer(params.referrer),
         normalizeCountryCode(params.countryCode),
-        normalizeText(params.region, 120),
-        normalizeText(params.city, 120)
+        normalizeText(params.region, textConfig.regionMaxLength),
+        normalizeText(params.city, textConfig.cityMaxLength)
       );
 
     cleanupOldVisits(date);
@@ -234,10 +235,10 @@ export class AnalyticsService {
           WHERE visit_date BETWEEN ? AND ?
           GROUP BY path
           ORDER BY pageViews DESC, uniqueVisitors DESC, path ASC
-          LIMIT 8
+          LIMIT ?
         `
       )
-      .all(startDate, endDate) as PageRow[];
+      .all(startDate, endDate, getAnalyticsConfig().topPagesLimit) as PageRow[];
 
     const topPages = topPageRows.map((row): AnalyticsPageMetric => ({
       path: row.path,
@@ -259,10 +260,10 @@ export class AnalyticsService {
             AND (country_code IS NOT NULL OR region IS NOT NULL OR city IS NOT NULL)
           GROUP BY country_code, region, city
           ORDER BY uniqueVisitors DESC, pageViews DESC
-          LIMIT 8
+          LIMIT ?
         `
       )
-      .all(startDate, endDate) as LocationRow[];
+      .all(startDate, endDate, getAnalyticsConfig().locationsLimit) as LocationRow[];
 
     const locations = locationRows.map((row): AnalyticsLocationMetric => ({
       countryCode: row.countryCode || null,

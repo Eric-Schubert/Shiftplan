@@ -1,7 +1,10 @@
-export const MIN_PASSWORD_LENGTH = 8;
-export const MAX_PASSWORD_LENGTH = 256;
-export const PASSWORD_POLICY_HINT =
-  "Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl";
+import backendConfig from "../config/backend.config.json";
+
+const passwordPolicy = backendConfig.auth.passwordPolicy;
+
+export const MIN_PASSWORD_LENGTH = passwordPolicy.minLength;
+export const MAX_PASSWORD_LENGTH = passwordPolicy.maxLength;
+export const PASSWORD_POLICY_HINT = passwordPolicy.hint;
 
 export function validatePasswordStrength(password: string): {
   valid: boolean;
@@ -21,21 +24,21 @@ export function validatePasswordStrength(password: string): {
     };
   }
 
-  if (!/[A-Z]/.test(password)) {
+  if (passwordPolicy.requireUppercase && !/[A-Z]/.test(password)) {
     return {
       valid: false,
       message: "Passwort muss mindestens einen Großbuchstaben enthalten",
     };
   }
 
-  if (!/[a-z]/.test(password)) {
+  if (passwordPolicy.requireLowercase && !/[a-z]/.test(password)) {
     return {
       valid: false,
       message: "Passwort muss mindestens einen Kleinbuchstaben enthalten",
     };
   }
 
-  if (!/[0-9]/.test(password)) {
+  if (passwordPolicy.requireNumber && !/[0-9]/.test(password)) {
     return {
       valid: false,
       message: "Passwort muss mindestens eine Zahl enthalten",
