@@ -251,6 +251,7 @@ schichtplaner/
 |-- layouts/
 |   `-- default.vue
 |-- pages/
+|   |-- datenschutz.vue
 |   |-- impressum.vue
 |   |-- index.vue
 |   `-- settings.vue
@@ -313,6 +314,17 @@ schichtplaner/
 |   |   |   |-- index.get.ts
 |   |   |   `-- index.post.ts
 |   |   `-- contact.post.ts
+|   |-- config/
+|   |   |-- analytics-config.ts
+|   |   |-- auth-config.ts
+|   |   |-- backend-config.schema.ts
+|   |   |-- backend-config.ts
+|   |   |-- backend-config.types.ts
+|   |   |-- contact-config.ts
+|   |   |-- contact-mail-config.ts
+|   |   |-- database-config.ts
+|   |   |-- domain-config.ts
+|   |   `-- holiday-config.ts
 |   |-- middleware/
 |   |   `-- auth.ts
 |   |-- plugins/
@@ -320,6 +332,7 @@ schichtplaner/
 |   |-- services/
 |   |   |-- analytics.service.ts
 |   |   |-- audit.service.ts
+|   |   |-- contact-mail.service.ts
 |   |   |-- contact.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
