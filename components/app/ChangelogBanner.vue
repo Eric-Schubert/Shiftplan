@@ -68,7 +68,7 @@ function isCurrent(entry: ChangelogEntry): boolean {
 
 function releaseUrl(entry: ChangelogEntry): string | null {
   const version = normalizeVersion(entry.title);
-  return version ? `https://github.com/Eric-Schubert/Shiftplanv2/releases/tag/${version}` : null;
+  return version ? `https://github.com/Eric-Schubert/Shiftplan/releases/tag/${version}` : null;
 }
 
 function previewChanges(entry: ChangelogEntry): string[] {
