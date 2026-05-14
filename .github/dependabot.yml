@@ -30,7 +30,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
       time: "04:30"
       timezone: "Europe/Berlin"
     open-pull-requests-limit: 5
@@ -46,7 +46,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
       time: "05:00"
       timezone: "Europe/Berlin"
     open-pull-requests-limit: 5
