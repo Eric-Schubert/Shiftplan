@@ -258,6 +258,7 @@ schichtplaner/
 |   |-- index.vue
 |   `-- settings.vue
 |-- scripts/
+|   |-- create-release-tag.js
 |   |-- docker-smoke-test.sh
 |   |-- generate-changelog.js
 |   |-- generate-readme.js
