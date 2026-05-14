@@ -1,6 +1,3 @@
-# git-cliff Configuration
-# https://git-cliff.org/docs/configuration
-
 [changelog]
 header = ""
 body = """
@@ -34,7 +31,6 @@ commit_parsers = [
   { message = "^fix", group = "Bug Fixes" },
   { message = "^perf", group = "Performance" },
   { message = "^security", group = "Security" },
-  # Everything below is hidden from the changelog
   { message = "^refactor", skip = true },
   { message = "^style", skip = true },
   { message = "^test", skip = true },

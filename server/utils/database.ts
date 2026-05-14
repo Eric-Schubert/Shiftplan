@@ -16,7 +16,7 @@ function logMigration(message: string): void {
   console.log(message);
 }
 
-// Haupt-Datenbank (Schichten, Mitarbeiter, Rotation)
+
 export function getDatabase(): DatabaseType {
   if (!db) {
     const databasePath = getDatabasePaths().main;
@@ -28,7 +28,7 @@ export function getDatabase(): DatabaseType {
   return db;
 }
 
-// Admin-Datenbank (Passwort, Einstellungen)
+
 export function getAdminDatabase(): DatabaseType {
   if (!adminDb) {
     const databasePath = getDatabasePaths().admin;

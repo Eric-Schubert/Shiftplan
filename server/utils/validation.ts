@@ -1,22 +1,9 @@
-/**
- * Zentrale Input-Validierung für alle API-Endpoints
- *
- * Schützt vor:
- * - Überlange Strings (DoS / DB-Bloat)
- * - Ungültige Datenformate
- * - HTML/Script-Injection in Textfeldern
- * - Ungültige Integer-Bereiche
- */
+
+
 
 import { getValidationConfig } from "~/server/config/domain-config";
 
-// ============================================
-// STRING VALIDATION
-// ============================================
 
-/**
- * Validiert und bereinigt einen String-Wert
- */
 export function validateString(
   value: unknown,
   fieldName: string,
@@ -77,19 +64,15 @@ export function validateString(
   return trimmed;
 }
 
-/**
- * Bereinigt einen String von HTML-Tags und gefährlichen Zeichen
- */
+
 export function sanitizeString(value: string): string {
   return value
-    .replace(/[<>]/g, "") // HTML-Tags entfernen
-    .replace(/&(?=#|[a-zA-Z])/g, "&amp;") // Ampersand escapen (nur wenn gefolgt von # oder Buchstabe)
+    .replace(/[<>]/g, "")
+    .replace(/&(?=#|[a-zA-Z])/g, "&amp;")
     .trim();
 }
 
-/**
- * Validiert und bereinigt einen Namen (Staff, Shift, etc.)
- */
+
 export function validateName(
   value: unknown,
   fieldName: string,
@@ -108,13 +91,7 @@ export function validateName(
   return sanitizeString(validated);
 }
 
-// ============================================
-// NUMBER VALIDATION
-// ============================================
 
-/**
- * Validiert einen Integer-Wert
- */
 export function validateInteger(
   value: unknown,
   fieldName: string,
@@ -150,9 +127,7 @@ export function validateInteger(
   return num;
 }
 
-/**
- * Validiert einen Boolean-Wert (auch 0/1 als Input)
- */
+
 export function validateBoolean(
   value: unknown,
   fieldName: string,
@@ -173,13 +148,7 @@ export function validateBoolean(
   throw createValidationError(`${fieldName} muss ein Wahrheitswert sein (0 oder 1)`);
 }
 
-// ============================================
-// SPECIFIC VALIDATORS
-// ============================================
 
-/**
- * Validiert eine Zeitangabe im Format HH:MM
- */
 export function validateTime(
   value: unknown,
   fieldName: string,
@@ -193,9 +162,7 @@ export function validateTime(
   });
 }
 
-/**
- * Validiert einen Hex-Farbwert
- */
+
 export function validateColor(
   value: unknown,
   fieldName: string,
@@ -211,9 +178,7 @@ export function validateColor(
   });
 }
 
-/**
- * Validiert eine Jahresangabe
- */
+
 export function validateYear(
   value: unknown,
   fieldName: string,
@@ -228,9 +193,7 @@ export function validateYear(
   });
 }
 
-/**
- * Validiert eine Kalenderwoche
- */
+
 export function validateWeek(
   value: unknown,
   fieldName: string,
@@ -245,9 +208,7 @@ export function validateWeek(
   });
 }
 
-/**
- * Validiert eine Entity-ID
- */
+
 export function validateId(value: unknown, fieldName: string): number {
   const range = getValidationConfig().id;
   const id = validateInteger(value, fieldName, {
@@ -258,9 +219,6 @@ export function validateId(value: unknown, fieldName: string): number {
   return id!;
 }
 
-// ============================================
-// ERROR HELPER
-// ============================================
 
 function createValidationError(message: string) {
   return createError({

@@ -5,9 +5,9 @@ import { ShiftService } from "./shift.service";
 import { RotationService } from "./rotation.service";
 
 export const ShiftplanService = {
-  /**
-   * Holt oder erstellt eine Woche
-   */
+
+
+
   getOrCreateWeek(year: number, weekNumber: number): Week {
     const db = getDatabase();
 
@@ -29,9 +29,9 @@ export const ShiftplanService = {
     return week;
   },
 
-  /**
-   * Holt eine Woche ohne sie anzulegen.
-   */
+
+
+
   getWeek(year: number, weekNumber: number): Week | null {
     const db = getDatabase();
     const week = db
@@ -41,15 +41,15 @@ export const ShiftplanService = {
     return week || null;
   },
 
-  /**
-   * Holt den Schichtplan für eine bestimmte Woche
-   */
+
+
+
   getWeeklyPlan(year: number, weekNumber: number): WeeklyShiftplan & { pattern_week: number } {
     const db = getDatabase();
     const week = this.getOrCreateWeek(year, weekNumber);
     const shifts = ShiftService.getActive();
 
-    // Berechne welche Musterwoche das ist
+
     const patternWeek = RotationService.calculatePatternWeek(year, weekNumber);
 
     const shiftsWithStaff: ShiftWithStaff[] = shifts.map((shift) => {
@@ -74,9 +74,9 @@ export const ShiftplanService = {
     };
   },
 
-  /**
-   * Holt den Schichtplan read-only, ohne fehlende Wochen anzulegen.
-   */
+
+
+
   getWeeklyPlanReadOnly(year: number, weekNumber: number): WeeklyShiftplan & { pattern_week: number } {
     const db = getDatabase();
     const existingWeek = this.getWeek(year, weekNumber);
@@ -112,9 +112,9 @@ export const ShiftplanService = {
     };
   },
 
-  /**
-   * Prüft ob eine Zuweisung bereits existiert
-   */
+
+
+
   hasAssignment(staffId: number, shiftId: number, weekId: number): boolean {
     const db = getDatabase();
     const assignment = db
@@ -127,9 +127,9 @@ export const ShiftplanService = {
     return Boolean(assignment);
   },
 
-  /**
-   * Weist einen Mitarbeiter einer Schicht zu
-   */
+
+
+
   assignStaff(staffId: number, shiftId: number, weekId: number): boolean {
     const db = getDatabase();
     try {
@@ -143,37 +143,37 @@ export const ShiftplanService = {
     }
   },
 
-  /**
-   * Entfernt einen Mitarbeiter von einer Schicht
-   */
+
+
+
   unassignStaff(staffId: number, shiftId: number, weekId: number): boolean {
     const db = getDatabase();
     const result = db
       .prepare(`
-        DELETE FROM shift_assignments 
+        DELETE FROM shift_assignments
         WHERE staff_id = ? AND shift_id = ? AND week_id = ?
       `)
       .run(staffId, shiftId, weekId);
     return result.changes > 0;
   },
 
-  /**
-   * Generiert automatisch einen Schichtplan basierend auf dem Rotationsmuster
-   */
+
+
+
   generateFromPattern(year: number, weekNumber: number): WeeklyShiftplan & { pattern_week: number } {
     const db = getDatabase();
     const week = this.getOrCreateWeek(year, weekNumber);
 
-    // Berechne welche Musterwoche gilt
+
     const patternWeek = RotationService.calculatePatternWeek(year, weekNumber);
 
-    // Hole das Muster für diese Woche
+
     const patternData = RotationService.getPatternForWeek(patternWeek);
 
-    // Lösche existierende Zuweisungen für diese Woche
+
     db.prepare("DELETE FROM shift_assignments WHERE week_id = ?").run(week.week_id);
 
-    // Wende das Muster an
+
     for (const assignment of patternData.assignments) {
       for (const staff of assignment.staff) {
         this.assignStaff(staff.staff_id, assignment.shift.shift_id, week.week_id);
@@ -183,9 +183,9 @@ export const ShiftplanService = {
     return this.getWeeklyPlan(year, weekNumber);
   },
 
-  /**
-   * Generiert Schichtpläne für mehrere Wochen basierend auf dem Rotationsmuster
-   */
+
+
+
   generateMultipleWeeks(
     startYear: number,
     startWeek: number,
@@ -204,7 +204,7 @@ export const ShiftplanService = {
         pattern_week: result.pattern_week,
       });
 
-      // Nächste Woche
+
       currentWeek++;
       const maxWeeks = this.getISOWeeksInYear(currentYear);
       if (currentWeek > maxWeeks) {
@@ -219,18 +219,18 @@ export const ShiftplanService = {
     };
   },
 
-  /**
-   * Hilfsfunktion: Anzahl der ISO-Wochen in einem Jahr
-   */
+
+
+
   getISOWeeksInYear(year: number): number {
     const d = new Date(year, 11, 31);
     const week = this.getISOWeek(d);
     return week === 1 ? 52 : week;
   },
 
-  /**
-   * Hilfsfunktion: ISO Kalenderwoche berechnen
-   */
+
+
+
   getISOWeek(date: Date): number {
     const d = new Date(
       Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())

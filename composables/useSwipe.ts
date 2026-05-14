@@ -1,17 +1,15 @@
-/**
- * useSwipe Composable
- *
- * Erkennt horizontale Swipe-Gesten auf einem Element.
- * Vertikales Scrollen wird nicht beeinflusst.
- */
+
+
+
+
 import { ref, onMounted, onUnmounted, type Ref } from "vue";
 
 interface SwipeOptions {
-  /** Mindest-Distanz in px für einen Swipe (default: 50) */
+
   threshold?: number;
-  /** Max. vertikale Abweichung in px (default: 100) */
+
   maxVerticalDistance?: number;
-  /** Max. erlaubte Dauer in ms (default: 300) */
+
   maxDuration?: number;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
@@ -56,14 +54,14 @@ export function useSwipe(
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);
 
-    // Vertikale Bewegung zu groß → kein Swipe
+
     if (diffY > maxVerticalDistance) {
       isSwiping.value = false;
       swipeOffset.value = 0;
       return;
     }
 
-    // Ab 20px visuelles Feedback
+
     if (Math.abs(diffX) > 20) {
       isSwiping.value = true;
       swipeOffset.value = Math.sign(diffX) * Math.min(Math.abs(diffX) * 0.4, 80);

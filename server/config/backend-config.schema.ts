@@ -55,6 +55,7 @@ function validateAuth(value: unknown, errors: MutableErrorList): void {
     min: 4,
     max: 15,
   });
+  booleanAt(config.trustProxyHeaders, "auth.trustProxyHeaders", errors);
 
   const users = objectAt(config.users, "auth.users", errors);
   integerAt(users.usernameMinLength, "auth.users.usernameMinLength", errors, { min: 1 });

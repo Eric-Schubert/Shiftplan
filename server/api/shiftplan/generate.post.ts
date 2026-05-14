@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-  // Input-Validierung
+
   const year = validateYear(body.year, "Jahr", { required: true })!;
   const week = validateWeek(body.week, "Woche", { required: true })!;
   const hasWeeksParameter =
@@ -19,12 +19,11 @@ export default defineEventHandler(async (event) => {
     max: generationConfig.generateWeeksMax,
   });
 
-  // Wenn der Mehrwochen-Dialog eine Wochenzahl sendet, liefern wir immer die
-  // Mehrwochen-Zusammenfassung zurueck, auch wenn es nur eine Woche ist.
+
   if (hasWeeksParameter && weeks) {
     return ShiftplanService.generateMultipleWeeks(year, week, weeks);
   }
 
-  // Einzelne Woche generieren
+
   return ShiftplanService.generateFromPattern(year, week);
 });

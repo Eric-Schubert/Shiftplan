@@ -14,15 +14,15 @@ dist
 .idea
 .impeccable.md
 
-# DB-Dateien nicht in den Build
+
 db/*.sqlite
 db/*.sqlite-*
 
-# Tests
+
 tests/
 coverage/
 vitest.config.ts
 
-# Docs
+
 *.md
 LICENSE

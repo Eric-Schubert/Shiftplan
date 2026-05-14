@@ -13,7 +13,7 @@ export default defineEventHandler((event) => {
     });
   }
 
-  // Sich selbst löschen verhindern
+
   if (id === currentUser.userId) {
     throw createError({
       statusCode: 400,
@@ -23,7 +23,7 @@ export default defineEventHandler((event) => {
 
   const db = getAdminDatabase();
 
-  // Prüfen ob es der letzte Admin ist
+
   const user = db
     .prepare("SELECT role FROM users WHERE user_id = ?")
     .get(id) as { role: string } | undefined;

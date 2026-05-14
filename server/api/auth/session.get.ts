@@ -11,8 +11,8 @@ export default defineEventHandler((event) => {
   return {
     authenticated: true,
     user,
-    // CSRF-Token nur zurückgeben wenn Session gültig ist
-    // (Frontend braucht es nach Page-Refresh)
+
+
     csrfToken: getCsrfToken(token),
   };
 });

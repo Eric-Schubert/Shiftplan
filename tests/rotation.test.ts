@@ -19,7 +19,7 @@ describe("Rotation Operations", () => {
   describe("Rotation Config", () => {
     it("should create default config", () => {
       const db = getTestDatabase();
-      
+
       db.prepare(
         "INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)"
       ).run();
@@ -36,7 +36,7 @@ describe("Rotation Operations", () => {
 
     it("should update cycle length", () => {
       const db = getTestDatabase();
-      
+
       db.prepare(
         "INSERT INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)"
       ).run();
@@ -103,17 +103,17 @@ describe("Rotation Operations", () => {
       const db = getTestDatabase();
       insertTestData(db);
 
-      // Week 1: Staff 1 to Shift 1
+
       db.prepare(
         "INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (?, ?, ?)"
       ).run(1, 1, 1);
 
-      // Week 1: Staff 2 to Shift 2
+
       db.prepare(
         "INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (?, ?, ?)"
       ).run(1, 2, 2);
 
-      // Week 2: Staff 1 to Shift 2
+
       db.prepare(
         "INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (?, ?, ?)"
       ).run(2, 1, 2);
@@ -165,23 +165,23 @@ describe("Rotation Operations", () => {
         return patternIndex + 1;
       }
 
-      // 2025 KW 1 -> Pattern Week 1 (Start)
+
       expect(calculatePatternWeek(2025, 1)).toBe(1);
 
-      // 2025 KW 2 -> Pattern Week 2
+
       expect(calculatePatternWeek(2025, 2)).toBe(2);
 
-      // 2025 KW 4 -> Pattern Week 4
+
       expect(calculatePatternWeek(2025, 4)).toBe(4);
 
-      // 2025 KW 5 -> Pattern Week 1 (Zyklus wiederholt sich)
+
       expect(calculatePatternWeek(2025, 5)).toBe(1);
 
-      // 2026 KW 1 (52 Wochen später) -> Pattern Week 1
-      // 52 % 4 = 0 -> Pattern Week 1
+
+
       expect(calculatePatternWeek(2026, 1)).toBe(1);
 
-      // 2026 KW 2 -> Pattern Week 2
+
       expect(calculatePatternWeek(2026, 2)).toBe(2);
     });
 
@@ -196,14 +196,14 @@ describe("Rotation Operations", () => {
         return patternIndex + 1;
       }
 
-      // Vor dem Start (negative weeksFromStart)
-      // KW 9 -> -1 Woche -> sollte Pattern Week 4 sein
+
+
       expect(calculatePatternWeek(2025, 9)).toBe(4);
 
-      // KW 8 -> -2 Wochen -> sollte Pattern Week 3 sein
+
       expect(calculatePatternWeek(2025, 8)).toBe(3);
 
-      // KW 6 -> -4 Wochen -> sollte Pattern Week 1 sein
+
       expect(calculatePatternWeek(2025, 6)).toBe(1);
     });
 
@@ -215,7 +215,7 @@ describe("Rotation Operations", () => {
         return patternIndex + 1;
       }
 
-      // Test mit vielen verschiedenen Werten
+
       for (let i = -100; i <= 100; i++) {
         const result = calculatePatternWeek(i);
         expect(result).toBeGreaterThanOrEqual(1);

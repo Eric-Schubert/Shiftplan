@@ -6,7 +6,7 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["tests/**/*.test.ts"],
-    // Sequentiell statt parallel - verhindert DB-Konflikte
+
     pool: "forks",
     fileParallelism: false,
     coverage: {

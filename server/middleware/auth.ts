@@ -6,11 +6,8 @@ import {
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 
-/**
- * Prüft ob ein Pfad zu einem öffentlichen GET-Prefix gehört.
- * Erlaubt nur exakte Treffer oder Pfade die mit / weitergehen.
- * z.B. /api/staff → ✅, /api/staff/1 → ✅, /api/staff-secret → ❌
- */
+
+
 function isPublicGetRoute(path: string): boolean {
   return getAuthConfig().routes.publicGetPrefixes.some(
     (prefix) => path === prefix || path.startsWith(prefix + "/")
@@ -21,22 +18,22 @@ export default defineEventHandler((event) => {
   const path = getRequestURL(event).pathname;
   const method = getMethod(event);
 
-  // Keine API-Route? Ignorieren
+
   if (!path.startsWith("/api/")) {
     return;
   }
 
-  // Komplett öffentliche Routen (exakter Match)
+
   if (getAuthConfig().routes.public.includes(path)) {
     return;
   }
 
-  // GET-Requests auf öffentliche Routen erlauben (sicheres Prefix-Matching)
+
   if (method === "GET" && isPublicGetRoute(path)) {
     return;
   }
 
-  // Ab hier: Authentifizierung erforderlich
+
   const token = getSessionToken(event);
   const isValid = validateSession(token);
 
@@ -47,7 +44,7 @@ export default defineEventHandler((event) => {
     });
   }
 
-  // CSRF-Schutz für state-ändernde Methoden
+
   if (getAuthConfig().routes.csrfMethods.includes(method)) {
     const csrfToken = getCsrfTokenFromRequest(event);
     const csrfValid = validateCsrfToken(token, csrfToken);
@@ -60,5 +57,5 @@ export default defineEventHandler((event) => {
     }
   }
 
-  // Session ist gültig, Request durchlassen
+
 });

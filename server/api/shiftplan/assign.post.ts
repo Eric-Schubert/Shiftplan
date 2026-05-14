@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-  // Input-Validierung
+
   const staff_id = validateId(body.staff_id, "staff_id");
   const shift_id = validateId(body.shift_id, "shift_id");
   const year = validateYear(body.year, "Jahr", { required: true })!;

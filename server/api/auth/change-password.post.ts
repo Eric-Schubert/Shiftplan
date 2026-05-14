@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Neues Passwort erforderlich" });
   }
 
-  // DoS-Schutz: bcrypt ist absichtlich langsam.
+
   if (body.currentPassword.length > getMaxPasswordLength()) {
     throw createError({ statusCode: 400, statusMessage: "Passwort zu lang" });
   }

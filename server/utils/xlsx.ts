@@ -276,7 +276,7 @@ function columnWidthsXml(widths: number[] | undefined, colCount: number): string
   const cols = Array.from({ length: colCount }, (_, index) => {
     const width = widths[index];
     if (!width) return "";
-    // language=XML
+
     return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`;
   })
     .filter(Boolean)

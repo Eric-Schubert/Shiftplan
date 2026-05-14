@@ -18,9 +18,7 @@ import bcrypt from "bcryptjs";
 export default defineEventHandler(async (event) => {
   const ip = getClientIP(event);
 
-  // ============================================
-  // RATE LIMITING
-  // ============================================
+
   const rateLimit = checkRateLimit(ip);
 
   if (!rateLimit.allowed) {
@@ -30,9 +28,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // ============================================
-  // INPUT VALIDATION
-  // ============================================
+
   const body = await readBody<{ username: string; password: string }>(event);
 
   if (!body.username || typeof body.username !== "string") {
@@ -58,7 +54,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Passwort-Länge begrenzen (verhindert DoS über bcrypt mit extrem langen Strings)
+
   if (body.password.length > getMaxPasswordLength()) {
     throw createError({
       statusCode: 400,
@@ -66,9 +62,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // ============================================
-  // PASSWORD CHECK
-  // ============================================
+
   const db = getAdminDatabase();
   const user = db
     .prepare(
@@ -81,24 +75,20 @@ export default defineEventHandler(async (event) => {
     : false;
 
   if (!isValid) {
-    // Fehlversuch registrieren
+
     recordFailedLogin(ip);
 
-    // Generische Fehlermeldung — keine Details über verbleibende Versuche
+
     throw createError({
       statusCode: 401,
       statusMessage: "Anmeldung fehlgeschlagen",
     });
   }
 
-  // ============================================
-  // LOGIN ERFOLGREICH
-  // ============================================
 
-  // Rate Limit zurücksetzen
   resetRateLimit(ip);
 
-  // Session erstellen (inkl. CSRF-Token)
+
   const sessionUser: SessionUser = {
     userId: user!.user_id,
     username: user!.username,
@@ -108,7 +98,7 @@ export default defineEventHandler(async (event) => {
   const cookieConfig = getAuthConfig().session.cookies;
   const cookieMaxAge = getSessionCookieMaxAgeSeconds();
 
-  // Session-Cookie setzen (HttpOnly — nicht per JS lesbar)
+
   setCookie(event, cookieConfig.sessionName, sessionToken, {
     httpOnly: true,
     secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
@@ -117,8 +107,7 @@ export default defineEventHandler(async (event) => {
     path: cookieConfig.path,
   });
 
-  // CSRF-Token als separates, JS-lesbares Cookie
-  // (NICHT httpOnly — Frontend muss es lesen können um es als Header zu senden)
+
   setCookie(event, cookieConfig.csrfName, csrfToken, {
     httpOnly: false,
     secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
@@ -127,7 +116,7 @@ export default defineEventHandler(async (event) => {
     path: cookieConfig.path,
   });
 
-  // NUR success zurückgeben — KEIN Token im Body!
+
   return {
     success: true,
     user: sessionUser,

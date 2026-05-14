@@ -70,13 +70,13 @@ onMounted(fetchEntries);
       Alle manuellen Änderungen am Schichtplan
     </p>
 
-    <!-- Loading -->
+
     <div v-if="loading" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
 
     <template v-else>
-      <!-- Einträge -->
+
       <div v-if="entries.length > 0" class="space-y-2">
         <div
           v-for="entry in entries"
@@ -124,7 +124,7 @@ onMounted(fetchEntries);
         Noch keine Änderungen protokolliert
       </div>
 
-      <!-- Pagination -->
+
       <div v-if="totalPages > 1" class="mt-4 flex items-center justify-between gap-3 border-t pt-4 dark:border-gray-700">
         <PrimeButton
           icon="pi pi-chevron-left"

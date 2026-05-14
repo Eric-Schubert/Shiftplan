@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import backendConfig from "../config/backend.config.json";
 
 const originalCwd = process.cwd();
 const originalBootstrapPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
@@ -34,6 +35,7 @@ describe("persistent session storage", () => {
     } else {
       process.env.SHIFTPLAN_ADMIN_PASSWORD = originalBootstrapPassword;
     }
+    vi.unstubAllGlobals();
     vi.resetModules();
 
     if (tempDir) {
@@ -74,5 +76,42 @@ describe("persistent session storage", () => {
       remainingAttempts: 4,
       blockedForSeconds: 0,
     });
+  });
+
+  it("ignores spoofable proxy headers by default", async () => {
+    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
+    const sessionModule = await loadSessionModule();
+
+    expect(
+      sessionModule.getClientIP({
+        headers: {
+          "cf-connecting-ip": "198.51.100.10",
+          "x-forwarded-for": "198.51.100.20",
+          "x-real-ip": "198.51.100.30",
+        },
+        node: { req: { socket: { remoteAddress: "203.0.113.5" } } },
+      })
+    ).toBe("203.0.113.5");
+  });
+
+  it("uses proxy headers when they are explicitly trusted", async () => {
+    const trustedProxyConfig = structuredClone(backendConfig);
+    trustedProxyConfig.auth.trustProxyHeaders = true;
+    fs.mkdirSync(path.join(tempDir!, "config"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempDir!, "config", "backend.config.json"),
+      JSON.stringify(trustedProxyConfig, null, 2)
+    );
+    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
+    const sessionModule = await loadSessionModule();
+
+    expect(
+      sessionModule.getClientIP({
+        headers: {
+          "x-forwarded-for": "198.51.100.20, 198.51.100.21",
+        },
+        node: { req: { socket: { remoteAddress: "203.0.113.5" } } },
+      })
+    ).toBe("198.51.100.20");
   });
 });

@@ -1,6 +1,6 @@
-# ============================================
-# Stage 1: Dependencies
-# ============================================
+
+
+
 FROM node:24-alpine AS deps
 
 RUN apk add --no-cache python3 make g++
@@ -9,12 +9,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ============================================
-# Stage 2: Build
-# ============================================
+
 FROM node:24-alpine AS builder
 
-# Version wird vom CI/Docker-Compose als Build-Arg übergeben
+
 ARG APP_VERSION=0.0.0
 
 RUN apk add --no-cache python3 make g++
@@ -23,24 +21,22 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# .version Datei schreiben (kein Git im Container nötig)
+
 RUN echo "${APP_VERSION}" > .version
 
 RUN npm run build
 
-# ============================================
-# Stage 3: Production
-# ============================================
+
 FROM node:24-alpine
 
 RUN apk add --no-cache libstdc++
 
 WORKDIR /app
 
-# Nuxt Build-Output
+
 COPY --from=builder /app/.output ./.output
 
-# setup.js + seine Dependencies für DB-Initialisierung
+
 COPY --from=builder /app/setup.js ./setup.js
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/server/utils/database-migrations.js ./server/utils/database-migrations.js
@@ -52,7 +48,7 @@ COPY --from=builder /app/node_modules/prebuild-install ./node_modules/prebuild-i
 COPY --from=builder /app/node_modules/node-addon-api ./node_modules/node-addon-api
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
-# Entrypoint
+
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 

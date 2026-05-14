@@ -1,13 +1,12 @@
 name: Update README
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
   workflow_run:
-    workflows: ["CI"]  # Runs after CI workflow completes
+    workflows: ["CI"]
     types: [completed]
     branches: [master, main]
 
-# Add write permissions for the token
 permissions:
   contents: write
 
@@ -18,9 +17,15 @@ concurrency:
 jobs:
   update-readme:
     runs-on: ubuntu-latest
-    # Only run if CI was successful
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    
+
+
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'
+      )
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,16 +43,16 @@ jobs:
           else
             echo "relevant=false" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '20'
-      
+
       - name: Generate README
         if: steps.relevance.outputs.relevant != 'false'
         run: npm run docs
-      
+
       - name: Check for changes
         id: changes
         if: steps.relevance.outputs.relevant != 'false'
@@ -57,7 +62,7 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Commit and push
         if: steps.relevance.outputs.relevant != 'false' && steps.changes.outputs.changed == 'true'
         run: |

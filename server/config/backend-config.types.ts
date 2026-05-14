@@ -19,6 +19,7 @@ export type BackendConfig = {
     };
     passwordHashCost: number;
     bootstrapPasswordHashCost: number;
+    trustProxyHeaders: boolean;
     users: {
       usernameMinLength: number;
       usernameMaxLength: number;

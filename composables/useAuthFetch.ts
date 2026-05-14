@@ -1,21 +1,12 @@
-/**
- * Composable für authentifizierte API-Aufrufe
- *
- * Fügt automatisch den CSRF-Token als Header zu allen
- * state-ändernden Requests (POST, PATCH, PUT, DELETE) hinzu.
- *
- * Verwendung:
- *   const { authFetch } = useAuthFetch();
- *   await authFetch('/api/staff', { method: 'POST', body: data });
- */
+
+
+
 import backendConfig from "../config/backend.config.json";
 
 export function useAuthFetch() {
   const authStore = useAuthStore();
 
-  /**
-   * Wrapper um $fetch der automatisch CSRF-Header setzt
-   */
+
   async function authFetch<T = any>(
     url: string,
     options: Parameters<typeof $fetch>[1] = {}

@@ -7,22 +7,22 @@
 ![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?logo=sqlite)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-Ein webbasierter Dienstplan für kleine und mittlere Teams. Der Plan läuft wochenbasiert, unterstützt feste Schichtrotationen und lässt sich direkt im Browser pflegen.
+A browser-based shift planner for small and mid-sized teams. The app works week by week, supports fixed rotation patterns, and lets planners maintain schedules directly in the browser.
 
-## Was die App kann
+## Features
 
-- Wochenplan mit Kalenderwochen, Feiertagen und Schulferien
-- Schichtrotation mit Startwoche, Zykluslänge und Musterwochen
-- Excel-Vorlage herunterladen, bearbeiten und wieder importieren
-- Mitarbeiter, Schichten und Rotationsmuster verwalten
-- Planer-Rolle für Schichtzuweisungen ohne volle Admin-Rechte
-- Admin-Bereich für Benutzer, Stammdaten und Einstellungen
-- Audit-Log für manuelle Änderungen am Schichtplan
-- Automatische Releases, Changelog und Docker-Image über GitHub Actions
+- Weekly planning with calendar weeks, public holidays, and school holidays
+- Rotation patterns with a start week, cycle length, and template weeks
+- Excel template export and import for rotation planning
+- Staff, shift, and rotation management
+- Planner role for shift assignments without full admin access
+- Admin area for users, master data, and settings
+- Audit log for manual schedule changes
+- Automated releases, changelog generation, and Docker image publishing via GitHub Actions
 
-## Schnellstart
+## Quick Start
 
-Voraussetzungen:
+Requirements:
 
 - Node.js 20+
 - npm
@@ -32,25 +32,27 @@ npm install
 npm run dev
 ```
 
-Die App startet lokal unter `http://localhost:3000`.
+The app starts at `http://localhost:3000`.
 
-Beim ersten Start muss ein Bootstrap-Passwort gesetzt werden:
+Set a bootstrap password before the first start:
 
 ```powershell
-$env:SHIFTPLAN_ADMIN_PASSWORD = "SicheresPasswort1"
+$env:SHIFTPLAN_ADMIN_PASSWORD = "SecurePassword1"
 npm run dev
 ```
 
-Das Passwort sollte nach dem ersten Login geändert werden.
-Die App legt damit den initialen Admin-Benutzer `admin` an. Vorhersagbare Default-Credentials wie `admin/admin` werden nicht mehr erzeugt. Falls eine bestehende Datenbank noch einen unveränderten Default-Admin enthält, blockiert der Start, bis `SHIFTPLAN_ADMIN_PASSWORD` gesetzt und `node setup.js` erneut ausgeführt wurde.
+Change this password after the first login.
+The setup creates the initial `admin` user. Predictable defaults such as `admin/admin` are not generated. If an existing database still contains an unchanged default admin, startup is blocked until `SHIFTPLAN_ADMIN_PASSWORD` is set and `node setup.js` is run again.
 
-## Backend-Konfiguration
+## Backend Configuration
 
-Nicht-geheime Backend-Einstellungen liegen zentral in `config/backend.config.json`. Dort werden u. a. Feiertags-Bundesländer, Schulferien-Bundesländer, Session-Dauer, Rate-Limits, Validierungsgrenzen, Schicht-Defaults, Analytics-Aufbewahrung und XLSX-Limits gepflegt.
+Non-secret backend settings live in `config/backend.config.json`. This includes holiday regions, school holiday regions, session duration, rate limits, validation limits, shift defaults, analytics retention, XLSX limits, and proxy-header trust.
 
-Secrets bleiben bewusst in `.env`, z. B. `SHIFTPLAN_ADMIN_PASSWORD` oder Microsoft-Graph-Zugangsdaten. Wenn eine andere Config-Datei genutzt werden soll, kann der Pfad über `SHIFTPLAN_BACKEND_CONFIG_PATH` gesetzt werden.
+Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or Microsoft Graph credentials. Use `SHIFTPLAN_BACKEND_CONFIG_PATH` to load a different backend config file.
 
-Beispiel für Feiertage:
+Proxy headers such as `x-forwarded-for` are ignored by default so clients cannot spoof their IP address to bypass rate limits. Set `auth.trustProxyHeaders` to `true` only when the app runs behind a trusted reverse proxy that overwrites these headers.
+
+Holiday example:
 
 ```json
 {
@@ -69,30 +71,30 @@ Beispiel für Feiertage:
 
 ```bash
 docker build -t schichtplaner .
-docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SicheresPasswort1 -v ${PWD}/db:/app/db schichtplaner
+docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SecurePassword1 -v ${PWD}/db:/app/db schichtplaner
 ```
 
-Mit Docker Compose startet das veröffentlichte Image über die mitgelieferte `compose.yaml`:
+Docker Compose starts the published image using the included `compose.yaml`:
 
 ```bash
 docker compose up -d
 ```
 
-Die lokale `.env` wird nicht in das Image kopiert. Übergib sie beim Start mit `--env-file .env` oder in Docker Compose per `env_file`, damit Impressums- und weitere Laufzeitvariablen im Container verfügbar sind. Compose liest `.env` zwar für Variablen in der YAML, reicht die Werte aber nur mit `env_file` an den Container weiter.
-Die Compose-Datei mountet `./config/backend.config.json` nach `/app/config/backend.config.json`, damit Backend-Settings ohne Image-Rebuild angepasst werden können.
+The local `.env` file is not copied into the image. Pass it at runtime with `--env-file .env` or with `env_file` in Docker Compose so imprint and runtime variables are available inside the container. Compose reads `.env` for YAML interpolation, but it only passes values to the container when `env_file` is configured.
+The Compose file mounts `./config/backend.config.json` to `/app/config/backend.config.json` so backend settings can be changed without rebuilding the image.
 
-Aktuelle Images werden nach Releases nach GHCR gepusht:
+Release images are pushed to GHCR:
 
 ```text
 ghcr.io/eric-schubert/shiftplanv2:latest
 ghcr.io/eric-schubert/shiftplanv2:<version>
 ```
 
-## Kontaktformular per E-Mail
+## Contact Email
 
-Kontaktanfragen werden lokal im Admin-Bereich gespeichert. Optional kann der Server zusätzlich eine Benachrichtigung über Microsoft Graph an ein Exchange-Online-Postfach senden.
+Contact requests are stored locally and can be reviewed in the admin area. Optionally, the server can also send a Microsoft Graph notification to an Exchange Online mailbox.
 
-Benötigte `.env`-Werte:
+Required `.env` values:
 
 ```env
 CONTACT_MAIL_PROVIDER=graph
@@ -105,53 +107,53 @@ CONTACT_MAIL_SUBJECT_PREFIX=[Schichtplaner]
 CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
 ```
 
-Dafür in Microsoft Entra eine App-Registrierung mit Microsoft-Graph-Anwendungsberechtigung `Mail.Send` anlegen, Admin Consent erteilen und idealerweise den Zugriff der App auf das Versandpostfach begrenzen. Ohne diese Variablen bleibt das Formular funktionsfähig und speichert Anfragen nur lokal.
+Create a Microsoft Entra app registration with the Microsoft Graph application permission `Mail.Send`, grant admin consent, and ideally restrict the app to the sending mailbox. Without these variables, the contact form still works and stores requests locally only.
 
-## Rollen
+## Roles
 
-| Rolle | Darf sehen | Darf planen | Darf verwalten |
-|-------|------------|-------------|----------------|
-| Öffentlich | Wochenplan, Schichten, Rotation | Nein | Nein |
-| Planer | Alles aus der öffentlichen Ansicht | Schichten zuweisen, Rotation importieren/generieren | Nein |
-| Admin | Alles | Alles | Benutzer, Mitarbeiter, Schichten, Einstellungen |
+| Role | Can View | Can Plan | Can Manage |
+|------|----------|----------|------------|
+| Public | Weekly plan, shifts, rotation | No | No |
+| Planner | Everything from the public view | Assign shifts, import/generate rotations | No |
+| Admin | Everything | Everything | Users, staff, shifts, settings |
 
-## Schichtrotation per Excel
+## Rotation Planning With Excel
 
-Planer und Admins können die Rotation über eine Excel-Datei pflegen:
+Planners and admins can maintain rotation patterns with an Excel file:
 
-1. In den Einstellungen die Excel-Vorlage herunterladen.
-2. Im ersten Blatt die Anleitung lesen.
-3. Startjahr, Startwoche und Zykluslänge prüfen.
-4. Musterwochen befüllen oder anpassen.
-5. Datei wieder importieren.
-6. Schichtplan aus dem neuen Muster generieren.
+1. Download the Excel template in settings.
+2. Read the instructions in the first sheet.
+3. Check the start year, start week, and cycle length.
+4. Fill or adjust the template weeks.
+5. Import the file again.
+6. Generate the shift plan from the new pattern.
 
-Interne IDs werden in der Vorlage nicht zur Bearbeitung angezeigt. Die sichtbaren Felder sind so aufgebaut, dass die Datei auch ohne technisches Vorwissen bearbeitet werden kann.
+Internal IDs are not exposed for editing in the template. The visible fields are designed so the file can be edited without technical knowledge.
 
-## Entwicklung
+## Development
 
 ```bash
-npm run dev          # Entwicklungsserver
-npm run test:run     # Tests einmalig ausführen
-npm run build        # Produktionsbuild
-npm run docs         # README-Abschnitte neu generieren
+npm run dev          # Development server
+npm run test:run     # Run tests once
+npm run build        # Production build
+npm run docs         # Regenerate README sections
 ```
 
-Wichtige Pfade:
+Important paths:
 
-| Bereich | Pfad |
-|---------|------|
-| Seiten | `pages/` |
-| Komponenten | `components/` |
+| Area | Path |
+|------|------|
+| Pages | `pages/` |
+| Components | `components/` |
 | Stores | `stores/` |
-| Server-API | `server/api/` |
+| Server API | `server/api/` |
 | Services | `server/services/` |
 | Tests | `tests/` |
-| Release/README-Skripte | `scripts/` |
+| Release/README scripts | `scripts/` |
 
 ## Releases
 
-Releases entstehen automatisch aus Conventional Commits. Sichtbar und deploy-relevant sind aktuell:
+Releases are created automatically from Conventional Commits. The currently visible and deploy-relevant prefixes are:
 
 ```text
 feat:
@@ -160,16 +162,16 @@ perf:
 security:
 ```
 
-Nicht sichtbare Wartungscommits wie `docs:`, `test:`, `ci:` oder `chore:` erzeugen kein Release und kein Docker-Image.
+Hidden maintenance commits such as `docs:`, `test:`, `ci:`, or `chore:` do not create a release or Docker image.
 
-Der Versionsverlauf ist in der App über die Versionsanzeige im Header erreichbar. Neue Versionen zeigen beim ersten Besuch nur den neuesten Eintrag; der komplette Verlauf bleibt separat abrufbar.
+The version history is available in the app through the version indicator in the header. New versions show only the newest entry on first visit; the full history remains available separately.
 
-## Automatisch generierte Details
+## Generated Details
 
-Die folgenden Bereiche werden von `scripts/readme-generator.js` gepflegt. Sie sind absichtlich eingeklappt, damit die README zuerst lesbar bleibt.
+The following sections are maintained by `scripts/readme-generator.js`. They are collapsed by default so the README stays readable first.
 
 <details>
-<summary>Projektstruktur anzeigen</summary>
+<summary>Show project structure</summary>
 
 <!-- AUTO-GENERATED-STRUCTURE-START -->
 ```text
@@ -379,7 +381,7 @@ schichtplaner/
 </details>
 
 <details>
-<summary>Komponenten anzeigen</summary>
+<summary>Show components</summary>
 
 <!-- AUTO-GENERATED-COMPONENTS-START -->
 *No components found.*
@@ -388,7 +390,7 @@ schichtplaner/
 </details>
 
 <details>
-<summary>API-Endpunkte anzeigen</summary>
+<summary>Show API endpoints</summary>
 
 <!-- AUTO-GENERATED-API-START -->
 ### Staff API
@@ -478,7 +480,7 @@ schichtplaner/
 </details>
 
 <details>
-<summary>Zugriffsrechte anzeigen</summary>
+<summary>Show access matrix</summary>
 
 <!-- AUTO-GENERATED-RBAC-START -->
 | Method | Endpoint | Public | Planner | Admin | CSRF |
@@ -526,7 +528,7 @@ schichtplaner/
 </details>
 
 <details>
-<summary>CI, Release und Docker anzeigen</summary>
+<summary>Show CI, release, and Docker details</summary>
 
 <!-- AUTO-GENERATED-WORKFLOWS-START -->
 ### Workflow Summary
@@ -536,7 +538,7 @@ schichtplaner/
 | CI | Push: master, main, RBA; PR: master/main | Tests, build, typecheck, and Docker smoke test |
 | Auto Version & Release | Push: main, master | Creates version tag and GitHub release for changelog-visible commits |
 | Docker Build & Push | CI success + deploy prefix: master, main, RBA | Builds and pushes GHCR image with generated changelog |
-| Update README | CI success: master, main | Regenerates README sections and commits with [skip ci] |
+| Update README | Successful CI push: master, main | Regenerates README sections and commits with [skip ci] |
 
 ### Changelog Prefixes
 
@@ -552,11 +554,11 @@ Hidden from releases: `refactor:`, `style:`, `test:`, `chore:`, `ci:`, `docs:`, 
 2. Auto Version & Release creates a tag for visible commit prefixes.
 3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.
 4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.
-5. README automation updates generated documentation without retriggering CI.
+5. README automation updates generated documentation after trusted pushes without retriggering CI.
 <!-- AUTO-GENERATED-WORKFLOWS-END -->
 
 </details>
 
-## Lizenz
+## License
 
-MIT License. Details stehen in [LICENSE](LICENSE).
+MIT License. See [LICENSE](LICENSE) for details.

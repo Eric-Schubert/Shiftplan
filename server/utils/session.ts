@@ -268,6 +268,12 @@ export function getCsrfTokenFromRequest(event: any): string | undefined {
 }
 
 export function getClientIP(event: any): string {
+  const socketIP = event.node?.req?.socket?.remoteAddress || "unknown";
+
+  if (!getAuthConfig().trustProxyHeaders) {
+    return socketIP;
+  }
+
   const cfIP = getHeader(event, "cf-connecting-ip");
   if (cfIP) return cfIP;
 
@@ -280,5 +286,5 @@ export function getClientIP(event: any): string {
   const xRealIP = getHeader(event, "x-real-ip");
   if (xRealIP) return xRealIP;
 
-  return event.node?.req?.socket?.remoteAddress || "unknown";
+  return socketIP;
 }

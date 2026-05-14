@@ -45,9 +45,9 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    /**
-     * Holt den CSRF-Token aus dem Cookie
-     */
+
+
+
     _readCsrfCookie(): string | null {
       if (import.meta.server) return null;
       const cookieName = backendConfig.auth.session.cookies.csrfName;
@@ -56,9 +56,9 @@ export const useAuthStore = defineStore("auth", {
       return match?.[1] ? decodeURIComponent(match[1]) : null;
     },
 
-    /**
-     * Prüft beim App-Start ob eine gültige Session existiert
-     */
+
+
+
     async checkSession(): Promise<boolean> {
       this.isChecking = true;
       try {
@@ -83,9 +83,9 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    /**
-     * Login mit Passwort
-     */
+
+
+
     async login(
       username: string,
       password: string
@@ -99,10 +99,10 @@ export const useAuthStore = defineStore("auth", {
         if (result.success && result.user) {
           this.user = result.user;
 
-          // CSRF-Token aus Cookie lesen (wurde vom Server gesetzt)
+
           this.csrfToken = this._readCsrfCookie();
 
-          // Fallback: Session-Endpoint holen
+
           if (!this.csrfToken) {
             const session = await $fetch<AuthSessionResponse>("/api/auth/session");
             this.csrfToken = session.authenticated ? session.csrfToken || null : null;
@@ -121,9 +121,9 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    /**
-     * Logout - Session serverseitig beenden
-     */
+
+
+
     async logout(): Promise<void> {
       try {
         await $fetch("/api/auth/logout", {
@@ -131,17 +131,16 @@ export const useAuthStore = defineStore("auth", {
           headers: this._csrfHeaders(),
         });
       } catch {
-        // Ignorieren - Cookie wird trotzdem gelöscht
+
       } finally {
         this.user = null;
         this.csrfToken = null;
       }
     },
 
-    /**
-     * Gibt CSRF-Header für fetch-Requests zurück.
-     * Alle state-ändernden Requests müssen diesen Header mitsenden.
-     */
+
+
+
     _csrfHeaders(): Record<string, string> {
       if (this.csrfToken) {
         return { "x-csrf-token": this.csrfToken };
@@ -149,12 +148,12 @@ export const useAuthStore = defineStore("auth", {
       return {};
     },
 
-    /**
-     * Session verlängern (wird automatisch durch API-Calls gemacht)
-     */
+
+
+
     extendSession(): void {
-      // Die Session wird automatisch serverseitig verlängert
-      // bei jedem authentifizierten API-Call
+
+
     },
   },
 });

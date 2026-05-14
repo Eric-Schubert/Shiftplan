@@ -13,10 +13,10 @@ export default defineEventHandler((event) => {
 
   const db = getDatabase();
 
-  // Alle Wochen mit Zuweisungen für dieses Jahr zählen
+
   const weeks = db
     .prepare(`
-      SELECT 
+      SELECT
         w.week_number,
         COUNT(sa.assignment_id) as assignment_count
       FROM weeks w

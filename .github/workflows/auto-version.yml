@@ -34,7 +34,7 @@ jobs:
         if: steps.release_rules.outputs.release != 'true'
         run: echo "No release expected for commit type '${{ steps.release_rules.outputs.type }}'."
 
-      # 1. Version bumpen und Tag erstellen
+
       - name: Determine next version
         if: steps.release_rules.outputs.release == 'true'
         id: version
@@ -50,7 +50,7 @@ jobs:
         if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         run: git fetch --tags --force
 
-      # 2. Changelog generieren (nur wenn neuer Tag erstellt wurde)
+
       - name: Generate release notes
         if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         uses: orhun/git-cliff-action@v4
@@ -59,7 +59,7 @@ jobs:
           config: cliff.toml
           args: --latest --strip header
 
-      # 3. GitHub Release erstellen
+
       - name: Create GitHub Release
         if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         uses: softprops/action-gh-release@v3
@@ -70,7 +70,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 4. Summary
+
       - name: Summary
         if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
         run: |

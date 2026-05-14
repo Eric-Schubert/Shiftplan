@@ -18,7 +18,7 @@ describe("Shift Operations", () => {
   describe("Create Shift", () => {
     it("should create a new shift", () => {
       const db = getTestDatabase();
-      
+
       const result = db
         .prepare(
           "INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
@@ -30,7 +30,7 @@ describe("Shift Operations", () => {
 
     it("should set default values", () => {
       const db = getTestDatabase();
-      
+
       db.prepare(
         "INSERT INTO shifts (name, start_time, end_time) VALUES (?, ?, ?)"
       ).run("Minimal", "09:00", "17:00");
@@ -48,7 +48,7 @@ describe("Shift Operations", () => {
   describe("Read Shifts", () => {
     it("should return shifts sorted by sort_order", () => {
       const db = getTestDatabase();
-      
+
       db.prepare(
         "INSERT INTO shifts (name, start_time, end_time, sort_order) VALUES (?, ?, ?, ?)"
       ).run("Third", "00:00", "08:00", 3);
@@ -72,7 +72,7 @@ describe("Shift Operations", () => {
   describe("Update Shift", () => {
     it("should update shift times", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid } = db
         .prepare(
           "INSERT INTO shifts (name, start_time, end_time) VALUES (?, ?, ?)"

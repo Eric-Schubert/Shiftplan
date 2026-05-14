@@ -3,9 +3,9 @@ import { getAuditConfig } from "~/server/config/domain-config";
 import type { AuditEntry } from "~/types/auth";
 
 export class AuditService {
-  /**
-   * Schreibt einen Audit-Log-Eintrag
-   */
+
+
+
   static log(params: {
     userId: number;
     username: string;
@@ -20,7 +20,7 @@ export class AuditService {
   }): void {
     const db = getDatabase();
 
-    // Schicht- und Mitarbeiternamen auflösen falls nicht mitgegeben
+
     let shiftName = params.shiftName;
     let staffName = params.staffName;
 
@@ -55,9 +55,9 @@ export class AuditService {
     );
   }
 
-  /**
-   * Holt Audit-Log-Einträge mit optionaler Filterung
-   */
+
+
+
   static getEntries(options?: {
     limit?: number;
     offset?: number;

@@ -13,22 +13,20 @@ const ADMIN_DB_PATH = path.join(DATABASE_FOLDER, backendConfig.database.adminFil
 
 console.log(`[setup.js] => setting up databases...`);
 
-// Verzeichnis für die Datenbank erstellen, falls nicht vorhanden
+
 if (!fs.existsSync(DATABASE_FOLDER)) {
   fs.mkdirSync(DATABASE_FOLDER);
 }
 
-// ============================================
-// HAUPT-DATENBANK (Schichten, Mitarbeiter, etc.)
-// ============================================
+
+
 console.log(`[setup.js] => creating '${DATABASE_PATH}'...`);
 const db = new Database(DATABASE_PATH);
 applyConfiguredPragmas(db);
 migrateMainDatabase(db, { logger: console.log });
 
-// ============================================
-// ADMIN-DATENBANK (Benutzer, Einstellungen)
-// ============================================
+
+
 console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
 const adminDb = new Database(ADMIN_DB_PATH);
 applyConfiguredPragmas(adminDb);
@@ -36,12 +34,12 @@ migrateAdminDatabase(adminDb, { logger: console.log });
 
 adminDb.close();
 
-// Demo-Daten einfügen (nur wenn Tabellen leer sind)
+
 const staffCount = db.prepare("SELECT COUNT(*) as count FROM staff").get();
 if (staffCount.count === 0) {
   console.log("[setup.js] => inserting demo data...");
 
-  // Demo Mitarbeiter
+
   const insertStaff = db.prepare(
     "INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)"
   );
@@ -51,7 +49,7 @@ if (staffCount.count === 0) {
   insertStaff.run("Anna Weber", 1, 0);
   insertStaff.run("Peter Müller", 1, 1);
 
-  // Demo Schichten
+
   const insertShift = db.prepare(
     "INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
   );
@@ -59,7 +57,7 @@ if (staffCount.count === 0) {
   insertShift.run("Spät", "14:00", "22:00", "#3b82f6", 2, 2);
   insertShift.run("Nacht", "22:00", "06:00", "#8b5cf6", 1, 3);
 
-  // Standard Rotationskonfiguration: 4-Wochen-Zyklus ab KW1 2025
+
   const rotationConfigCount = db
     .prepare("SELECT COUNT(*) as count FROM rotation_config")
     .get();

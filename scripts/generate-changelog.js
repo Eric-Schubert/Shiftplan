@@ -1,12 +1,7 @@
-/**
- * Generiert utils/changelog.generated.json aus git-cliff
- *
- * Zwei Modi:
- * 1. CI:    node scripts/generate-changelog.js --from-context __cliff_context.json
- * 2. Lokal: node scripts/generate-changelog.js
- *
- * Fallback: Wenn git-cliff nicht verfügbar ist, wird [] geschrieben.
- */
+
+
+
+
 
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
@@ -29,9 +24,9 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * git-cliff Context JSON laden
- */
+
+
+
 function loadContext() {
   const args = process.argv.slice(2);
   const fromContextIdx = args.indexOf("--from-context");
@@ -53,9 +48,9 @@ function loadContext() {
   return JSON.parse(raw);
 }
 
-/**
- * Prüft ob ein Commit-Message ein Conventional Commit ist
- */
+
+
+
 function isConventionalCommit(message) {
   const result = evaluateCommitMessage(message);
   return result.conventional && (result.visible || result.hidden);
@@ -211,9 +206,9 @@ async function mergeGithubReleaseBodies(entries) {
   return merged;
 }
 
-/**
- * git-cliff Context in App-Format transformieren
- */
+
+
+
 export function transformReleases(context) {
   const releases = Array.isArray(context) ? context : context.releases || [];
 
@@ -228,7 +223,7 @@ export function transformReleases(context) {
         const changes = [];
 
         for (const commit of release.commits || []) {
-          // Nur Commits mit einer zugewiesenen Gruppe (feat, fix, etc.)
+
           if (!commit.group) continue;
 
           addUniqueChanges(changes, commitToChanges(commit), seen);
@@ -237,13 +232,12 @@ export function transformReleases(context) {
         return { date, title: release.version, changes };
       })
       .filter((r) => r.changes.length > 0)
-      // Neueste zuerst
+
       .sort(compareChangelogEntries);
 }
 
-// ============================================
-// MAIN
-// ============================================
+
+
 async function main() {
   let releases = [];
 

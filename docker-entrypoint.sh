@@ -4,7 +4,7 @@ set -e
 DB_MAIN="$(node -e "const path=require('node:path'); const c=require('/app/config/backend.config.json'); const dir=path.isAbsolute(c.database.directory)?c.database.directory:path.join('/app', c.database.directory); console.log(path.join(dir, c.database.mainFile))")"
 DB_ADMIN="$(node -e "const path=require('node:path'); const c=require('/app/config/backend.config.json'); const dir=path.isAbsolute(c.database.directory)?c.database.directory:path.join('/app', c.database.directory); console.log(path.join(dir, c.database.adminFile))")"
 
-# DB initialisieren falls noch nicht vorhanden
+
 if [ ! -f "$DB_MAIN" ] || [ ! -f "$DB_ADMIN" ]; then
   echo "[entrypoint] Datenbanken nicht gefunden – führe setup.js aus..."
   node /app/setup.js

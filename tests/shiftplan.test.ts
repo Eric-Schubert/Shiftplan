@@ -19,7 +19,7 @@ describe("Shiftplan Operations", () => {
   describe("Week Management", () => {
     it("should create a new week", () => {
       const db = getTestDatabase();
-      
+
       const result = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
@@ -29,7 +29,7 @@ describe("Shiftplan Operations", () => {
 
     it("should prevent duplicate weeks", () => {
       const db = getTestDatabase();
-      
+
       db.prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)").run(
         2025,
         1
@@ -45,8 +45,8 @@ describe("Shiftplan Operations", () => {
 
     it("should get or create week", () => {
       const db = getTestDatabase();
-      
-      // Insert or ignore pattern
+
+
       db.prepare(
         "INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)"
       ).run(2025, 5);
@@ -64,13 +64,13 @@ describe("Shiftplan Operations", () => {
   describe("Shift Assignments", () => {
     it("should assign staff to shift in week", () => {
       const db = getTestDatabase();
-      
-      // Create week
+
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
 
-      // Assign staff 1 to shift 1
+
       const result = db
         .prepare(
           "INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)"
@@ -82,7 +82,7 @@ describe("Shiftplan Operations", () => {
 
     it("should prevent duplicate assignments in same week", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
@@ -100,7 +100,7 @@ describe("Shiftplan Operations", () => {
 
     it("should allow same staff in different shifts", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
@@ -120,12 +120,12 @@ describe("Shiftplan Operations", () => {
 
     it("should get all assignments for a week", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
 
-      // Multiple assignments
+
       db.prepare(
         "INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)"
       ).run(weekId, 1, 1);
@@ -145,7 +145,7 @@ describe("Shiftplan Operations", () => {
 
     it("should unassign staff from shift", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
@@ -171,7 +171,7 @@ describe("Shiftplan Operations", () => {
   describe("Weekly Plan Query", () => {
     it("should get complete weekly plan with staff names", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid: weekId } = db
         .prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)")
         .run(2025, 1);
@@ -182,7 +182,7 @@ describe("Shiftplan Operations", () => {
 
       const plan = db
         .prepare(`
-          SELECT 
+          SELECT
             s.shift_id,
             s.name as shift_name,
             st.staff_id,

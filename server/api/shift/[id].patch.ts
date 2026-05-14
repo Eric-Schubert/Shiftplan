@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const shiftConfig = getShiftValidationConfig();
 
-  // Input-Validierung (alle optional bei PATCH)
+
   const name = validateName(body.name, "Name", { maxLength: 100 });
   const active = validateBoolean(body.active, "Aktiv");
   const start_time = validateTime(body.start_time, "Startzeit");

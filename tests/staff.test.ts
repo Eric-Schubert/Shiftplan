@@ -17,7 +17,7 @@ describe("Staff Operations", () => {
   describe("Create Staff", () => {
     it("should create a new staff member", () => {
       const db = getTestDatabase();
-      
+
       const result = db
         .prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)")
         .run("Test User", 1, 0);
@@ -28,7 +28,7 @@ describe("Staff Operations", () => {
 
     it("should create a part-time staff member", () => {
       const db = getTestDatabase();
-      
+
       db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)")
         .run("Part Timer", 1, 1);
 
@@ -44,7 +44,7 @@ describe("Staff Operations", () => {
   describe("Read Staff", () => {
     it("should return all staff members", () => {
       const db = getTestDatabase();
-      
+
       db.prepare("INSERT INTO staff (name) VALUES (?)").run("User 1");
       db.prepare("INSERT INTO staff (name) VALUES (?)").run("User 2");
 
@@ -55,7 +55,7 @@ describe("Staff Operations", () => {
 
     it("should return only active staff", () => {
       const db = getTestDatabase();
-      
+
       db.prepare("INSERT INTO staff (name, active) VALUES (?, ?)").run("Active", 1);
       db.prepare("INSERT INTO staff (name, active) VALUES (?, ?)").run("Inactive", 0);
 
@@ -70,7 +70,7 @@ describe("Staff Operations", () => {
   describe("Update Staff", () => {
     it("should update staff name", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid } = db
         .prepare("INSERT INTO staff (name) VALUES (?)")
         .run("Old Name");
@@ -87,7 +87,7 @@ describe("Staff Operations", () => {
 
     it("should deactivate staff", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid } = db
         .prepare("INSERT INTO staff (name, active) VALUES (?, ?)")
         .run("Test", 1);
@@ -106,7 +106,7 @@ describe("Staff Operations", () => {
   describe("Delete Staff", () => {
     it("should delete staff member", () => {
       const db = getTestDatabase();
-      
+
       const { lastInsertRowid } = db
         .prepare("INSERT INTO staff (name) VALUES (?)")
         .run("To Delete");

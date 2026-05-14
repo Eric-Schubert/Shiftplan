@@ -1,11 +1,7 @@
-#!/usr/bin/env node
 
-/**
- * README generator.
- *
- * Updates only marked sections so handwritten documentation can live around
- * generated structure, API, RBAC, component, and workflow summaries.
- */
+
+
+
 
 import fs from "fs";
 import path from "path";
@@ -406,7 +402,7 @@ export function generateWorkflowDocs() {
     `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, build, typecheck, and Docker smoke test |`,
     `| Auto Version & Release | Push: ${parseInlineBranches(release).join(", ") || "-"} | Creates version tag and GitHub release for changelog-visible commits |`,
     `| Docker Build & Push | CI success + deploy prefix: ${parseInlineBranches(docker).join(", ") || "-"} | Builds and pushes GHCR image with generated changelog |`,
-    `| Update README | CI success: ${parseInlineBranches(readme).join(", ") || "-"} | Regenerates README sections and commits with [skip ci] |`,
+    `| Update README | Successful CI push: ${parseInlineBranches(readme).join(", ") || "-"} | Regenerates README sections and commits with [skip ci] |`,
     "",
     "### Changelog Prefixes\n",
     "Release and deploy prefix rules are defined in `scripts/release-prefixes.json`.",
@@ -420,7 +416,7 @@ export function generateWorkflowDocs() {
     "2. Auto Version & Release creates a tag for visible commit prefixes.",
     "3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.",
     "4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.",
-    "5. README automation updates generated documentation without retriggering CI.",
+    "5. README automation updates generated documentation after trusted pushes without retriggering CI.",
   ];
 
   return lines.join("\n");

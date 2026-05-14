@@ -1,12 +1,5 @@
 import generatedChangelog from './changelog.generated.json'
 
-/**
- * Changelog-Daten für das Update-Banner.
- *
- * Einträge werden im Docker-Build aus Git-Tags via git-cliff generiert.
- * In der lokalen Entwicklung darf der Verlauf auf Archiv-Einträge zurückfallen,
- * damit die UI ohne CI-Artefakte testbar bleibt.
- */
 
 export interface ChangelogEntry {
   date: string
@@ -14,18 +7,14 @@ export interface ChangelogEntry {
   changes: string[]
 }
 
-// Die generierte JSON-Datei ist bewusst eingecheckt und wird im Build aktualisiert.
+
 const generatedEntries: ChangelogEntry[] = Array.isArray(generatedChangelog)
   ? generatedChangelog as ChangelogEntry[]
   : []
 
-/**
- * Archiv-Einträge aus der Zeit vor der automatischen Release-Generierung.
- *
- * Diese Einträge werden an den generierten Changelog angehängt. In der lokalen
- * Entwicklung dienen sie zusätzlich als Vorschau, falls noch keine generierte
- * Datei vorliegt.
- */
+
+
+
 const LEGACY_CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-04-15',

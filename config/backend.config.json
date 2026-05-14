@@ -19,6 +19,7 @@
     },
     "passwordHashCost": 12,
     "bootstrapPasswordHashCost": 10,
+    "trustProxyHeaders": false,
     "users": {
       "usernameMinLength": 3,
       "usernameMaxLength": 100

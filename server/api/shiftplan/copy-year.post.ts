@@ -7,9 +7,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-  // ============================================
-  // VALIDATION
-  // ============================================
+
   const sourceYear = validateYear(body.sourceYear, "Quelljahr", { required: true })!;
   const targetYear = validateYear(body.targetYear, "Zieljahr", { required: true })!;
   const overwrite = validateBoolean(body.overwrite, "Überschreiben") === 1;
@@ -23,9 +21,7 @@ export default defineEventHandler(async (event) => {
 
   const db = getDatabase();
 
-  // ============================================
-  // QUELL-WOCHEN MIT ZUWEISUNGEN LADEN
-  // ============================================
+
   const sourceWeeks = db
     .prepare(`
       SELECT w.week_id, w.week_number
@@ -56,9 +52,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // ============================================
-  // KOPIEREN (als Transaktion)
-  // ============================================
+
   let copiedWeeks = 0;
   let skippedWeeks = 0;
   let copiedAssignments = 0;

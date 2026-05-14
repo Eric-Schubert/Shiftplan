@@ -1,13 +1,13 @@
 import fs from "fs";
 import path from "path";
 
-// Version aus .version-Datei lesen (wird vom prebuild-Script erzeugt)
+
 function getAppVersion(): string {
   try {
     const versionFile = path.resolve(__dirname, ".version");
     return fs.readFileSync(versionFile, "utf-8").trim();
   } catch {
-    // Fallback auf package.json wenn .version nicht existiert (z.B. dev ohne prebuild)
+
     try {
       const pkg = JSON.parse(
         fs.readFileSync(path.resolve(__dirname, "package.json"), "utf-8")
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     server: false,
   },
 
-  // Version aus .version als Runtime-Config bereitstellen
+
   runtimeConfig: {
     public: {
       appVersion: getAppVersion(),
@@ -71,7 +71,7 @@ export default defineNuxtConfig({
           crossorigin: "anonymous",
         },
       ],
-      // Dark Mode Script - lädt vor allem anderen um Flash zu vermeiden
+
       script: [
         {
           innerHTML: `
