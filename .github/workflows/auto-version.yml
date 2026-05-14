@@ -38,13 +38,10 @@ jobs:
       - name: Determine next version
         if: steps.release_rules.outputs.release == 'true'
         id: version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          default_bump: patch
-          tag_prefix: v
-          release_branches: main,master
-          dry_run: false
+        env:
+          RELEASE_TYPE: ${{ steps.release_rules.outputs.type }}
+          RELEASE_BREAKING: ${{ steps.release_rules.outputs.breaking }}
+        run: node scripts/create-release-tag.js
 
       - name: Fetch new tag
         if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
