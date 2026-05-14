@@ -1,0 +1,79 @@
+name: Issue report
+description: Report a bug, request an improvement, or suggest documentation changes.
+title: "[Issue]: "
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      description: What kind of issue is this?
+      options:
+        - Bug report
+        - Feature request
+        - Documentation
+        - Question
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the problem or request.
+      placeholder: What happened, what should change, or what is unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: For bugs, list the steps that trigger the issue.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See ...
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which app version or commit are you using?
+      placeholder: v2.7.0 or commit SHA
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      description: Where did you run the app?
+      options:
+        - Docker
+        - Local development
+        - Other
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: For UI issues, provide browser and version.
+      placeholder: Chrome 126, Firefox 128, Safari 18
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Add relevant logs, screenshots, or error messages. Do not include secrets.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates.
+          required: true
+        - label: I have removed secrets, passwords, tokens, and personal data from logs.
+          required: true
