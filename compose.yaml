@@ -1,3 +1,5 @@
+name: shiftplan
+
 services:
   schichtplaner:
     image: ghcr.io/eric-schubert/shiftplan:latest
