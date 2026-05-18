@@ -1,7 +1,7 @@
 
 
 
-FROM node:24-alpine AS deps
+FROM node:26-alpine AS deps
 
 RUN apk add --no-cache python3 make g++
 
@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 
 
 ARG APP_VERSION=0.0.0
@@ -27,7 +27,7 @@ RUN echo "${APP_VERSION}" > .version
 RUN npm run build
 
 
-FROM node:24-alpine
+FROM node:26-alpine
 
 RUN apk add --no-cache libstdc++
 
