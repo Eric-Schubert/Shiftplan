@@ -131,6 +131,8 @@ Browser clients use the default cookie session plus CSRF protection. Mobile clie
 
 The response includes `tokenType: "Bearer"`, `sessionToken`, `expiresAt`, and the authenticated user. Mobile clients should send the token on subsequent requests as `Authorization: Bearer <sessionToken>`. Bearer-token requests do not need a CSRF token; cookie-based browser mutations still require CSRF.
 
+The initial Flutter contract is available as OpenAPI at `/api/openapi`. It covers login, session, logout, staff and shift reference data, weekly plan reads, and shift assignment mutations.
+
 ## Rotation Planning With Excel
 
 Planners and admins can maintain rotation patterns with an Excel file:
@@ -330,7 +332,8 @@ schichtplaner/
 |   |   |   |-- [id].patch.ts
 |   |   |   |-- index.get.ts
 |   |   |   `-- index.post.ts
-|   |   `-- contact.post.ts
+|   |   |-- contact.post.ts
+|   |   `-- openapi.get.ts
 |   |-- config/
 |   |   |-- analytics-config.ts
 |   |   |-- auth-config.ts
@@ -361,6 +364,7 @@ schichtplaner/
 |       |-- auth.ts
 |       |-- database-migrations.js
 |       |-- database.ts
+|       |-- openapi.ts
 |       |-- session.ts
 |       |-- validation.ts
 |       `-- xlsx.ts
@@ -375,6 +379,7 @@ schichtplaner/
 |   `-- data.store.ts
 |-- types/
 |   |-- analytics.ts
+|   |-- api.ts
 |   |-- auth.ts
 |   |-- contact.ts
 |   |-- holiday.ts
@@ -456,12 +461,18 @@ schichtplaner/
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/auth/change-password` | Authenticated | Yes | - | `currentPassword`, `newPassword` | Change the current user's password |
-| `POST` | `/api/auth/login` | Public | No | - | `password`, `username` | Create a session and CSRF token |
+| `POST` | `/api/auth/login` | Public | No | - | `password`, `responseMode`, `username` | Create a cookie session or bearer token |
 | `POST` | `/api/auth/logout` | Authenticated | Yes | - | - | Clear the current session |
 | `GET` | `/api/auth/session` | Authenticated | No | - | - | Read the current session state |
 | `GET` | `/api/auth/users` | Admin | No | - | - | List application users |
 | `POST` | `/api/auth/users` | Admin | Yes | - | `password`, `role`, `username` | Create an application user |
 | `DELETE` | `/api/auth/users/:id` | Admin | Yes | - | - | Delete an application user |
+
+### OpenAPI Contract
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/openapi` | Public | No | - | - | Read the mobile OpenAPI contract |
 
 ### Audit API
 
@@ -530,6 +541,7 @@ schichtplaner/
 | `GET` | `/api/auth/users` | No | No | Yes | No |
 | `POST` | `/api/auth/users` | No | No | Yes | Yes |
 | `DELETE` | `/api/auth/users/:id` | No | No | Yes | Yes |
+| `GET` | `/api/openapi` | Yes | Yes | Yes | No |
 | `GET` | `/api/audit` | No | No | Yes | No |
 | `GET` | `/api/holidays/public` | Yes | Yes | Yes | No |
 | `GET` | `/api/holidays/school` | Yes | Yes | Yes | No |

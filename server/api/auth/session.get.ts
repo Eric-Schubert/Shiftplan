@@ -4,13 +4,14 @@ import {
   getCsrfToken,
   isBearerSessionRequest,
 } from "~/server/utils/session";
+import type { AuthSessionResponse } from "~/types/api";
 
 export default defineEventHandler((event) => {
   const token = getSessionToken(event);
   const user = getSessionData(token);
 
   if (!user) {
-    return { authenticated: false };
+    return { authenticated: false } satisfies AuthSessionResponse;
   }
 
   return {
@@ -19,5 +20,5 @@ export default defineEventHandler((event) => {
 
 
     csrfToken: isBearerSessionRequest(event) ? null : getCsrfToken(token),
-  };
+  } satisfies AuthSessionResponse;
 });

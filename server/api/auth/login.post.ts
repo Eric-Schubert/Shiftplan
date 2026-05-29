@@ -14,12 +14,7 @@ import {
   getUserValidationConfig,
 } from "~/server/config/auth-config";
 import bcrypt from "bcryptjs";
-
-type LoginRequestBody = {
-  username: string;
-  password: string;
-  responseMode?: "cookie" | "token";
-};
+import type { LoginRequest, LoginResponse } from "~/types/api";
 
 export default defineEventHandler(async (event) => {
   const ip = getClientIP(event);
@@ -35,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }
 
 
-  const body = await readBody<LoginRequestBody>(event);
+  const body = await readBody<LoginRequest>(event);
 
   if (!body.username || typeof body.username !== "string") {
     throw createError({
@@ -124,7 +119,7 @@ export default defineEventHandler(async (event) => {
       tokenType: "Bearer",
       sessionToken,
       expiresAt: new Date(expiresAt).toISOString(),
-    };
+    } satisfies LoginResponse;
   }
 
 
@@ -149,5 +144,5 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     user: sessionUser,
-  };
+  } satisfies LoginResponse;
 });

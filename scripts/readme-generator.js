@@ -188,6 +188,7 @@ function routeFromApiFile(filePath) {
 
 function isPublicGetEndpoint(method, route) {
   if (method !== "GET") return false;
+  if (route === "/api/openapi") return true;
   return ["/api/staff", "/api/shift", "/api/shiftplan", "/api/rotation", "/api/holidays"].some(
     (prefix) => route === prefix || route.startsWith(`${prefix}/`),
   );
@@ -226,13 +227,14 @@ function getDescription(endpoint) {
   const route = endpoint.route;
   const method = endpoint.method;
   const exact = {
-    "POST /api/auth/login": "Create a session and CSRF token",
+    "POST /api/auth/login": "Create a cookie session or bearer token",
     "POST /api/auth/logout": "Clear the current session",
     "GET /api/auth/session": "Read the current session state",
     "POST /api/auth/change-password": "Change the current user's password",
     "GET /api/auth/users": "List application users",
     "POST /api/auth/users": "Create an application user",
     "DELETE /api/auth/users/:id": "Delete an application user",
+    "GET /api/openapi": "Read the mobile OpenAPI contract",
     "GET /api/audit": "List audit log entries",
     "POST /api/shiftplan/assign": "Assign staff to a weekly shift",
     "POST /api/shiftplan/unassign": "Remove staff from a weekly shift",
@@ -275,7 +277,7 @@ export function getApiEndpoints() {
       };
     })
     .sort((a, b) => {
-      const groupOrder = ["staff", "shift", "shiftplan", "rotation", "auth", "audit", "holidays"];
+      const groupOrder = ["staff", "shift", "shiftplan", "rotation", "auth", "openapi", "audit", "holidays"];
       const methodOrder = ["GET", "POST", "PATCH", "PUT", "DELETE"];
       const aGroup = groupOrder.indexOf(a.group);
       const bGroup = groupOrder.indexOf(b.group);
@@ -301,8 +303,9 @@ export function generateApiDocs() {
 
   const lines = [];
   for (const [group, groupEndpoints] of grouped) {
-    const title = group.charAt(0).toUpperCase() + group.slice(1);
-    lines.push(`### ${title} API\n`);
+    const title = group === "openapi" ? "OpenAPI" : group.charAt(0).toUpperCase() + group.slice(1);
+    const heading = group === "openapi" ? "OpenAPI Contract" : `${title} API`;
+    lines.push(`### ${heading}\n`);
     lines.push("| Method | Endpoint | Access | CSRF | Query | Body | Description |");
     lines.push("|--------|----------|--------|------|-------|------|-------------|");
 

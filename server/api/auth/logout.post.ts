@@ -1,5 +1,6 @@
 import { destroySession, getSessionToken } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
+import type { LogoutResponse } from "~/types/api";
 
 export default defineEventHandler((event) => {
   const token = getSessionToken(event);
@@ -14,5 +15,5 @@ export default defineEventHandler((event) => {
 
   deleteCookie(event, cookieConfig.csrfName, { path: cookieConfig.path });
 
-  return { success: true };
+  return { success: true } satisfies LogoutResponse;
 });

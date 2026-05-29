@@ -136,6 +136,7 @@ async function createApiClient(): Promise<ApiClient> {
     sessionGet,
     logoutPost,
     usersPost,
+    openApiGet,
     staffPost,
     shiftplanGet,
     shiftplanAssignPost,
@@ -146,6 +147,7 @@ async function createApiClient(): Promise<ApiClient> {
     loadHandler("../server/api/auth/session.get"),
     loadHandler("../server/api/auth/logout.post"),
     loadHandler("../server/api/auth/users.post"),
+    loadHandler("../server/api/openapi.get"),
     loadHandler("../server/api/staff/index.post"),
     loadHandler("../server/api/shiftplan/index.get"),
     loadHandler("../server/api/shiftplan/assign.post"),
@@ -158,6 +160,7 @@ async function createApiClient(): Promise<ApiClient> {
     .get("/api/auth/session", sessionGet)
     .post("/api/auth/logout", logoutPost)
     .post("/api/auth/users", usersPost)
+    .get("/api/openapi", openApiGet)
     .post("/api/staff", staffPost)
     .get("/api/shiftplan", shiftplanGet)
     .post("/api/shiftplan/assign", shiftplanAssignPost)
@@ -385,6 +388,7 @@ describe("auth and planner e2e", () => {
   });
 
   it("keeps public reads open while blocking unauthenticated mutations", async () => {
+    const contract = await client.request<{ openapi: string }>("GET", "/api/openapi");
     const publicPlan = await client.request<{
       week: { week_id: number; year: number; week_number: number };
     }>("GET", "/api/shiftplan?year=2026&week=12");
@@ -395,6 +399,8 @@ describe("auth and planner e2e", () => {
       body: { staff_id: 1, shift_id: 1, year: 2026, week: 12 },
     });
 
+    expect(contract.status).toBe(200);
+    expect(contract.json?.openapi).toBe("3.1.0");
     expect(publicPlan.status).toBe(200);
     expect(publicPlan.json?.week).toMatchObject({
       week_id: 0,

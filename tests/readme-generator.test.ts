@@ -26,6 +26,7 @@ describe("README generator", () => {
     expect(apiDocs).toContain("| Method | Endpoint | Access | CSRF | Query | Body | Description |");
     expect(apiDocs).toContain("`POST` | `/api/shiftplan/assign` | Planner/Admin | Yes");
     expect(apiDocs).toContain("`POST` | `/api/auth/login` | Public | No");
+    expect(apiDocs).toContain("`GET` | `/api/openapi` | Public | No");
     expect(rbac).toContain("| `GET` | `/api/shiftplan` | Yes | Yes | Yes | No |");
     expect(rbac).toContain("| `POST` | `/api/auth/users` | No | No | Yes | Yes |");
   });

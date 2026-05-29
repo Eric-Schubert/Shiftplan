@@ -46,6 +46,7 @@
       "public": [
         "/api/auth/login",
         "/api/auth/session",
+        "/api/openapi",
         "/api/analytics/visit",
         "/api/contact"
       ],

@@ -1,15 +1,7 @@
 import { defineStore } from "pinia";
 import type { SessionUser } from "~/types/auth";
+import type { AuthSessionResponse, CookieLoginResponse } from "~/types/api";
 import backendConfig from "../config/backend.config.json";
-
-type AuthSessionResponse =
-  | { authenticated: false }
-  | { authenticated: true; user: SessionUser; csrfToken?: string | null };
-
-type LoginResponse = {
-  success: boolean;
-  user?: SessionUser;
-};
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -91,7 +83,7 @@ export const useAuthStore = defineStore("auth", {
       password: string
     ): Promise<{ success: boolean; message?: string }> {
       try {
-        const result = await $fetch<LoginResponse>("/api/auth/login", {
+        const result = await $fetch<CookieLoginResponse>("/api/auth/login", {
           method: "POST",
           body: { username, password },
         });
