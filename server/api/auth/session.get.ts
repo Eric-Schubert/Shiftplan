@@ -1,4 +1,9 @@
-import { getSessionData, getSessionToken, getCsrfToken } from "~/server/utils/session";
+import {
+  getSessionData,
+  getSessionToken,
+  getCsrfToken,
+  isBearerSessionRequest,
+} from "~/server/utils/session";
 
 export default defineEventHandler((event) => {
   const token = getSessionToken(event);
@@ -13,6 +18,6 @@ export default defineEventHandler((event) => {
     user,
 
 
-    csrfToken: getCsrfToken(token),
+    csrfToken: isBearerSessionRequest(event) ? null : getCsrfToken(token),
   };
 });

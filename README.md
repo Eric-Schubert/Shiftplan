@@ -117,6 +117,20 @@ Create a Microsoft Entra app registration with the Microsoft Graph application p
 | Planner | Everything from the public view | Assign shifts, import/generate rotations | No |
 | Admin | Everything | Everything | Users, staff, shifts, settings |
 
+## Mobile API Auth
+
+Browser clients use the default cookie session plus CSRF protection. Mobile clients can request an explicit bearer token by sending `responseMode: "token"` to the existing login endpoint:
+
+```json
+{
+  "username": "planner",
+  "password": "SecurePassword1",
+  "responseMode": "token"
+}
+```
+
+The response includes `tokenType: "Bearer"`, `sessionToken`, `expiresAt`, and the authenticated user. Mobile clients should send the token on subsequent requests as `Authorization: Bearer <sessionToken>`. Bearer-token requests do not need a CSRF token; cookie-based browser mutations still require CSRF.
+
 ## Rotation Planning With Excel
 
 Planners and admins can maintain rotation patterns with an Excel file:

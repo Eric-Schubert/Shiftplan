@@ -63,7 +63,11 @@ function toSessionUser(session: PersistedSession): SessionUser {
   };
 }
 
-export function createSession(user: SessionUser): { sessionToken: string; csrfToken: string } {
+export function createSession(user: SessionUser): {
+  sessionToken: string;
+  csrfToken: string;
+  expiresAt: number;
+} {
   cleanupExpiredSessions();
 
   const sessionConfig = getAuthConfig().session;
@@ -98,7 +102,7 @@ export function createSession(user: SessionUser): { sessionToken: string; csrfTo
       now
     );
 
-  return { sessionToken, csrfToken };
+  return { sessionToken, csrfToken, expiresAt: now + sessionDuration };
 }
 
 export function validateSession(token: string | undefined): boolean {
@@ -250,10 +254,8 @@ export function resetRateLimit(ip: string): void {
 }
 
 export function getSessionToken(event: any): string | undefined {
-  const authHeader = getHeader(event, "authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.slice(7);
-  }
+  const bearerToken = getBearerSessionToken(event);
+  if (bearerToken) return bearerToken;
 
   const cookieToken = getCookie(event, getAuthConfig().session.cookies.sessionName);
   if (cookieToken) {
@@ -261,6 +263,19 @@ export function getSessionToken(event: any): string | undefined {
   }
 
   return undefined;
+}
+
+export function getBearerSessionToken(event: any): string | undefined {
+  const authHeader = getHeader(event, "authorization");
+  if (typeof authHeader !== "string") return undefined;
+
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  const token = match?.[1]?.trim();
+  return token || undefined;
+}
+
+export function isBearerSessionRequest(event: any): boolean {
+  return Boolean(getBearerSessionToken(event));
 }
 
 export function getCsrfTokenFromRequest(event: any): string | undefined {

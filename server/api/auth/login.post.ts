@@ -15,6 +15,12 @@ import {
 } from "~/server/config/auth-config";
 import bcrypt from "bcryptjs";
 
+type LoginRequestBody = {
+  username: string;
+  password: string;
+  responseMode?: "cookie" | "token";
+};
+
 export default defineEventHandler(async (event) => {
   const ip = getClientIP(event);
 
@@ -29,7 +35,7 @@ export default defineEventHandler(async (event) => {
   }
 
 
-  const body = await readBody<{ username: string; password: string }>(event);
+  const body = await readBody<LoginRequestBody>(event);
 
   if (!body.username || typeof body.username !== "string") {
     throw createError({
@@ -44,6 +50,19 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Passwort erforderlich",
     });
   }
+
+  if (
+    body.responseMode !== undefined &&
+    body.responseMode !== "cookie" &&
+    body.responseMode !== "token"
+  ) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Ungueltiger Antwortmodus",
+    });
+  }
+
+  const responseMode = body.responseMode || "cookie";
 
   const username = body.username.trim();
   const userConfig = getUserValidationConfig();
@@ -94,9 +113,19 @@ export default defineEventHandler(async (event) => {
     username: user!.username,
     role: user!.role,
   };
-  const { sessionToken, csrfToken } = createSession(sessionUser);
+  const { sessionToken, csrfToken, expiresAt } = createSession(sessionUser);
   const cookieConfig = getAuthConfig().session.cookies;
   const cookieMaxAge = getSessionCookieMaxAgeSeconds();
+
+  if (responseMode === "token") {
+    return {
+      success: true,
+      user: sessionUser,
+      tokenType: "Bearer",
+      sessionToken,
+      expiresAt: new Date(expiresAt).toISOString(),
+    };
+  }
 
 
   setCookie(event, cookieConfig.sessionName, sessionToken, {

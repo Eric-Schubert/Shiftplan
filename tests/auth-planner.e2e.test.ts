@@ -245,6 +245,29 @@ async function loginAs(
   return jar;
 }
 
+async function loginForToken(
+  client: ApiClient,
+  username: string,
+  password: string,
+): Promise<string> {
+  const response = await client.request<{
+    success: boolean;
+    sessionToken?: string;
+    tokenType?: string;
+  }>("POST", "/api/auth/login", {
+    body: { username, password, responseMode: "token" },
+  });
+
+  expect(response.status).toBe(200);
+  expect(response.json).toMatchObject({
+    success: true,
+    tokenType: "Bearer",
+  });
+  expect(response.json?.sessionToken).toBeTruthy();
+
+  return response.json!.sessionToken!;
+}
+
 describe("auth and planner e2e", () => {
   beforeEach(async () => {
     client = await createApiClient();
@@ -304,6 +327,49 @@ describe("auth and planner e2e", () => {
     });
   });
 
+  it("issues bearer tokens only when mobile clients request token mode", async () => {
+    const jar = new Map<string, string>();
+
+    const login = await client.request<{
+      success: boolean;
+      user: { username: string; role: string };
+      tokenType?: string;
+      sessionToken?: string;
+      expiresAt?: string;
+      csrfToken?: string | null;
+    }>("POST", "/api/auth/login", {
+      jar,
+      body: { username: "planner", password: "planner1234", responseMode: "token" },
+    });
+
+    expect(login.status).toBe(200);
+    expect(login.json).toMatchObject({
+      success: true,
+      user: { username: "planner", role: "planner" },
+      tokenType: "Bearer",
+    });
+    expect(login.json?.sessionToken).toMatch(/^[a-f0-9]{64}$/);
+    expect(login.json?.expiresAt).toEqual(expect.any(String));
+    expect(login.json?.csrfToken).toBeUndefined();
+    expect(jar.get(sessionCookieName)).toBeUndefined();
+    expect(jar.get(csrfCookieName)).toBeUndefined();
+
+    const session = await client.request<{
+      authenticated: boolean;
+      user: { username: string; role: string };
+      csrfToken: string | null;
+    }>("GET", "/api/auth/session", {
+      headers: { authorization: `Bearer ${login.json!.sessionToken}` },
+    });
+
+    expect(session.status).toBe(200);
+    expect(session.json).toMatchObject({
+      authenticated: true,
+      user: { username: "planner", role: "planner" },
+      csrfToken: null,
+    });
+  });
+
   it("rejects inactive users and invalid credentials", async () => {
     const disabled = await client.request("POST", "/api/auth/login", {
       body: { username: "disabled", password: "disabled1234" },
@@ -355,6 +421,40 @@ describe("auth and planner e2e", () => {
 
     expect(missingCsrf.status).toBe(403);
     expect(invalidCsrf.status).toBe(403);
+  });
+
+  it("allows bearer token mutations without csrf tokens", async () => {
+    const sessionToken = await loginForToken(client, "planner", "planner1234");
+    const authHeaders = { authorization: `Bearer ${sessionToken}` };
+
+    const assign = await client.request("POST", "/api/shiftplan/assign", {
+      headers: authHeaders,
+      body: { staff_id: 1, shift_id: 1, year: 2026, week: 15 },
+    });
+    const assigned = client.mainDb
+      .prepare(`
+        SELECT COUNT(*) AS count
+        FROM shift_assignments sa
+        JOIN weeks w ON w.week_id = sa.week_id
+        WHERE sa.staff_id = 1 AND sa.shift_id = 1 AND w.year = 2026 AND w.week_number = 15
+      `)
+      .get() as { count: number };
+    const logout = await client.request("POST", "/api/auth/logout", {
+      headers: authHeaders,
+    });
+    const sessionAfterLogout = await client.request<{ authenticated: boolean }>(
+      "GET",
+      "/api/auth/session",
+      { headers: authHeaders },
+    );
+
+    expect(assign.status).toBe(200);
+    expect(assign.json).toEqual({ success: true });
+    expect(assigned.count).toBe(1);
+    expect(logout.status).toBe(200);
+    expect(logout.json).toEqual({ success: true });
+    expect(sessionAfterLogout.status).toBe(200);
+    expect(sessionAfterLogout.json).toEqual({ authenticated: false });
   });
 
   it("allows planner shift assignments but blocks admin-only endpoints", async () => {

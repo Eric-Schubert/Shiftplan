@@ -3,6 +3,7 @@ import {
   getSessionToken,
   validateCsrfToken,
   getCsrfTokenFromRequest,
+  isBearerSessionRequest,
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 
@@ -45,7 +46,7 @@ export default defineEventHandler((event) => {
   }
 
 
-  if (getAuthConfig().routes.csrfMethods.includes(method)) {
+  if (getAuthConfig().routes.csrfMethods.includes(method) && !isBearerSessionRequest(event)) {
     const csrfToken = getCsrfTokenFromRequest(event);
     const csrfValid = validateCsrfToken(token, csrfToken);
 
