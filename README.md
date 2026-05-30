@@ -133,6 +133,10 @@ The response includes `tokenType: "Bearer"`, `sessionToken`, `expiresAt`, and th
 
 The initial Flutter contract is available as OpenAPI at `/api/openapi`. It covers login, session, logout, staff and shift reference data, weekly plan reads, and shift assignment mutations.
 
+## Flutter Mobile App
+
+The Flutter MVP source lives in `mobile/`. It contains the token-based API client, secure token storage, login screen, weekly plan view, and assignment actions. Generate native Android/iOS project files locally with `flutter create . --platforms=ios,android` from inside `mobile/` after installing the Flutter SDK.
+
 ## Rotation Planning With Excel
 
 Planners and admins can maintain rotation patterns with an Excel file:
@@ -268,6 +272,27 @@ schichtplaner/
 |           `-- UserManager.vue
 |-- layouts/
 |   `-- default.vue
+|-- mobile/
+|   |-- lib/
+|   |   |-- src/
+|   |   |   |-- api/
+|   |   |   |   `-- shiftplan_api_client.dart
+|   |   |   |-- models/
+|   |   |   |   `-- api_models.dart
+|   |   |   |-- storage/
+|   |   |   |   `-- token_store.dart
+|   |   |   |-- ui/
+|   |   |   |   |-- app_controller.dart
+|   |   |   |   |-- iso_week.dart
+|   |   |   |   |-- login_page.dart
+|   |   |   |   `-- planner_page.dart
+|   |   |   `-- app.dart
+|   |   `-- main.dart
+|   |-- test/
+|   |   `-- iso_week_test.dart
+|   |-- analysis_options.yaml
+|   |-- pubspec.yaml
+|   `-- README.md
 |-- pages/
 |   |-- datenschutz.vue
 |   |-- impressum.vue

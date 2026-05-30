@@ -18,6 +18,7 @@ export const CONFIG = {
   includeDirs: [
     "components",
     "layouts",
+    "mobile",
     "pages",
     "server",
     "stores",
