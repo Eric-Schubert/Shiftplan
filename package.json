@@ -24,7 +24,7 @@
     "@primevue/themes": "^4.2.5",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
-    "nuxt": "^4.4.2",
+    "nuxt": "^4.4.7",
     "pinia": "^3.0.4",
     "primeicons": "^7.0.0",
     "primevue": "^4.2.5",
