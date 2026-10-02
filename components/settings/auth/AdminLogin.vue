@@ -7,6 +7,15 @@ const error = ref("");
 const loading = ref(false);
 const loginErrorId = "login-error";
 
+const { demoLogin } = useRuntimeConfig().public;
+const hasDemoLogin = Boolean(demoLogin.username && demoLogin.password);
+
+function fillDemoLogin() {
+  username.value = demoLogin.username;
+  password.value = demoLogin.password;
+  error.value = "";
+}
+
 async function handleLogin() {
   if (!username.value) {
     error.value = "Bitte Benutzername eingeben";
@@ -45,6 +54,32 @@ async function handleLogin() {
         <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
           Melde dich an, um Schichten, Muster und Benutzer zu verwalten.
         </p>
+      </div>
+
+      <div
+        v-if="hasDemoLogin"
+        class="mb-5 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4 text-sm"
+      >
+        <p class="font-semibold text-[var(--text-1)]">Demo-Zugang</p>
+        <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[var(--text-2)]">
+          <dt>Benutzer</dt>
+          <dd class="font-mono text-[var(--text-1)]">{{ demoLogin.username }}</dd>
+          <dt>Passwort</dt>
+          <dd class="font-mono text-[var(--text-1)]">{{ demoLogin.password }}</dd>
+        </dl>
+        <p class="mt-2 text-xs leading-5 text-[var(--text-2)]">
+          Die Demo wird regelmäßig zurückgesetzt.
+        </p>
+        <PrimeButton
+          type="button"
+          label="Zugangsdaten übernehmen"
+          icon="pi pi-sign-in"
+          size="small"
+          outlined
+          class="mt-3 w-full"
+          :disabled="loading"
+          @click="fillDemoLogin"
+        />
       </div>
 
       <form class="space-y-4" @submit.prevent="handleLogin">

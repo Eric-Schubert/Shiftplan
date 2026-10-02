@@ -44,6 +44,8 @@ npm run dev
 Change this password after the first login.
 The setup creates the initial `admin` user. Predictable defaults such as `admin/admin` are not generated. If an existing database still contains an unchanged default admin, startup is blocked until `SHIFTPLAN_ADMIN_PASSWORD` is set and `node setup.js` is run again.
 
+For a public demo instance, set `NUXT_PUBLIC_DEMO_LOGIN_USERNAME` and `NUXT_PUBLIC_DEMO_LOGIN_PASSWORD`. The login page then shows these credentials with a button to fill them in. Never set them on a production instance.
+
 ## Backend Configuration
 
 Non-secret backend settings live in `config/backend.config.json`. This includes holiday regions, school holiday regions, session duration, rate limits, validation limits, shift defaults, analytics retention, XLSX limits, and proxy-header trust.

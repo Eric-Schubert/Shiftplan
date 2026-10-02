@@ -45,6 +45,10 @@ export default defineNuxtConfig({
         registerNumber: process.env.NUXT_PUBLIC_IMPRINT_REGISTER_NUMBER || "",
         vatId: process.env.NUXT_PUBLIC_IMPRINT_VAT_ID || "",
       },
+      demoLogin: {
+        username: process.env.NUXT_PUBLIC_DEMO_LOGIN_USERNAME || "",
+        password: process.env.NUXT_PUBLIC_DEMO_LOGIN_PASSWORD || "",
+      },
     },
   },
 
