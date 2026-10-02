@@ -106,13 +106,12 @@ onMounted(fetchSummary);
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <div class="inline-flex rounded-full border border-[var(--border-soft)] bg-[var(--surface-muted)] p-1">
+        <div class="planner-segmented" role="group" aria-label="Zeitraum">
           <button
             v-for="days in dayOptions"
             :key="days"
             type="button"
-            class="min-h-9 rounded-full px-3 text-sm font-semibold text-[var(--text-2)] transition hover:text-[var(--text-1)]"
-            :class="selectedDays === days ? 'bg-[var(--surface)] text-[var(--text-1)] shadow-sm' : ''"
+            :class="selectedDays === days ? '!bg-[var(--surface-muted)] !text-[var(--text-1)]' : ''"
             :aria-pressed="selectedDays === days"
             @click="selectedDays = days"
           >
@@ -124,7 +123,7 @@ onMounted(fetchSummary);
           icon="pi pi-refresh"
           text
           rounded
-          class="!h-10 !w-10 border !border-[var(--border-soft)]"
+          class="!h-9 !w-9 border !border-[var(--border-soft)]"
           aria-label="Besuchsdaten aktualisieren"
           title="Besuchsdaten aktualisieren"
           :loading="loading"
@@ -234,7 +233,7 @@ onMounted(fetchSummary);
             <div
               v-for="page in summary.topPages"
               :key="page.path"
-              class="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2.5"
+              class="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2.5"
             >
               <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-[var(--text-1)]">
@@ -268,7 +267,7 @@ onMounted(fetchSummary);
             <div
               v-for="location in summary.locations"
               :key="`${location.countryCode}-${location.region}-${location.city}`"
-              class="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2.5"
+              class="flex items-center justify-between gap-3 rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-3 py-2.5"
             >
               <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-[var(--text-1)]">

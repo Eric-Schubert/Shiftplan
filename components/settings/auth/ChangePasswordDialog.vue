@@ -79,7 +79,7 @@ function onHide() {
     <div class="space-y-4">
       <div
         v-if="success"
-        class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
+        class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
       >
         <i class="pi pi-check-circle mb-2 text-3xl text-[var(--positive-ink)]" aria-hidden="true"></i>
         <p class="font-medium text-[var(--positive-ink)]">

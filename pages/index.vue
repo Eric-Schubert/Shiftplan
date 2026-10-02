@@ -95,30 +95,59 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="swipeContainer" class="planner-shell">
-    <section class="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(20rem,0.95fr)]">
-      <PlannerWeekHero
-        :selected-week="appStore.selectedWeek"
-        :selected-year="appStore.selectedYear"
-        :formatted-week-range="appStore.formattedWeekRange"
-        :pattern-week="shiftplan?.pattern_week"
-        :can-edit-shifts="authStore.canEditShifts"
-        :generating="generating"
-        @previous="appStore.previousWeek"
-        @today="appStore.goToCurrentWeek"
-        @next="appStore.nextWeek"
-        @jump="jumpWeeks"
-        @generate="generateFromPattern"
-        @open-bulk="showBulkDialog = true"
-      />
+    <PlannerWeekHero
+      :selected-week="appStore.selectedWeek"
+      :selected-year="appStore.selectedYear"
+      :formatted-week-range="appStore.formattedWeekRange"
+      :pattern-week="shiftplan?.pattern_week"
+      :can-edit-shifts="authStore.canEditShifts"
+      :generating="generating"
+      @previous="appStore.previousWeek"
+      @today="appStore.goToCurrentWeek"
+      @next="appStore.nextWeek"
+      @jump="jumpWeeks"
+      @generate="generateFromPattern"
+      @open-bulk="showBulkDialog = true"
+    />
 
-      <aside class="planner-panel hidden min-h-[15rem] lg:block">
-        <div class="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <p class="planner-kicker">Kalenderlage</p>
-            <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">Hinweise für diese Woche</h3>
-          </div>
-          <span class="planner-chip planner-chip--muted">
-            {{ pending ? "Wird aktualisiert" : "Live" }}
+    <section class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
+      <div
+        class="swipe-content min-w-0 space-y-4"
+        :class="contentSlideClass"
+        :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
+      >
+        <div class="lg:hidden">
+          <HolidayInfo
+            :year="appStore.selectedYear"
+            :week="appStore.selectedWeek"
+            banner
+          />
+        </div>
+
+        <PlannerCurrentWeekSection
+          :pending="pending"
+          :has-shiftplan="!!shiftplan"
+          :shift-list="shiftList"
+          :coverage-note="coverageNote"
+          :can-edit-shifts="authStore.canEditShifts"
+          :is-admin="authStore.isAdmin"
+          :year="appStore.selectedYear"
+          :week="appStore.selectedWeek"
+          @updated="refresh"
+          @generate="generateFromPattern"
+        />
+      </div>
+
+      <aside class="planner-panel hidden lg:block">
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <h3 class="text-sm font-semibold text-[var(--text-1)]">Kalender</h3>
+          <span class="inline-flex items-center gap-1.5 text-xs text-[var(--text-3)]">
+            <span
+              class="h-1.5 w-1.5 rounded-full"
+              :class="pending ? 'bg-amber-500' : 'bg-emerald-500'"
+              aria-hidden="true"
+            ></span>
+            {{ pending ? "Aktualisiert" : "Aktuell" }}
           </span>
         </div>
         <HolidayInfo
@@ -128,35 +157,8 @@ onBeforeUnmount(() => {
       </aside>
     </section>
 
-    <div
-      class="swipe-content space-y-4 sm:space-y-5"
-      :class="contentSlideClass"
-      :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, opacity: 1 - Math.abs(swipeOffset) / 200 } : {}"
-    >
-      <div class="lg:hidden">
-        <HolidayInfo
-          :year="appStore.selectedYear"
-          :week="appStore.selectedWeek"
-          banner
-        />
-      </div>
-
-      <PlannerCurrentWeekSection
-        :pending="pending"
-        :has-shiftplan="!!shiftplan"
-        :shift-list="shiftList"
-        :coverage-note="coverageNote"
-        :can-edit-shifts="authStore.canEditShifts"
-        :is-admin="authStore.isAdmin"
-        :year="appStore.selectedYear"
-        :week="appStore.selectedWeek"
-        @updated="refresh"
-        @generate="generateFromPattern"
-      />
-
-      <div ref="weekPreviewSentinel" class="mt-1 sm:mt-0">
-        <LazyWeekPreview v-if="showWeekPreview" />
-      </div>
+    <div ref="weekPreviewSentinel">
+      <LazyWeekPreview v-if="showWeekPreview" />
     </div>
 
     <LazyPlannerBulkGenerateDialog

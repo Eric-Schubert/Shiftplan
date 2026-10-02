@@ -9,87 +9,74 @@ defineProps<{
 </script>
 
 <template>
-  <div class="space-y-3">
-    <div
-      v-if="holidays.length > 0"
-      class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-4"
-    >
-      <div class="mb-3 flex items-center gap-2">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--danger-soft)] text-[var(--danger-ink)]">
-          <i class="pi pi-calendar text-xs"></i>
-        </span>
-        <div>
-          <p class="planner-kicker">Feiertage</p>
-          <h4 class="mt-1 text-sm font-semibold text-[var(--text-1)]">Wichtige Kalendereinträge</h4>
-        </div>
-      </div>
+  <div class="space-y-4">
+    <div v-if="holidays.length > 0">
+      <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--text-3)]">
+        <i class="pi pi-calendar text-[0.7rem] text-[var(--danger-ink)]" aria-hidden="true"></i>
+        Feiertage
+      </p>
 
-      <div class="space-y-2">
-        <div
+      <ul class="divide-y divide-[var(--border-soft)]">
+        <li
           v-for="holiday in holidays"
           :key="holiday.date"
-          class="flex items-center justify-between gap-3 rounded-[16px] bg-[var(--surface-muted)] px-3 py-2"
+          class="flex items-start justify-between gap-3 py-2 first:pt-0 last:pb-0"
         >
-          <div class="flex min-w-0 items-center gap-2">
+          <div class="flex min-w-0 items-start gap-2">
             <span
-              class="h-2 w-2 flex-shrink-0 rounded-full"
+              class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
               :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"
+              aria-hidden="true"
             ></span>
-            <span class="truncate text-sm font-medium text-[var(--text-1)]">{{ holiday.name }}</span>
-            <span
-              v-for="state in holiday.states"
-              :key="`${holiday.date}-${state.code}`"
-              class="rounded-full bg-[var(--warning-soft)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--warning-ink)]"
-            >
-              {{ state.code }}
-            </span>
-          </div>
-          <span class="flex-shrink-0 text-xs text-[var(--text-3)]">
-            {{ formatHolidayDate(holiday.date) }}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div
-      v-if="schoolHolidays.length > 0"
-      class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-4"
-    >
-      <div class="mb-3 flex items-center gap-2">
-        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
-          <i class="pi pi-book text-xs"></i>
-        </span>
-        <div>
-          <p class="planner-kicker">Schulferien</p>
-          <h4 class="mt-1 text-sm font-semibold text-[var(--text-1)]">Relevante Ferienzeiten</h4>
-        </div>
-      </div>
-
-      <div class="space-y-2">
-        <div
-          v-for="period in schoolHolidays"
-          :key="`${period.name}-${period.start}`"
-          class="rounded-[16px] bg-[var(--surface-muted)] px-3 py-3"
-        >
-          <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-sm font-medium text-[var(--text-1)]">{{ period.name }}</p>
-              <div class="mt-2 flex flex-wrap gap-1.5">
+              <p class="text-sm font-medium leading-5 text-[var(--text-1)]">{{ holiday.name }}</p>
+              <div v-if="holiday.states.length > 0" class="mt-1 flex flex-wrap gap-1">
                 <span
-                  v-for="state in period.states"
-                  :key="state.code"
-                  class="rounded-full bg-sky-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-700 dark:bg-sky-900/30 dark:text-sky-300"
+                  v-for="state in holiday.states"
+                  :key="`${holiday.date}-${state.code}`"
+                  class="rounded bg-[var(--warning-soft)] px-1.5 text-[0.6875rem] font-semibold text-[var(--warning-ink)]"
                 >
-                  {{ state.name }}
+                  {{ state.code }}
                 </span>
               </div>
             </div>
-            <span class="flex-shrink-0 text-xs text-[var(--text-3)]">
+          </div>
+          <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">
+            {{ formatHolidayDate(holiday.date) }}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div v-if="schoolHolidays.length > 0">
+      <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--text-3)]">
+        <i class="pi pi-book text-[0.7rem] text-[var(--info-ink)]" aria-hidden="true"></i>
+        Schulferien
+      </p>
+
+      <ul class="divide-y divide-[var(--border-soft)]">
+        <li
+          v-for="period in schoolHolidays"
+          :key="`${period.name}-${period.start}`"
+          class="py-2 first:pt-0 last:pb-0"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <p class="text-sm font-medium leading-5 text-[var(--text-1)]">{{ period.name }}</p>
+            <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">
               {{ formatHolidayPeriod(period.start, period.end) }}
             </span>
           </div>
-        </div>
-      </div>
+          <div class="mt-1 flex flex-wrap gap-1">
+            <span
+              v-for="state in period.states"
+              :key="state.code"
+              class="rounded bg-[var(--info-soft)] px-1.5 text-[0.6875rem] font-semibold text-[var(--info-ink)]"
+            >
+              {{ state.name }}
+            </span>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
 </template>

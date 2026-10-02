@@ -44,8 +44,8 @@ const {
   <div
     class="planner-shift-card group flex items-stretch gap-3 sm:gap-4"
     :class="{
-      'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--app-bg)] bg-[var(--accent-soft)]': isHovering,
-      'ring-1 ring-dashed ring-[var(--accent)]': isDropTarget && !isHovering,
+      'is-drop-hover': isHovering,
+      'is-drop-target': isDropTarget && !isHovering,
     }"
     :style="shiftCardStyle"
     @dragover="onDragOver"
@@ -55,29 +55,20 @@ const {
   >
     <span class="planner-shift-rail" aria-hidden="true"></span>
 
-    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-3 sm:gap-x-4">
-      <div class="min-w-0 flex-1">
-        <div class="space-y-2 sm:space-y-3">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="hidden rounded-full bg-[var(--surface-muted)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)] sm:inline-flex">
-              Schicht
-            </span>
-            <span
-              v-if="isUnderstaffed"
-              class="rounded-full bg-[var(--warning-soft)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--warning-ink)]"
-            >
-              Unterbesetzt
-            </span>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-base font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
-
-            <div class="planner-time-badge">
-              <i class="pi pi-clock text-sm" aria-hidden="true"></i>
-              <span>{{ shift.start_time }} - {{ shift.end_time }}</span>
-            </div>
-          </div>
+    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2.5">
+      <div class="min-w-0 flex-1 basis-40">
+        <div class="flex flex-wrap items-center gap-2">
+          <p class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
+          <span
+            v-if="isUnderstaffed"
+            class="rounded-md bg-[var(--warning-soft)] px-1.5 py-0.5 text-[0.6875rem] font-semibold text-[var(--warning-ink)]"
+          >
+            Unterbesetzt
+          </span>
+        </div>
+        <div class="planner-time-badge mt-0.5">
+          <i class="pi pi-clock text-[0.7rem]" aria-hidden="true"></i>
+          <span>{{ shift.start_time }}–{{ shift.end_time }}</span>
         </div>
       </div>
 

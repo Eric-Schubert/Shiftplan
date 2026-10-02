@@ -36,13 +36,12 @@ async function handleLogin() {
 
 <template>
   <div class="min-h-[60vh] flex items-center justify-center">
-    <div class="planner-slab w-full max-w-md">
+    <div class="planner-slab w-full max-w-sm !p-6">
       <div class="mb-6 text-center">
-        <div class="app-logo-mark mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl">
-          <i class="pi pi-lock text-3xl" aria-hidden="true"></i>
+        <div class="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-strong)]">
+          <i class="pi pi-lock text-lg" aria-hidden="true"></i>
         </div>
-        <p class="planner-kicker">Geschützter Bereich</p>
-        <h2 class="mt-2 text-2xl font-semibold text-[var(--text-1)]">Anmelden</h2>
+        <h2 class="text-xl font-semibold text-[var(--text-1)]">Anmelden</h2>
         <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
           Melde dich an, um Schichten, Muster und Benutzer zu verwalten.
         </p>
