@@ -2,7 +2,10 @@
 const runtimeConfig = useRuntimeConfig();
 
 const imprint = computed(() => runtimeConfig.public.imprint || {});
-const lastUpdated = "Mai 2026";
+const lastUpdated = "Oktober 2026";
+const { demoLogin, privacy } = runtimeConfig.public;
+const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
+const usesCloudflare = Boolean(privacy?.cloudflare);
 
 const controllerLines = computed(() => {
   const postalCity = [imprint.value.postalCode, imprint.value.city].filter(Boolean).join(" ");
@@ -108,14 +111,35 @@ useSeoMeta({
         </p>
 
         <div class="mt-5 space-y-3 text-sm leading-6 text-[var(--text-2)]">
+          <p v-if="imprint.publicEmail">
+            E-Mail:
+            <a
+              :href="`mailto:${imprint.publicEmail}`"
+              class="font-medium text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+            >
+              {{ imprint.publicEmail }}
+            </a>
+          </p>
           <p>
-            Datenschutzanfragen können über das Kontaktformular im Impressum gestellt werden.
+            Datenschutzanfragen können per E-Mail oder über das Kontaktformular im Impressum
+            gestellt werden.
           </p>
           <p class="text-[var(--text-3)]">Stand: {{ lastUpdated }}</p>
         </div>
       </aside>
 
       <div class="space-y-4">
+        <section v-if="isDemo" class="planner-panel">
+          <p class="planner-kicker">Hinweis zur Demo</p>
+          <div class="mt-3 space-y-3 text-sm leading-7 text-[var(--text-2)]">
+            <p>
+              Diese Instanz ist eine öffentliche Demo. Alle eingegebenen Daten sind für andere
+              Besucherinnen und Besucher der Demo sichtbar und werden regelmäßig automatisch
+              gelöscht. Bitte gib hier keine echten personenbezogenen Daten ein.
+            </p>
+          </div>
+        </section>
+
         <section class="planner-panel">
           <p class="planner-kicker">1. Zweck der Anwendung</p>
           <div class="mt-3 space-y-3 text-sm leading-7 text-[var(--text-2)]">
@@ -125,8 +149,9 @@ useSeoMeta({
               Betrieb, Planung, Sicherheit und Kontaktaufnahme erforderlich sind.
             </p>
             <p>
-              Soweit die Anwendung im Beschäftigungskontext eingesetzt wird, kann zusätzlich zu den
-              nachfolgend genannten Rechtsgrundlagen auch § 26 BDSG einschlägig sein.
+              Soweit die Anwendung im Beschäftigungskontext eingesetzt wird, verarbeitet der
+              jeweilige Arbeitgeber die Planungsdaten zur Durchführung des Beschäftigungsverhältnisses
+              auf Grundlage von Art. 6 Abs. 1 lit. b und c DSGVO.
             </p>
           </div>
         </section>
@@ -178,7 +203,9 @@ useSeoMeta({
               <span class="font-semibold text-[var(--text-1)]">session_token</span> hält die
               Anmeldung für bis zu 30 Minuten aktiv und ist für JavaScript nicht lesbar. Das Cookie
               <span class="font-semibold text-[var(--text-1)]">csrf_token</span> schützt Formulare
-              und API-Aufrufe vor missbräuchlicher Nutzung.
+              und API-Aufrufe vor missbräuchlicher Nutzung. Diese Cookies sind für die Anmeldung
+              unbedingt erforderlich und benötigen daher keine Einwilligung (§ 25 Abs. 2 Nr. 2
+              TDDDG).
             </p>
             <p>
               Fehlgeschlagene Anmeldeversuche werden zur Angriffserkennung begrenzt. Dafür kann die
@@ -196,7 +223,8 @@ useSeoMeta({
               Im Browser werden einzelne Komforteinstellungen lokal gespeichert, zum Beispiel der
               gewählte Hell- oder Dunkelmodus, der zuletzt gelesene Versionshinweis und ob der
               Installationshinweis der Web-App ausgeblendet wurde. Diese Werte bleiben auf dem Gerät
-              und werden nicht für Werbung oder externes Tracking genutzt.
+              und werden nicht für Werbung oder externes Tracking genutzt. Die Speicherung ist für
+              die gewünschten Einstellungen erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
             </p>
           </div>
         </section>
@@ -227,11 +255,24 @@ useSeoMeta({
         <section class="planner-panel">
           <p class="planner-kicker">7. Externe Dienste</p>
           <div class="mt-3 space-y-3 text-sm leading-7 text-[var(--text-2)]">
+            <p v-if="usesCloudflare">
+              Diese Anwendung wird über das Netzwerk von Cloudflare ausgeliefert (Cloudflare, Inc.,
+              101 Townsend St., San Francisco, CA 94107, USA). Alle Aufrufe laufen über Server von
+              Cloudflare, die dabei technisch notwendige Verbindungsdaten wie IP-Adresse, Zeitpunkt,
+              aufgerufene Adresse und Browser-Kennung verarbeiten, um die Seite sicher auszuliefern
+              und Angriffe abzuwehren. Cloudflare handelt als Auftragsverarbeiter nach Art. 28
+              DSGVO. Cloudflare ist unter dem EU-US Data Privacy Framework zertifiziert;
+              Übermittlungen in die USA erfolgen auf Grundlage des Angemessenheitsbeschlusses der
+              EU-Kommission (Art. 45 DSGVO). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser
+              berechtigtes Interesse liegt in einer sicheren und stabilen Bereitstellung.
+            </p>
             <p>
               Für die E-Mail-Zustellung kann Microsoft 365 beziehungsweise Microsoft Graph genutzt
-              werden. Microsoft verarbeitet Daten dabei als Dienstleister im Rahmen der Microsoft
-              Vertrags- und Datenschutzbedingungen. Soweit Daten außerhalb der EU oder des EWR
-              verarbeitet werden, stützt sich Microsoft nach eigenen Angaben auf geeignete Garantien.
+              werden (Microsoft Ireland Operations Limited, One Microsoft Place, South County
+              Business Park, Leopardstown, Dublin 18, Irland). Microsoft verarbeitet Daten dabei als
+              Auftragsverarbeiter nach Art. 28 DSGVO. Microsoft ist unter dem EU-US Data Privacy
+              Framework zertifiziert; soweit Daten in die USA übermittelt werden, erfolgt dies auf
+              Grundlage des Angemessenheitsbeschlusses der EU-Kommission (Art. 45 DSGVO).
             </p>
             <p>
               Feiertage und Schulferien werden serverseitig über die OpenHolidays API abgerufen.

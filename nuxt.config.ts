@@ -49,6 +49,9 @@ export default defineNuxtConfig({
         username: process.env.NUXT_PUBLIC_DEMO_LOGIN_USERNAME || "",
         password: process.env.NUXT_PUBLIC_DEMO_LOGIN_PASSWORD || "",
       },
+      privacy: {
+        cloudflare: process.env.NUXT_PUBLIC_PRIVACY_CLOUDFLARE === "true",
+      },
     },
   },
 

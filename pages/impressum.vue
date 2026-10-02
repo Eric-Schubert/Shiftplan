@@ -154,7 +154,7 @@ async function submitContact() {
           <div>
             <h2 class="text-2xl font-semibold text-[var(--text-1)] sm:text-3xl">Impressum</h2>
             <p class="mt-2 max-w-[48rem] text-sm leading-6 text-[var(--text-2)]">
-              Angaben zum verantwortlichen Anbieter dieser Anwendung.
+              Angaben gemäß § 5 DDG zum verantwortlichen Anbieter dieser Anwendung.
             </p>
           </div>
         </div>
