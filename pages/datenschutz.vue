@@ -47,7 +47,7 @@ useSeoMeta({
               icon="pi pi-id-card"
               severity="secondary"
               outlined
-              class="min-h-11 !rounded-full"
+              class="min-h-11"
             />
           </NuxtLink>
           <NuxtLink to="/">
@@ -56,7 +56,7 @@ useSeoMeta({
               icon="pi pi-arrow-left"
               severity="secondary"
               outlined
-              class="min-h-11 !rounded-full"
+              class="min-h-11"
             />
           </NuxtLink>
         </div>
@@ -65,7 +65,7 @@ useSeoMeta({
 
     <section class="planner-panel">
       <div class="grid gap-3 md:grid-cols-3">
-        <article class="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <article class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Kurz gesagt</p>
           <h3 class="mt-2 text-base font-semibold text-[var(--text-1)]">Keine Werbung</h3>
           <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
@@ -73,7 +73,7 @@ useSeoMeta({
           </p>
         </article>
 
-        <article class="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <article class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Kontakt</p>
           <h3 class="mt-2 text-base font-semibold text-[var(--text-1)]">Microsoft 365</h3>
           <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
@@ -82,7 +82,7 @@ useSeoMeta({
           </p>
         </article>
 
-        <article class="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <article class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Statistik</p>
           <h3 class="mt-2 text-base font-semibold text-[var(--text-1)]">Sparsam erfasst</h3>
           <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">

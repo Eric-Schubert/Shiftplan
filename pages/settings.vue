@@ -58,47 +58,48 @@ watch(
     </div>
 
     <div v-else class="planner-shell" @click="extendSession" @keydown="extendSession">
-      <section class="planner-slab">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div class="space-y-3">
-            <p class="planner-kicker">Administration</p>
-            <div>
-              <h2 class="text-2xl font-semibold text-[var(--text-1)] sm:text-3xl">Einstellungen</h2>
-              <p class="mt-2 max-w-[50rem] text-sm leading-6 text-[var(--text-2)]">
-                <template v-if="authStore.isAdmin">
-                  Mitarbeiter, Schichten, Benutzer und Rotationsmuster werden hier zentral gepflegt.
-                </template>
-                <template v-else>
-                  Rotationsmuster können gepflegt und Schichtpläne aus Vorlagen erzeugt werden.
-                </template>
-              </p>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="planner-chip planner-chip--muted">{{ authStore.username }}</span>
-            <PrimeButton
-              label="Passwort ändern"
-              icon="pi pi-key"
-              severity="secondary"
-              class="min-h-11 !rounded-full"
-              @click="showChangePasswordDialog = true"
-            />
-            <PrimeButton
-              label="Abmelden"
-              icon="pi pi-sign-out"
-              severity="secondary"
-              outlined
-              class="min-h-11 !rounded-full"
-              @click="authStore.logout()"
-            />
-          </div>
+      <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="space-y-1.5">
+          <h2 class="planner-headline text-[var(--text-1)]">Einstellungen</h2>
+          <p class="max-w-[50rem] text-sm text-[var(--text-2)]">
+            <template v-if="authStore.isAdmin">
+              Mitarbeiter, Schichten, Benutzer und Rotationsmuster werden hier zentral gepflegt.
+            </template>
+            <template v-else>
+              Rotationsmuster können gepflegt und Schichtpläne aus Vorlagen erzeugt werden.
+            </template>
+          </p>
         </div>
-      </section>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="planner-chip">
+            <i class="pi pi-user text-[0.7rem]" aria-hidden="true"></i>
+            {{ authStore.username }}
+          </span>
+          <PrimeButton
+            label="Passwort ändern"
+            icon="pi pi-key"
+            severity="secondary"
+            size="small"
+            outlined
+            class="min-h-9"
+            @click="showChangePasswordDialog = true"
+          />
+          <PrimeButton
+            label="Abmelden"
+            icon="pi pi-sign-out"
+            severity="secondary"
+            size="small"
+            outlined
+            class="min-h-9"
+            @click="authStore.logout()"
+          />
+        </div>
+      </header>
 
       <section class="planner-slab !p-0 max-w-full overflow-hidden">
         <PrimeTabs v-model:value="activeTab" class="max-w-full">
-          <PrimeTabList class="max-w-full overflow-x-auto border-b border-[var(--border-soft)] bg-[var(--surface-muted)] px-2 py-2">
+          <PrimeTabList class="max-w-full overflow-x-auto border-b border-[var(--border-soft)] px-2">
             <PrimeTab v-if="authStore.isAdmin" value="0" class="whitespace-nowrap">Mitarbeiter</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="1" class="whitespace-nowrap">Schichten</PrimeTab>
             <PrimeTab value="2" class="whitespace-nowrap">Rotationsmuster</PrimeTab>

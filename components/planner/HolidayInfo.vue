@@ -20,14 +20,14 @@ const hasContent = computed(() => holidays.value.length > 0 || schoolHolidays.va
 </script>
 
 <template>
-  <div v-if="loading && !hasContent" class="flex items-center gap-2 text-sm text-[var(--text-2)]">
+  <div v-if="loading && !hasContent && !compact" class="flex items-center gap-2 text-sm text-[var(--text-2)]">
     <i class="pi pi-spin pi-spinner"></i>
     <span v-if="!compact && !banner">Kalenderhinweise werden geladen.</span>
   </div>
 
   <div
     v-else-if="error && !hasContent && !banner"
-    class="rounded-[18px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--danger-ink)]"
+    class="text-sm text-[var(--danger-ink)]"
   >
     <span v-if="!compact">{{ error }}</span>
   </div>
@@ -53,9 +53,9 @@ const hasContent = computed(() => holidays.value.length > 0 || schoolHolidays.va
   </div>
 
   <div
-    v-else-if="!banner"
-    class="rounded-[20px] border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-4 py-5 text-sm text-[var(--text-2)]"
+    v-else-if="!banner && !compact"
+    class="text-sm text-[var(--text-3)]"
   >
-    Keine Feiertage oder Ferien in dieser Kalenderwoche.
+    Keine Feiertage oder Ferien in dieser Woche.
   </div>
 </template>

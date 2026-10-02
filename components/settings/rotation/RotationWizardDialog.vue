@@ -273,7 +273,7 @@ async function readResponseError(response: Response): Promise<string> {
           v-for="(step, index) in steps"
           :key="step.title"
           type="button"
-          class="rounded-[20px] border px-4 py-3 text-left transition"
+          class="rounded-xl border px-4 py-3 text-left transition"
           :class="
             activeStep === index
               ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)]'
@@ -288,7 +288,7 @@ async function readResponseError(response: Response): Promise<string> {
       </div>
 
       <section v-if="activeStep === 0" class="space-y-4">
-        <div class="rounded-[24px] border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Aktuelles Muster</p>
           <div class="mt-2 flex flex-wrap items-center gap-2">
             <span v-if="rotationConfig" class="planner-chip planner-chip--accent">
@@ -307,7 +307,7 @@ async function readResponseError(response: Response): Promise<string> {
         </div>
 
         <div class="grid gap-3 md:grid-cols-3">
-          <div class="rounded-[22px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="font-semibold text-[var(--text-1)]">Vorlage holen</p>
             <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
               Excel-Datei mit allen aktiven Mitarbeitenden und Schichten herunterladen.
@@ -322,7 +322,7 @@ async function readResponseError(response: Response): Promise<string> {
             />
           </div>
 
-          <div class="rounded-[22px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="font-semibold text-[var(--text-1)]">Muster importieren</p>
             <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
               Fertige Vorlage einlesen und das Rotationsmuster ersetzen.
@@ -337,7 +337,7 @@ async function readResponseError(response: Response): Promise<string> {
             />
           </div>
 
-          <div class="rounded-[22px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="font-semibold text-[var(--text-1)]">Startpunkt setzen</p>
             <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
               Zykluslänge, Startjahr und Startwoche feinjustieren.
@@ -354,7 +354,7 @@ async function readResponseError(response: Response): Promise<string> {
 
         <div
           v-if="excelImportResult"
-          class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
+          class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
         >
           Import abgeschlossen: {{ excelImportResult.importedRows }} Zeilen gelesen,
           {{ excelImportResult.importedAssignments }} Zuweisungen übernommen.
@@ -362,14 +362,14 @@ async function readResponseError(response: Response): Promise<string> {
 
         <div
           v-if="excelImportError"
-          class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]"
+          class="rounded-xl border border-[var(--border-soft)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]"
         >
           {{ excelImportError }}
         </div>
       </section>
 
       <section v-else-if="activeStep === 1" class="space-y-4">
-        <div class="rounded-[24px] border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Prüfschritt</p>
           <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
             Kontrolliere das Muster unten im Board
@@ -381,21 +381,21 @@ async function readResponseError(response: Response): Promise<string> {
         </div>
 
         <div class="grid gap-3 sm:grid-cols-3">
-          <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="planner-kicker">Zyklus</p>
             <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
               {{ rotationConfig?.cycle_length || 0 }}
             </p>
             <p class="text-sm text-[var(--text-2)]">Musterwochen</p>
           </div>
-          <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="planner-kicker">Start</p>
             <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
               KW {{ rotationConfig?.start_week || "-" }}
             </p>
             <p class="text-sm text-[var(--text-2)]">{{ rotationConfig?.start_year || "" }}</p>
           </div>
-          <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
             <p class="planner-kicker">Offene Schichten</p>
             <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
               {{ emptyShiftCount }}
@@ -404,14 +404,14 @@ async function readResponseError(response: Response): Promise<string> {
           </div>
         </div>
 
-        <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
           Tipp: Wenn die Musterkarten unten passen, gehe auf <strong>Weiter</strong>.
           Falls noch Namen fehlen, kannst du sie direkt im Board per Drag & Drop ergänzen.
         </div>
       </section>
 
       <section v-else class="space-y-4">
-        <div class="rounded-[24px] border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
+        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Ausrollen</p>
           <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
             Wochenpläne aus dem aktuellen Muster erzeugen
@@ -466,7 +466,7 @@ async function readResponseError(response: Response): Promise<string> {
 
         <label
           for="wizard-full-year"
-          class="flex cursor-pointer items-start gap-3 rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-2)]"
+          class="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-2)]"
         >
           <PrimeCheckbox
             v-model="rolloutFullYear"
@@ -483,7 +483,7 @@ async function readResponseError(response: Response): Promise<string> {
           </span>
         </label>
 
-        <div class="overflow-hidden rounded-[20px] border border-[var(--border-soft)]">
+        <div class="overflow-hidden rounded-xl border border-[var(--border-soft)]">
           <div class="bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-1)]">
             Vorschau: Diese Wochen werden erzeugt
           </div>
@@ -501,7 +501,7 @@ async function readResponseError(response: Response): Promise<string> {
 
         <div
           v-if="generateResult"
-          class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
+          class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
         >
           {{ generateResult.generated }} Wochen erfolgreich ausgerollt.
         </div>

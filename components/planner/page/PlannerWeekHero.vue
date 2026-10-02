@@ -19,78 +19,67 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="planner-hero planner-week-hero h-full space-y-4">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="space-y-3">
-        <p class="planner-kicker hidden sm:block">Wochenansicht</p>
-        <div class="flex flex-wrap items-end gap-3">
-          <h2 class="planner-headline text-[var(--text-1)]">
-            KW {{ selectedWeek }}
-          </h2>
-          <span class="planner-chip planner-chip--muted">{{ selectedYear }}</span>
-          <span v-if="patternWeek" class="planner-chip planner-chip--accent">
-            Muster {{ patternWeek }}
-          </span>
-        </div>
-        <p class="text-sm text-[var(--text-2)] sm:text-base">
-          {{ formattedWeekRange }}
-        </p>
+  <header class="planner-hero planner-week-hero flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="min-w-0 space-y-1.5">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h2 class="planner-headline text-[var(--text-1)]">
+          KW {{ selectedWeek }}
+        </h2>
+        <span class="planner-chip tabular-nums">{{ selectedYear }}</span>
+        <span v-if="patternWeek" class="planner-chip planner-chip--accent">
+          Muster {{ patternWeek }}
+        </span>
       </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <PrimeButton
-          icon="pi pi-chevron-left"
-          text
-          rounded
-          class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
-          aria-label="Vorherige Woche anzeigen"
-          @click="emit('previous')"
-        />
-        <PrimeButton
-          label="Heute"
-          text
-          class="min-h-11 !rounded-full border !border-[var(--border-soft)] !bg-[var(--surface)] !px-4"
-          @click="emit('today')"
-        />
-        <PrimeButton
-          icon="pi pi-chevron-right"
-          text
-          rounded
-          class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
-          aria-label="Nächste Woche anzeigen"
-          @click="emit('next')"
-        />
-        <div class="hidden items-center gap-2 sm:ml-2 sm:flex">
-          <PrimeButton
-            v-for="offset in [1, 2, 4]"
-            :key="offset"
-            :label="`+${offset}`"
-            text
-            class="min-h-11 !rounded-full border !border-[var(--border-soft)] !bg-[var(--surface)] !px-3"
-            :aria-label="`${offset} Wochen vorspringen`"
-            @click="emit('jump', offset)"
-          />
-        </div>
-      </div>
+      <p class="text-sm tabular-nums text-[var(--text-2)]">
+        {{ formattedWeekRange }}
+      </p>
     </div>
 
-    <div v-if="canEditShifts" class="flex flex-wrap gap-2">
-      <PrimeButton
-        label="Aus Muster füllen"
-        icon="pi pi-sync"
-        severity="secondary"
-        class="min-h-11 !rounded-full !px-5"
-        :loading="generating"
-        @click="emit('generate')"
-      />
-      <PrimeButton
-        label="Mehrere Wochen"
-        icon="pi pi-calendar-plus"
-        severity="secondary"
-        class="min-h-11 !rounded-full !px-5"
-        aria-label="Mehrere Wochen aus dem Muster generieren"
-        @click="emit('open-bulk')"
-      />
+    <div class="flex flex-wrap items-center gap-2">
+      <template v-if="canEditShifts">
+        <PrimeButton
+          label="Aus Muster füllen"
+          icon="pi pi-sync"
+          size="small"
+          class="min-h-9"
+          :loading="generating"
+          @click="emit('generate')"
+        />
+        <PrimeButton
+          label="Mehrere Wochen"
+          icon="pi pi-calendar-plus"
+          severity="secondary"
+          size="small"
+          outlined
+          class="min-h-9"
+          aria-label="Mehrere Wochen aus dem Muster generieren"
+          @click="emit('open-bulk')"
+        />
+        <span class="mx-1 hidden h-6 w-px bg-[var(--border-soft)] sm:block" aria-hidden="true"></span>
+      </template>
+
+      <div class="planner-segmented" role="group" aria-label="Woche wechseln">
+        <button type="button" aria-label="Vorherige Woche anzeigen" @click="emit('previous')">
+          <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i>
+        </button>
+        <button type="button" @click="emit('today')">Heute</button>
+        <button type="button" aria-label="Nächste Woche anzeigen" @click="emit('next')">
+          <i class="pi pi-chevron-right text-xs" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="planner-segmented hidden sm:inline-flex" role="group" aria-label="Wochen vorspringen">
+        <button
+          v-for="offset in [1, 2, 4]"
+          :key="offset"
+          type="button"
+          class="tabular-nums"
+          :aria-label="`${offset} Wochen vorspringen`"
+          @click="emit('jump', offset)"
+        >
+          +{{ offset }}
+        </button>
+      </div>
     </div>
-  </div>
+  </header>
 </template>

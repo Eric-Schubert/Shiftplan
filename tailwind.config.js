@@ -1,3 +1,4 @@
+const colors = require("tailwindcss/colors");
 
 export default {
   content: [
@@ -11,9 +12,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        gray: colors.zinc,
         primary: {
-          light: "#0f766e",
-          dark: "#5eead4",
+          light: "#c70512",
+          dark: "#ff6b76",
         },
       },
     },

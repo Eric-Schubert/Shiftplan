@@ -36,7 +36,7 @@ const dialogVisible = computed({
         v-for="staffMember in availableStaff"
         :key="staffMember.staff_id"
         type="button"
-        class="flex w-full items-center justify-between rounded-[18px] border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-left text-sm text-[var(--text-2)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
+        class="flex w-full items-center justify-between rounded-lg border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-left text-sm text-[var(--text-2)] transition hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]"
         :disabled="assigning"
         @click="emit('assign', staffMember.staff_id)"
       >

@@ -31,16 +31,14 @@ const bannerItems = computed(() => buildHolidayBannerItems(props.holidays, props
     <div class="planner-holiday-banner__header">
       <div class="flex items-center gap-2">
         <span class="planner-holiday-banner__icon">
-          <i :class="holidays.length > 0 ? 'pi pi-calendar' : 'pi pi-book'" class="text-xs"></i>
+          <i :class="holidays.length > 0 ? 'pi pi-calendar' : 'pi pi-book'" class="text-xs" aria-hidden="true"></i>
         </span>
-        <div>
-          <p class="planner-kicker">{{ bannerTitle }}</p>
-        </div>
+        <p class="text-sm font-semibold text-[var(--text-1)]">{{ bannerTitle }}</p>
       </div>
-      <span class="planner-chip planner-chip--muted !min-h-8 !px-3 !py-1 text-[11px]">Diese Woche</span>
+      <span class="text-xs text-[var(--text-3)]">Diese Woche</span>
     </div>
 
-    <div class="space-y-2">
+    <div>
       <div
         v-for="item in bannerItems"
         :key="item.key"
@@ -48,7 +46,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(props.holidays, props
       >
         <div class="flex min-w-0 flex-1 items-start gap-2">
           <span
-            class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full"
+            class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
             :class="{
               'bg-rose-500': item.tone === 'holiday',
               'bg-amber-500': item.tone === 'warning',
@@ -57,7 +55,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(props.holidays, props
           ></span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-[var(--text-1)]">{{ item.label }}</p>
-            <div v-if="item.states.length > 0" class="mt-2 flex flex-wrap gap-1.5">
+            <div v-if="item.states.length > 0" class="mt-1 flex flex-wrap gap-1">
               <span
                 v-for="state in item.states"
                 :key="`${item.key}-${state}`"
@@ -68,7 +66,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(props.holidays, props
             </div>
           </div>
         </div>
-        <span class="flex-shrink-0 text-xs text-[var(--text-2)]">{{ item.meta }}</span>
+        <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">{{ item.meta }}</span>
       </div>
     </div>
   </div>
