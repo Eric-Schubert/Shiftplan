@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
   if (username.length < userConfig.usernameMinLength || username.length > userConfig.usernameMaxLength) {
     throw createError({
       statusCode: 400,
-      statusMessage: "UngÃ¼ltige Zugangsdaten",
+      statusMessage: "Ungültige Zugangsdaten",
     });
   }
 

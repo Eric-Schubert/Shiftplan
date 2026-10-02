@@ -136,7 +136,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             text
             rounded
             class="!h-11 !w-11"
-            :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufÃ¼gen`"
+            :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufügen`"
             title="Mitarbeiter hinzufuegen"
             @click="handleOpenAssign(assignment.shift.shift_id, assignment.shift.name)"
           />
