@@ -8,10 +8,29 @@ let cachedConfig: BackendConfig | null = null;
 
 export function getBackendConfig(): BackendConfig {
   if (!cachedConfig) {
-    cachedConfig = validateBackendConfig(readBackendConfig());
+    cachedConfig = applyEnvOverrides(validateBackendConfig(readBackendConfig()));
   }
 
   return cachedConfig;
+}
+
+// Deployment-specific switches that should not require a full config file copy.
+function applyEnvOverrides(config: BackendConfig): BackendConfig {
+  const trustProxyHeaders = parseBooleanEnv("SHIFTPLAN_TRUST_PROXY_HEADERS");
+  if (trustProxyHeaders !== undefined) {
+    config.auth.trustProxyHeaders = trustProxyHeaders;
+  }
+
+  return config;
+}
+
+function parseBooleanEnv(name: string): boolean | undefined {
+  const value = process.env[name]?.trim().toLowerCase();
+  if (!value) return undefined;
+  if (value === "true" || value === "1") return true;
+  if (value === "false" || value === "0") return false;
+
+  throw new Error(`${name} muss true oder false sein`);
 }
 
 export function resetBackendConfigForTests(): void {

@@ -52,7 +52,7 @@ Non-secret backend settings live in `config/backend.config.json`. This includes 
 
 Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or Microsoft Graph credentials. Use `SHIFTPLAN_BACKEND_CONFIG_PATH` to load a different backend config file.
 
-Proxy headers such as `x-forwarded-for` are ignored by default so clients cannot spoof their IP address to bypass rate limits. Set `auth.trustProxyHeaders` to `true` only when the app runs behind a trusted reverse proxy that overwrites these headers.
+Proxy headers such as `x-forwarded-for` are ignored by default so clients cannot spoof their IP address to bypass rate limits. Set `auth.trustProxyHeaders` to `true` only when the app runs behind a trusted reverse proxy that overwrites these headers. The environment variable `SHIFTPLAN_TRUST_PROXY_HEADERS=true` overrides this value without copying the config file.
 
 Holiday example:
 
