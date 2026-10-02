@@ -184,3 +184,27 @@
 .pi-moon:before {
   content: "\e9c7";
 }
+
+.pi-chart-bar:before {
+  content: "\e96d";
+}
+
+.pi-id-card:before {
+  content: "\e9aa";
+}
+
+.pi-map-marker:before {
+  content: "\e968";
+}
+
+.pi-refresh:before {
+  content: "\e938";
+}
+
+.pi-send:before {
+  content: "\e9ca";
+}
+
+.pi-user:before {
+  content: "\e939";
+}

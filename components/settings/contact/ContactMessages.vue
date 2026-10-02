@@ -80,7 +80,7 @@ onMounted(fetchMessages);
         label="Aktualisieren"
         severity="secondary"
         outlined
-        class="min-h-11 !rounded-full"
+        class="min-h-11"
         :loading="loading"
         @click="fetchMessages"
       />
@@ -95,7 +95,7 @@ onMounted(fetchMessages);
         <article
           v-for="message in messages"
           :key="message.contact_id"
-          class="planner-panel !rounded-[18px] !p-4"
+          class="planner-panel !rounded-lg !p-4"
         >
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
@@ -123,7 +123,7 @@ onMounted(fetchMessages);
               icon="pi pi-check"
               severity="secondary"
               outlined
-              class="min-h-10 !rounded-full"
+              class="min-h-10"
               :loading="updatingId === message.contact_id"
               @click="markRead(message)"
             />
@@ -144,7 +144,7 @@ onMounted(fetchMessages);
         </article>
       </div>
 
-      <div v-else class="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[var(--text-3)]">
+      <div v-else class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[var(--text-3)]">
         Noch keine Kontaktanfragen vorhanden.
       </div>
 

@@ -85,47 +85,32 @@ function goToWeek(year: number, week: number) {
 </script>
 
 <template>
-  <section class="planner-slab">
-    <div class="planner-section-heading">
-      <div>
-        <p class="planner-kicker">Ausblick</p>
-        <h3 class="mt-2 text-xl font-semibold text-[var(--text-1)]">Nächste Wochen</h3>
-      </div>
+  <section>
+    <div class="planner-section-heading !mb-3">
+      <h3 class="text-sm font-semibold text-[var(--text-1)]">Nächste Wochen</h3>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
       <button
         v-for="week in upcomingWeeks"
         :key="`${week.year}-${week.week}`"
         type="button"
-        class="planner-preview-card flex w-full flex-col text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+        class="planner-preview-card flex w-full flex-col text-left"
         @click="goToWeek(week.year, week.week)"
       >
-        <div class="planner-preview-card__header px-4 py-3">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <p class="planner-kicker">Kalenderwoche</p>
-              <h4 class="mt-2 text-lg font-semibold text-[var(--text-1)]">KW {{ week.week }}</h4>
-            </div>
-            <span class="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-[var(--text-2)] shadow-sm">
-              {{ week.year }}
-            </span>
+        <div class="planner-preview-card__header flex items-baseline justify-between gap-3 px-4 py-3">
+          <div class="flex items-baseline gap-2">
+            <h4 class="text-base font-semibold text-[var(--text-1)]">KW {{ week.week }}</h4>
+            <span class="text-xs tabular-nums text-[var(--text-3)]">{{ week.dateRange }}</span>
           </div>
-          <p class="mt-2 text-sm text-[var(--text-2)]">{{ week.dateRange }}</p>
+          <span class="text-xs tabular-nums text-[var(--text-3)]">
+            {{ getWeekSummary(week.year, week.week).assignmentCount }} Zuweisungen
+          </span>
         </div>
 
-        <div class="flex flex-1 flex-col gap-3 p-4">
-          <div class="flex flex-wrap gap-2">
-            <span class="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">
-              {{ getWeekSummary(week.year, week.week).shiftCount }} Schichten
-            </span>
-            <span class="rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-xs font-medium text-[var(--text-2)]">
-              {{ getWeekSummary(week.year, week.week).assignmentCount }} Zuweisungen
-            </span>
-          </div>
-
+        <div class="flex flex-1 flex-col gap-3 px-4 py-3">
           <div v-if="loading" class="flex items-center justify-center py-4 text-[var(--text-3)]">
-            <i class="pi pi-spin pi-spinner text-sm"></i>
+            <i class="pi pi-spin pi-spinner text-sm" aria-hidden="true"></i>
           </div>
 
           <template v-else>
@@ -135,34 +120,33 @@ function goToWeek(year: number, week: number) {
               compact
             />
 
-            <div
+            <ul
               v-if="getWeekShifts(week.year, week.week)"
               class="space-y-2"
             >
-              <div
+              <li
                 v-for="shift in getWeekShifts(week.year, week.week)"
                 :key="shift.name"
-                class="flex items-start gap-2 rounded-[16px] bg-[var(--surface-muted)] px-3 py-2"
+                class="flex items-start gap-2.5"
               >
                 <span
-                  class="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                  class="mt-0.5 h-4 w-1 flex-shrink-0 rounded-full"
                   :style="{ backgroundColor: shift.color }"
+                  aria-hidden="true"
                 ></span>
-                <div class="min-w-0">
-                  <p class="text-xs font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
-                  <p class="mt-1 text-xs leading-5 text-[var(--text-1)]/90">
-                    {{ shift.staff.join(", ") }}
-                  </p>
+                <div class="min-w-0 text-[0.8125rem] leading-5">
+                  <span class="font-semibold text-[var(--text-1)]">{{ shift.name }}</span>
+                  <span class="text-[var(--text-2)]"> · {{ shift.staff.join(", ") }}</span>
                 </div>
-              </div>
-            </div>
+              </li>
+            </ul>
 
-            <div
+            <p
               v-else
-              class="flex flex-1 items-center rounded-[18px] border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-4 py-5 text-sm text-[var(--text-2)]"
+              class="py-2 text-sm text-[var(--text-3)]"
             >
               Noch nicht geplant.
-            </div>
+            </p>
           </template>
         </div>
       </button>

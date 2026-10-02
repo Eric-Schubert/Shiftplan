@@ -165,7 +165,7 @@ async function submitContact() {
             icon="pi pi-arrow-left"
             severity="secondary"
             outlined
-            class="min-h-11 !rounded-full"
+            class="min-h-11"
           />
         </NuxtLink>
       </div>
@@ -223,7 +223,7 @@ async function submitContact() {
           </dl>
         </div>
 
-        <div v-else class="mt-4 rounded-2xl border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
+        <div v-else class="mt-4 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
           Das Impressum ist noch nicht vollständig konfiguriert.
         </div>
       </section>
@@ -360,7 +360,7 @@ async function submitContact() {
 
           <div
             v-if="showValidation && hasValidationErrors"
-            class="rounded-2xl border border-[color-mix(in_oklab,var(--danger-ink)_24%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
+            class="rounded-lg border border-[color-mix(in_oklab,var(--danger-ink)_24%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
             role="alert"
           >
             Bitte korrigiere die markierten Felder. Danach kannst du die Nachricht senden.
@@ -368,7 +368,7 @@ async function submitContact() {
 
           <div
             v-if="sent"
-            class="rounded-2xl border border-[color-mix(in_oklab,var(--positive-ink)_24%,transparent)] bg-[var(--positive-soft)] px-4 py-3 text-sm font-medium text-[var(--positive-ink)]"
+            class="rounded-lg border border-[color-mix(in_oklab,var(--positive-ink)_24%,transparent)] bg-[var(--positive-soft)] px-4 py-3 text-sm font-medium text-[var(--positive-ink)]"
             role="status"
           >
             Nachricht wurde gesendet.
@@ -376,7 +376,7 @@ async function submitContact() {
 
           <div
             v-if="error"
-            class="rounded-2xl border border-[color-mix(in_oklab,var(--danger-ink)_24%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
+            class="rounded-lg border border-[color-mix(in_oklab,var(--danger-ink)_24%,transparent)] bg-[var(--danger-soft)] px-4 py-3 text-sm font-medium text-[var(--danger-ink)]"
             role="alert"
           >
             {{ error }}

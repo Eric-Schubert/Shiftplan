@@ -29,7 +29,7 @@ const emit = defineEmits<{
             <div class="flex flex-wrap gap-2">
               <PrimeTag
                 :value="staffMember.is_parttime ? 'Teilzeit' : 'Vollzeit'"
-                :severity="staffMember.is_parttime ? 'secondary' : 'primary'"
+                :severity="staffMember.is_parttime ? 'info' : 'secondary'"
               />
               <PrimeTag
                 :value="staffMember.active ? 'Aktiv' : 'Inaktiv'"
@@ -83,7 +83,7 @@ const emit = defineEmits<{
           <template #body="{ data }">
             <PrimeTag
               :value="data.is_parttime ? 'Teilzeit' : 'Vollzeit'"
-              :severity="data.is_parttime ? 'secondary' : 'primary'"
+              :severity="data.is_parttime ? 'info' : 'secondary'"
             />
           </template>
         </PrimeColumn>

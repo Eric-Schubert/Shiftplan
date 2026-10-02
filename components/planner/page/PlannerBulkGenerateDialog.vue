@@ -87,7 +87,7 @@ async function generateBulk() {
         />
         <div
           v-else
-          class="rounded-[14px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-2 text-sm font-medium text-[var(--text-1)]"
+          class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-2 text-sm font-medium text-[var(--text-1)]"
         >
           {{ weeksToGenerate }} Wochen automatisch
         </div>
@@ -95,7 +95,7 @@ async function generateBulk() {
 
       <label
         for="bulk-full-year"
-        class="flex cursor-pointer items-start gap-3 rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-2)]"
+        class="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-2)]"
       >
         <PrimeCheckbox
           v-model="rolloutFullYear"
@@ -114,7 +114,7 @@ async function generateBulk() {
 
       <div
         v-if="bulkResult"
-        class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
+        class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
       >
         {{ bulkResult.generated }} Wochen erfolgreich generiert.
       </div>

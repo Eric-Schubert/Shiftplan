@@ -35,91 +35,72 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-shell min-h-screen">
+  <div class="app-shell">
     <header class="app-header sticky top-0 z-50">
-      <div class="mx-auto flex max-w-[86rem] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <NuxtLink to="/" class="group flex min-w-0 items-center gap-3 rounded-2xl">
-          <span class="app-logo-mark inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
-            <i class="pi pi-calendar text-2xl" aria-hidden="true"></i>
+      <div class="mx-auto flex h-14 max-w-[80rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5 rounded-lg">
+          <span class="app-logo-mark inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
+            <i class="pi pi-calendar text-sm" aria-hidden="true"></i>
           </span>
-          <div class="min-w-0">
-            <p class="planner-kicker">Teamplanung</p>
-            <h1 class="truncate text-lg font-semibold text-[var(--text-1)] sm:text-xl">Schichtplaner</h1>
-          </div>
+          <h1 class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">Schichtplaner</h1>
         </NuxtLink>
 
-        <div class="flex items-center gap-2 sm:gap-3">
-          <div
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span
             v-if="authStore.isAuthenticated"
-            class="planner-chip planner-chip--accent hidden sm:flex"
+            class="planner-chip !hidden sm:!inline-flex"
           >
-            <i class="pi pi-shield text-sm" aria-hidden="true"></i>
+            <i class="pi pi-shield text-[0.7rem]" aria-hidden="true"></i>
             <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
-          </div>
+          </span>
 
           <button
             type="button"
-            class="hidden sm:inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-2)] shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent-strong)]"
+            class="app-icon-button"
             title="Versionsverlauf anzeigen"
+            aria-label="Versionsverlauf anzeigen"
             @click="openVersionHistory"
           >
-            <i class="pi pi-history text-sm" aria-hidden="true"></i>
-            <span>{{ displayCurrentVersion }}</span>
+            <i class="pi pi-history text-[0.8rem]" aria-hidden="true"></i>
+            <span class="hidden tabular-nums sm:inline">{{ displayCurrentVersion }}</span>
           </button>
-          <div class="sm:hidden">
-            <PrimeButton
-              class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
-              text
-              rounded
-              icon="pi pi-info-circle"
-              aria-label="Versionsverlauf anzeigen"
-              title="Versionsverlauf anzeigen"
-              @click="openVersionHistory"
-            />
-          </div>
 
-          <PrimeButton
-            text
-            rounded
-            class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
-            :icon="appStore.isDarkMode ? 'pi pi-sun' : 'pi pi-moon'"
+          <button
+            type="button"
+            class="app-icon-button"
             :aria-label="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
             :title="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
             @click="appStore.toggleDarkMode"
-          />
+          >
+            <i :class="appStore.isDarkMode ? 'pi pi-sun' : 'pi pi-moon'" class="text-[0.8rem]" aria-hidden="true"></i>
+          </button>
 
-          <NuxtLink :to="isSettingsPage ? '/' : '/settings'" :prefetch="false">
-            <PrimeButton
-              text
-              rounded
-              class="!h-11 !w-11 border !border-[var(--border-soft)] !bg-[var(--surface)]"
-              :icon="isSettingsPage ? 'pi pi-arrow-left' : 'pi pi-cog'"
-              :aria-label="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
-              :title="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
-            />
+          <NuxtLink
+            :to="isSettingsPage ? '/' : '/settings'"
+            :prefetch="false"
+            class="app-icon-button"
+            :aria-label="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
+            :title="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
+          >
+            <i :class="isSettingsPage ? 'pi pi-arrow-left' : 'pi pi-cog'" class="text-[0.8rem]" aria-hidden="true"></i>
           </NuxtLink>
         </div>
       </div>
     </header>
 
-    <main class="app-main mx-auto max-w-[86rem] px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+    <main class="app-main mx-auto max-w-[80rem] px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
       <slot />
     </main>
 
-    <footer class="mx-auto flex max-w-[86rem] items-center justify-center gap-3 px-4 pb-8 text-sm text-[var(--text-3)] sm:px-6 lg:px-8">
-      <NuxtLink
-        to="/impressum"
-        class="font-medium underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
-      >
-        Impressum
-      </NuxtLink>
-      <span aria-hidden="true">·</span>
-      <NuxtLink
-        to="/datenschutz"
-        class="font-medium underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
-      >
-        Datenschutz
-      </NuxtLink>
+    <footer class="border-t border-[var(--border-soft)]">
+      <div class="mx-auto flex max-w-[80rem] items-center justify-center gap-4 px-4 py-5 text-[0.8125rem] text-[var(--text-3)] sm:px-6 lg:px-8">
+        <NuxtLink to="/impressum" class="transition hover:text-[var(--text-1)]">
+          Impressum
+        </NuxtLink>
+        <NuxtLink to="/datenschutz" class="transition hover:text-[var(--text-1)]">
+          Datenschutz
+        </NuxtLink>
+      </div>
     </footer>
   </div>
 </template>

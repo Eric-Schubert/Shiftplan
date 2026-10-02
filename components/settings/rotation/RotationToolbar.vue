@@ -24,12 +24,12 @@ const dataStore = useDataStore();
       <PrimeButton
         label="Assistent starten"
         icon="pi pi-compass"
-        class="min-h-11 !rounded-full !px-5"
+        class="min-h-11 !px-5"
         @click="emit('open-wizard')"
       />
     </div>
 
-    <div class="rounded-[20px] border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
+    <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
       Führt dich durch Excel-Import, Musterprüfung und Jahresausrollung in einem Ablauf.
     </div>
   </div>
