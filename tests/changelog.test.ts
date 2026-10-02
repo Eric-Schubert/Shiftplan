@@ -93,6 +93,42 @@ describe("changelog ordering", () => {
     ]);
   });
 
+  it("keeps wrapped body lines together as one change", () => {
+    const timestamp = Date.parse("2026-10-02T10:00:00Z") / 1000;
+    const releases = transformReleases({
+      releases: [
+        {
+          version: "v2.9.0",
+          timestamp,
+          commits: [
+            {
+              group: "Features",
+              raw_message: [
+                "feat(auth): show optional demo credentials on login page",
+                "",
+                "Set NUXT_PUBLIC_DEMO_LOGIN_USERNAME and NUXT_PUBLIC_DEMO_LOGIN_PASSWORD",
+                "to display the credentials on the login page.",
+                "",
+                "- redesign the planner shell and",
+                "  weekly view",
+                "- add holiday cards",
+                "",
+                "Co-Authored-By: Someone <someone@example.com>",
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(releases[0].changes).toEqual([
+      "Show optional demo credentials on login page",
+      "Set NUXT_PUBLIC_DEMO_LOGIN_USERNAME and NUXT_PUBLIC_DEMO_LOGIN_PASSWORD to display the credentials on the login page.",
+      "Redesign the planner shell and weekly view",
+      "Add holiday cards",
+    ]);
+  });
+
   it("calculates relative dates by calendar day across daylight saving time", () => {
     const today = new Date(2026, 3, 20, 12, 0, 0);
 

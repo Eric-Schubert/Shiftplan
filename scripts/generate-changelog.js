@@ -93,12 +93,34 @@ function isCommitFooter(line) {
   return /^(co-authored-by|signed-off-by|refs?|closes|fixes):\s+/i.test(line);
 }
 
+function isListItem(line) {
+  return /^([-*+]|\d+[.)])\s+/.test(line);
+}
+
+// One change per list item or paragraph. Wrapped lines continue the current
+// change, a blank line ends it, so line breaks never split a change.
 function bodyToChanges(body) {
-  return String(body || "")
-    .split(/\r?\n/)
-    .map(cleanChangeLine)
-    .filter((line) => line && !isCommitFooter(line))
-    .map(capitalizeFirst);
+  const changes = [];
+  let continuing = false;
+
+  for (const rawLine of String(body || "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+
+    if (!line || isCommitFooter(line)) {
+      continuing = false;
+      continue;
+    }
+
+    if (continuing && !isListItem(line)) {
+      changes[changes.length - 1] += ` ${line}`;
+      continue;
+    }
+
+    changes.push(cleanChangeLine(line));
+    continuing = true;
+  }
+
+  return changes.filter(Boolean).map(capitalizeFirst);
 }
 
 function commitToChanges(commit) {
