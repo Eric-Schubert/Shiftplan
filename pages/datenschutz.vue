@@ -153,6 +153,15 @@ useSeoMeta({
               jeweilige Arbeitgeber die Planungsdaten zur Durchführung des Beschäftigungsverhältnisses
               auf Grundlage von Art. 6 Abs. 1 lit. b und c DSGVO.
             </p>
+            <p>
+              Mitarbeitende können über die Shiftplan-App einen Ausfall für einen Tag melden.
+              Gespeichert werden Tag, Schicht und eine Kategorie (krank, privat oder sonstiges),
+              keine Diagnose. Die Kategorie „krank“ ist eine Gesundheitsangabe nach Art. 9 DSGVO; die
+              Verarbeitung erfolgt im Beschäftigungsverhältnis auf Grundlage von Art. 9 Abs. 2 lit. b
+              DSGVO in Verbindung mit § 26 Abs. 3 BDSG. Den Grund sehen nur Planer und die betroffene
+              Person, das Team erfährt nur, dass jemand ausfällt. Grund und Notiz werden 90 Tage nach
+              dem Ausfalltag automatisch gelöscht.
+            </p>
           </div>
         </section>
 
@@ -166,7 +175,8 @@ useSeoMeta({
               <li>Audit-Protokolle zu Zuweisungen und Änderungen im Schichtplan.</li>
               <li>Kontaktangaben und Nachrichten aus dem Kontaktformular.</li>
               <li>Push-Abonnements (Zustelladresse beim Push-Dienst des Browsers und Schlüssel), sofern Benachrichtigungen aktiviert werden.</li>
-              <li>Bei Nutzung der Shiftplan-App: Gerätetoken für Push, Plattform (iOS/Android) und optional der eigene Eintrag in der Mitarbeiterliste für „nur meine Schichten“.</li>
+              <li>Bei Nutzung der Shiftplan-App: persönlicher App-Zugang (Mitarbeiter, Gerätename, Zeitpunkt der letzten Nutzung), Gerätetoken für Push und Plattform (iOS/Android).</li>
+              <li>Ausfälle: Tag, Schicht, Kategorie des Grundes, wer den Ausfall eingetragen hat und ob über Web oder App.</li>
               <li>Technische Daten wie User-Agent, Referrer-Domain und grobe Standortdaten, sofern diese durch die Infrastruktur übermittelt werden.</li>
             </ul>
           </div>
@@ -301,7 +311,8 @@ useSeoMeta({
               Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland), auf iPhones
               zusätzlich über den Apple Push Notification Service. Diese Nachrichten sind nicht
               Ende-zu-Ende-verschlüsselt. Automatische Hinweise auf Planänderungen enthalten deshalb
-              nur Kalenderwoche und Schicht, keine Namen. Nachrichten der Planung an das Team
+              nur Kalenderwoche und Schicht, keine Namen. Meldet jemand einen Ausfall, erfährt das
+              Team Name, Tag und Schicht, aber nie den Grund. Nachrichten der Planung an das Team
               enthalten deren Text. Der Push-Dienst speichert weder Inhalte noch Gerätetokens.
               Google ist unter dem EU-US Data Privacy Framework zertifiziert; soweit Daten in die USA
               übermittelt werden, erfolgt dies auf Grundlage des Angemessenheitsbeschlusses der
@@ -332,6 +343,9 @@ useSeoMeta({
               Zugänge über den Team-Zugangscode laufen spätestens nach 180 Tagen ohne Nutzung ab. Push-Abonnements
               und App-Gerätetokens werden gelöscht, sobald Benachrichtigungen ausgeschaltet werden,
               der Zugangscode geändert wird oder der Push-Dienst sie als ungültig meldet.
+              Persönliche App-Zugänge gelten, bis sich das Gerät abmeldet oder die Planung es sperrt;
+              ein nicht eingelöster QR-Code verfällt nach 7 Tagen. Gründe von Ausfällen werden nach
+              90 Tagen gelöscht.
             </p>
           </div>
         </section>

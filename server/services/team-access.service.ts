@@ -1,6 +1,7 @@
 import { randomBytes, randomInt, timingSafeEqual } from "crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getSessionData, getSessionToken } from "~/server/utils/session";
+import { MemberAccessService } from "~/server/services/member-access.service";
 
 const ACCESS_CODE_SETTING = "viewer_access_code";
 const INSTANCE_NAME_SETTING = "instance_name";
@@ -160,6 +161,7 @@ export const TeamAccessService = {
   hasReadAccess(event: any): boolean {
     if (!this.isCodeRequired()) return true;
     if (getSessionData(getSessionToken(event))) return true;
+    if (MemberAccessService.getMember(event)) return true;
     return (
       this.validateViewerSession(getBearerToken(event)) ||
       this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME))

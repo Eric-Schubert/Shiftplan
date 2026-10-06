@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   }
 
 
-  const body = await readBody<{ username: string; password: string }>(event);
+  const body = await readBody<{ username: string; password: string; client?: unknown }>(event);
 
   if (!body.username || typeof body.username !== "string") {
     throw createError({
@@ -94,6 +94,12 @@ export default defineEventHandler(async (event) => {
     username: user!.username,
     role: user!.role,
   };
+  // The app keeps a Bearer token instead of cookies, so it needs no CSRF token either.
+  if (body.client === "app") {
+    const { sessionToken, expiresAt } = createSession(sessionUser, { client: "app" });
+    return { success: true, user: sessionUser, token: sessionToken, expiresAt };
+  }
+
   const { sessionToken, csrfToken } = createSession(sessionUser);
   const cookieConfig = getAuthConfig().session.cookies;
   const cookieMaxAge = getSessionCookieMaxAgeSeconds();

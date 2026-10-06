@@ -1,4 +1,5 @@
 import { AuditService } from "~/server/services/audit.service";
+import { requestSource } from "~/server/utils/absence-flow";
 import { PushService } from "~/server/services/push.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
@@ -32,6 +33,7 @@ export default defineEventHandler(async (event) => {
       weekNumber: week,
       shiftId: shift_id,
       staffId: staff_id,
+      source: requestSource(event),
     });
     PushService.queueShiftChange(
       { year, week, shiftId: shift_id, staffId: staff_id, action: "assign" },

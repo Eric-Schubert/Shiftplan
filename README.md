@@ -20,6 +20,7 @@ A browser-based shift planner for small and mid-sized teams. The app works week 
 - Audit log for manual schedule changes
 - Optional team access code with QR code, so employees can read the plan without an account
 - Push notifications for short-notice changes and team messages (installable web app, no app store)
+- Personal app access per employee via QR code, day-level absences reported from the app with a team push
 - Automated releases, changelog generation, and Docker image publishing via GitHub Actions
 
 ## Quick Start
@@ -145,6 +146,14 @@ Pushes to the native Shiftplan app go through the push relay at `https://push.sh
 ```bash
 SHIFTPLAN_PUSH_RELAY_URL=off
 ```
+
+## Personal App Access And Absences
+
+Planners create a personal QR code for one employee (`POST /api/member-invites`). The Shiftplan app redeems it once within 7 days and receives a token bound to that person, so nobody can act as someone else. Planners see and revoke devices; revoking also removes the device's push registration.
+
+Employees report their own absence for a day they are assigned to (sick, private, other). The shift counts as open that day, and the team gets a push such as "Anna Weber fällt Do. 08.10. aus – Frühschicht offen". The reason is only visible to planners and is deleted 90 days after the absence date. Every change made in the app appears in the audit log as "über App".
+
+Planners can sign in to the app with `client: "app"` and get a Bearer token valid for 14 days with sliding renewal. Requests with a Bearer token need no CSRF token. See `docs/api/app-v1.yaml`.
 
 ## Rotation Planning With Excel
 
@@ -303,6 +312,10 @@ schichtplaner/
 |   `-- resolve-version.js
 |-- server/
 |   |-- api/
+|   |   |-- absences/
+|   |   |   |-- [id].delete.ts
+|   |   |   |-- index.get.ts
+|   |   |   `-- index.post.ts
 |   |   |-- analytics/
 |   |   |   |-- index.get.ts
 |   |   |   `-- visit.post.ts
@@ -324,6 +337,18 @@ schichtplaner/
 |   |   |-- holidays/
 |   |   |   |-- public.get.ts
 |   |   |   `-- school.get.ts
+|   |   |-- member/
+|   |   |   |-- absences/
+|   |   |   |   |-- [id].delete.ts
+|   |   |   |   `-- index.post.ts
+|   |   |   |-- logout.post.ts
+|   |   |   |-- me.get.ts
+|   |   |   `-- redeem.post.ts
+|   |   |-- member-invites/
+|   |   |   `-- index.post.ts
+|   |   |-- member-sessions/
+|   |   |   |-- [id].delete.ts
+|   |   |   `-- index.get.ts
 |   |   |-- push/
 |   |   |   |-- devices.delete.ts
 |   |   |   |-- devices.post.ts
@@ -383,10 +408,12 @@ schichtplaner/
 |   |-- plugins/
 |   |   `-- compression.ts
 |   |-- services/
+|   |   |-- absence.service.ts
 |   |   |-- analytics.service.ts
 |   |   |-- audit.service.ts
 |   |   |-- contact-mail.service.ts
 |   |   |-- contact.service.ts
+|   |   |-- member-access.service.ts
 |   |   |-- push-relay.service.ts
 |   |   |-- push.service.ts
 |   |   |-- rotation-excel.service.ts
@@ -396,10 +423,13 @@ schichtplaner/
 |   |   |-- staff.service.ts
 |   |   `-- team-access.service.ts
 |   `-- utils/
+|       |-- absence-flow.ts
+|       |-- absence-notice.ts
 |       |-- analytics.ts
 |       |-- auth.ts
 |       |-- database-migrations.js
 |       |-- database.ts
+|       |-- iso-week.ts
 |       |-- session.ts
 |       |-- validation.ts
 |       `-- xlsx.ts
@@ -495,7 +525,7 @@ schichtplaner/
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/auth/change-password` | Authenticated | Yes | - | `currentPassword`, `newPassword` | Change the current user's password |
-| `POST` | `/api/auth/login` | Public | No | - | `password`, `username` | Create a session and CSRF token |
+| `POST` | `/api/auth/login` | Public | No | - | `client`, `password`, `username` | Create a session and CSRF token |
 | `POST` | `/api/auth/logout` | Authenticated | Yes | - | - | Clear the current session |
 | `GET` | `/api/auth/session` | Authenticated | No | - | - | Read the current session state |
 | `GET` | `/api/auth/users` | Admin | No | - | - | List application users |
@@ -514,6 +544,14 @@ schichtplaner/
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/holidays/public` | Public | No | `week`, `year` | - | Read public holidays |
 | `GET` | `/api/holidays/school` | Public | No | `states`, `week`, `year` | - | Read school holidays |
+
+### Absences API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/absences` | Authenticated | No | `week`, `year` | - | List absences records |
+| `POST` | `/api/absences` | Planner/Admin | Yes | - | `reason`, `shiftId` | Create or update absences data |
+| `DELETE` | `/api/absences/:id` | Planner/Admin | Yes | - | - | Delete one absences record |
 
 ### Analytics API
 
@@ -535,6 +573,29 @@ schichtplaner/
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/instance` | Authenticated | No | - | - | List instance records |
+
+### Member-invites API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/member-invites` | Planner/Admin | Yes | - | - | Create or update member-invites data |
+
+### Member-sessions API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/member-sessions` | Planner/Admin | No | - | - | List member-sessions records |
+| `DELETE` | `/api/member-sessions/:id` | Planner/Admin | Yes | - | - | Delete one member-sessions record |
+
+### Member API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/member/absences` | Authenticated | Yes | - | `reason`, `shiftId` | Create or update member data |
+| `DELETE` | `/api/member/absences/:id` | Authenticated | Yes | - | - | Delete one member record |
+| `POST` | `/api/member/logout` | Authenticated | Yes | - | - | Create or update member data |
+| `GET` | `/api/member/me` | Authenticated | No | - | - | List member records |
+| `POST` | `/api/member/redeem` | Authenticated | Yes | - | `code`, `deviceName` | Create or update member data |
 
 ### Push API
 
@@ -604,12 +665,23 @@ schichtplaner/
 | `GET` | `/api/audit` | No | No | Yes | No |
 | `GET` | `/api/holidays/public` | Yes | Yes | Yes | No |
 | `GET` | `/api/holidays/school` | Yes | Yes | Yes | No |
+| `GET` | `/api/absences` | No | Yes | Yes | No |
+| `POST` | `/api/absences` | No | Yes | Yes | Yes |
+| `DELETE` | `/api/absences/:id` | No | Yes | Yes | Yes |
 | `GET` | `/api/analytics` | No | No | Yes | No |
 | `POST` | `/api/analytics/visit` | No | Yes | Yes | Yes |
 | `POST` | `/api/contact` | No | Yes | Yes | Yes |
 | `GET` | `/api/contact/messages` | No | No | Yes | No |
 | `PATCH` | `/api/contact/messages/:id` | No | No | Yes | Yes |
 | `GET` | `/api/instance` | No | Yes | Yes | No |
+| `POST` | `/api/member-invites` | No | Yes | Yes | Yes |
+| `GET` | `/api/member-sessions` | No | Yes | Yes | No |
+| `DELETE` | `/api/member-sessions/:id` | No | Yes | Yes | Yes |
+| `POST` | `/api/member/absences` | No | Yes | Yes | Yes |
+| `DELETE` | `/api/member/absences/:id` | No | Yes | Yes | Yes |
+| `POST` | `/api/member/logout` | No | Yes | Yes | Yes |
+| `GET` | `/api/member/me` | No | Yes | Yes | No |
+| `POST` | `/api/member/redeem` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/devices` | No | Yes | Yes | Yes |
 | `DELETE` | `/api/push/devices` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/notify` | No | Yes | Yes | Yes |

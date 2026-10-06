@@ -31,18 +31,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function actionLabel(action: string): string {
-  return action === "assign" ? "Zugewiesen" : "Entfernt";
-}
+const ACTIONS: Record<string, { label: string; icon: string; color: string; severity: string; separator: string }> = {
+  assign: { label: "Zugewiesen", icon: "mdi:account-plus", color: "text-green-600 dark:text-green-400", severity: "success", separator: " → " },
+  unassign: { label: "Entfernt", icon: "mdi:account-minus", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
+  absence: { label: "Ausfall gemeldet", icon: "mdi:account-cancel", color: "text-amber-600 dark:text-amber-400", severity: "warn", separator: " fällt aus · " },
+  absence_cancel: { label: "Ausfall zurückgezogen", icon: "mdi:account-check", color: "text-gray-500 dark:text-gray-400", severity: "secondary", separator: " wieder da · " },
+};
 
-function actionIcon(action: string): string {
-  return action === "assign" ? "mdi:account-plus" : "mdi:account-minus";
-}
-
-function actionColor(action: string): string {
-  return action === "assign"
-    ? "text-green-600 dark:text-green-400"
-    : "text-red-600 dark:text-red-400";
+function actionInfo(action: string) {
+  return ACTIONS[action] ?? ACTIONS.unassign!;
 }
 
 const totalPages = computed(() => Math.ceil(total.value / limit));
@@ -84,16 +81,16 @@ onMounted(fetchEntries);
           class="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 px-4 py-3"
         >
           <Icon
-            :name="actionIcon(entry.action)"
+            :name="actionInfo(entry.action).icon"
             class="text-lg mt-0.5 flex-shrink-0"
-            :class="actionColor(entry.action)"
+            :class="actionInfo(entry.action).color"
           />
 
           <div class="flex-1 min-w-0">
             <div class="text-sm text-gray-900 dark:text-white">
               <span class="font-medium">{{ entry.staff_name }}</span>
               <span class="text-gray-500 dark:text-gray-400">
-                {{ entry.action === 'assign' ? ' → ' : ' ✕ ' }}
+                {{ actionInfo(entry.action).separator }}
               </span>
               <span class="font-medium">{{ entry.shift_name }}</span>
               <span class="text-gray-500 dark:text-gray-400">
@@ -103,6 +100,10 @@ onMounted(fetchEntries);
 
             <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
               <span>{{ entry.username }}</span>
+              <template v-if="entry.source === 'app'">
+                <span>·</span>
+                <span>über App</span>
+              </template>
               <span>·</span>
               <span>{{ formatDate(entry.created_at) }}</span>
               <template v-if="entry.reason">
@@ -113,8 +114,8 @@ onMounted(fetchEntries);
           </div>
 
           <PrimeTag
-            :value="actionLabel(entry.action)"
-            :severity="entry.action === 'assign' ? 'success' : 'danger'"
+            :value="actionInfo(entry.action).label"
+            :severity="actionInfo(entry.action).severity"
             class="text-xs flex-shrink-0"
           />
         </div>

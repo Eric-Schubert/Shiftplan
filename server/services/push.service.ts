@@ -3,6 +3,7 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { getHolidayConfig } from "~/server/config/holiday-config";
 import { PushRelayService, type NativeMessage } from "~/server/services/push-relay.service";
 import { TeamAccessService } from "~/server/services/team-access.service";
+import { toISOWeek } from "~/server/utils/iso-week";
 
 const VAPID_PUBLIC_SETTING = "vapid_public_key";
 const VAPID_PRIVATE_SETTING = "vapid_private_key";
@@ -130,15 +131,6 @@ function isValidKey(value: unknown): value is string {
     value.length <= MAX_KEY_LENGTH &&
     /^[A-Za-z0-9_-]+=*$/.test(value)
   );
-}
-
-function toISOWeek(year: number, month: number, day: number): { year: number; week: number } {
-  const date = new Date(Date.UTC(year, month - 1, day));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  const week = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return { year: date.getUTCFullYear(), week };
 }
 
 /** Current and next ISO week in the planning time zone. */
@@ -341,7 +333,11 @@ export const PushService = {
   },
 
   /** Native app device with its FCM token. Re-registering updates staff and scope. */
-  registerDevice(input: unknown): void {
+  /**
+   * A device registered with a personal app session always belongs to that person;
+   * the client cannot claim someone else.
+   */
+  registerDevice(input: unknown, member?: { sessionId: string; staffId: number }): void {
     const device = input as {
       platform?: unknown;
       token?: unknown;
@@ -368,8 +364,8 @@ export const PushService = {
     }
     const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
 
-    let staffId: number | null = null;
-    if (device.staffId !== undefined && device.staffId !== null) {
+    let staffId: number | null = member?.staffId ?? null;
+    if (!member && device.staffId !== undefined && device.staffId !== null) {
       const exists =
         Number.isInteger(device.staffId) &&
         getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ?").get(device.staffId);
@@ -388,15 +384,16 @@ export const PushService = {
 
     db.prepare(
       `
-        INSERT INTO push_devices (platform, token, staff_id, scope)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO push_devices (platform, token, staff_id, scope, member_session)
+        VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(token) DO UPDATE SET
           platform = excluded.platform,
           staff_id = excluded.staff_id,
           scope = excluded.scope,
+          member_session = excluded.member_session,
           updated_at = datetime('now')
       `
-    ).run(device.platform, token, staffId, scope);
+    ).run(device.platform, token, staffId, scope, member?.sessionId ?? null);
   },
 
   removeDevice(token: unknown): void {
@@ -432,6 +429,34 @@ export const PushService = {
         title: payload.title,
         body: payload.body,
         data: { instanceId: TeamAccessService.getInstanceId(), url: payload.url },
+        tokens,
+      },
+    ]);
+    return { sent: web.sent + native.sent, failed: web.failed + native.failed };
+  },
+
+  /**
+   * Message to the whole team about an absence. The absent person's own devices are skipped;
+   * the reason is never part of it.
+   */
+  async sendTeamNotice(
+    payload: PushPayload & { year: number; week: number },
+    options: { excludeStaffId?: number } = {}
+  ): Promise<SendCounts> {
+    const web = await this.sendWebPush(payload);
+    const tokens = listDevices()
+      .filter((device) => options.excludeStaffId === undefined || device.staff_id !== options.excludeStaffId)
+      .map((device) => device.token);
+    const native = await this.sendNative([
+      {
+        title: payload.title,
+        body: payload.body,
+        data: {
+          instanceId: TeamAccessService.getInstanceId(),
+          url: payload.url,
+          year: String(payload.year),
+          week: String(payload.week),
+        },
         tokens,
       },
     ]);
