@@ -24,6 +24,7 @@ const ROUTES: Route[] = [
   ["post", "/api/auth/login", "server/api/auth/login.post"],
   ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
   ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
+  ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
   ["post", "/api/team-access", "server/api/team-access/index.post"],
   ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
   ["post", "/api/push/devices", "server/api/push/devices.post"],
@@ -214,7 +215,7 @@ describe("absences", () => {
 
     const report = await client.request<{ absence: any; notified: { sent: number } }>("POST", "/api/member/absences", {
       headers: bearer(anna.token),
-      body: { date: THURSDAY, reason: "krank", message: "Bin ab Freitag wieder da" },
+      body: { date: THURSDAY, reason: "urlaub", message: "Bin ab Freitag wieder da" },
     });
     const send = relayCalls.find((call) => call.url.endsWith("/v1/send"))!;
     const webPush = JSON.parse(sendNotification.mock.calls[0]![1]);
@@ -229,36 +230,93 @@ describe("absences", () => {
     });
     expect(send.body.data).toMatchObject({ url: "/?year=2026&week=41", year: "2026", week: "41" });
     expect(webPush.body).toContain("Anna Weber fällt Do. 08.10. aus");
-    expect(JSON.stringify([send, webPush])).not.toContain("krank");
+    expect(JSON.stringify([send, webPush])).not.toContain("urlaub");
   });
 
-  it("only allows days with an own assignment and one absence per day", async () => {
+  it("accepts unplanned days and skips days that already have an absence", async () => {
     const anna = await inviteAndRedeem(ANNA);
     const max = await inviteAndRedeem(MAX);
-    const report = (token: string, date: string) =>
-      client.request("POST", "/api/member/absences", {
+    const report = (token: string, from: string, to?: string) =>
+      client.request<{ absences: any[]; skipped: string[] }>("POST", "/api/member/absences", {
         headers: bearer(token),
-        body: { date, reason: "privat", notifyTeam: false },
+        body: { from, to, reason: "privat", notifyTeam: false },
       });
 
     const unassigned = await report(max.token, THURSDAY);
-    const otherWeek = await report(anna.token, "2026-10-15");
     const first = await report(anna.token, THURSDAY);
     const duplicate = await report(anna.token, THURSDAY);
+    const overlapping = await report(anna.token, "2026-10-07", "2026-10-09");
     const invalidDate = await report(anna.token, "2026-02-30");
+    const backwards = await report(anna.token, "2026-10-09", "2026-10-07");
+    const tooLong = await report(anna.token, "2026-10-01", "2026-12-31");
 
-    expect(unassigned.status).toBe(400);
-    expect(otherWeek.status).toBe(400);
+    expect(unassigned.status).toBe(200);
+    expect(unassigned.json!.absences[0]).toMatchObject({ shift_id: null, batch_id: null });
     expect(first.status).toBe(200);
     expect(duplicate.status).toBe(409);
+    expect(overlapping.status).toBe(200);
+    expect(overlapping.json!.absences.map((absence) => absence.absence_date)).toEqual(["2026-10-07", "2026-10-09"]);
+    expect(overlapping.json!.skipped).toEqual([THURSDAY]);
     expect(invalidDate.status).toBe(400);
+    expect(backwards.status).toBe(400);
+    expect(tooLong.status).toBe(400);
+  });
+
+  it("enters a range across weeks with one push and withdraws it as a whole", async () => {
+    const anna = await inviteAndRedeem(ANNA);
+    const max = await inviteAndRedeem(MAX, "Pixel von Max");
+    await client.request("POST", "/api/push/devices", { headers: bearer(max.token), body: { platform: "android", token: "max:APA91b" } });
+
+    const report = await client.request<{ absences: any[] }>("POST", "/api/member/absences", {
+      headers: bearer(anna.token),
+      body: { from: "2026-10-08", to: "2026-10-14", reason: "urlaub" },
+    });
+    const sends = relayCalls.filter((call) => call.url.endsWith("/v1/send"));
+    const week41 = await client.request<any[]>("GET", "/api/absences?year=2026&week=41", { headers: bearer(anna.token) });
+    const week42 = await client.request<any[]>("GET", "/api/absences?year=2026&week=42", { headers: bearer(anna.token) });
+
+    expect(report.status).toBe(200);
+    expect(report.json!.absences).toHaveLength(7);
+    // Only KW 41 is planned: those days carry the shift, the rest stays without one.
+    expect(report.json!.absences.map((absence) => absence.shift_id)).toEqual([EARLY, EARLY, EARLY, EARLY, null, null, null]);
+    expect(new Set(report.json!.absences.map((absence) => absence.batch_id)).size).toBe(1);
+    expect(sends).toHaveLength(1);
+    expect(sends[0]!.body.notification.body).toBe("Anna Weber fällt Do. 08.10. – Mi. 14.10. aus");
+    expect(week41.json).toHaveLength(4);
+    expect(week42.json![0]).toMatchObject({ range_from: "2026-10-08", range_to: "2026-10-14" });
+
+    const single = await client.request("DELETE", `/api/member/absences/${report.json!.absences[0].absence_id}`, {
+      headers: bearer(anna.token),
+    });
+    const afterSingle = await client.request<any[]>("GET", "/api/absences?year=2026&week=42");
+    const whole = await client.request<{ cancelled: number }>(
+      "DELETE",
+      `/api/member/absences/${report.json!.absences[6].absence_id}?range=1`,
+      { headers: bearer(anna.token) }
+    );
+    const remaining = client.mainDb.prepare("SELECT COUNT(*) AS count FROM absences WHERE cancelled_at IS NULL").get() as {
+      count: number;
+    };
+    const audit = client.mainDb.prepare("SELECT action, week_number, reason FROM audit_log ORDER BY audit_id").all();
+
+    expect(single.status).toBe(200);
+    expect(afterSingle.json![0]).toMatchObject({ range_from: "2026-10-09", range_to: "2026-10-14" });
+    expect(whole.json!.cancelled).toBe(6);
+    expect(remaining.count).toBe(0);
+    expect(audit).toEqual([
+      { action: "absence", week_number: 41, reason: "Do. 08.10. – So. 11.10." },
+      { action: "absence", week_number: 42, reason: "Mo. 12.10. – Mi. 14.10." },
+      { action: "absence_cancel", week_number: 41, reason: "Do. 08.10." },
+      { action: "absence_cancel", week_number: 41, reason: "Fr. 09.10. – So. 11.10." },
+      { action: "absence_cancel", week_number: 42, reason: "Mo. 12.10. – Mi. 14.10." },
+    ]);
   });
 
   it("hides reasons from everyone but planners", async () => {
     const anna = await inviteAndRedeem(ANNA);
     await client.request("POST", "/api/member/absences", {
       headers: bearer(anna.token),
-      body: { date: THURSDAY, reason: "krank", notifyTeam: false },
+      body: { date: THURSDAY, reason: "urlaub", notifyTeam: false },
     });
     const planner = await client.loginAs("planner", "planner1234");
 
@@ -269,7 +327,7 @@ describe("absences", () => {
     expect(anonymous.json).toEqual([expect.objectContaining({ staff_name: "Anna Weber", absence_date: THURSDAY })]);
     expect(anonymous.json![0]).not.toHaveProperty("reason");
     expect(member.json![0]).not.toHaveProperty("reason");
-    expect(asPlanner.json![0]).toMatchObject({ reason: "krank" });
+    expect(asPlanner.json![0]).toMatchObject({ reason: "urlaub" });
   });
 
   it("lets staff withdraw only their own absence and logs everything with its source", async () => {
@@ -290,8 +348,8 @@ describe("absences", () => {
     expect(foreign.status).toBe(404);
     expect(own.status).toBe(200);
     expect(audit).toEqual([
-      { username: "Anna Weber", action: "absence", source: "app", shift_name: "Frühschicht", staff_name: "Anna Weber", reason: null },
-      { username: "Anna Weber", action: "absence_cancel", source: "app", shift_name: "Frühschicht", staff_name: "Anna Weber", reason: null },
+      { username: "Anna Weber", action: "absence", source: "app", shift_name: "Frühschicht", staff_name: "Anna Weber", reason: "Do. 08.10." },
+      { username: "Anna Weber", action: "absence_cancel", source: "app", shift_name: "Frühschicht", staff_name: "Anna Weber", reason: "Do. 08.10." },
     ]);
   });
 
@@ -300,7 +358,7 @@ describe("absences", () => {
     const create = await client.request<{ absence: { absence_id: number; shift_id: number | null } }>("POST", "/api/absences", {
       jar: planner,
       csrf: true,
-      body: { staffId: MAX, date: THURSDAY, reason: "krank", note: "AU liegt vor" },
+      body: { staffId: MAX, date: THURSDAY, reason: "privat", note: "Umzug" },
     });
     const remove = await client.request("DELETE", `/api/absences/${create.json!.absence.absence_id}`, {
       jar: planner,
@@ -316,7 +374,7 @@ describe("absences", () => {
   it("forgets reasons and notes after 90 days but keeps the absence", async () => {
     client.mainDb
       .prepare(
-        "INSERT INTO absences (staff_id, absence_date, reason, note, source, created_by) VALUES (?, date('now', '-100 days'), 'krank', 'AU', 'web', 'planner')"
+        "INSERT INTO absences (staff_id, absence_date, reason, note, source, created_by) VALUES (?, date('now', '-100 days'), 'privat', 'Umzug', 'web', 'planner')"
       )
       .run(ANNA);
     const date = client.mainDb.prepare("SELECT absence_date FROM absences").get() as { absence_date: string };
@@ -328,6 +386,59 @@ describe("absences", () => {
     const rows = AbsenceService.listForWeek(week.year, week.week, true);
 
     expect(rows).toEqual([expect.objectContaining({ staff_name: "Anna Weber", reason: null, note: null })]);
+  });
+});
+
+describe("day changes", () => {
+  it("puts people into or out of a shift for single days on top of the weekly plan", async () => {
+    const planner = await client.loginAs("planner", "planner1234");
+    const change = (staff_id: number, date: string, present: boolean) =>
+      client.request<{ changed: boolean }>("POST", "/api/shiftplan/day-change", {
+        jar: planner,
+        csrf: true,
+        body: { staff_id, shift_id: EARLY, date, present },
+      });
+
+    const removeAnna = await change(ANNA, THURSDAY, false);
+    const removeAgain = await change(ANNA, THURSDAY, false);
+    const addMax = await change(MAX, THURSDAY, true);
+    const addMaxFriday = await change(MAX, "2026-10-09", true);
+    const backToPlan = await change(MAX, "2026-10-09", false);
+    const plan = await client.request<any>("GET", "/api/shiftplan?year=2026&week=41");
+    const audit = client.mainDb.prepare("SELECT action, staff_name, reason FROM audit_log ORDER BY audit_id").all();
+
+    expect(removeAnna.json!.changed).toBe(true);
+    expect(removeAgain.json!.changed).toBe(false);
+    expect(addMax.json!.changed).toBe(true);
+    expect(addMaxFriday.json!.changed).toBe(true);
+    expect(backToPlan.json!.changed).toBe(true);
+    expect(plan.json!.day_changes.map((entry: any) => [entry.staff_name, entry.change_date, entry.kind])).toEqual([
+      ["Anna Weber", THURSDAY, "remove"],
+      ["Max Mustermann", THURSDAY, "add"],
+    ]);
+    expect(audit).toEqual([
+      { action: "day_remove", staff_name: "Anna Weber", reason: "nur Do. 08.10." },
+      { action: "day_add", staff_name: "Max Mustermann", reason: "nur Do. 08.10." },
+      { action: "day_add", staff_name: "Max Mustermann", reason: "nur Fr. 09.10." },
+      { action: "day_remove", staff_name: "Max Mustermann", reason: "nur Fr. 09.10." },
+    ]);
+  });
+
+  it("takes the shift of a day change for an absence on that day", async () => {
+    const planner = await client.loginAs("planner", "planner1234");
+    await client.request("POST", "/api/shiftplan/day-change", {
+      jar: planner,
+      csrf: true,
+      body: { staff_id: MAX, shift_id: EARLY, date: THURSDAY, present: true },
+    });
+    const max = await inviteAndRedeem(MAX);
+
+    const report = await client.request<{ absence: { shift_name: string } }>("POST", "/api/member/absences", {
+      headers: bearer(max.token),
+      body: { date: THURSDAY, reason: "privat", notifyTeam: false },
+    });
+
+    expect(report.json!.absence.shift_name).toBe("Frühschicht");
   });
 });
 

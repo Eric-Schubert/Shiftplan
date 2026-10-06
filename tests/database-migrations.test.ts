@@ -24,6 +24,7 @@ describe("database migrations", () => {
       "003_main_audit_schema",
       "004_main_page_visits_schema",
       "005_main_absences_schema",
+      "006_main_absence_ranges_day_changes",
     ]);
     expect(second.applied).toHaveLength(0);
     expect(columnNames(db, "absences")).toEqual(
@@ -38,6 +39,42 @@ describe("database migrations", () => {
       expect.arrayContaining(["visit_date", "path", "visitor_hash", "country_code", "created_at"])
     );
 
+    db.close();
+  });
+
+  it("turns old sick-leave reasons into „sonstiges“ when absences get ranges", () => {
+    const db = new Database(":memory:");
+    migrateMainDatabase(db);
+    // Back to the table as migration 005 created it, with one old entry.
+    db.exec("DROP TABLE absences");
+    db.exec(`
+      CREATE TABLE absences (
+        absence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        staff_id INTEGER NOT NULL,
+        absence_date TEXT NOT NULL,
+        shift_id INTEGER,
+        reason TEXT CHECK(reason IS NULL OR reason IN ('krank', 'privat', 'sonstiges')),
+        note TEXT,
+        source TEXT NOT NULL DEFAULT 'web',
+        created_by TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        cancelled_at TEXT
+      )
+    `);
+    db.exec("CREATE UNIQUE INDEX idx_absences_active_staff_date ON absences(staff_id, absence_date) WHERE cancelled_at IS NULL");
+    db.prepare("INSERT INTO staff (name) VALUES ('Anna')").run();
+    db.prepare("INSERT INTO absences (staff_id, absence_date, reason, created_by) VALUES (1, '2026-10-08', 'krank', 'planner')").run();
+    db.prepare("DELETE FROM schema_migrations WHERE id = '006_main_absence_ranges_day_changes'").run();
+
+    const result = migrateMainDatabase(db);
+
+    expect(result.applied.map((migration) => migration.id)).toEqual(["006_main_absence_ranges_day_changes"]);
+    expect(db.prepare("SELECT absence_id, reason, batch_id FROM absences").all()).toEqual([
+      { absence_id: 1, reason: "sonstiges", batch_id: null },
+    ]);
+    expect(() =>
+      db.prepare("INSERT INTO absences (staff_id, absence_date, reason, created_by) VALUES (1, '2026-10-09', 'krank', 'x')").run()
+    ).toThrow();
     db.close();
   });
 

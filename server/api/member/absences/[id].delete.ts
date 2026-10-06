@@ -11,6 +11,10 @@ export default defineEventHandler((event) => {
     throw createError({ statusCode: 404, statusMessage: "Ausfall nicht gefunden" });
   }
 
-  cancelAbsence(absence, { userId: 0, username: member.staffName, source: "app" });
-  return { success: true };
+  const cancelled = cancelAbsence(
+    absence,
+    { userId: 0, username: member.staffName, source: "app" },
+    getQuery(event).range === "1"
+  );
+  return { success: true, cancelled };
 });

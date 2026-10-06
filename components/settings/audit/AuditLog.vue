@@ -34,6 +34,8 @@ function formatDate(dateStr: string): string {
 const ACTIONS: Record<string, { label: string; icon: string; color: string; severity: string; separator: string }> = {
   assign: { label: "Zugewiesen", icon: "mdi:account-plus", color: "text-green-600 dark:text-green-400", severity: "success", separator: " → " },
   unassign: { label: "Entfernt", icon: "mdi:account-minus", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
+  day_add: { label: "Für einen Tag eingeteilt", icon: "mdi:calendar-plus", color: "text-green-600 dark:text-green-400", severity: "success", separator: " → " },
+  day_remove: { label: "Für einen Tag ausgetragen", icon: "mdi:calendar-remove", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
   absence: { label: "Ausfall gemeldet", icon: "mdi:account-cancel", color: "text-amber-600 dark:text-amber-400", severity: "warn", separator: " fällt aus · " },
   absence_cancel: { label: "Ausfall zurückgezogen", icon: "mdi:account-check", color: "text-gray-500 dark:text-gray-400", severity: "secondary", separator: " wieder da · " },
 };

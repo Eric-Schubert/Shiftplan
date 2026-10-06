@@ -227,6 +227,7 @@ onBeforeUnmount(() => {
           :year="appStore.selectedYear"
           :week="appStore.selectedWeek"
           :absences="absences ?? []"
+          :day-changes="shiftplan?.day_changes ?? []"
           @updated="refreshWeek"
           @generate="generateFromPattern"
         />

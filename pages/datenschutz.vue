@@ -154,13 +154,11 @@ useSeoMeta({
               auf Grundlage von Art. 6 Abs. 1 lit. b und c DSGVO.
             </p>
             <p>
-              Mitarbeitende können über die Shiftplan-App einen Ausfall für einen Tag melden.
-              Gespeichert werden Tag, Schicht und eine Kategorie (krank, privat oder sonstiges),
-              keine Diagnose. Die Kategorie „krank“ ist eine Gesundheitsangabe nach Art. 9 DSGVO; die
-              Verarbeitung erfolgt im Beschäftigungsverhältnis auf Grundlage von Art. 9 Abs. 2 lit. b
-              DSGVO in Verbindung mit § 26 Abs. 3 BDSG. Den Grund sehen nur Planer und die betroffene
-              Person, das Team erfährt nur, dass jemand ausfällt. Grund und Notiz werden 90 Tage nach
-              dem Ausfalltag automatisch gelöscht.
+              Mitarbeitende können über die Shiftplan-App einen Ausfall für einzelne Tage oder einen
+              Zeitraum melden. Gespeichert werden Tage, Schicht und eine Kategorie (Urlaub, Privat oder
+              Sonstiges). Gesundheitsangaben werden nicht abgefragt. Den Grund sehen nur Planer, das
+              Team erfährt nur, dass jemand ausfällt. Grund und Notiz werden 90 Tage nach dem
+              Ausfalltag automatisch gelöscht.
             </p>
           </div>
         </section>

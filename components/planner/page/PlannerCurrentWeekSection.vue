@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { ShiftWithStaff } from "~/types/shiftplan";
+import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
 
 const props = defineProps<{
   absences: Absence[];
+  dayChanges: ShiftDayChange[];
   pending: boolean;
   hasShiftplan: boolean;
   shiftList: ShiftWithStaff[];
@@ -59,6 +60,7 @@ const totalAssigned = computed(() =>
           :year="year"
           :week="week"
           :absences="absences"
+          :day-changes="dayChanges"
           @updated="emit('updated')"
         />
       </div>

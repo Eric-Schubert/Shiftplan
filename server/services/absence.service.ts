@@ -1,11 +1,15 @@
+import { randomBytes } from "node:crypto";
+import { DayChangeService } from "~/server/services/day-change.service";
 import { getDatabase } from "~/server/utils/database";
-import { datesOfISOWeek, parseISODate, toISOWeek } from "~/server/utils/iso-week";
+import { datesBetween, datesOfISOWeek } from "~/server/utils/iso-week";
 
-export const ABSENCE_REASONS = ["krank", "privat", "sonstiges"] as const;
+export const ABSENCE_REASONS = ["urlaub", "privat", "sonstiges"] as const;
 export type AbsenceReason = (typeof ABSENCE_REASONS)[number];
 export const ABSENCE_NOTE_MAX_LENGTH = 200;
+/** Longest range that can be entered at once (8 weeks). */
+export const ABSENCE_MAX_DAYS = 56;
 
-// Health-related reasons are only kept as long as planning needs them.
+// Reasons and notes are only kept as long as planning needs them.
 const REASON_RETENTION_DAYS = 90;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;
 let lastPurge = 0;
@@ -19,6 +23,11 @@ export type Absence = {
   shift_name: string | null;
   reason: AbsenceReason | null;
   note: string | null;
+  /** Shared by all days entered as one range; null for a single day. */
+  batch_id: string | null;
+  /** First and last active day of the range (the day itself for a single day). */
+  range_from: string;
+  range_to: string;
   source: "web" | "app";
   created_by: string;
   created_at: string;
@@ -28,33 +37,33 @@ export type PublicAbsence = Omit<Absence, "reason" | "note">;
 
 type CreateInput = {
   staffId: number;
-  date: string;
+  from: string;
+  /** Last day of the range; defaults to `from`. */
+  to?: string | null;
+  /** Only for a single day; otherwise the shift is taken from the plan. */
   shiftId?: number | null;
   reason: AbsenceReason;
   note?: string | null;
   source: "web" | "app";
   createdBy: string;
-  /** Staff may only report absences for days they are assigned to. */
-  requireAssignment: boolean;
 };
 
 function badRequest(message: string): never {
   throw createError({ statusCode: 400, statusMessage: message });
 }
 
-function assignedShifts(staffId: number, year: number, week: number): Array<{ shift_id: number; name: string }> {
-  return getDatabase()
-    .prepare(
-      `
-        SELECT s.shift_id, s.name FROM shift_assignments sa
-        JOIN weeks w ON w.week_id = sa.week_id
-        JOIN shifts s ON s.shift_id = sa.shift_id
-        WHERE sa.staff_id = ? AND w.year = ? AND w.week_number = ?
-        ORDER BY s.sort_order, s.name
-      `
-    )
-    .all(staffId, year, week) as Array<{ shift_id: number; name: string }>;
-}
+const SELECT_ABSENCE = `
+  SELECT a.absence_id, a.staff_id, st.name AS staff_name, a.absence_date, a.shift_id,
+         sh.name AS shift_name, a.reason, a.note, a.batch_id,
+         COALESCE((SELECT MIN(b.absence_date) FROM absences b
+                   WHERE b.batch_id = a.batch_id AND b.cancelled_at IS NULL), a.absence_date) AS range_from,
+         COALESCE((SELECT MAX(b.absence_date) FROM absences b
+                   WHERE b.batch_id = a.batch_id AND b.cancelled_at IS NULL), a.absence_date) AS range_to,
+         a.source, a.created_by, a.created_at
+  FROM absences a
+  JOIN staff st ON st.staff_id = a.staff_id
+  LEFT JOIN shifts sh ON sh.shift_id = a.shift_id
+`;
 
 export const AbsenceService = {
   purgeOldReasons(now = Date.now()): void {
@@ -76,12 +85,7 @@ export const AbsenceService = {
     const dates = datesOfISOWeek(year, week);
     const rows = getDatabase()
       .prepare(
-        `
-          SELECT a.absence_id, a.staff_id, st.name AS staff_name, a.absence_date, a.shift_id,
-                 sh.name AS shift_name, a.reason, a.note, a.source, a.created_by, a.created_at
-          FROM absences a
-          JOIN staff st ON st.staff_id = a.staff_id
-          LEFT JOIN shifts sh ON sh.shift_id = a.shift_id
+        `${SELECT_ABSENCE}
           WHERE a.cancelled_at IS NULL AND a.absence_date BETWEEN ? AND ?
           ORDER BY a.absence_date, sh.sort_order, st.name
         `
@@ -94,23 +98,26 @@ export const AbsenceService = {
 
   getById(absenceId: number): Absence | undefined {
     return getDatabase()
-      .prepare(
-        `
-          SELECT a.absence_id, a.staff_id, st.name AS staff_name, a.absence_date, a.shift_id,
-                 sh.name AS shift_name, a.reason, a.note, a.source, a.created_by, a.created_at
-          FROM absences a
-          JOIN staff st ON st.staff_id = a.staff_id
-          LEFT JOIN shifts sh ON sh.shift_id = a.shift_id
-          WHERE a.absence_id = ? AND a.cancelled_at IS NULL
-        `
-      )
+      .prepare(`${SELECT_ABSENCE} WHERE a.absence_id = ? AND a.cancelled_at IS NULL`)
       .get(absenceId) as Absence | undefined;
   },
 
-  create(input: CreateInput): Absence {
+  listBatch(batchId: string): Absence[] {
+    return getDatabase()
+      .prepare(`${SELECT_ABSENCE} WHERE a.batch_id = ? AND a.cancelled_at IS NULL ORDER BY a.absence_date`)
+      .all(batchId) as Absence[];
+  },
+
+  /**
+   * Enters one absence per day of the range. Days that already have an absence are
+   * skipped; the shift comes from the plan when the person works exactly one that day.
+   */
+  create(input: CreateInput): { absences: Absence[]; skipped: string[] } {
     this.purgeOldReasons();
-    const parsed = parseISODate(input.date);
-    if (!parsed) badRequest("Ungültiges Datum");
+    const dates = datesBetween(input.from, input.to || input.from, ABSENCE_MAX_DAYS);
+    if (!dates) {
+      badRequest(`Ungültiger Zeitraum (höchstens ${ABSENCE_MAX_DAYS / 7} Wochen)`);
+    }
     if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");
     const note = input.note?.trim() || null;
     if (note && note.length > ABSENCE_NOTE_MAX_LENGTH) {
@@ -118,41 +125,53 @@ export const AbsenceService = {
     }
 
     const db = getDatabase();
-    const staff = db.prepare("SELECT staff_id FROM staff WHERE staff_id = ?").get(input.staffId);
-    if (!staff) badRequest("Unbekannter Mitarbeiter");
-
-    const { year, week } = toISOWeek(parsed.year, parsed.month, parsed.day);
-    const shifts = assignedShifts(input.staffId, year, week);
-    let shiftId = input.shiftId ?? null;
-
-    if (input.requireAssignment) {
-      if (shifts.length === 0) badRequest("An diesem Tag bist du keiner Schicht zugeteilt");
-      if (shiftId === null && shifts.length > 1) badRequest("Bitte die betroffene Schicht wählen");
-      shiftId ??= shifts[0]!.shift_id;
-      if (!shifts.some((shift) => shift.shift_id === shiftId)) badRequest("Dieser Schicht bist du nicht zugeteilt");
-    } else {
-      shiftId ??= shifts.length === 1 ? shifts[0]!.shift_id : null;
-      if (shiftId !== null && !db.prepare("SELECT 1 FROM shifts WHERE shift_id = ?").get(shiftId)) {
-        badRequest("Unbekannte Schicht");
-      }
+    if (!db.prepare("SELECT staff_id FROM staff WHERE staff_id = ?").get(input.staffId)) {
+      badRequest("Unbekannter Mitarbeiter");
+    }
+    const explicitShift = dates.length === 1 ? (input.shiftId ?? null) : null;
+    if (explicitShift !== null && !db.prepare("SELECT 1 FROM shifts WHERE shift_id = ?").get(explicitShift)) {
+      badRequest("Unbekannte Schicht");
     }
 
-    try {
-      const result = db
-        .prepare(
-          `
-            INSERT INTO absences (staff_id, absence_date, shift_id, reason, note, source, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-          `
-        )
-        .run(input.staffId, input.date, shiftId, input.reason, note, input.source, input.createdBy);
-      return this.getById(result.lastInsertRowid as number)!;
-    } catch (error) {
-      if (String((error as Error).message).includes("UNIQUE")) {
-        throw createError({ statusCode: 409, statusMessage: "Für diesen Tag ist bereits ein Ausfall eingetragen" });
+    const batchId = dates.length > 1 ? randomBytes(8).toString("hex") : null;
+    const exists = db.prepare(
+      "SELECT 1 FROM absences WHERE staff_id = ? AND absence_date = ? AND cancelled_at IS NULL"
+    );
+    const insert = db.prepare(
+      `
+        INSERT INTO absences (staff_id, absence_date, shift_id, reason, note, batch_id, source, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `
+    );
+
+    const skipped: string[] = [];
+    const ids: number[] = [];
+    db.transaction(() => {
+      for (const date of dates) {
+        if (exists.get(input.staffId, date)) {
+          skipped.push(date);
+          continue;
+        }
+        const shifts = DayChangeService.shiftsOnDate(input.staffId, date);
+        const shiftId = explicitShift ?? (shifts.length === 1 ? shifts[0]!.shift_id : null);
+        const result = insert.run(input.staffId, date, shiftId, input.reason, note, batchId, input.source, input.createdBy);
+        ids.push(result.lastInsertRowid as number);
       }
-      throw error;
+    })();
+
+    if (ids.length === 0) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: dates.length === 1 ? "Für diesen Tag ist bereits ein Ausfall eingetragen" : "Für diesen Zeitraum sind bereits Ausfälle eingetragen",
+      });
     }
+    return { absences: ids.map((id) => this.getById(id)!), skipped };
+  },
+
+  cancelBatch(batchId: string): number {
+    return getDatabase()
+      .prepare("UPDATE absences SET cancelled_at = datetime('now') WHERE batch_id = ? AND cancelled_at IS NULL")
+      .run(batchId).changes;
   },
 
   cancel(absenceId: number): boolean {

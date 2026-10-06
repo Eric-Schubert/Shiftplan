@@ -7,7 +7,7 @@ export default defineEventHandler((event) => {
   const year = validateYear(query.year, "Jahr", { required: true })!;
   const week = validateWeek(query.week, "Woche", { required: true })!;
 
-  // Reasons are health-related and stay with planners.
+  // Reasons stay with planners.
   const includeReason = getSessionUser(event) !== null;
   return AbsenceService.listForWeek(year, week, includeReason);
 });

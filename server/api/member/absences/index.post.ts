@@ -18,17 +18,15 @@ export default defineEventHandler(async (event) => {
 
   const result = await reportAbsence({
     staffId: member.staffId,
-    date: body?.date,
+    from: body?.from ?? body?.date,
+    to: body?.to ?? null,
     shiftId,
     reason: body.reason as AbsenceReason,
-    requireAssignment: true,
     notifyTeam: body?.notifyTeam !== false,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     actor: { userId: 0, username: member.staffName, source: "app" },
   });
 
-  return {
-    absence: { ...result.absence, note: undefined },
-    notified: result.notified,
-  };
+  const absences = result.absences.map((absence) => ({ ...absence, note: undefined }));
+  return { absences, absence: absences[0], skipped: result.skipped, notified: result.notified };
 });

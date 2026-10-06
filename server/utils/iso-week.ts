@@ -29,3 +29,21 @@ export function parseISODate(value: unknown): { year: number; month: number; day
   }
   return { year, month, day };
 }
+
+/** Every calendar day from `from` to `to` (inclusive) as YYYY-MM-DD, or null for an invalid range. */
+export function datesBetween(from: string, to: string, maxDays: number): string[] | null {
+  const start = parseISODate(from);
+  const end = parseISODate(to);
+  if (!start || !end) return null;
+  const first = Date.UTC(start.year, start.month - 1, start.day);
+  const last = Date.UTC(end.year, end.month - 1, end.day);
+  const count = Math.round((last - first) / 86400000) + 1;
+  if (count < 1 || count > maxDays) return null;
+  return Array.from({ length: count }, (_, index) => new Date(first + index * 86400000).toISOString().slice(0, 10));
+}
+
+/** ISO week of a YYYY-MM-DD date that was already validated. */
+export function weekOfDate(date: string): { year: number; week: number } {
+  const parsed = parseISODate(date)!;
+  return toISOWeek(parsed.year, parsed.month, parsed.day);
+}

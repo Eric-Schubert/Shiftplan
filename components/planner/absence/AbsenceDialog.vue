@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ABSENCE_REASON_LABELS, formatAbsenceDay, type AbsenceReason } from "~/types/absence";
+import { ABSENCE_REASON_LABELS, type AbsenceReason } from "~/types/absence";
 
 const props = defineProps<{
   visible: boolean;
@@ -31,9 +31,6 @@ function weekDates(year: number, week: number): string[] {
   });
 }
 
-const dayOptions = computed(() =>
-  weekDates(props.year, props.week).map((date) => ({ label: formatAbsenceDay(date), value: date }))
-);
 const staffOptions = computed(() =>
   dataStore.activeStaff.map((staff) => ({ label: staff.name, value: staff.staff_id }))
 );
@@ -43,8 +40,15 @@ const reasonOptions = (Object.keys(ABSENCE_REASON_LABELS) as AbsenceReason[]).ma
 }));
 
 const staffId = ref<number | null>(null);
-const date = ref<string | null>(null);
-const reason = ref<AbsenceReason>("krank");
+const days = weekDates(props.year, props.week);
+const from = ref(days[0]!);
+const to = ref(days[0]!);
+const reason = ref<AbsenceReason>("urlaub");
+
+// The range never runs backwards.
+watch(from, (value) => {
+  if (to.value < value) to.value = value;
+});
 const note = ref("");
 const notifyTeam = ref(false);
 const message = ref("");
@@ -52,8 +56,8 @@ const saving = ref(false);
 const error = ref("");
 
 async function save() {
-  if (!staffId.value || !date.value) {
-    error.value = "Bitte Mitarbeiter und Tag wählen";
+  if (!staffId.value || !from.value || !to.value) {
+    error.value = "Bitte Mitarbeiter und Zeitraum wählen";
     return;
   }
 
@@ -64,7 +68,8 @@ async function save() {
       method: "POST",
       body: {
         staffId: staffId.value,
-        date: date.value,
+        from: from.value,
+        to: to.value,
         reason: reason.value,
         note: note.value || undefined,
         notifyTeam: notifyTeam.value,
@@ -105,35 +110,32 @@ async function save() {
 
       <div class="grid grid-cols-2 gap-3">
         <div class="space-y-1.5">
-          <label for="absence-day" class="block font-medium text-[var(--text-2)]">Tag (KW {{ week }})</label>
-          <PrimeSelect
-            v-model="date"
-            input-id="absence-day"
-            :options="dayOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="Tag"
-            class="w-full"
-          />
+          <label for="absence-from" class="block font-medium text-[var(--text-2)]">Von</label>
+          <input id="absence-from" v-model="from" type="date" required class="p-inputtext p-component w-full" />
         </div>
         <div class="space-y-1.5">
-          <label for="absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
-          <PrimeSelect
-            v-model="reason"
-            input-id="absence-reason"
-            :options="reasonOptions"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
+          <label for="absence-to" class="block font-medium text-[var(--text-2)]">Bis</label>
+          <input id="absence-to" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
         </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
+        <PrimeSelect
+          v-model="reason"
+          input-id="absence-reason"
+          :options="reasonOptions"
+          option-label="label"
+          option-value="value"
+          class="w-full"
+        />
       </div>
 
       <div class="space-y-1.5">
         <label for="absence-note" class="block font-medium text-[var(--text-2)]">Notiz (optional)</label>
         <PrimeInputText id="absence-note" v-model="note" maxlength="200" class="w-full" />
         <p class="text-xs text-[var(--text-3)]">
-          Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht. Keine Diagnosen eintragen.
+          Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht. Höchstens 8 Wochen am Stück.
         </p>
       </div>
 
@@ -149,7 +151,7 @@ async function save() {
             placeholder="Zusatztext, z. B. Wer kann übernehmen?"
             class="w-full"
           />
-          <p class="text-xs text-[var(--text-3)]">Das Team sieht Name, Tag und Schicht, nie den Grund.</p>
+          <p class="text-xs text-[var(--text-3)]">Das Team sieht Name und Zeitraum, nie den Grund.</p>
         </template>
       </div>
 
