@@ -319,6 +319,8 @@ schichtplaner/
 |   |   |   |-- public.get.ts
 |   |   |   `-- school.get.ts
 |   |   |-- push/
+|   |   |   |-- devices.delete.ts
+|   |   |   |-- devices.post.ts
 |   |   |   |-- notify.post.ts
 |   |   |   |-- status.get.ts
 |   |   |   |-- subscribe.post.ts
@@ -355,8 +357,10 @@ schichtplaner/
 |   |   |   `-- index.post.ts
 |   |   |-- viewer/
 |   |   |   |-- login.post.ts
+|   |   |   |-- logout.post.ts
 |   |   |   `-- status.get.ts
-|   |   `-- contact.post.ts
+|   |   |-- contact.post.ts
+|   |   `-- instance.get.ts
 |   |-- config/
 |   |   |-- analytics-config.ts
 |   |   |-- auth-config.ts
@@ -519,10 +523,18 @@ schichtplaner/
 | `GET` | `/api/contact/messages` | Admin | No | `limit`, `offset` | - | List contact records |
 | `PATCH` | `/api/contact/messages/:id` | Admin | Yes | - | - | Update one contact record |
 
+### Instance API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/instance` | Authenticated | No | - | - | List instance records |
+
 ### Push API
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/push/devices` | Authenticated | Yes | - | - | Create or update push data |
+| `DELETE` | `/api/push/devices` | Authenticated | Yes | - | - | Delete one push record |
 | `POST` | `/api/push/notify` | Planner/Admin | Yes | - | - | Create or update push data |
 | `GET` | `/api/push/status` | Planner/Admin | No | - | - | List push records |
 | `POST` | `/api/push/subscribe` | Authenticated | Yes | - | - | Create or update push data |
@@ -533,13 +545,14 @@ schichtplaner/
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/team-access` | Admin | No | - | - | List team-access records |
-| `POST` | `/api/team-access` | Admin | Yes | - | - | Create or update team-access data |
+| `POST` | `/api/team-access` | Admin | Yes | - | `instanceName` | Create or update team-access data |
 
 ### Viewer API
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/viewer/login` | Authenticated | Yes | - | `code` | Create or update viewer data |
+| `POST` | `/api/viewer/logout` | Authenticated | Yes | - | - | Create or update viewer data |
 | `GET` | `/api/viewer/status` | Authenticated | No | - | - | List viewer records |
 <!-- AUTO-GENERATED-API-END -->
 
@@ -589,6 +602,9 @@ schichtplaner/
 | `POST` | `/api/contact` | No | Yes | Yes | Yes |
 | `GET` | `/api/contact/messages` | No | No | Yes | No |
 | `PATCH` | `/api/contact/messages/:id` | No | No | Yes | Yes |
+| `GET` | `/api/instance` | No | Yes | Yes | No |
+| `POST` | `/api/push/devices` | No | Yes | Yes | Yes |
+| `DELETE` | `/api/push/devices` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/notify` | No | Yes | Yes | Yes |
 | `GET` | `/api/push/status` | No | Yes | Yes | No |
 | `POST` | `/api/push/subscribe` | No | Yes | Yes | Yes |
@@ -596,6 +612,7 @@ schichtplaner/
 | `GET` | `/api/team-access` | No | No | Yes | No |
 | `POST` | `/api/team-access` | No | No | Yes | Yes |
 | `POST` | `/api/viewer/login` | No | Yes | Yes | Yes |
+| `POST` | `/api/viewer/logout` | No | Yes | Yes | Yes |
 | `GET` | `/api/viewer/status` | No | Yes | Yes | No |
 <!-- AUTO-GENERATED-RBAC-END -->
 

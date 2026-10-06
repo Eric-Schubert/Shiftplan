@@ -3,6 +3,9 @@ import { getAdminDatabase } from "~/server/utils/database";
 import { getSessionData, getSessionToken } from "~/server/utils/session";
 
 const ACCESS_CODE_SETTING = "viewer_access_code";
+const INSTANCE_NAME_SETTING = "instance_name";
+const DEFAULT_INSTANCE_NAME = "Schichtplaner";
+export const INSTANCE_NAME_MAX_LENGTH = 80;
 const ACCESS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const GENERATED_CODE_LENGTH = 8;
 export const ACCESS_CODE_MIN_LENGTH = 6;
@@ -19,12 +22,33 @@ function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
 }
 
+function getSetting(key: string): string | null {
+  const row = getAdminDatabase()
+    .prepare("SELECT value FROM settings WHERE key = ?")
+    .get(key) as { value: string } | undefined;
+  return row?.value || null;
+}
+
+function getBearerToken(event: any): string | undefined {
+  const header = getHeader(event, "authorization");
+  return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
+}
+
 export const TeamAccessService = {
+  getInstanceName(): string {
+    return getSetting(INSTANCE_NAME_SETTING) || DEFAULT_INSTANCE_NAME;
+  },
+
+  setInstanceName(name: string): void {
+    getAdminDatabase()
+      .prepare(
+        "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+      )
+      .run(INSTANCE_NAME_SETTING, name);
+  },
+
   getAccessCode(): string | null {
-    const row = getAdminDatabase()
-      .prepare("SELECT value FROM settings WHERE key = ?")
-      .get(ACCESS_CODE_SETTING) as { value: string } | undefined;
-    return row?.value || null;
+    return getSetting(ACCESS_CODE_SETTING);
   },
 
   isCodeRequired(): boolean {
@@ -41,7 +65,7 @@ export const TeamAccessService = {
 
   /**
    * Setting a new code signs out every employee device and drops their push
-   * subscriptions, so former staff stop receiving the plan.
+   * subscriptions and app devices, so former staff stop receiving the plan.
    */
   setAccessCode(code: string | null): void {
     const db = getAdminDatabase();
@@ -58,6 +82,7 @@ export const TeamAccessService = {
       ).run(ACCESS_CODE_SETTING, normalized);
       db.prepare("DELETE FROM viewer_sessions").run();
       db.prepare("DELETE FROM push_subscriptions").run();
+      db.prepare("DELETE FROM push_devices").run();
     })();
   },
 
@@ -71,16 +96,27 @@ export const TeamAccessService = {
     return timingSafeEqual(given, wanted);
   },
 
-  createViewerSession(): string {
+  createViewerSession(): { token: string; expiresAt: number } {
     const db = getAdminDatabase();
     const now = Date.now();
     db.prepare("DELETE FROM viewer_sessions WHERE expires_at <= ?").run(now);
 
     const token = randomBytes(32).toString("hex");
+    const expiresAt = now + VIEWER_SESSION_MS;
     db.prepare(
       "INSERT INTO viewer_sessions (session_token, created_at, expires_at) VALUES (?, ?, ?)"
-    ).run(token, now, now + VIEWER_SESSION_MS);
-    return token;
+    ).run(token, now, expiresAt);
+    return { token, expiresAt };
+  },
+
+  destroyViewerSession(token: string | undefined): void {
+    if (!token) return;
+    getAdminDatabase().prepare("DELETE FROM viewer_sessions WHERE session_token = ?").run(token);
+  },
+
+  /** Browser sends the cookie, the app sends the token as Bearer header. */
+  getViewerToken(event: any): string | undefined {
+    return getBearerToken(event) || getCookie(event, VIEWER_COOKIE_NAME);
   },
 
   validateViewerSession(token: string | undefined): boolean {
@@ -111,7 +147,10 @@ export const TeamAccessService = {
   hasReadAccess(event: any): boolean {
     if (!this.isCodeRequired()) return true;
     if (getSessionData(getSessionToken(event))) return true;
-    return this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME));
+    return (
+      this.validateViewerSession(getBearerToken(event)) ||
+      this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME))
+    );
   },
 
   isProtectedReadRoute(path: string): boolean {

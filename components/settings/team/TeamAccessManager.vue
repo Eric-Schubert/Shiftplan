@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type TeamAccess = { code: string | null; subscriberCount: number };
+type TeamAccess = { code: string | null; instanceName: string; subscriberCount: number };
 type PendingAction = "generate" | "custom" | "remove";
 
 const { authFetch } = useAuthFetch();
@@ -11,6 +11,9 @@ const copied = ref(false);
 const qrSvg = ref("");
 const customCode = ref("");
 const pendingAction = ref<PendingAction | null>(null);
+const instanceName = ref("");
+const savingName = ref(false);
+const nameSaved = ref(false);
 
 const accessLink = computed(() =>
   access.value?.code && import.meta.client
@@ -44,6 +47,7 @@ async function load() {
   loading.value = true;
   try {
     access.value = await authFetch<TeamAccess>("/api/team-access");
+    instanceName.value = access.value.instanceName;
   } finally {
     loading.value = false;
   }
@@ -77,6 +81,20 @@ async function applyChange(action: PendingAction) {
     pendingAction.value = null;
   } finally {
     saving.value = false;
+  }
+}
+
+async function saveInstanceName() {
+  savingName.value = true;
+  error.value = "";
+  try {
+    await authFetch("/api/team-access", { method: "POST", body: { instanceName: instanceName.value } });
+    nameSaved.value = true;
+    setTimeout(() => (nameSaved.value = false), 2000);
+  } catch (cause: any) {
+    error.value = cause?.data?.statusMessage || "Name konnte nicht gespeichert werden";
+  } finally {
+    savingName.value = false;
   }
 }
 
@@ -196,6 +214,32 @@ onMounted(load);
             outlined
             class="min-h-11"
             :disabled="customCode.trim().length < 6"
+          />
+        </div>
+      </form>
+
+      <form class="max-w-md space-y-1.5" @submit.prevent="saveInstanceName">
+        <label for="team-instance-name" class="block text-sm font-medium text-[var(--text-2)]">
+          Name in der App
+        </label>
+        <div class="flex gap-2">
+          <PrimeInputText
+            id="team-instance-name"
+            v-model="instanceName"
+            class="min-w-0 flex-1"
+            maxlength="80"
+            placeholder="z. B. Pflegeteam Nord"
+            :disabled="savingName"
+          />
+          <PrimeButton
+            type="submit"
+            :label="nameSaved ? 'Gespeichert' : 'Speichern'"
+            :icon="nameSaved ? 'pi pi-check' : undefined"
+            severity="secondary"
+            outlined
+            class="min-h-11"
+            :loading="savingName"
+            :disabled="!instanceName.trim()"
           />
         </div>
       </form>

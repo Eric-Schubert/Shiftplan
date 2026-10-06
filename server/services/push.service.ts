@@ -7,6 +7,8 @@ const VAPID_PRIVATE_SETTING = "vapid_private_key";
 
 export const PUSH_MESSAGE_MAX_LENGTH = 240;
 const MAX_SUBSCRIPTIONS = 2000;
+const MAX_DEVICES = 5000;
+const MAX_DEVICE_TOKEN_LENGTH = 4096;
 const MAX_ENDPOINT_LENGTH = 1024;
 const MAX_KEY_LENGTH = 256;
 const SEND_BATCH_SIZE = 50;
@@ -29,6 +31,9 @@ export type PushSubscriptionInput = {
   endpoint: string;
   keys: { p256dh: string; auth: string };
 };
+
+export type DevicePlatform = "ios" | "android";
+export type DeviceScope = "all" | "mine";
 
 export type PushPayload = {
   title: string;
@@ -239,6 +244,77 @@ export const PushService = {
   unsubscribe(endpoint: unknown): void {
     if (typeof endpoint !== "string" || endpoint.length > MAX_ENDPOINT_LENGTH) return;
     getAdminDatabase().prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").run(endpoint);
+  },
+
+  /** Native app device with its FCM token. Re-registering updates staff and scope. */
+  registerDevice(input: unknown): void {
+    const device = input as {
+      platform?: unknown;
+      token?: unknown;
+      staffId?: unknown;
+      scope?: unknown;
+    } | null;
+    const invalid = (message: string) => createError({ statusCode: 400, statusMessage: message });
+
+    if (device?.platform !== "ios" && device?.platform !== "android") {
+      throw invalid("Unbekannte Plattform");
+    }
+    const token = device.token;
+    if (
+      typeof token !== "string" ||
+      token.length === 0 ||
+      token.length > MAX_DEVICE_TOKEN_LENGTH ||
+      !/^[A-Za-z0-9:_-]+$/.test(token)
+    ) {
+      throw invalid("Ungültiges Geräte-Token");
+    }
+
+    if (device.scope !== undefined && device.scope !== "all" && device.scope !== "mine") {
+      throw invalid("Ungültiger Benachrichtigungsumfang");
+    }
+    const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
+
+    let staffId: number | null = null;
+    if (device.staffId !== undefined && device.staffId !== null) {
+      const exists =
+        Number.isInteger(device.staffId) &&
+        getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ?").get(device.staffId);
+      if (!exists) throw invalid("Unbekannter Mitarbeiter");
+      staffId = device.staffId as number;
+    }
+    if (scope === "mine" && staffId === null) {
+      throw invalid("Für „nur meine Schichten“ fehlt der Mitarbeiter");
+    }
+
+    const db = getAdminDatabase();
+    const exists = db.prepare("SELECT 1 FROM push_devices WHERE token = ?").get(token);
+    if (!exists && this.countDevices() >= MAX_DEVICES) {
+      throw createError({ statusCode: 429, statusMessage: "Zu viele registrierte Geräte" });
+    }
+
+    db.prepare(
+      `
+        INSERT INTO push_devices (platform, token, staff_id, scope)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(token) DO UPDATE SET
+          platform = excluded.platform,
+          staff_id = excluded.staff_id,
+          scope = excluded.scope,
+          updated_at = datetime('now')
+      `
+    ).run(device.platform, token, staffId, scope);
+  },
+
+  removeDevice(token: unknown): void {
+    if (typeof token !== "string" || token.length > MAX_DEVICE_TOKEN_LENGTH) return;
+    getAdminDatabase().prepare("DELETE FROM push_devices WHERE token = ?").run(token);
+  },
+
+  countDevices(): number {
+    const row = getAdminDatabase()
+      .prepare("SELECT COUNT(*) AS count FROM push_devices")
+      .get() as { count: number };
+    return row.count;
   },
 
   countSubscriptions(): number {
