@@ -1,0 +1,399 @@
+openapi: 3.1.0
+info:
+  title: Shiftplan App API
+  version: "1"
+  description: |
+    Endpunkte, die die Shiftplan-App (iOS/Android) nutzt. Jede Instanz bzw. jeder
+    Mandant hat eine eigene Basis-URL, z. B. https://firma.shiftplan.info.
+
+    Ablauf in der App:
+    1. QR-Code scannen: `https://<instanz>/?zugang=<CODE>`. Basis-URL ist der Origin,
+       der Code steht im Parameter `zugang`. Ohne QR gibt man URL und Code von Hand ein.
+    2. `GET /api/instance` prüft, ob es eine Shiftplan-Instanz mit passender `apiVersion` ist.
+    3. Ist `codeRequired` true: `POST /api/viewer/login` mit `client: app` liefert ein Token.
+       Die App speichert es sicher und schickt es bei jedem Aufruf als
+       `Authorization: Bearer <token>`.
+    4. Plan lesen, optional Push-Gerät registrieren.
+
+    Ein neuer Zugangscode macht alle Tokens ungültig und löscht alle registrierten Geräte.
+    Dann liefern geschützte Endpunkte 401 und die App fragt den Code neu ab.
+
+    `apiVersion` steigt nur bei inkompatiblen Änderungen. Neue Felder können jederzeit
+    dazukommen und sind von der App zu ignorieren.
+servers:
+  - url: https://{instance}
+    variables:
+      instance:
+        default: demo.shiftplan.info
+security:
+  - viewerToken: []
+  - {}
+paths:
+  /api/instance:
+    get:
+      summary: Instanz beschreiben
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Instance"
+
+  /api/viewer/login:
+    post:
+      summary: Mit Zugangscode anmelden
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client]
+              properties:
+                code:
+                  type: string
+                  description: Groß-/Kleinschreibung und Leerzeichen am Rand egal
+                client:
+                  type: string
+                  enum: [app]
+      responses:
+        "200":
+          description: Angemeldet. `token` ist null, wenn die Instanz keinen Code verlangt.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, token, expiresAt]
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: [string, "null"]
+                  expiresAt:
+                    type: [integer, "null"]
+                    description: Unix-Zeit in Millisekunden. Wird bei Nutzung verlängert.
+        "401":
+          $ref: "#/components/responses/Error"
+        "429":
+          description: Zu viele Fehlversuche, 15 Minuten warten
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/viewer/logout:
+    post:
+      summary: Token beenden (z. B. wenn die Instanz aus der App entfernt wird)
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+
+  /api/viewer/status:
+    get:
+      summary: Zugriff prüfen
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [codeRequired, hasAccess]
+                properties:
+                  codeRequired:
+                    type: boolean
+                  hasAccess:
+                    type: boolean
+                  pushPublicKey:
+                    type: [string, "null"]
+                    description: Nur für Web Push im Browser, die App braucht ihn nicht
+
+  /api/shiftplan:
+    get:
+      summary: Wochenplan
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: week
+          in: query
+          description: ISO-Kalenderwoche
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 53
+      responses:
+        "200":
+          description: Plan der Woche. `week.week_id` ist 0, wenn die Woche noch nie geplant wurde.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyPlan"
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/staff:
+    get:
+      summary: Mitarbeitende (für „Ich bin …“)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Staff"
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/holidays/public:
+    get:
+      summary: Feiertage (öffentlich)
+      security: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: week
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum: [national, regional]
+                    nationwide:
+                      type: boolean
+                    states:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Subdivision"
+
+  /api/holidays/school:
+    get:
+      summary: Schulferien (öffentlich)
+      security: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: week
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    start:
+                      type: string
+                      format: date
+                    end:
+                      type: string
+                      format: date
+                    states:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Subdivision"
+
+  /api/push/devices:
+    post:
+      summary: Gerät für Push registrieren oder aktualisieren
+      description: |
+        Mehrfach aufrufbar, z. B. wenn sich das FCM-Token oder „Ich bin …“ ändert.
+        Bei `scope: mine` bekommt das Gerät nur Pushes zu Schichten von `staffId`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [platform, token]
+              properties:
+                platform:
+                  type: string
+                  enum: [ios, android]
+                token:
+                  type: string
+                  description: FCM-Registrierungstoken
+                staffId:
+                  type: [integer, "null"]
+                scope:
+                  type: string
+                  enum: [all, mine]
+                  default: all
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+    delete:
+      summary: Gerät abmelden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+
+components:
+  securitySchemes:
+    viewerToken:
+      type: http
+      scheme: bearer
+
+  responses:
+    Success:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+    Error:
+      description: Fehler mit deutscher Meldung in `statusMessage`
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        statusMessage:
+          type: string
+
+    Instance:
+      type: object
+      required: [name, version, apiVersion, codeRequired]
+      properties:
+        name:
+          type: string
+          description: Anzeigename, im Web unter Einstellungen → Team-Zugang pflegbar
+        version:
+          type: string
+          description: Shiftplan-Version der Instanz
+        apiVersion:
+          type: integer
+          const: 1
+        codeRequired:
+          type: boolean
+
+    Subdivision:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SN
+        name:
+          type: string
+          example: Sachsen
+
+    Staff:
+      type: object
+      properties:
+        staff_id:
+          type: integer
+        name:
+          type: string
+        active:
+          type: integer
+          enum: [0, 1]
+        is_parttime:
+          type: integer
+          enum: [0, 1]
+
+    Shift:
+      type: object
+      properties:
+        shift_id:
+          type: integer
+        name:
+          type: string
+        active:
+          type: integer
+          enum: [0, 1]
+        start_time:
+          type: string
+          example: "06:00"
+        end_time:
+          type: string
+          example: "14:00"
+        color:
+          type: string
+          example: "#22c55e"
+        min_staff:
+          type: integer
+        sort_order:
+          type: integer
+
+    WeeklyPlan:
+      type: object
+      properties:
+        week:
+          type: object
+          properties:
+            week_id:
+              type: integer
+            year:
+              type: integer
+            week_number:
+              type: integer
+        pattern_week:
+          type: integer
+        shifts:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Shift"
+              - type: object
+                properties:
+                  assigned_staff:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Staff"

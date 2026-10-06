@@ -9,10 +9,13 @@ import { TeamAccessService } from "~/server/services/team-access.service";
 
 // Employee routes without a planner login. They check the team access code themselves.
 const TEAM_ROUTES = [
+  "/api/instance",
   "/api/viewer/login",
+  "/api/viewer/logout",
   "/api/viewer/status",
   "/api/push/subscribe",
   "/api/push/unsubscribe",
+  "/api/push/devices",
 ];
 
 
