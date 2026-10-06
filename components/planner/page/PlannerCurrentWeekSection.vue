@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { ShiftWithStaff } from "~/types/shiftplan";
+import type { Absence } from "~/types/absence";
 
 const props = defineProps<{
+  absences: Absence[];
   pending: boolean;
   hasShiftplan: boolean;
   shiftList: ShiftWithStaff[];
@@ -56,9 +58,19 @@ const totalAssigned = computed(() =>
           :shift="shift"
           :year="year"
           :week="week"
+          :absences="absences"
           @updated="emit('updated')"
         />
       </div>
+
+      <PlannerAbsencesPanel
+        v-if="shiftList.length > 0"
+        :absences="absences"
+        :can-edit="canEditShifts"
+        :year="year"
+        :week="week"
+        @updated="emit('updated')"
+      />
 
       <div
         v-if="shiftList.length > 0 && totalAssigned === 0"

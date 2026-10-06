@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ShiftWithStaff, WeeklyShiftplanWithPattern } from "~/types/shiftplan";
+import type { Absence } from "~/types/absence";
 import { useSwipe } from "~/composables/useSwipe";
 
 const appStore = useAppStore();
@@ -33,11 +34,26 @@ const {
   watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
   immediate: !needsAccessCode.value,
 });
+const { data: absences, refresh: refreshAbsences } = await useFetch<Absence[]>("/api/absences", {
+  query: {
+    year: computed(() => appStore.selectedYear),
+    week: computed(() => appStore.selectedWeek),
+  },
+  watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
+  immediate: !needsAccessCode.value,
+  default: () => [],
+});
 const showNotifyDialog = ref(false);
+// Personal app invites are links for the Shiftplan app, not for the browser.
+const openedInvite = ref(typeof route.query.einladung === "string");
+
+async function refreshWeek() {
+  await Promise.all([refresh(), refreshAbsences()]);
+}
 
 async function onAccessGranted() {
   accessError.value = "";
-  await refresh();
+  await refreshWeek();
   void detectPush();
 }
 
@@ -109,6 +125,10 @@ function jumpWeeks(offset: number) {
 }
 
 onMounted(() => {
+  if (openedInvite.value) {
+    const { einladung: _invite, ...query } = route.query;
+    void router.replace({ query });
+  }
   void redeemLinkedCode();
 
   if (!weekPreviewSentinel.value || !("IntersectionObserver" in window)) {
@@ -160,6 +180,27 @@ onBeforeUnmount(() => {
       @notify-team="showNotifyDialog = true"
     />
 
+    <div
+      v-if="openedInvite"
+      class="planner-slab flex items-start gap-3 !py-3"
+      role="status"
+    >
+      <i class="pi pi-info-circle mt-0.5 text-[var(--accent-strong)]" aria-hidden="true"></i>
+      <p class="min-w-0 flex-1 text-sm text-[var(--text-2)]">
+        <span class="font-semibold text-[var(--text-1)]">Das ist ein persönlicher Zugang für die Shiftplan-App.</span>
+        Öffne die App und scanne den QR-Code dort. Im Browser hat der Link keine Funktion.
+      </p>
+      <PrimeButton
+        text
+        rounded
+        icon="pi pi-times"
+        severity="secondary"
+        class="!h-8 !w-8"
+        aria-label="Hinweis schließen"
+        @click="openedInvite = false"
+      />
+    </div>
+
     <PushPromptCard v-if="!authStore.canEditShifts" />
 
     <section class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
@@ -185,7 +226,8 @@ onBeforeUnmount(() => {
           :is-admin="authStore.isAdmin"
           :year="appStore.selectedYear"
           :week="appStore.selectedWeek"
-          @updated="refresh"
+          :absences="absences ?? []"
+          @updated="refreshWeek"
           @generate="generateFromPattern"
         />
       </div>
