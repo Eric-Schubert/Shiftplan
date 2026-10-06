@@ -1,0 +1,446 @@
+import bcrypt from "bcryptjs";
+import {
+  createApp,
+  createError,
+  createRouter,
+  defineEventHandler,
+  deleteCookie,
+  getCookie,
+  getHeader,
+  getMethod,
+  getQuery,
+  getRequestURL,
+  readBody,
+  setCookie,
+  toPlainHandler,
+  type EventHandler,
+  type PlainHandler,
+  type PlainResponse,
+} from "h3";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Database as DatabaseType } from "better-sqlite3";
+import backendConfig from "../config/backend.config.json";
+
+const sendNotification = vi.fn();
+
+vi.mock("web-push", () => ({
+  default: {
+    generateVAPIDKeys: () => ({ publicKey: "test-public-key", privateKey: "test-private-key" }),
+    sendNotification: (...args: unknown[]) => sendNotification(...args),
+  },
+}));
+
+const csrfCookieName = backendConfig.auth.session.cookies.csrfName;
+const FCM_ENDPOINT = "https://fcm.googleapis.com/fcm/send/device-1";
+const APPLE_ENDPOINT = "https://web.push.apple.com/device-2";
+const KEYS = { p256dh: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQ", auth: "tBHItJI5svbpez7KI4CCXg" };
+
+type CookieJar = Map<string, string>;
+type RequestOptions = {
+  body?: unknown;
+  jar?: CookieJar;
+  csrf?: boolean;
+  headers?: Record<string, string>;
+};
+type ApiClient = {
+  mainDb: DatabaseType;
+  adminDb: DatabaseType;
+  push: typeof import("../server/services/push.service");
+  request: <T = any>(
+    method: string,
+    path: string,
+    options?: RequestOptions,
+  ) => Promise<PlainResponse & { json: T | null }>;
+};
+
+const originalCwd = process.cwd();
+const originalBootstrapPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
+let tempDir: string | null = null;
+let closeDatabase: (() => void) | null = null;
+let client: ApiClient;
+
+function installH3Globals() {
+  Object.assign(globalThis, {
+    createError,
+    defineEventHandler,
+    deleteCookie,
+    getCookie,
+    getHeader,
+    getMethod,
+    getQuery,
+    getRequestURL,
+    readBody,
+    setCookie,
+  });
+}
+
+async function loadHandler(importPath: string): Promise<EventHandler> {
+  const module = await import(importPath);
+  return module.default as EventHandler;
+}
+
+function parseBody(body: unknown) {
+  const text = Buffer.isBuffer(body) ? body.toString("utf-8") : body;
+  if (typeof text !== "string" || text.length === 0) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function updateCookieJar(jar: CookieJar | undefined, response: PlainResponse) {
+  if (!jar) return;
+  for (const [name, header] of response.headers) {
+    if (name.toLowerCase() !== "set-cookie") continue;
+    const [pair] = header.split(";");
+    const separator = pair?.indexOf("=") ?? -1;
+    if (!pair || separator === -1) continue;
+    jar.set(pair.slice(0, separator), pair.slice(separator + 1));
+  }
+}
+
+function requestWithCookies(handler: PlainHandler): ApiClient["request"] {
+  return async (method, requestPath, options = {}) => {
+    const headers: Record<string, string> = { ...options.headers };
+    if (options.jar && options.jar.size > 0) {
+      headers.cookie = [...options.jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
+    }
+    if (options.body !== undefined) headers["content-type"] = "application/json";
+    if (options.csrf && options.jar?.get(csrfCookieName)) {
+      headers["x-csrf-token"] = options.jar.get(csrfCookieName)!;
+    }
+
+    const response = await handler({
+      method,
+      path: requestPath,
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+    updateCookieJar(options.jar, response);
+    return { ...response, json: parseBody(response.body) };
+  };
+}
+
+async function createApiClient(): Promise<ApiClient> {
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-team-push-"));
+  process.chdir(tempDir);
+  process.env.SHIFTPLAN_ADMIN_PASSWORD = "BootstrapPass1";
+  vi.resetModules();
+  installH3Globals();
+
+  const databaseModule = await import("../server/utils/database");
+  closeDatabase = databaseModule.closeDatabase;
+  const mainDb = databaseModule.getDatabase();
+  const adminDb = databaseModule.getAdminDatabase();
+
+  mainDb.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Anna");
+  mainDb.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Max");
+  mainDb.prepare(`
+    INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order)
+    VALUES ('Frühschicht', 1, '06:00', '14:00', '#22c55e', 1, 1)
+  `).run();
+  adminDb.prepare("DELETE FROM users").run();
+  const insertUser = adminDb.prepare(`
+    INSERT INTO users (username, password_hash, role, active, created_at)
+    VALUES (?, ?, ?, 1, datetime('now'))
+  `);
+  insertUser.run("admin", bcrypt.hashSync("admin1234", 8), "admin");
+  insertUser.run("planner", bcrypt.hashSync("planner1234", 8), "planner");
+
+  const routes: Array<[string, string, string]> = [
+    ["post", "/api/auth/login", "../server/api/auth/login.post"],
+    ["get", "/api/shiftplan", "../server/api/shiftplan/index.get"],
+    ["post", "/api/shiftplan/assign", "../server/api/shiftplan/assign.post"],
+    ["post", "/api/shiftplan/unassign", "../server/api/shiftplan/unassign.post"],
+    ["post", "/api/viewer/login", "../server/api/viewer/login.post"],
+    ["get", "/api/viewer/status", "../server/api/viewer/status.get"],
+    ["post", "/api/push/subscribe", "../server/api/push/subscribe.post"],
+    ["post", "/api/push/unsubscribe", "../server/api/push/unsubscribe.post"],
+    ["get", "/api/push/status", "../server/api/push/status.get"],
+    ["post", "/api/push/notify", "../server/api/push/notify.post"],
+    ["get", "/api/team-access", "../server/api/team-access/index.get"],
+    ["post", "/api/team-access", "../server/api/team-access/index.post"],
+  ];
+
+  const router = createRouter();
+  for (const [method, route, importPath] of routes) {
+    (router as any)[method](route, await loadHandler(importPath));
+  }
+
+  const app = createApp();
+  app.use(await loadHandler("../server/middleware/auth"));
+  app.use(router.handler);
+
+  return {
+    mainDb,
+    adminDb,
+    push: await import("../server/services/push.service"),
+    request: requestWithCookies(toPlainHandler(app)),
+  };
+}
+
+async function loginAs(username: string, password: string): Promise<CookieJar> {
+  const jar: CookieJar = new Map();
+  const response = await client.request("POST", "/api/auth/login", {
+    jar,
+    body: { username, password },
+  });
+  expect(response.status).toBe(200);
+  return jar;
+}
+
+function currentWeek() {
+  return client.push.getNotifiableWeeks()[0]!;
+}
+
+describe("team access and push e2e", () => {
+  beforeEach(async () => {
+    sendNotification.mockReset();
+    sendNotification.mockResolvedValue({ statusCode: 201 });
+    client = await createApiClient();
+  });
+
+  afterEach(async () => {
+    await client.push.PushService.flushPendingChanges();
+    closeDatabase?.();
+    closeDatabase = null;
+    process.chdir(originalCwd);
+    if (originalBootstrapPassword === undefined) {
+      delete process.env.SHIFTPLAN_ADMIN_PASSWORD;
+    } else {
+      process.env.SHIFTPLAN_ADMIN_PASSWORD = originalBootstrapPassword;
+    }
+    vi.resetModules();
+    if (tempDir) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+      tempDir = null;
+    }
+  });
+
+  it("keeps the plan public and allows push subscriptions while no code is set", async () => {
+    const status = await client.request("GET", "/api/viewer/status");
+    const plan = await client.request("GET", "/api/shiftplan?year=2026&week=12");
+    const subscribe = await client.request("POST", "/api/push/subscribe", {
+      body: { endpoint: FCM_ENDPOINT, keys: KEYS },
+    });
+
+    expect(status.json).toEqual({
+      codeRequired: false,
+      hasAccess: true,
+      pushPublicKey: "test-public-key",
+    });
+    expect(plan.status).toBe(200);
+    expect(subscribe.status).toBe(200);
+    expect(client.push.PushService.countSubscriptions()).toBe(1);
+  });
+
+  it("rejects push endpoints that are not real push services", async () => {
+    for (const endpoint of [
+      "http://fcm.googleapis.com/fcm/send/x",
+      "https://192.168.178.130/internal",
+      "https://evil.example/web.push.apple.com",
+    ]) {
+      const response = await client.request("POST", "/api/push/subscribe", {
+        body: { endpoint, keys: KEYS },
+      });
+      expect(response.status).toBe(400);
+    }
+    expect(client.push.PushService.countSubscriptions()).toBe(0);
+  });
+
+  it("protects the plan behind the access code and lets employees in with it", async () => {
+    const admin = await loginAs("admin", "admin1234");
+    const created = await client.request<{ code: string }>("POST", "/api/team-access", {
+      jar: admin,
+      csrf: true,
+      body: { generate: true },
+    });
+    const code = created.json!.code;
+
+    const anonymousPlan = await client.request("GET", "/api/shiftplan?year=2026&week=12");
+    const anonymousStatus = await client.request("GET", "/api/viewer/status");
+    const anonymousSubscribe = await client.request("POST", "/api/push/subscribe", {
+      body: { endpoint: FCM_ENDPOINT, keys: KEYS },
+    });
+    const wrongCode = await client.request("POST", "/api/viewer/login", {
+      body: { code: "WRONGCODE" },
+    });
+
+    const viewer: CookieJar = new Map();
+    const login = await client.request("POST", "/api/viewer/login", {
+      jar: viewer,
+      body: { code: ` ${code.toLowerCase()} ` },
+    });
+    const viewerPlan = await client.request("GET", "/api/shiftplan?year=2026&week=12", { jar: viewer });
+    const viewerAssign = await client.request("POST", "/api/shiftplan/assign", {
+      jar: viewer,
+      body: { staff_id: 1, shift_id: 1, year: 2026, week: 12 },
+    });
+    const plannerPlan = await client.request("GET", "/api/shiftplan?year=2026&week=12", {
+      jar: await loginAs("planner", "planner1234"),
+    });
+
+    expect(code).toMatch(/^[A-Z2-9]{8}$/);
+    expect(anonymousPlan.status).toBe(401);
+    expect(anonymousStatus.json).toEqual({ codeRequired: true, hasAccess: false, pushPublicKey: null });
+    expect(anonymousSubscribe.status).toBe(401);
+    expect(wrongCode.status).toBe(401);
+    expect(login.status).toBe(200);
+    expect(viewer.get("viewer_token")).toBeTruthy();
+    expect(viewerPlan.status).toBe(200);
+    expect(viewerAssign.status).toBe(401);
+    expect(plannerPlan.status).toBe(200);
+  });
+
+  it("keeps planner logins open after mistyped team codes from the same network", async () => {
+    const admin = await loginAs("admin", "admin1234");
+    await client.request("POST", "/api/team-access", { jar: admin, csrf: true, body: { generate: true } });
+
+    for (let attempt = 0; attempt < backendConfig.auth.loginRateLimit.maxAttempts; attempt += 1) {
+      await client.request("POST", "/api/viewer/login", { body: { code: "WRONGCODE" } });
+    }
+    const blockedViewer = await client.request("POST", "/api/viewer/login", { body: { code: "WRONGCODE" } });
+
+    expect(blockedViewer.status).toBe(429);
+    await loginAs("planner", "planner1234");
+  });
+
+  it("signs out employee devices and drops subscriptions when the code changes", async () => {
+    const admin = await loginAs("admin", "admin1234");
+    await client.request("POST", "/api/team-access", { jar: admin, csrf: true, body: { code: "Team-2026" } });
+
+    const viewer: CookieJar = new Map();
+    await client.request("POST", "/api/viewer/login", { jar: viewer, body: { code: "team-2026" } });
+    await client.request("POST", "/api/push/subscribe", {
+      jar: viewer,
+      body: { endpoint: APPLE_ENDPOINT, keys: KEYS },
+    });
+    expect(client.push.PushService.countSubscriptions()).toBe(1);
+
+    await client.request("POST", "/api/team-access", { jar: admin, csrf: true, body: { code: "Neu-2026" } });
+    const afterRotation = await client.request("GET", "/api/shiftplan?year=2026&week=12", { jar: viewer });
+
+    expect(afterRotation.status).toBe(401);
+    expect(client.push.PushService.countSubscriptions()).toBe(0);
+
+    const removed = await client.request("POST", "/api/team-access", { jar: admin, csrf: true, body: { code: null } });
+    const publicAgain = await client.request("GET", "/api/shiftplan?year=2026&week=12");
+    expect(removed.json).toEqual({ code: null });
+    expect(publicAgain.status).toBe(200);
+  });
+
+  it("only lets admins manage the code and planners send team messages", async () => {
+    const planner = await loginAs("planner", "planner1234");
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: APPLE_ENDPOINT, keys: KEYS } });
+    sendNotification.mockImplementation(async (subscription: { endpoint: string }) => {
+      if (subscription.endpoint === APPLE_ENDPOINT) throw Object.assign(new Error("gone"), { statusCode: 410 });
+      return { statusCode: 201 };
+    });
+
+    const plannerManage = await client.request("POST", "/api/team-access", {
+      jar: planner,
+      csrf: true,
+      body: { generate: true },
+    });
+    const anonymousNotify = await client.request("POST", "/api/push/notify", {
+      body: { message: "Wer kann Samstag?" },
+    });
+    const status = await client.request("GET", "/api/push/status", { jar: planner });
+    const notify = await client.request("POST", "/api/push/notify", {
+      jar: planner,
+      csrf: true,
+      body: { message: "Wer kann Samstag einspringen?" },
+    });
+
+    expect(plannerManage.status).toBe(403);
+    expect(anonymousNotify.status).toBe(401);
+    expect(status.json).toEqual({ subscriberCount: 2 });
+    expect(notify.json).toEqual({ sent: 1, failed: 1 });
+    expect(JSON.parse(sendNotification.mock.calls[0]![1])).toEqual({
+      title: "Nachricht vom Schichtplaner",
+      body: "Wer kann Samstag einspringen?",
+      url: "/",
+    });
+    expect(client.push.PushService.countSubscriptions()).toBe(1);
+  });
+
+  it("bundles changes in the current week into one push and ignores later weeks", async () => {
+    const planner = await loginAs("planner", "planner1234");
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    const { year, week } = currentWeek();
+    const post = (route: string, staffId: number, targetWeek = week) =>
+      client.request("POST", route, {
+        jar: planner,
+        csrf: true,
+        body: { staff_id: staffId, shift_id: 1, year, week: targetWeek },
+      });
+
+    await post("/api/shiftplan/assign", 1);
+    await client.push.PushService.flushPendingChanges();
+    sendNotification.mockClear();
+
+    await post("/api/shiftplan/unassign", 1);
+    await post("/api/shiftplan/assign", 2);
+    await post("/api/shiftplan/assign", 1, week >= 50 ? 1 : week + 5);
+    const result = await client.push.PushService.flushPendingChanges();
+
+    expect(result).toEqual({ sent: 1, failed: 0 });
+    expect(sendNotification).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(sendNotification.mock.calls[0]![1])).toEqual({
+      title: "Schichtplan geändert",
+      body: `KW ${week} · Frühschicht: neu: Max / entfällt: Anna`,
+      url: `/?year=${year}&week=${week}`,
+    });
+  });
+
+  it("does not push changes that cancel each other out", async () => {
+    const planner = await loginAs("planner", "planner1234");
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    const { year, week } = currentWeek();
+    const body = { staff_id: 1, shift_id: 1, year, week };
+
+    await client.request("POST", "/api/shiftplan/assign", { jar: planner, csrf: true, body });
+    await client.request("POST", "/api/shiftplan/unassign", { jar: planner, csrf: true, body });
+
+    expect(await client.push.PushService.flushPendingChanges()).toBeNull();
+    expect(sendNotification).not.toHaveBeenCalled();
+  });
+});
+
+describe("push helpers", () => {
+  it("treats the turn of the year as current and next week", async () => {
+    vi.resetModules();
+    const { getNotifiableWeeks } = await import("../server/services/push.service");
+
+    expect(getNotifiableWeeks(new Date("2026-12-30T12:00:00Z"))).toEqual([
+      { year: 2026, week: 53 },
+      { year: 2027, week: 1 },
+    ]);
+    expect(getNotifiableWeeks(new Date("2026-10-04T23:30:00Z"))).toEqual([
+      { year: 2026, week: 41 },
+      { year: 2026, week: 42 },
+    ]);
+  });
+
+  it("shortens long change lists", async () => {
+    vi.resetModules();
+    const { buildChangePayload } = await import("../server/services/push.service");
+    const changes = Array.from({ length: 6 }, (_, index) => ({
+      year: 2026,
+      week: 41,
+      shiftName: `Schicht ${index + 1}`,
+      shiftOrder: index,
+      staffName: "Anna",
+      delta: 1,
+    }));
+
+    const payload = buildChangePayload(changes)!;
+    expect(payload.body.split("\n")).toHaveLength(5);
+    expect(payload.body).toContain("… und 2 weitere Änderungen");
+  });
+});

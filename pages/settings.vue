@@ -104,6 +104,7 @@ watch(
             <PrimeTab v-if="authStore.isAdmin" value="1" class="whitespace-nowrap">Schichten</PrimeTab>
             <PrimeTab value="2" class="whitespace-nowrap">Rotationsmuster</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="3" class="whitespace-nowrap">Benutzer</PrimeTab>
+            <PrimeTab v-if="authStore.isAdmin" value="7" class="whitespace-nowrap">Team-Zugang</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="5" class="whitespace-nowrap">Besuche</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="6" class="whitespace-nowrap">Kontakt</PrimeTab>
             <PrimeTab v-if="authStore.isAdmin" value="4" class="whitespace-nowrap">Änderungslog</PrimeTab>
@@ -124,6 +125,10 @@ watch(
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="3">
               <UserManager />
+            </PrimeTabPanel>
+
+            <PrimeTabPanel v-if="authStore.isAdmin" value="7">
+              <TeamAccessManager />
             </PrimeTabPanel>
 
             <PrimeTabPanel v-if="authStore.isAdmin" value="5">

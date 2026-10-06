@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e: "jump", offset: number): void;
   (e: "generate"): void;
   (e: "open-bulk"): void;
+  (e: "notify-team"): void;
 }>();
 </script>
 
@@ -54,6 +55,15 @@ const emit = defineEmits<{
           class="min-h-9"
           aria-label="Mehrere Wochen aus dem Muster generieren"
           @click="emit('open-bulk')"
+        />
+        <PrimeButton
+          label="Team benachrichtigen"
+          icon="pi pi-megaphone"
+          severity="secondary"
+          size="small"
+          outlined
+          class="min-h-9"
+          @click="emit('notify-team')"
         />
         <span class="mx-1 hidden h-6 w-px bg-[var(--border-soft)] sm:block" aria-hidden="true"></span>
       </template>

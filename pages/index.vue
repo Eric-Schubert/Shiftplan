@@ -5,6 +5,21 @@ import { useSwipe } from "~/composables/useSwipe";
 const appStore = useAppStore();
 const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
+const route = useRoute();
+const router = useRouter();
+const { status: viewerStatus, load: loadViewerStatus, login: viewerLogin } = useViewerAccess();
+const { detect: detectPush } = usePushNotifications();
+
+// Push notifications link to the changed week.
+const linkedYear = Number(route.query.year);
+const linkedWeek = Number(route.query.week);
+if (Number.isInteger(linkedYear) && Number.isInteger(linkedWeek) && linkedWeek >= 1 && linkedWeek <= 53) {
+  appStore.setWeek(linkedYear, linkedWeek);
+}
+
+await useAsyncData("viewer-status", () => loadViewerStatus());
+const needsAccessCode = computed(() => viewerStatus.value?.hasAccess === false);
+const accessError = ref("");
 
 const {
   data: shiftplan,
@@ -16,7 +31,32 @@ const {
     week: computed(() => appStore.selectedWeek),
   },
   watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
+  immediate: !needsAccessCode.value,
 });
+const showNotifyDialog = ref(false);
+
+async function onAccessGranted() {
+  accessError.value = "";
+  await refresh();
+  void detectPush();
+}
+
+// QR codes carry the access code as ?zugang=…; it is removed from the address bar right away.
+async function redeemLinkedCode() {
+  const code = route.query.zugang;
+  if (typeof code !== "string" || !code) return;
+
+  const { zugang: _removed, ...query } = route.query;
+  await router.replace({ query });
+
+  if (!needsAccessCode.value) return;
+  try {
+    await viewerLogin(code);
+    await onAccessGranted();
+  } catch {
+    accessError.value = "Der Zugangscode aus dem Link ist nicht mehr gültig.";
+  }
+}
 
 const swipeContainer = ref<HTMLElement | null>(null);
 const weekPreviewSentinel = ref<HTMLElement | null>(null);
@@ -69,6 +109,8 @@ function jumpWeeks(offset: number) {
 }
 
 onMounted(() => {
+  void redeemLinkedCode();
+
   if (!weekPreviewSentinel.value || !("IntersectionObserver" in window)) {
     showWeekPreview.value = true;
     return;
@@ -94,7 +136,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="swipeContainer" class="planner-shell">
+  <TeamAccessGate
+    v-if="needsAccessCode"
+    :key="accessError"
+    :initial-error="accessError"
+    @granted="onAccessGranted"
+  />
+
+  <div v-else ref="swipeContainer" class="planner-shell">
     <PlannerWeekHero
       :selected-week="appStore.selectedWeek"
       :selected-year="appStore.selectedYear"
@@ -108,7 +157,10 @@ onBeforeUnmount(() => {
       @jump="jumpWeeks"
       @generate="generateFromPattern"
       @open-bulk="showBulkDialog = true"
+      @notify-team="showNotifyDialog = true"
     />
+
+    <PushPromptCard v-if="!authStore.canEditShifts" />
 
     <section class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
       <div
@@ -168,6 +220,12 @@ onBeforeUnmount(() => {
       :week="appStore.selectedWeek"
       @update:visible="showBulkDialog = $event"
       @generated="refresh"
+    />
+
+    <LazyTeamNotifyDialog
+      v-if="showNotifyDialog"
+      :visible="showNotifyDialog"
+      @update:visible="showNotifyDialog = $event"
     />
   </div>
 </template>
