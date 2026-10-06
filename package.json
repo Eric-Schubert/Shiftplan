@@ -2,6 +2,7 @@
   "name": "schichtplaner",
   "version": "1.6.1",
   "private": true,
+  "license": "FSL-1.1-MIT",
   "type": "module",
   "scripts": {
     "prebuild": "node scripts/resolve-version.js",
