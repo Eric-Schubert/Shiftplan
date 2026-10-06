@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { ShiftWithStaff } from "~/types/shiftplan";
+import type { Absence } from "~/types/absence";
 import { useShiftCardInteractions } from "~/composables/useShiftCardInteractions";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
   year: number;
   week: number;
+  absences?: Absence[];
 }>();
 
 const emit = defineEmits<{ updated: [] }>();
@@ -74,6 +76,7 @@ const {
 
       <ShiftAssigneeList
         :shift="shift"
+        :absences="absences"
         :can-edit="authStore.canEditShifts"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"

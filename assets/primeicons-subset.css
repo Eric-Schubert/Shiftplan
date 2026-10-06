@@ -217,6 +217,10 @@
   content: "\e9fb";
 }
 
+.pi-mobile:before {
+  content: "\e982";
+}
+
 .pi-qrcode:before {
   content: "\e9ce";
 }

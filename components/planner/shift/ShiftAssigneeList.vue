@@ -1,10 +1,28 @@
 <script setup lang="ts">
 import type { ShiftWithStaff } from "~/types/shiftplan";
+import { ABSENCE_REASON_LABELS, formatAbsenceDay, type Absence } from "~/types/absence";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
   canEdit: boolean;
+  absences?: Absence[];
 }>();
+
+// Absences of a person in this shift, or without a shift (planner entries).
+function absencesOf(staffId: number): Absence[] {
+  return (props.absences ?? []).filter(
+    (absence) => absence.staff_id === staffId && (absence.shift_id === null || absence.shift_id === props.shift.shift_id)
+  );
+}
+
+function absenceTitle(absences: Absence[]): string {
+  return absences
+    .map((absence) => {
+      const reason = absence.reason ? ` (${ABSENCE_REASON_LABELS[absence.reason]})` : "";
+      return `Fällt ${formatAbsenceDay(absence.absence_date)} aus${reason}`;
+    })
+    .join("\n");
+}
 
 const emit = defineEmits<{
   (e: "drag-start", event: DragEvent, staffId: number, staffName: string): void;
@@ -27,6 +45,13 @@ const emit = defineEmits<{
     >
       <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">
         {{ staff.name }}
+      </span>
+      <span
+        v-if="absencesOf(staff.staff_id).length > 0"
+        class="rounded bg-[var(--warning-soft)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--warning-ink)]"
+        :title="absenceTitle(absencesOf(staff.staff_id))"
+      >
+        fällt aus {{ absencesOf(staff.staff_id).map((absence) => formatAbsenceDay(absence.absence_date, false)).join(", ") }}
       </span>
       <button
         v-if="canEdit"
