@@ -571,4 +571,4 @@ Functional Source License 1.1 with MIT future license (FSL-1.1-MIT). See [LICENS
 - Self-hosting for your own organization, internal use, education, and research are allowed.
 - Offering Shiftplan to others as a competing commercial product or hosted service is not allowed.
 - Each version automatically becomes available under the MIT license two years after its release.
-- Releases up to and including v2.9.2 remain under the MIT license.
+- Releases published before this change remain under the MIT license.
