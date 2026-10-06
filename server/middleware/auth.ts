@@ -5,7 +5,15 @@ import {
   getCsrfTokenFromRequest,
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
+import { TeamAccessService } from "~/server/services/team-access.service";
 
+// Employee routes without a planner login. They check the team access code themselves.
+const TEAM_ROUTES = [
+  "/api/viewer/login",
+  "/api/viewer/status",
+  "/api/push/subscribe",
+  "/api/push/unsubscribe",
+];
 
 
 function isPublicGetRoute(path: string): boolean {
@@ -29,7 +37,18 @@ export default defineEventHandler((event) => {
   }
 
 
+  if (TEAM_ROUTES.includes(path)) {
+    return;
+  }
+
+
   if (method === "GET" && isPublicGetRoute(path)) {
+    if (TeamAccessService.isProtectedReadRoute(path) && !TeamAccessService.hasReadAccess(event)) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Zugangscode erforderlich",
+      });
+    }
     return;
   }
 

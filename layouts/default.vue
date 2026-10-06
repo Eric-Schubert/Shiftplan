@@ -5,6 +5,9 @@ const dataStore = useDataStore();
 const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const showChangelogDialog = useState<boolean>("showChangelogDialog", () => false);
+const { status: viewerStatus } = useViewerAccess();
+const { state: pushState, dialogOpen: pushDialogOpen, detect: detectPush } = usePushNotifications();
+const showPushButton = computed(() => viewerStatus.value?.hasAccess !== false);
 
 const isSettingsPage = computed(() => route.path === "/settings");
 const currentVersion = String(runtimeConfig.public.appVersion || "").trim();
@@ -31,6 +34,7 @@ watch(
 
 onMounted(() => {
   appStore.initDarkMode();
+  void detectPush();
 });
 </script>
 
@@ -63,6 +67,18 @@ onMounted(() => {
           >
             <i class="pi pi-history text-[0.8rem]" aria-hidden="true"></i>
             <span class="hidden tabular-nums sm:inline">{{ displayCurrentVersion }}</span>
+          </button>
+
+          <button
+            v-if="showPushButton"
+            type="button"
+            class="app-icon-button"
+            :class="{ 'text-[var(--accent-strong)]': pushState === 'on' }"
+            :aria-label="pushState === 'on' ? 'Benachrichtigungen aktiv' : 'Benachrichtigungen einrichten'"
+            :title="pushState === 'on' ? 'Benachrichtigungen aktiv' : 'Benachrichtigungen einrichten'"
+            @click="pushDialogOpen = true"
+          >
+            <i :class="pushState === 'on' ? 'pi pi-bell' : 'pi pi-bell-slash'" class="text-[0.8rem]" aria-hidden="true"></i>
           </button>
 
           <button
@@ -102,5 +118,7 @@ onMounted(() => {
         </NuxtLink>
       </div>
     </footer>
+
+    <LazyPushDialog v-if="pushDialogOpen" />
   </div>
 </template>

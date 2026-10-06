@@ -205,6 +205,22 @@
   content: "\e9ca";
 }
 
+.pi-bell:before {
+  content: "\e97c";
+}
+
+.pi-bell-slash:before {
+  content: "\ea36";
+}
+
+.pi-megaphone:before {
+  content: "\e9fb";
+}
+
+.pi-qrcode:before {
+  content: "\e9ce";
+}
+
 .pi-user:before {
   content: "\e939";
 }

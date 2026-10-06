@@ -1,4 +1,5 @@
 import { AuditService } from "~/server/services/audit.service";
+import { PushService } from "~/server/services/push.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
@@ -32,6 +33,10 @@ export default defineEventHandler(async (event) => {
       shiftId: shift_id,
       staffId: staff_id,
     });
+    PushService.queueShiftChange(
+      { year, week, shiftId: shift_id, staffId: staff_id, action: "assign" },
+      getHeader(event, "origin")
+    );
   }
 
   return { success: true };

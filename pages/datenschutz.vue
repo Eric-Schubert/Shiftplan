@@ -165,6 +165,7 @@ useSeoMeta({
               <li>Benutzerkonten, Rollen, Anmeldezeitpunkte, Sitzungsdaten und CSRF-Sicherheitsdaten.</li>
               <li>Audit-Protokolle zu Zuweisungen und Änderungen im Schichtplan.</li>
               <li>Kontaktangaben und Nachrichten aus dem Kontaktformular.</li>
+              <li>Push-Abonnements (Zustelladresse beim Push-Dienst des Browsers und Schlüssel), sofern Benachrichtigungen aktiviert werden.</li>
               <li>Technische Daten wie User-Agent, Referrer-Domain und grobe Standortdaten, sofern diese durch die Infrastruktur übermittelt werden.</li>
             </ul>
           </div>
@@ -208,6 +209,13 @@ useSeoMeta({
               TDDDG).
             </p>
             <p>
+              Ist der Schichtplan durch einen Team-Zugangscode geschützt, setzt die Anwendung nach
+              Eingabe des Codes das Cookie
+              <span class="font-semibold text-[var(--text-1)]">viewer_token</span>. Es erlaubt nur
+              das Lesen des Plans, ist für JavaScript nicht lesbar und gilt bis zu 180 Tage. Auch
+              dieses Cookie ist technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+            </p>
+            <p>
               Fehlgeschlagene Anmeldeversuche werden zur Angriffserkennung begrenzt. Dafür kann die
               IP-Adresse temporär in einer Rate-Limit-Tabelle verarbeitet werden. Rechtsgrundlage ist
               Art. 6 Abs. 1 lit. f DSGVO; unser Interesse liegt in Zugriffsschutz, Missbrauchsabwehr
@@ -222,7 +230,7 @@ useSeoMeta({
             <p>
               Im Browser werden einzelne Komforteinstellungen lokal gespeichert, zum Beispiel der
               gewählte Hell- oder Dunkelmodus, der zuletzt gelesene Versionshinweis und ob der
-              Installationshinweis der Web-App ausgeblendet wurde. Diese Werte bleiben auf dem Gerät
+              Installations- oder Benachrichtigungshinweis ausgeblendet wurde. Diese Werte bleiben auf dem Gerät
               und werden nicht für Werbung oder externes Tracking genutzt. Die Speicherung ist für
               die gewünschten Einstellungen erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
             </p>
@@ -275,6 +283,18 @@ useSeoMeta({
               Grundlage des Angemessenheitsbeschlusses der EU-Kommission (Art. 45 DSGVO).
             </p>
             <p>
+              Wer Benachrichtigungen aktiviert, erteilt dafür im Browser eine Einwilligung (Art. 6
+              Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Der Browser meldet sich dann beim Push-Dienst
+              seines Herstellers an, zum Beispiel Google (Firebase Cloud Messaging), Apple, Mozilla
+              oder Microsoft. Die Anwendung speichert nur die vom Browser gelieferte Zustelladresse
+              und die zugehörigen Schlüssel. Nachrichten werden Ende-zu-Ende verschlüsselt über den
+              Push-Dienst zugestellt; der Dienst sieht den Inhalt nicht, aber technische Daten wie
+              Zeitpunkt und Zielgerät. Benachrichtigungen enthalten Schicht, Kalenderwoche und Namen
+              der betroffenen Mitarbeitenden, aber keine Gründe für Änderungen. Die Einwilligung lässt
+              sich jederzeit über die Glocke in der Anwendung oder in den Browser-Einstellungen
+              widerrufen.
+            </p>
+            <p>
               Feiertage und Schulferien werden serverseitig über die OpenHolidays API abgerufen.
               Dabei werden keine Namen, Kontaktanfragen oder Schichtzuweisungen an OpenHolidays
               übertragen; die Abfrage enthält im Wesentlichen Jahr, Zeitraum und Bundesland.
@@ -294,6 +314,9 @@ useSeoMeta({
             <p>
               Sitzungen laufen nach 30 Minuten Inaktivität ab. Login-Sperren und Rate-Limits werden
               nur temporär geführt. Besuchsstatistiken werden spätestens nach 90 Tagen bereinigt.
+              Zugänge über den Team-Zugangscode laufen spätestens nach 180 Tagen ohne Nutzung ab. Push-Abonnements
+              werden gelöscht, sobald Benachrichtigungen ausgeschaltet werden, der Zugangscode
+              geändert wird oder der Push-Dienst das Abonnement als ungültig meldet.
             </p>
           </div>
         </section>

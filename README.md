@@ -18,6 +18,8 @@ A browser-based shift planner for small and mid-sized teams. The app works week 
 - Planner role for shift assignments without full admin access
 - Admin area for users, master data, and settings
 - Audit log for manual schedule changes
+- Optional team access code with QR code, so employees can read the plan without an account
+- Push notifications for short-notice changes and team messages (installable web app, no app store)
 - Automated releases, changelog generation, and Docker image publishing via GitHub Actions
 
 ## Quick Start
@@ -117,9 +119,26 @@ Create a Microsoft Entra app registration with the Microsoft Graph application p
 
 | Role | Can View | Can Plan | Can Manage |
 |------|----------|----------|------------|
-| Public | Weekly plan, shifts, rotation | No | No |
+| Public / Team | Weekly plan, shifts, rotation (with the access code if one is set) | No | No |
 | Planner | Everything from the public view | Assign shifts, import/generate rotations | No |
 | Admin | Everything | Everything | Users, staff, shifts, settings |
+
+## Team Access And Push Notifications
+
+Admins can set a team access code under **Settings → Team-Zugang**. Without a code, the plan stays readable for everyone with the link. With a code, employees scan the QR code or enter the code once and stay signed in on that device for up to 180 days. They can only read the plan; changes still need a planner or admin login. A new code signs out every employee device and removes all push subscriptions, for example when someone leaves the team.
+
+Employees enable notifications with the bell in the header. Shiftplan then pushes:
+
+- manual assignments and removals in the current or next calendar week, bundled into one message per minute of editing
+- free-text messages that planners send with **Team benachrichtigen**
+
+Push uses the browser's Web Push service with VAPID keys that each instance generates on first use and stores in the admin database. No central push server or app store account is needed. On iPhones, notifications require iOS 16.4 or later and the web app added to the home screen via Share → Add to Home Screen. Push needs HTTPS (localhost works for development).
+
+The VAPID contact defaults to `mailto:` with `NUXT_PUBLIC_IMPRINT_PUBLIC_EMAIL`. Set it explicitly if needed:
+
+```bash
+SHIFTPLAN_PUSH_SUBJECT=mailto:support@example.com
+```
 
 ## Rotation Planning With Excel
 
@@ -183,7 +202,9 @@ schichtplaner/
 |-- components/
 |   |-- app/
 |   |   |-- ChangelogBanner.vue
-|   |   `-- InstallBanner.vue
+|   |   |-- InstallBanner.vue
+|   |   |-- PushDialog.vue
+|   |   `-- TeamAccessGate.vue
 |   |-- planner/
 |   |   |-- holiday/
 |   |   |   |-- HolidayBannerCard.vue
@@ -192,7 +213,9 @@ schichtplaner/
 |   |   |-- page/
 |   |   |   |-- PlannerBulkGenerateDialog.vue
 |   |   |   |-- PlannerCurrentWeekSection.vue
-|   |   |   `-- PlannerWeekHero.vue
+|   |   |   |-- PlannerWeekHero.vue
+|   |   |   |-- PushPromptCard.vue
+|   |   |   `-- TeamNotifyDialog.vue
 |   |   |-- shift/
 |   |   |   |-- ShiftAssignDialog.vue
 |   |   |   `-- ShiftAssigneeList.vue
@@ -248,6 +271,8 @@ schichtplaner/
 |       |   |-- StaffManagementHeader.vue
 |       |   |-- StaffManagementList.vue
 |       |   `-- StaffManager.vue
+|       |-- team/
+|       |   `-- TeamAccessManager.vue
 |       `-- users/
 |           |-- UserCreateDialog.vue
 |           |-- UserDeleteDialog.vue
@@ -293,6 +318,11 @@ schichtplaner/
 |   |   |-- holidays/
 |   |   |   |-- public.get.ts
 |   |   |   `-- school.get.ts
+|   |   |-- push/
+|   |   |   |-- notify.post.ts
+|   |   |   |-- status.get.ts
+|   |   |   |-- subscribe.post.ts
+|   |   |   `-- unsubscribe.post.ts
 |   |   |-- rotation/
 |   |   |   |-- assign.post.ts
 |   |   |   |-- config.get.ts
@@ -320,6 +350,12 @@ schichtplaner/
 |   |   |   |-- [id].patch.ts
 |   |   |   |-- index.get.ts
 |   |   |   `-- index.post.ts
+|   |   |-- team-access/
+|   |   |   |-- index.get.ts
+|   |   |   `-- index.post.ts
+|   |   |-- viewer/
+|   |   |   |-- login.post.ts
+|   |   |   `-- status.get.ts
 |   |   `-- contact.post.ts
 |   |-- config/
 |   |   |-- analytics-config.ts
@@ -341,11 +377,13 @@ schichtplaner/
 |   |   |-- audit.service.ts
 |   |   |-- contact-mail.service.ts
 |   |   |-- contact.service.ts
+|   |   |-- push.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
 |   |   |-- shift.service.ts
 |   |   |-- shiftplan.service.ts
-|   |   `-- staff.service.ts
+|   |   |-- staff.service.ts
+|   |   `-- team-access.service.ts
 |   `-- utils/
 |       |-- analytics.ts
 |       |-- auth.ts
@@ -480,6 +518,29 @@ schichtplaner/
 | `POST` | `/api/contact` | Authenticated | Yes | - | `company`, `message`, `name`, `replyTo`, `subject` | Create or update contact data |
 | `GET` | `/api/contact/messages` | Admin | No | `limit`, `offset` | - | List contact records |
 | `PATCH` | `/api/contact/messages/:id` | Admin | Yes | - | - | Update one contact record |
+
+### Push API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/push/notify` | Planner/Admin | Yes | - | - | Create or update push data |
+| `GET` | `/api/push/status` | Planner/Admin | No | - | - | List push records |
+| `POST` | `/api/push/subscribe` | Authenticated | Yes | - | - | Create or update push data |
+| `POST` | `/api/push/unsubscribe` | Authenticated | Yes | - | - | Create or update push data |
+
+### Team-access API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/team-access` | Admin | No | - | - | List team-access records |
+| `POST` | `/api/team-access` | Admin | Yes | - | - | Create or update team-access data |
+
+### Viewer API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `POST` | `/api/viewer/login` | Authenticated | Yes | - | `code` | Create or update viewer data |
+| `GET` | `/api/viewer/status` | Authenticated | No | - | - | List viewer records |
 <!-- AUTO-GENERATED-API-END -->
 
 </details>
@@ -528,6 +589,14 @@ schichtplaner/
 | `POST` | `/api/contact` | No | Yes | Yes | Yes |
 | `GET` | `/api/contact/messages` | No | No | Yes | No |
 | `PATCH` | `/api/contact/messages/:id` | No | No | Yes | Yes |
+| `POST` | `/api/push/notify` | No | Yes | Yes | Yes |
+| `GET` | `/api/push/status` | No | Yes | Yes | No |
+| `POST` | `/api/push/subscribe` | No | Yes | Yes | Yes |
+| `POST` | `/api/push/unsubscribe` | No | Yes | Yes | Yes |
+| `GET` | `/api/team-access` | No | No | Yes | No |
+| `POST` | `/api/team-access` | No | No | Yes | Yes |
+| `POST` | `/api/viewer/login` | No | Yes | Yes | Yes |
+| `GET` | `/api/viewer/status` | No | Yes | Yes | No |
 <!-- AUTO-GENERATED-RBAC-END -->
 
 </details>

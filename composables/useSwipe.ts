@@ -2,7 +2,7 @@
 
 
 
-import { ref, onMounted, onUnmounted, type Ref } from "vue";
+import { ref, watch, onUnmounted, type Ref } from "vue";
 
 interface SwipeOptions {
 
@@ -98,20 +98,24 @@ export function useSwipe(
     }
   }
 
-  onMounted(() => {
-    const el = elementRef.value;
-    if (!el) return;
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: true });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-  });
-
-  onUnmounted(() => {
-    const el = elementRef.value;
+  function unbind(el: HTMLElement | null | undefined) {
     if (!el) return;
     el.removeEventListener("touchstart", handleTouchStart);
     el.removeEventListener("touchmove", handleTouchMove);
     el.removeEventListener("touchend", handleTouchEnd);
+  }
+
+  // The element can appear later, e.g. after the team access code was entered.
+  watch(elementRef, (el, previous) => {
+    unbind(previous);
+    if (!el) return;
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: true });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+  }, { immediate: true });
+
+  onUnmounted(() => {
+    unbind(elementRef.value);
   });
 
   return { isSwiping, swipeDirection, swipeOffset };

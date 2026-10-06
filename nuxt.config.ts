@@ -115,6 +115,11 @@ export default defineNuxtConfig({
           "cache-control": "public, max-age=31536000, immutable",
         },
       },
+      "/sw.js": {
+        headers: {
+          "cache-control": "no-cache",
+        },
+      },
     },
   },
 
