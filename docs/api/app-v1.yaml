@@ -6,14 +6,22 @@ info:
     Endpunkte, die die Shiftplan-App (iOS/Android) nutzt. Jede Instanz bzw. jeder
     Mandant hat eine eigene Basis-URL, z. B. https://firma.shiftplan.info.
 
-    Ablauf in der App:
-    1. QR-Code scannen: `https://<instanz>/?zugang=<CODE>`. Basis-URL ist der Origin,
-       der Code steht im Parameter `zugang`. Ohne QR gibt man URL und Code von Hand ein.
+    Ablauf in der App (Mitarbeitende):
+    1. Persönlichen QR-Code scannen, den ein Planer für genau diese Person erzeugt hat:
+       `https://<instanz>/?einladung=<CODE>`. Basis-URL ist der Origin, der Code steht im
+       Parameter `einladung`. Gültig 7 Tage, einmal einlösbar.
     2. `GET /api/instance` prüft, ob es eine Shiftplan-Instanz mit passender `apiVersion` ist.
-    3. Ist `codeRequired` true: `POST /api/viewer/login` mit `client: app` liefert ein Token.
-       Die App speichert es sicher und schickt es bei jedem Aufruf als
+    3. `POST /api/member/redeem` löst den Code ein und liefert ein Token, das an diese Person
+       gebunden ist. Die App speichert es sicher und schickt es bei jedem Aufruf als
        `Authorization: Bearer <token>`.
-    4. Plan lesen, optional Push-Gerät registrieren.
+    4. Plan, Ausfälle und Feiertage lesen, eigene Ausfälle melden, Push-Gerät registrieren.
+
+    Planer melden sich mit `POST /api/auth/login` und `client: app` an und erhalten ebenfalls
+    ein Bearer-Token (14 Tage, verlängert sich bei Nutzung). Mit Bearer-Token ist kein
+    CSRF-Token nötig.
+
+    `POST /api/viewer/login` (Team-Zugangscode) bleibt für die Leseansicht im Browser und
+    ältere App-Versionen.
 
     Pushes an die App kommen über Firebase Cloud Messaging. Sichtbar sind Titel und Text,
     die Datenfelder enthalten:
@@ -47,6 +55,289 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Instance"
+
+  /api/member/redeem:
+    post:
+      summary: Persönlichen QR-Code einlösen
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  description: Groß-/Kleinschreibung, Leerzeichen und Bindestriche egal
+                deviceName:
+                  type: string
+                  maxLength: 60
+                  description: Wird Planern in der Geräteliste angezeigt, z. B. „iPhone von Anna“
+      responses:
+        "200":
+          description: Eingelöst
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, staff, instanceId, instanceName]
+                properties:
+                  token:
+                    type: string
+                  staff:
+                    $ref: "#/components/schemas/StaffRef"
+                  instanceId:
+                    type: string
+                  instanceName:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+
+  /api/member/me:
+    get:
+      summary: Eigene Person zum Mitarbeiter-Token
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  staff:
+                    $ref: "#/components/schemas/StaffRef"
+        "401":
+          description: Token ungültig oder Gerät gesperrt, die App muss neu eingerichtet werden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/member/logout:
+    post:
+      summary: Dieses Gerät abmelden (Token wird gesperrt)
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+
+  /api/member/absences:
+    post:
+      summary: Eigenen Ausfall melden
+      description: |
+        Nur für Tage, an denen die Person in der Woche einer Schicht zugeteilt ist. Ist sie
+        mehreren Schichten zugeteilt, muss `shiftId` gesetzt sein. Ohne `notifyTeam: false`
+        bekommt das Team einen Push „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“,
+        nie mit Grund.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, reason]
+              properties:
+                date:
+                  type: string
+                  format: date
+                shiftId:
+                  type: [integer, "null"]
+                reason:
+                  $ref: "#/components/schemas/AbsenceReason"
+                notifyTeam:
+                  type: boolean
+                  default: true
+                message:
+                  type: string
+                  maxLength: 160
+                  description: Optionaler Zusatztext im Team-Push
+      responses:
+        "200":
+          description: Gemeldet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  absence:
+                    $ref: "#/components/schemas/Absence"
+                  notified:
+                    type: [object, "null"]
+                    properties:
+                      sent:
+                        type: integer
+                      failed:
+                        type: integer
+        "400":
+          $ref: "#/components/responses/Error"
+        "409":
+          description: Für diesen Tag ist schon ein Ausfall eingetragen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/member/absences/{id}:
+    delete:
+      summary: Eigenen Ausfall zurückziehen
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /api/absences:
+    get:
+      summary: Ausfälle einer Woche
+      description: Grund und Notiz sind nur für Planer enthalten.
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: week
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Absence"
+    post:
+      summary: Ausfall für eine Person eintragen (Planer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [staffId, date, reason]
+              properties:
+                staffId:
+                  type: integer
+                date:
+                  type: string
+                  format: date
+                shiftId:
+                  type: [integer, "null"]
+                reason:
+                  $ref: "#/components/schemas/AbsenceReason"
+                note:
+                  type: string
+                  maxLength: 200
+                notifyTeam:
+                  type: boolean
+                  default: false
+                message:
+                  type: string
+                  maxLength: 160
+      responses:
+        "200":
+          description: Eingetragen
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/absences/{id}:
+    delete:
+      summary: Ausfall löschen (Planer)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
+
+  /api/member-invites:
+    post:
+      summary: Persönlichen QR-Code für eine Person erzeugen (Planer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [staffId]
+              properties:
+                staffId:
+                  type: integer
+      responses:
+        "200":
+          description: Code, Ablaufzeit (Unix-Millisekunden) und Pfad für den QR-Link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  expiresAt:
+                    type: integer
+                  path:
+                    type: string
+                    example: /?einladung=K7M2P9QX4R
+
+  /api/member-sessions:
+    get:
+      summary: Eingerichtete App-Geräte (Planer)
+      parameters:
+        - name: staffId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sessionId:
+                      type: string
+                    staffId:
+                      type: integer
+                    staffName:
+                      type: string
+                    deviceName:
+                      type: [string, "null"]
+                    createdAt:
+                      type: integer
+                    lastSeenAt:
+                      type: integer
+
+  /api/member-sessions/{id}:
+    delete:
+      summary: App-Gerät sperren (Planer), entfernt auch dessen Push-Anmeldung
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
 
   /api/viewer/login:
     post:
@@ -333,6 +624,45 @@ components:
           const: 1
         codeRequired:
           type: boolean
+
+    StaffRef:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    AbsenceReason:
+      type: string
+      enum: [krank, privat, sonstiges]
+
+    Absence:
+      type: object
+      properties:
+        absence_id:
+          type: integer
+        staff_id:
+          type: integer
+        staff_name:
+          type: string
+        absence_date:
+          type: string
+          format: date
+        shift_id:
+          type: [integer, "null"]
+        shift_name:
+          type: [string, "null"]
+        reason:
+          $ref: "#/components/schemas/AbsenceReason"
+          description: Nur für Planer und die betroffene Person selbst; nach 90 Tagen gelöscht
+        source:
+          type: string
+          enum: [web, app]
+        created_by:
+          type: string
+        created_at:
+          type: string
 
     Subdivision:
       type: object

@@ -3,6 +3,8 @@ import type { SessionUser } from "~/types/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getAuthConfig, getLoginRateLimitConfig, getSessionDurationMs } from "~/server/config/auth-config";
 
+export type SessionClient = "web" | "app";
+
 type PersistedSession = {
   user_id: number;
   username: string;
@@ -11,7 +13,15 @@ type PersistedSession = {
   created_at: number;
   expires_at: number;
   last_activity: number;
+  client: SessionClient;
 };
+
+// Planners stay signed in on their phone; the device lock protects the app.
+const APP_SESSION_MS = 14 * 24 * 60 * 60 * 1000;
+
+function sessionDurationMs(client: SessionClient): number {
+  return client === "app" ? APP_SESSION_MS : getSessionDurationMs();
+}
 
 type PersistedLoginAttempt = {
   count: number;
@@ -45,7 +55,7 @@ function getSessionRecord(token: string | undefined): PersistedSession | null {
   const session = getAuthDatabase()
     .prepare(
       `
-        SELECT user_id, username, role, csrf_token, created_at, expires_at, last_activity
+        SELECT user_id, username, role, csrf_token, created_at, expires_at, last_activity, client
         FROM auth_sessions
         WHERE session_token = ?
       `
@@ -63,14 +73,18 @@ function toSessionUser(session: PersistedSession): SessionUser {
   };
 }
 
-export function createSession(user: SessionUser): { sessionToken: string; csrfToken: string } {
+export function createSession(
+  user: SessionUser,
+  options: { client?: SessionClient } = {}
+): { sessionToken: string; csrfToken: string; expiresAt: number } {
   cleanupExpiredSessions();
 
+  const client = options.client ?? "web";
   const sessionConfig = getAuthConfig().session;
   const sessionToken = randomBytes(sessionConfig.tokenBytes).toString("hex");
   const csrfToken = randomBytes(sessionConfig.csrfTokenBytes).toString("hex");
   const now = Date.now();
-  const sessionDuration = getSessionDurationMs();
+  const sessionDuration = sessionDurationMs(client);
 
   getAuthDatabase()
     .prepare(
@@ -83,8 +97,9 @@ export function createSession(user: SessionUser): { sessionToken: string; csrfTo
           csrf_token,
           created_at,
           expires_at,
-          last_activity
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          last_activity,
+          client
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
     )
     .run(
@@ -95,10 +110,11 @@ export function createSession(user: SessionUser): { sessionToken: string; csrfTo
       csrfToken,
       now,
       now + sessionDuration,
-      now
+      now,
+      client
     );
 
-  return { sessionToken, csrfToken };
+  return { sessionToken, csrfToken, expiresAt: now + sessionDuration };
 }
 
 export function validateSession(token: string | undefined): boolean {
@@ -116,7 +132,7 @@ export function getSessionData(token: string | undefined): SessionUser | null {
   }
 
   if (getAuthConfig().session.extendOnActivity) {
-    const sessionDuration = getSessionDurationMs();
+    const sessionDuration = sessionDurationMs(session.client ?? "web");
     getAuthDatabase()
       .prepare(
         "UPDATE auth_sessions SET last_activity = ?, expires_at = ? WHERE session_token = ?"

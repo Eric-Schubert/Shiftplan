@@ -1,6 +1,6 @@
 import { getDatabase } from "~/server/utils/database";
 import { getAuditConfig } from "~/server/config/domain-config";
-import type { AuditEntry } from "~/types/auth";
+import type { AuditAction, AuditEntry } from "~/types/auth";
 
 export class AuditService {
 
@@ -9,7 +9,7 @@ export class AuditService {
   static log(params: {
     userId: number;
     username: string;
-    action: "assign" | "unassign";
+    action: AuditAction;
     year: number;
     weekNumber: number;
     shiftId?: number;
@@ -17,6 +17,7 @@ export class AuditService {
     staffId?: number;
     staffName?: string;
     reason?: string;
+    source?: "web" | "app";
   }): void {
     const db = getDatabase();
 
@@ -39,8 +40,8 @@ export class AuditService {
     }
 
     db.prepare(`
-      INSERT INTO audit_log (user_id, username, action, year, week_number, shift_id, shift_name, staff_id, staff_name, reason, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO audit_log (user_id, username, action, year, week_number, shift_id, shift_name, staff_id, staff_name, reason, source, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `).run(
       params.userId,
       params.username,
@@ -52,6 +53,7 @@ export class AuditService {
       params.staffId || null,
       staffName || null,
       params.reason || null,
+      params.source ?? "web",
     );
   }
 
@@ -89,7 +91,7 @@ export class AuditService {
 
     const entries = db
       .prepare(
-        `SELECT * FROM audit_log${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+        `SELECT * FROM audit_log${whereClause} ORDER BY created_at DESC, audit_id DESC LIMIT ? OFFSET ?`
       )
       .all(...params, limit, offset) as AuditEntry[];
 

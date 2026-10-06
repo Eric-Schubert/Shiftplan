@@ -28,11 +28,14 @@ export interface AuditEntry {
   audit_id: number;
   user_id: number;
   username: string;
-  action: "assign" | "unassign";
+  action: AuditAction;
   year: number;
   week_number: number;
   shift_name: string;
   staff_name: string;
   reason: string | null;
+  source: "web" | "app";
   created_at: string;
 }
+
+export type AuditAction = "assign" | "unassign" | "absence" | "absence_cancel";

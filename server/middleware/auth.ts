@@ -18,6 +18,12 @@ const TEAM_ROUTES = [
   "/api/push/devices",
 ];
 
+// Personal app access: these handlers authenticate the staff member themselves.
+const MEMBER_PREFIX = "/api/member/";
+
+// Plan data read by employees, gated like the configured plan routes.
+const BUILTIN_READ_PREFIXES = ["/api/absences"];
+
 
 function isPublicGetRoute(path: string): boolean {
   return getAuthConfig().routes.publicGetPrefixes.some(
@@ -40,13 +46,19 @@ export default defineEventHandler((event) => {
   }
 
 
-  if (TEAM_ROUTES.includes(path)) {
+  if (TEAM_ROUTES.includes(path) || path.startsWith(MEMBER_PREFIX)) {
     return;
   }
 
 
-  if (method === "GET" && isPublicGetRoute(path)) {
-    if (TeamAccessService.isProtectedReadRoute(path) && !TeamAccessService.hasReadAccess(event)) {
+  const isBuiltinRead = BUILTIN_READ_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(prefix + "/")
+  );
+  if (method === "GET" && (isPublicGetRoute(path) || isBuiltinRead)) {
+    if (
+      (isBuiltinRead || TeamAccessService.isProtectedReadRoute(path)) &&
+      !TeamAccessService.hasReadAccess(event)
+    ) {
       throw createError({
         statusCode: 401,
         statusMessage: "Zugangscode erforderlich",
@@ -67,7 +79,9 @@ export default defineEventHandler((event) => {
   }
 
 
-  if (getAuthConfig().routes.csrfMethods.includes(method)) {
+  // CSRF protects ambient cookies. A Bearer token is sent explicitly by the app.
+  const usesBearer = getHeader(event, "authorization")?.startsWith("Bearer ") ?? false;
+  if (!usesBearer && getAuthConfig().routes.csrfMethods.includes(method)) {
     const csrfToken = getCsrfTokenFromRequest(event);
     const csrfValid = validateCsrfToken(token, csrfToken);
 

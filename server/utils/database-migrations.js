@@ -436,6 +436,41 @@ const MAIN_MIGRATIONS = [
         "CREATE INDEX IF NOT EXISTS idx_page_visits_country_date ON page_visits(visit_date, country_code)"
       );
     },
+  },  {
+    id: "005_main_absences_schema",
+    description: "Create day-level absences and audit source",
+    shouldRun(database) {
+      return (
+        !tableExists(database, "absences") ||
+        !indexExists(database, "idx_absences_active_staff_date") ||
+        hasMissingColumns(database, "audit_log", ["source"])
+      );
+    },
+    up(database) {
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS absences (
+          absence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          staff_id INTEGER NOT NULL,
+          absence_date TEXT NOT NULL,
+          shift_id INTEGER,
+          reason TEXT CHECK(reason IS NULL OR reason IN ('krank', 'privat', 'sonstiges')),
+          note TEXT,
+          source TEXT NOT NULL DEFAULT 'web' CHECK(source IN ('web', 'app')),
+          created_by TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          cancelled_at TEXT,
+          FOREIGN KEY (staff_id) REFERENCES staff(staff_id) ON DELETE CASCADE,
+          FOREIGN KEY (shift_id) REFERENCES shifts(shift_id) ON DELETE SET NULL
+        )
+      `);
+      database.exec("CREATE INDEX IF NOT EXISTS idx_absences_date ON absences(absence_date)");
+      database.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_absences_active_staff_date
+        ON absences(staff_id, absence_date) WHERE cancelled_at IS NULL
+      `);
+
+      addColumnIfMissing(database, "audit_log", "source", "TEXT NOT NULL DEFAULT 'web'");
+    },
   },
 ];
 
@@ -731,6 +766,48 @@ const ADMIN_MIGRATIONS = [
           updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         )
       `);
+    },
+  },  {
+    id: "010_admin_member_access_schema",
+    description: "Create personal app invites, member sessions and app planner sessions",
+    shouldRun(database) {
+      return (
+        !tableExists(database, "member_invites") ||
+        !tableExists(database, "member_sessions") ||
+        hasMissingColumns(database, "push_devices", ["member_session"]) ||
+        hasMissingColumns(database, "auth_sessions", ["client"])
+      );
+    },
+    up(database) {
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS member_invites (
+          invite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          staff_id INTEGER NOT NULL,
+          code_hash TEXT NOT NULL UNIQUE,
+          created_by TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL,
+          used_at INTEGER
+        )
+      `);
+
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS member_sessions (
+          session_id TEXT PRIMARY KEY,
+          token_hash TEXT NOT NULL UNIQUE,
+          staff_id INTEGER NOT NULL,
+          device_name TEXT,
+          created_at INTEGER NOT NULL,
+          last_seen_at INTEGER NOT NULL,
+          revoked_at INTEGER
+        )
+      `);
+      database.exec(
+        "CREATE INDEX IF NOT EXISTS idx_member_sessions_staff ON member_sessions(staff_id)"
+      );
+
+      addColumnIfMissing(database, "push_devices", "member_session", "TEXT");
+      addColumnIfMissing(database, "auth_sessions", "client", "TEXT NOT NULL DEFAULT 'web'");
     },
   },
 ];

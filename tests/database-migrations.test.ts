@@ -23,8 +23,13 @@ describe("database migrations", () => {
       "002_main_rotation_schema",
       "003_main_audit_schema",
       "004_main_page_visits_schema",
+      "005_main_absences_schema",
     ]);
     expect(second.applied).toHaveLength(0);
+    expect(columnNames(db, "absences")).toEqual(
+      expect.arrayContaining(["staff_id", "absence_date", "shift_id", "reason", "source", "cancelled_at"])
+    );
+    expect(columnNames(db, "audit_log")).toContain("source");
     expect(columnNames(db, "staff")).toEqual(
       expect.arrayContaining(["staff_id", "name", "active", "is_parttime"])
     );
