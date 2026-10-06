@@ -5,7 +5,7 @@
 ![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D?logo=vue.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.x-3178C6?logo=typescript)
 ![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?logo=sqlite)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-FSL--1.1--MIT-blue)
 
 A browser-based shift planner for small and mid-sized teams. The app works week by week, supports fixed rotation patterns, and lets planners maintain schedules directly in the browser.
 
@@ -566,4 +566,9 @@ Hidden from releases: `refactor:`, `style:`, `test:`, `chore:`, `ci:`, `docs:`, 
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Functional Source License 1.1 with MIT future license (FSL-1.1-MIT). See [LICENSE](LICENSE).
+
+- Self-hosting for your own organization, internal use, education, and research are allowed.
+- Offering Shiftplan to others as a competing commercial product or hosted service is not allowed.
+- Each version automatically becomes available under the MIT license two years after its release.
+- Releases published before this change remain under the MIT license.
