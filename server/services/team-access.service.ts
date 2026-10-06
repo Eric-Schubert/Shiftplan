@@ -4,6 +4,7 @@ import { getSessionData, getSessionToken } from "~/server/utils/session";
 
 const ACCESS_CODE_SETTING = "viewer_access_code";
 const INSTANCE_NAME_SETTING = "instance_name";
+const INSTANCE_ID_SETTING = "instance_uid";
 const DEFAULT_INSTANCE_NAME = "Schichtplaner";
 export const INSTANCE_NAME_MAX_LENGTH = 80;
 const ACCESS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -35,6 +36,18 @@ function getBearerToken(event: any): string | undefined {
 }
 
 export const TeamAccessService = {
+  /** Stable random ID, so the app can tell which saved instance a push belongs to. */
+  getInstanceId(): string {
+    const existing = getSetting(INSTANCE_ID_SETTING);
+    if (existing) return existing;
+
+    const id = randomBytes(12).toString("base64url");
+    getAdminDatabase()
+      .prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)")
+      .run(INSTANCE_ID_SETTING, id);
+    return getSetting(INSTANCE_ID_SETTING)!;
+  },
+
   getInstanceName(): string {
     return getSetting(INSTANCE_NAME_SETTING) || DEFAULT_INSTANCE_NAME;
   },

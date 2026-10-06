@@ -5,6 +5,7 @@ const APP_API_VERSION = 1;
 
 export default defineEventHandler(() => {
   return {
+    instanceId: TeamAccessService.getInstanceId(),
     name: TeamAccessService.getInstanceName(),
     version: String(useRuntimeConfig().public.appVersion || ""),
     apiVersion: APP_API_VERSION,

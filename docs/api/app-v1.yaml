@@ -15,6 +15,13 @@ info:
        `Authorization: Bearer <token>`.
     4. Plan lesen, optional Push-Gerät registrieren.
 
+    Pushes an die App kommen über Firebase Cloud Messaging. Sichtbar sind Titel und Text,
+    die Datenfelder enthalten:
+    - `instanceId`: wie in `GET /api/instance`, ordnet den Push der gespeicherten Instanz zu
+    - `url`: Pfad, der geöffnet werden soll, z. B. `/?year=2026&week=41`
+    - `year`, `week`: nur bei Planänderungen
+    Automatische Änderungs-Pushes nennen nur Kalenderwochen und Schichten, keine Namen.
+
     Ein neuer Zugangscode macht alle Tokens ungültig und löscht alle registrierten Geräte.
     Dann liefern geschützte Endpunkte 401 und die App fragt den Code neu ab.
 
@@ -310,8 +317,11 @@ components:
 
     Instance:
       type: object
-      required: [name, version, apiVersion, codeRequired]
+      required: [instanceId, name, version, apiVersion, codeRequired]
       properties:
+        instanceId:
+          type: string
+          description: Feste, zufällige ID der Instanz. Steht auch in jedem Push an die App.
         name:
           type: string
           description: Anzeigename, im Web unter Einstellungen → Team-Zugang pflegbar

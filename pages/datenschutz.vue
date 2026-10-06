@@ -166,6 +166,7 @@ useSeoMeta({
               <li>Audit-Protokolle zu Zuweisungen und Änderungen im Schichtplan.</li>
               <li>Kontaktangaben und Nachrichten aus dem Kontaktformular.</li>
               <li>Push-Abonnements (Zustelladresse beim Push-Dienst des Browsers und Schlüssel), sofern Benachrichtigungen aktiviert werden.</li>
+              <li>Bei Nutzung der Shiftplan-App: Gerätetoken für Push, Plattform (iOS/Android) und optional der eigene Eintrag in der Mitarbeiterliste für „nur meine Schichten“.</li>
               <li>Technische Daten wie User-Agent, Referrer-Domain und grobe Standortdaten, sofern diese durch die Infrastruktur übermittelt werden.</li>
             </ul>
           </div>
@@ -295,6 +296,20 @@ useSeoMeta({
               widerrufen.
             </p>
             <p>
+              Nutzt jemand die Shiftplan-App mit Benachrichtigungen, laufen Pushes über den
+              Push-Dienst push.shiftplan.info von ES Software und Firebase Cloud Messaging (Google
+              Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland), auf iPhones
+              zusätzlich über den Apple Push Notification Service. Diese Nachrichten sind nicht
+              Ende-zu-Ende-verschlüsselt. Automatische Hinweise auf Planänderungen enthalten deshalb
+              nur Kalenderwoche und Schicht, keine Namen. Nachrichten der Planung an das Team
+              enthalten deren Text. Der Push-Dienst speichert weder Inhalte noch Gerätetokens.
+              Google ist unter dem EU-US Data Privacy Framework zertifiziert; soweit Daten in die USA
+              übermittelt werden, erfolgt dies auf Grundlage des Angemessenheitsbeschlusses der
+              EU-Kommission (Art. 45 DSGVO). Rechtsgrundlage ist die Einwilligung beim Aktivieren der
+              Benachrichtigungen in der App (Art. 6 Abs. 1 lit. a DSGVO), widerrufbar in der App oder
+              in den Systemeinstellungen.
+            </p>
+            <p>
               Feiertage und Schulferien werden serverseitig über die OpenHolidays API abgerufen.
               Dabei werden keine Namen, Kontaktanfragen oder Schichtzuweisungen an OpenHolidays
               übertragen; die Abfrage enthält im Wesentlichen Jahr, Zeitraum und Bundesland.
@@ -315,8 +330,8 @@ useSeoMeta({
               Sitzungen laufen nach 30 Minuten Inaktivität ab. Login-Sperren und Rate-Limits werden
               nur temporär geführt. Besuchsstatistiken werden spätestens nach 90 Tagen bereinigt.
               Zugänge über den Team-Zugangscode laufen spätestens nach 180 Tagen ohne Nutzung ab. Push-Abonnements
-              werden gelöscht, sobald Benachrichtigungen ausgeschaltet werden, der Zugangscode
-              geändert wird oder der Push-Dienst das Abonnement als ungültig meldet.
+              und App-Gerätetokens werden gelöscht, sobald Benachrichtigungen ausgeschaltet werden,
+              der Zugangscode geändert wird oder der Push-Dienst sie als ungültig meldet.
             </p>
           </div>
         </section>

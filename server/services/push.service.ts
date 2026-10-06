@@ -1,6 +1,8 @@
 import webpush from "web-push";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { getHolidayConfig } from "~/server/config/holiday-config";
+import { PushRelayService, type NativeMessage } from "~/server/services/push-relay.service";
+import { TeamAccessService } from "~/server/services/team-access.service";
 
 const VAPID_PUBLIC_SETTING = "vapid_public_key";
 const VAPID_PRIVATE_SETTING = "vapid_private_key";
@@ -61,9 +63,18 @@ type PendingChange = {
   week: number;
   shiftName: string;
   shiftOrder: number;
+  staffId: number;
   staffName: string;
   delta: number;
 };
+
+type StoredDevice = {
+  token: string;
+  staff_id: number | null;
+  scope: DeviceScope;
+};
+
+type SendCounts = { sent: number; failed: number };
 
 const pendingChanges = new Map<string, PendingChange>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -198,6 +209,89 @@ export function buildChangePayload(changes: PendingChange[]): PushPayload | null
   };
 }
 
+function sortChanges(changes: PendingChange[]): PendingChange[] {
+  return [...changes].sort(
+    (a, b) =>
+      a.year - b.year ||
+      a.week - b.week ||
+      a.shiftOrder - b.shiftOrder ||
+      a.shiftName.localeCompare(b.shiftName, "de")
+  );
+}
+
+/** "KW 41: Frühschicht, Spätschicht · KW 42: Nacht" without any staff names. */
+function summarizeShifts(changes: PendingChange[]): string {
+  const weeks = new Map<string, { week: number; shifts: string[] }>();
+  for (const change of sortChanges(changes)) {
+    const key = `${change.year}-${change.week}`;
+    const entry = weeks.get(key) || { week: change.week, shifts: [] };
+    if (!entry.shifts.includes(change.shiftName)) entry.shifts.push(change.shiftName);
+    weeks.set(key, entry);
+  }
+  return [...weeks.values()].map((entry) => `KW ${entry.week}: ${entry.shifts.join(", ")}`).join(" · ");
+}
+
+/**
+ * App pushes go through Google/Apple without end-to-end encryption, so they only
+ * name weeks and shifts. Devices with "only mine" hear about their own shifts.
+ */
+export function buildNativeMessages(
+  changes: PendingChange[],
+  devices: StoredDevice[],
+  instanceId: string
+): NativeMessage[] {
+  const effective = changes.filter((change) => change.delta !== 0);
+  if (effective.length === 0 || devices.length === 0) return [];
+
+  const dataFor = (relevant: PendingChange[]) => {
+    const first = sortChanges(relevant)[0]!;
+    return {
+      instanceId,
+      url: `/?year=${first.year}&week=${first.week}`,
+      year: String(first.year),
+      week: String(first.week),
+    };
+  };
+
+  const messages = new Map<string, NativeMessage>();
+  const add = (title: string, relevant: PendingChange[], token: string) => {
+    const body = summarizeShifts(relevant);
+    const key = `${title}|${body}`;
+    const message: NativeMessage = messages.get(key) || {
+      title,
+      body,
+      data: dataFor(relevant),
+      tokens: [],
+    };
+    message.tokens.push(token);
+    messages.set(key, message);
+  };
+
+  for (const device of devices) {
+    if (device.scope === "all") {
+      add("Schichtplan geändert", effective, device.token);
+      continue;
+    }
+    const own = effective.filter((change) => change.staffId === device.staff_id);
+    if (own.length > 0) add("Deine Schicht hat sich geändert", own, device.token);
+  }
+
+  return [...messages.values()];
+}
+
+function relayInstance() {
+  return {
+    name: TeamAccessService.getInstanceName(),
+    url: lastOrigin?.startsWith("https://") ? lastOrigin : null,
+  };
+}
+
+function listDevices(): StoredDevice[] {
+  return getAdminDatabase()
+    .prepare("SELECT token, staff_id, scope FROM push_devices")
+    .all() as StoredDevice[];
+}
+
 export const PushService = {
   getPublicKey(): string {
     const existing = getSetting(VAPID_PUBLIC_SETTING);
@@ -324,7 +418,33 @@ export const PushService = {
     return row.count;
   },
 
-  async sendToAll(payload: PushPayload): Promise<{ sent: number; failed: number }> {
+  /** Browsers with Web Push plus devices with the app. */
+  countRecipients(): number {
+    return this.countSubscriptions() + this.countDevices();
+  },
+
+  /** Team message from a planner: browsers and app devices get the same text. */
+  async sendToAll(payload: PushPayload): Promise<SendCounts> {
+    const web = await this.sendWebPush(payload);
+    const tokens = listDevices().map((device) => device.token);
+    const native = await this.sendNative([
+      {
+        title: payload.title,
+        body: payload.body,
+        data: { instanceId: TeamAccessService.getInstanceId(), url: payload.url },
+        tokens,
+      },
+    ]);
+    return { sent: web.sent + native.sent, failed: web.failed + native.failed };
+  },
+
+  async sendNative(messages: NativeMessage[]): Promise<SendCounts> {
+    const result = await PushRelayService.send(messages, relayInstance());
+    for (const token of result.invalidTokens) this.removeDevice(token);
+    return { sent: result.sent, failed: result.failed };
+  },
+
+  async sendWebPush(payload: PushPayload): Promise<SendCounts> {
     const subscriptions = getAdminDatabase()
       .prepare("SELECT subscription_id, endpoint, p256dh, auth FROM push_subscriptions")
       .all() as StoredSubscription[];
@@ -408,6 +528,7 @@ export const PushService = {
       week: change.week,
       shiftName: shift.name,
       shiftOrder: shift.sort_order,
+      staffId: change.staffId,
       staffName: staff.name,
       delta: 0,
     };
@@ -424,16 +545,21 @@ export const PushService = {
     }, delay);
   },
 
-  async flushPendingChanges(): Promise<{ sent: number; failed: number } | null> {
+  async flushPendingChanges(): Promise<SendCounts | null> {
     if (flushTimer) clearTimeout(flushTimer);
     flushTimer = null;
 
-    const payload = buildChangePayload([...pendingChanges.values()]);
+    const changes = [...pendingChanges.values()];
     pendingChanges.clear();
+    const payload = buildChangePayload(changes);
     if (!payload) return null;
 
     try {
-      return await this.sendToAll(payload);
+      const web = await this.sendWebPush(payload);
+      const native = await this.sendNative(
+        buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())
+      );
+      return { sent: web.sent + native.sent, failed: web.failed + native.failed };
     } catch (error) {
       console.error("[push] Änderungs-Push fehlgeschlagen:", error);
       return null;
