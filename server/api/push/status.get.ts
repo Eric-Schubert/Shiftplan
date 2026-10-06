@@ -3,5 +3,5 @@ import { requirePlanner } from "~/server/utils/auth";
 
 export default defineEventHandler((event) => {
   requirePlanner(event);
-  return { subscriberCount: PushService.countSubscriptions() };
+  return { subscriberCount: PushService.countRecipients() };
 });

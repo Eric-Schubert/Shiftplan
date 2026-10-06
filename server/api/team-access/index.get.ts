@@ -8,6 +8,6 @@ export default defineEventHandler((event) => {
   return {
     code: TeamAccessService.getAccessCode(),
     instanceName: TeamAccessService.getInstanceName(),
-    subscriberCount: PushService.countSubscriptions(),
+    subscriberCount: PushService.countRecipients(),
   };
 });

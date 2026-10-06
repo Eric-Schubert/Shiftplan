@@ -140,6 +140,12 @@ The VAPID contact defaults to `mailto:` with `NUXT_PUBLIC_IMPRINT_PUBLIC_EMAIL`.
 SHIFTPLAN_PUSH_SUBJECT=mailto:support@example.com
 ```
 
+Pushes to the native Shiftplan app go through the push relay at `https://push.shiftplan.info`, which forwards them to Firebase Cloud Messaging. The instance registers itself with the relay the first time an app device needs a push and stores the credentials in the admin database. App pushes never contain staff names, only calendar weeks and shifts. Nothing is sent to the relay as long as no app device is registered. To switch app pushes off entirely:
+
+```bash
+SHIFTPLAN_PUSH_RELAY_URL=off
+```
+
 ## Rotation Planning With Excel
 
 Planners and admins can maintain rotation patterns with an Excel file:
@@ -381,6 +387,7 @@ schichtplaner/
 |   |   |-- audit.service.ts
 |   |   |-- contact-mail.service.ts
 |   |   |-- contact.service.ts
+|   |   |-- push-relay.service.ts
 |   |   |-- push.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
