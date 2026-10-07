@@ -348,6 +348,34 @@ useSeoMeta({
           </div>
         </section>
 
+        <section id="app-daten-loeschen" class="planner-panel scroll-mt-6">
+          <p class="planner-kicker">App-Daten löschen</p>
+          <div class="mt-3 space-y-3 text-sm leading-7 text-[var(--text-2)]">
+            <p>So entfernst du die Daten, die die Shiftplan-App (iOS und Android) speichert:</p>
+            <ol class="list-decimal space-y-1 pl-5">
+              <li>
+                In der App Menü → Einstellungen → „Von diesem Gerät entfernen“ tippen. Das meldet das
+                Gerät ab und löscht den App-Zugang, das Gerätetoken für Benachrichtigungen und den
+                zwischengespeicherten Plan sofort.
+              </li>
+              <li>
+                Name, Schichten und eingetragene Ausfälle gehören zum Schichtplan deines Teams. Löschen
+                kann sie die Planung deiner Firma in Shiftplan (Mitarbeiter bzw. Ausfälle entfernen).
+              </li>
+              <li>
+                Für Instanzen unter shiftplan.info kannst du die Löschung auch direkt bei uns anfordern:
+                <a class="text-[var(--accent-strong)] underline" href="mailto:support@es-software.eu">support@es-software.eu</a>.
+                Wir löschen innerhalb von 30 Tagen. Selbst betriebene Instanzen verwaltet der jeweilige Betreiber.
+              </li>
+            </ol>
+            <p>
+              Gründe von Ausfällen werden unabhängig davon nach 90 Tagen automatisch gelöscht. Einträge im
+              Änderungsprotokoll bewahrt die Planung auf, solange sie für die Nachvollziehbarkeit des Plans
+              nötig sind.
+            </p>
+          </div>
+        </section>
+
         <section class="planner-panel">
           <p class="planner-kicker">9. Rechte betroffener Personen</p>
           <div class="mt-3 space-y-3 text-sm leading-7 text-[var(--text-2)]">
