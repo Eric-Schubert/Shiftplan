@@ -134,6 +134,31 @@ describe("personal app access", () => {
     expect(inactive.status).toBe(404);
   });
 
+  it("lets everyone use the demo code again and again, but only where it is configured", async () => {
+    const redeem = (code: string) =>
+      client.request<{ staff: { id: number; name: string } }>("POST", "/api/member/redeem", {
+        body: { code, deviceName: "Review" },
+      });
+
+    const disabled = await redeem("DEMO");
+    process.env.SHIFTPLAN_DEMO_MEMBER_CODE = "demo";
+    process.env.SHIFTPLAN_DEMO_MEMBER_NAME = "Max Mustermann";
+    try {
+      const first = await redeem("DEMO");
+      const second = await redeem(" de-mo ");
+      const wrong = await redeem("DEMO2");
+
+      expect(first.status).toBe(200);
+      expect(first.json!.staff).toEqual({ id: MAX, name: "Max Mustermann" });
+      expect(second.status).toBe(200);
+      expect(wrong.status).toBe(401);
+    } finally {
+      delete process.env.SHIFTPLAN_DEMO_MEMBER_CODE;
+      delete process.env.SHIFTPLAN_DEMO_MEMBER_NAME;
+    }
+    expect(disabled.status).toBe(401);
+  });
+
   it("gives read access behind the team code but no planner rights", async () => {
     const { token } = await inviteAndRedeem(ANNA);
     const admin = await client.loginAs("admin", "admin1234");

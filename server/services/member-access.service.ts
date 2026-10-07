@@ -36,6 +36,24 @@ function getBearerToken(event: any): string | undefined {
   return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
 }
 
+/**
+ * Public demo only: a reusable code (`SHIFTPLAN_DEMO_MEMBER_CODE`) that signs in as one
+ * demo person, so store reviewers and visitors can try the app without a QR code.
+ */
+function demoStaffId(code: string): number | null {
+  const demoCode = process.env.SHIFTPLAN_DEMO_MEMBER_CODE?.trim();
+  if (!demoCode || normalizeCode(code) !== normalizeCode(demoCode)) return null;
+  const name = process.env.SHIFTPLAN_DEMO_MEMBER_NAME?.trim();
+  const row = getDatabase()
+    .prepare(
+      name
+        ? "SELECT staff_id FROM staff WHERE active = 1 AND name = ?"
+        : "SELECT staff_id FROM staff WHERE active = 1 ORDER BY staff_id LIMIT 1"
+    )
+    .get(...(name ? [name] : [])) as { staff_id: number } | undefined;
+  return row?.staff_id ?? null;
+}
+
 function staffName(staffId: number): string | null {
   const row = getDatabase()
     .prepare("SELECT name FROM staff WHERE staff_id = ? AND active = 1")
@@ -71,11 +89,15 @@ export const MemberAccessService = {
   redeem(code: string, deviceName: string | null): { token: string; member: Member } | null {
     const db = getAdminDatabase();
     const now = Date.now();
-    const invite = db
-      .prepare(
-        "SELECT invite_id, staff_id FROM member_invites WHERE code_hash = ? AND used_at IS NULL AND expires_at > ?"
-      )
-      .get(sha256(normalizeCode(code)), now) as { invite_id: number; staff_id: number } | undefined;
+    const demoStaff = demoStaffId(code);
+    const invite =
+      demoStaff !== null
+        ? { invite_id: null, staff_id: demoStaff }
+        : (db
+            .prepare(
+              "SELECT invite_id, staff_id FROM member_invites WHERE code_hash = ? AND used_at IS NULL AND expires_at > ?"
+            )
+            .get(sha256(normalizeCode(code)), now) as { invite_id: number; staff_id: number } | undefined);
     if (!invite) return null;
 
     const name = staffName(invite.staff_id);
@@ -84,7 +106,10 @@ export const MemberAccessService = {
     const token = randomBytes(32).toString("hex");
     const sessionId = randomBytes(9).toString("base64url");
     db.transaction(() => {
-      db.prepare("UPDATE member_invites SET used_at = ? WHERE invite_id = ?").run(now, invite.invite_id);
+      // The demo code stays valid for everyone.
+      if (invite.invite_id !== null) {
+        db.prepare("UPDATE member_invites SET used_at = ? WHERE invite_id = ?").run(now, invite.invite_id);
+      }
       db.prepare(
         `
           INSERT INTO member_sessions (session_id, token_hash, staff_id, device_name, created_at, last_seen_at)

@@ -151,7 +151,11 @@ SHIFTPLAN_PUSH_RELAY_URL=off
 
 Planners create a personal QR code for one employee (`POST /api/member-invites`). The Shiftplan app redeems it once within 7 days and receives a token bound to that person, so nobody can act as someone else. Planners see and revoke devices; revoking also removes the device's push registration.
 
-Employees report their own absence for a day they are assigned to (sick, private, other). The shift counts as open that day, and the team gets a push such as "Anna Weber fällt Do. 08.10. aus – Frühschicht offen". The reason is only visible to planners and is deleted 90 days after the absence date. Every change made in the app appears in the audit log as "über App".
+Employees report their own absence for one day or a range of up to 8 weeks (vacation, private, other), also for weeks that are not planned yet. The shift counts as open on those days, and the team gets one push such as "Anna Weber fällt Do. 08.10. aus – Frühschicht offen". The reason is only visible to planners and is deleted 90 days after the absence date. Every change made in the app appears in the audit log as "über App".
+
+The weekly plan stays the basis; planners can additionally put someone into or out of a shift for a single day (`POST /api/shiftplan/day-change`).
+
+For a public demo instance, `SHIFTPLAN_DEMO_MEMBER_CODE` enables a reusable code that signs in as one person (`SHIFTPLAN_DEMO_MEMBER_NAME`, default: first active employee). It lets store reviewers and visitors try the app without a QR code. Never set it on a real instance.
 
 Planners can sign in to the app with `client: "app"` and get a Bearer token valid for 14 days with sliding renewal. Requests with a Bearer token need no CSRF token. See `docs/api/app-v1.yaml`.
 
