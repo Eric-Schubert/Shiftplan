@@ -17,7 +17,7 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || "Schichtplaner", {
+    self.registration.showNotification(data.title || "Shiftplan", {
       body: data.body || "",
       icon: "/android-chrome-192x192.png",
       data: { url: data.url || "/" },

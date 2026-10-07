@@ -60,15 +60,17 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: "de",
       },
-      title: "Schichtplaner",
+      title: "Shiftplan",
       meta: [
         {
           name: "description",
-          content: "Schichtplaner für Wochenplanung, Rotation und Teamverwaltung.",
+          content: "Shiftplan: Dienstplan im Browser planen, im Team per App ansehen.",
         },
       ],
       link: [
-        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico", sizes: "48x48" },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
         { rel: "manifest", href: "/manifest.json" },
         {
           rel: "preload",

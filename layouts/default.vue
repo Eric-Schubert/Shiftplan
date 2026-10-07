@@ -46,7 +46,7 @@ onMounted(() => {
           <span class="app-logo-mark inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
             <i class="pi pi-calendar text-sm" aria-hidden="true"></i>
           </span>
-          <h1 class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">Schichtplaner</h1>
+          <h1 class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">Shiftplan</h1>
         </NuxtLink>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
