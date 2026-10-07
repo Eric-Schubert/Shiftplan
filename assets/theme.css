@@ -97,12 +97,12 @@
 html {
   background: var(--app-bg);
   font-family: var(--font-body);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--app-bg);
   color: var(--text-1);
   font-family: var(--font-body);
