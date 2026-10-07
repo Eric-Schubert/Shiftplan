@@ -15,15 +15,16 @@ export default defineEventHandler(async (event) => {
 
   const result = await reportAbsence({
     staffId: validateId(body?.staffId, "staffId"),
-    date: body?.date,
+    // `date` is the single-day field of older clients.
+    from: body?.from ?? body?.date,
+    to: body?.to ?? null,
     shiftId,
     reason: body.reason as AbsenceReason,
     note: validateString(body?.note, "Notiz", { maxLength: 200 }) ?? null,
-    requireAssignment: false,
     notifyTeam: body?.notifyTeam === true,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     actor: { userId: user.userId, username: user.username, source: requestSource(event) },
   });
 
-  return result;
+  return { ...result, absence: result.absences[0] };
 });

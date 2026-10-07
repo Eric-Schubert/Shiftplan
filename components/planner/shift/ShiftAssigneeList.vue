@@ -1,12 +1,36 @@
 <script setup lang="ts">
-import type { ShiftWithStaff } from "~/types/shiftplan";
+import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import { ABSENCE_REASON_LABELS, formatAbsenceDay, type Absence } from "~/types/absence";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
   canEdit: boolean;
   absences?: Absence[];
+  dayChanges?: ShiftDayChange[];
 }>();
+
+const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => change.shift_id === props.shift.shift_id));
+
+/** Weekdays on which an assigned person is taken out of this shift. */
+function removedDays(staffId: number): string {
+  return shiftChanges.value
+    .filter((change) => change.kind === "remove" && change.staff_id === staffId)
+    .map((change) => formatAbsenceDay(change.change_date, false))
+    .join(", ");
+}
+
+/** People who only join this shift on single days, with those days. */
+const dayGuests = computed(() => {
+  const assigned = new Set(props.shift.assigned_staff.map((staff) => staff.staff_id));
+  const guests = new Map<number, { staffId: number; name: string; days: string[] }>();
+  for (const change of shiftChanges.value) {
+    if (change.kind !== "add" || assigned.has(change.staff_id)) continue;
+    const guest = guests.get(change.staff_id) ?? { staffId: change.staff_id, name: change.staff_name, days: [] };
+    guest.days.push(formatAbsenceDay(change.change_date, false));
+    guests.set(change.staff_id, guest);
+  }
+  return [...guests.values()];
+});
 
 // Absences of a person in this shift, or without a shift (planner entries).
 function absencesOf(staffId: number): Absence[] {
@@ -53,6 +77,13 @@ const emit = defineEmits<{
       >
         fällt aus {{ absencesOf(staff.staff_id).map((absence) => formatAbsenceDay(absence.absence_date, false)).join(", ") }}
       </span>
+      <span
+        v-if="removedDays(staff.staff_id)"
+        class="rounded bg-[var(--surface-muted)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--text-2)]"
+        :title="`An diesen Tagen nicht in ${props.shift.name}`"
+      >
+        nicht {{ removedDays(staff.staff_id) }}
+      </span>
       <button
         v-if="canEdit"
         type="button"
@@ -62,6 +93,18 @@ const emit = defineEmits<{
       >
         <i class="pi pi-times text-[0.625rem]" aria-hidden="true"></i>
       </button>
+    </span>
+
+    <span
+      v-for="guest in dayGuests"
+      :key="`guest-${guest.staffId}`"
+      class="planner-assignee inline-flex h-8 items-center gap-1 rounded-lg border-dashed px-2.5 text-[0.8125rem]"
+      :title="`Nur an einzelnen Tagen in ${props.shift.name}`"
+    >
+      <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">{{ guest.name }}</span>
+      <span class="rounded bg-[var(--positive-soft)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--positive-ink)]">
+        nur {{ guest.days.join(", ") }}
+      </span>
     </span>
 
     <button

@@ -38,4 +38,4 @@ export interface AuditEntry {
   created_at: string;
 }
 
-export type AuditAction = "assign" | "unassign" | "absence" | "absence_cancel";
+export type AuditAction = "assign" | "unassign" | "day_add" | "day_remove" | "absence" | "absence_cancel";

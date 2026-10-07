@@ -1,3 +1,4 @@
+import { formatNoticeDay } from "~/server/utils/absence-notice";
 import webpush from "web-push";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { getHolidayConfig } from "~/server/config/holiday-config";
@@ -57,6 +58,8 @@ type ShiftChange = {
   shiftId: number;
   staffId: number;
   action: "assign" | "unassign";
+  /** Set for a change that only affects one day (YYYY-MM-DD). */
+  date?: string;
 };
 
 type PendingChange = {
@@ -547,11 +550,12 @@ export const PushService = {
 
     if (origin) lastOrigin = origin;
 
-    const key = `${change.year}-${change.week}|${change.shiftId}|${change.staffId}`;
+    const key = `${change.year}-${change.week}|${change.shiftId}|${change.staffId}|${change.date ?? ""}`;
     const pending = pendingChanges.get(key) || {
       year: change.year,
       week: change.week,
-      shiftName: shift.name,
+      // A day change reads „Früh Di. 13.10.“ so it groups apart from the whole week.
+      shiftName: change.date ? `${shift.name} ${formatNoticeDay(change.date)}` : shift.name,
       shiftOrder: shift.sort_order,
       staffId: change.staffId,
       staffName: staff.name,

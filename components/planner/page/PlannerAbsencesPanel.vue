@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ABSENCE_REASON_LABELS, formatAbsenceDay, type Absence } from "~/types/absence";
+import { ABSENCE_REASON_LABELS, formatAbsenceDay, formatAbsenceRange, type Absence } from "~/types/absence";
 
 const props = defineProps<{
   absences: Absence[];
@@ -17,17 +17,28 @@ const showDialog = ref(false);
 const removing = ref<number | null>(null);
 const error = ref("");
 
-const sorted = computed(() =>
-  [...props.absences].sort(
-    (a, b) => a.absence_date.localeCompare(b.absence_date) || a.staff_name.localeCompare(b.staff_name, "de")
-  )
-);
+// Days entered as one range show up as a single row.
+const sorted = computed(() => {
+  const seen = new Set<string>();
+  return [...props.absences]
+    .sort((a, b) => a.absence_date.localeCompare(b.absence_date) || a.staff_name.localeCompare(b.staff_name, "de"))
+    .filter((absence) => {
+      if (!absence.batch_id) return true;
+      if (seen.has(absence.batch_id)) return false;
+      seen.add(absence.batch_id);
+      return true;
+    });
+});
+
+function isRange(absence: Absence): boolean {
+  return absence.range_from !== absence.range_to;
+}
 
 async function remove(absence: Absence) {
   removing.value = absence.absence_id;
   error.value = "";
   try {
-    await authFetch(`/api/absences/${absence.absence_id}`, { method: "DELETE" });
+    await authFetch(`/api/absences/${absence.absence_id}${isRange(absence) ? "?range=1" : ""}`, { method: "DELETE" });
     emit("updated");
   } catch (cause: any) {
     error.value = cause?.data?.statusMessage || "Ausfall konnte nicht gelöscht werden";
@@ -57,13 +68,16 @@ async function remove(absence: Absence) {
 
     <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)] bg-[var(--surface)]">
       <li v-for="absence in sorted" :key="absence.absence_id" class="flex items-center gap-3 px-4 py-2.5 text-sm">
-        <span class="w-20 flex-shrink-0 font-semibold tabular-nums text-[var(--text-1)]">
-          {{ formatAbsenceDay(absence.absence_date) }}
+        <span
+          class="flex-shrink-0 font-semibold tabular-nums text-[var(--text-1)]"
+          :class="isRange(absence) ? 'w-40' : 'w-20'"
+        >
+          {{ isRange(absence) ? formatAbsenceRange(absence) : formatAbsenceDay(absence.absence_date) }}
         </span>
         <span class="min-w-0 flex-1">
           <span class="font-medium text-[var(--text-1)]">{{ absence.staff_name }}</span>
           <span class="text-[var(--text-2)]"> fällt aus</span>
-          <span v-if="absence.shift_name" class="text-[var(--text-2)]"> · {{ absence.shift_name }} offen</span>
+          <span v-if="absence.shift_name && !isRange(absence)" class="text-[var(--text-2)]"> · {{ absence.shift_name }} offen</span>
           <span v-if="absence.reason" class="ml-1 text-[var(--text-3)]">· {{ ABSENCE_REASON_LABELS[absence.reason] }}</span>
           <span v-if="absence.note" class="ml-1 italic text-[var(--text-3)]">· {{ absence.note }}</span>
         </span>
@@ -72,7 +86,7 @@ async function remove(absence: Absence) {
           v-if="canEdit"
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-3)] transition-colors hover:bg-[var(--danger-soft)] hover:text-[var(--danger-ink)] disabled:opacity-50"
-          :aria-label="`Ausfall von ${absence.staff_name} löschen`"
+          :aria-label="isRange(absence) ? `Zeitraum von ${absence.staff_name} löschen` : `Ausfall von ${absence.staff_name} löschen`"
           :disabled="removing === absence.absence_id"
           @click="remove(absence)"
         >

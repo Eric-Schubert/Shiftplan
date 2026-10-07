@@ -126,23 +126,35 @@ paths:
 
   /api/member/absences:
     post:
-      summary: Eigenen Ausfall melden
+      summary: Eigenen Ausfall melden (ein Tag oder Zeitraum)
       description: |
-        Nur für Tage, an denen die Person in der Woche einer Schicht zugeteilt ist. Ist sie
-        mehreren Schichten zugeteilt, muss `shiftId` gesetzt sein. Ohne `notifyTeam: false`
-        bekommt das Team einen Push „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“,
-        nie mit Grund.
+        Ein Eintrag pro Tag von `from` bis `to` (höchstens 56 Tage), auch für Tage, die noch
+        nicht geplant sind. Tage mit vorhandenem Ausfall werden übersprungen (`skipped`), nur
+        wenn alle schon belegt sind, kommt 409. Die Schicht wird aus dem Plan übernommen, wenn
+        die Person an dem Tag genau einer zugeteilt ist. Mehrere Tage teilen sich eine
+        `batch_id`. Ohne `notifyTeam: false` bekommt das Team einen Push „Anna Weber fällt
+        Do. 08.10. aus – Frühschicht offen“ bzw. „… fällt Mo. 12.10. – Fr. 23.10. aus“, nie
+        mit Grund.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [date, reason]
+              required: [from, reason]
               properties:
+                from:
+                  type: string
+                  format: date
+                to:
+                  type: [string, "null"]
+                  format: date
+                  description: Letzter Tag, Standard ist `from`
                 date:
                   type: string
                   format: date
+                  deprecated: true
+                  description: Alter Name für `from` bei einem einzelnen Tag
                 shiftId:
                   type: [integer, "null"]
                 reason:
@@ -162,8 +174,19 @@ paths:
               schema:
                 type: object
                 properties:
+                  absences:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Absence"
                   absence:
                     $ref: "#/components/schemas/Absence"
+                    deprecated: true
+                    description: Erster Tag, für ältere Clients
+                  skipped:
+                    type: array
+                    items:
+                      type: string
+                      format: date
                   notified:
                     type: [object, "null"]
                     properties:
@@ -174,7 +197,7 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
         "409":
-          description: Für diesen Tag ist schon ein Ausfall eingetragen
+          description: Für alle Tage ist schon ein Ausfall eingetragen
           content:
             application/json:
               schema:
@@ -189,6 +212,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: range
+          in: query
+          description: "`1` zieht den ganzen Zeitraum zurück, sonst nur diesen Tag"
+          schema:
+            type: string
+            enum: ["1"]
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -227,12 +256,15 @@ paths:
           application/json:
             schema:
               type: object
-              required: [staffId, date, reason]
+              required: [staffId, from, reason]
               properties:
                 staffId:
                   type: integer
-                date:
+                from:
                   type: string
+                  format: date
+                to:
+                  type: [string, "null"]
                   format: date
                 shiftId:
                   type: [integer, "null"]
@@ -262,6 +294,12 @@ paths:
           required: true
           schema:
             type: integer
+        - name: range
+          in: query
+          description: "`1` löscht den ganzen Zeitraum"
+          schema:
+            type: string
+            enum: ["1"]
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -432,6 +470,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/WeeklyPlan"
         "401":
+          $ref: "#/components/responses/Error"
+
+  /api/shiftplan/day-change:
+    post:
+      summary: Person für einen Tag in eine Schicht nehmen oder herausnehmen (Planer)
+      description: |
+        Der Wochenplan bleibt die Grundlage. Weicht ein Tag davon ab, wird das als Tagesänderung
+        gespeichert; wer wieder dem Wochenplan entspricht, verliert die Änderung. Kurzfristige
+        Änderungen lösen wie Wochenänderungen einen gebündelten Push aus.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [staff_id, shift_id, date, present]
+              properties:
+                staff_id:
+                  type: integer
+                shift_id:
+                  type: integer
+                date:
+                  type: string
+                  format: date
+                present:
+                  type: boolean
+      responses:
+        "200":
+          description: "`changed` ist false, wenn der Tag schon so aussah"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  changed:
+                    type: boolean
+        "400":
           $ref: "#/components/responses/Error"
 
   /api/staff:
@@ -635,7 +712,7 @@ components:
 
     AbsenceReason:
       type: string
-      enum: [krank, privat, sonstiges]
+      enum: [urlaub, privat, sonstiges]
 
     Absence:
       type: object
@@ -655,7 +732,18 @@ components:
           type: [string, "null"]
         reason:
           $ref: "#/components/schemas/AbsenceReason"
-          description: Nur für Planer und die betroffene Person selbst; nach 90 Tagen gelöscht
+          description: Nur für Planer; nach 90 Tagen gelöscht
+        batch_id:
+          type: [string, "null"]
+          description: Gemeinsam für alle Tage eines Zeitraums
+        range_from:
+          type: string
+          format: date
+          description: Erster noch aktiver Tag des Zeitraums
+        range_to:
+          type: string
+          format: date
+          description: Letzter noch aktiver Tag des Zeitraums
         source:
           type: string
           enum: [web, app]
@@ -737,3 +825,35 @@ components:
                     type: array
                     items:
                       $ref: "#/components/schemas/Staff"
+        day_changes:
+          type: array
+          description: Tagesweise Abweichungen vom Wochenplan
+          items:
+            $ref: "#/components/schemas/DayChange"
+
+    DayChange:
+      type: object
+      properties:
+        change_id:
+          type: integer
+        staff_id:
+          type: integer
+        staff_name:
+          type: string
+        shift_id:
+          type: integer
+        shift_name:
+          type: string
+        change_date:
+          type: string
+          format: date
+        kind:
+          type: string
+          enum: [add, remove]
+        source:
+          type: string
+          enum: [web, app]
+        created_by:
+          type: string
+        created_at:
+          type: string
