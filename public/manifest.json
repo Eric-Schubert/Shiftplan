@@ -1,11 +1,11 @@
 {
-  "name": "Schichtplaner",
-  "short_name": "Schichtplan",
-  "description": "Wochenbasierter Schichtplaner mit Rotationssystem",
+  "name": "Shiftplan",
+  "short_name": "Shiftplan",
+  "description": "Dienstplan im Browser planen, im Team per App ansehen.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#6366f1",
-  "theme_color": "#6366f1",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
   "icons": [
     {
       "src": "/favicon-16x16.png",

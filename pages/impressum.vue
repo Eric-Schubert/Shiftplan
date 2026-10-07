@@ -93,8 +93,8 @@ const contactFieldIds: Record<keyof ContactValidation, string> = {
 };
 
 useSeoMeta({
-  title: "Impressum | Schichtplaner",
-  description: "Anbieterkennzeichnung und Kontaktmöglichkeit für den Schichtplaner.",
+  title: "Impressum | Shiftplan",
+  description: "Anbieterkennzeichnung und Kontaktmöglichkeit für Shiftplan.",
 });
 
 async function submitContact() {
