@@ -28,6 +28,14 @@ export default defineNuxtConfig({
     server: false,
   },
 
+  // Agent worktrees live in .claude/ and carry their own node_modules; watching them exhausts file handles.
+  ignore: [".claude/**"],
+  vite: {
+    server: {
+      watch: { ignored: ["**/.claude/**"] },
+    },
+  },
+
 
   runtimeConfig: {
     public: {
