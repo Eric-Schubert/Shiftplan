@@ -302,18 +302,19 @@ Erwartet: `HTTP/2 200`. Zusätzlich im Browser prüfen, dass kein Zertifikatsfeh
 
 ## Die Shiftplan-App anbinden
 
-Die Shiftplan-App für iPhone und Android verbindet sich mit jeder Instanz. Mitarbeitende brauchen kein Konto und keine E-Mail-Adresse.
+Die Shiftplan-App für iPhone und Android verbindet sich mit jeder Instanz. Mitarbeitende brauchen kein Konto und keine E-Mail-Adresse. Wer die App nicht nutzen will, meldet sich genauso im Browser an.
 
 ### Zugang für eine Person
 
 1. Im Browser **Einstellungen → App-Zugänge** öffnen (Planer oder Admin).
 2. Person auswählen und einen QR-Code erzeugen. Der Code gilt 7 Tage und lässt sich einmal einlösen.
 3. QR-Code ausdrucken oder am Bildschirm zeigen.
-4. In der App „QR-Code scannen“ tippen und scannen. Fertig.
+4. In der App „QR-Code scannen“ tippen und scannen, oder den Link im Browser öffnen und „Im Browser anmelden“ wählen.
+5. Bei der ersten Anmeldung legt die Person eine PIN fest. Danach meldet sie sich auf jedem weiteren Gerät mit Kürzel (z. B. `MM`) und PIN an, ohne neuen QR-Code.
 
 Der QR-Code enthält eine Adresse wie `https://plan.example.de/?einladung=CODE`. Die App merkt sich die Instanz und bekommt einen Zugang, der an diese eine Person gebunden ist. Ohne Kamera geht es über „Ohne Kamera einrichten“: Adresse `plan.example.de` eingeben und den Code unter dem QR-Code abtippen.
 
-Unter **App-Zugänge** siehst du alle eingerichteten Geräte und kannst einzelne sperren. Ein gesperrtes Gerät verliert sofort den Zugang und bekommt keine Pushes mehr.
+Unter **App-Zugänge** siehst du alle eingerichteten Geräte und kannst einzelne sperren. Ein gesperrtes Gerät verliert sofort den Zugang und bekommt keine Pushes mehr. PIN vergessen: dort „PIN zurücksetzen“ und einen neuen QR-Code erzeugen. Das Kürzel änderst du unter **Mitarbeiter**.
 
 ### Planer-Anmeldung in der App
 

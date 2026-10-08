@@ -1,5 +1,7 @@
 import { createHash, randomBytes, randomInt } from "crypto";
+import bcrypt from "bcryptjs";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
+import { normalizeShortCode } from "~/server/utils/staff-short-code.js";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 10;
@@ -7,6 +9,12 @@ export const INVITE_VALID_DAYS = 7;
 const INVITE_VALID_MS = INVITE_VALID_DAYS * 24 * 60 * 60 * 1000;
 const LAST_SEEN_INTERVAL_MS = 60 * 60 * 1000;
 export const DEVICE_NAME_MAX_LENGTH = 60;
+export const PIN_MIN_LENGTH = 6;
+export const PIN_MAX_LENGTH = 12;
+const PIN_HASH_COST = 10;
+/** Browser session of a staff member signed in with Kürzel and PIN. */
+export const MEMBER_COOKIE_NAME = "member_token";
+export const MEMBER_COOKIE_DAYS = 365;
 
 export type Member = {
   sessionId: string;
@@ -34,6 +42,23 @@ function normalizeCode(code: string): string {
 function getBearerToken(event: any): string | undefined {
   const header = getHeader(event, "authorization");
   return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
+}
+
+/** The app sends its token as Bearer header, a signed-in browser sends the cookie. */
+export function getMemberToken(event: any): { token: string; viaCookie: boolean } | null {
+  const bearer = getBearerToken(event);
+  if (bearer) return { token: bearer, viaCookie: false };
+  const cookie = getCookie(event, MEMBER_COOKIE_NAME);
+  return cookie ? { token: cookie, viaCookie: true } : null;
+}
+
+/** Audit source of a member action: the browser signs in with a cookie, the app with a token. */
+export function memberSource(event: any): "web" | "app" {
+  return getMemberToken(event)?.viaCookie ? "web" : "app";
+}
+
+export function isValidPin(pin: unknown): pin is string {
+  return typeof pin === "string" && new RegExp(`^\\d{${PIN_MIN_LENGTH},${PIN_MAX_LENGTH}}$`).test(pin);
 }
 
 /**
@@ -103,27 +128,89 @@ export const MemberAccessService = {
     const name = staffName(invite.staff_id);
     if (!name) return null;
 
-    const token = randomBytes(32).toString("hex");
-    const sessionId = randomBytes(9).toString("base64url");
-    db.transaction(() => {
+    return db.transaction(() => {
       // The demo code stays valid for everyone.
       if (invite.invite_id !== null) {
         db.prepare("UPDATE member_invites SET used_at = ? WHERE invite_id = ?").run(now, invite.invite_id);
       }
-      db.prepare(
+      return this.createSession(invite.staff_id, name, deviceName);
+    })();
+  },
+
+  createSession(staffId: number, name: string, deviceName: string | null): { token: string; member: Member } {
+    const token = randomBytes(32).toString("hex");
+    const sessionId = randomBytes(9).toString("base64url");
+    const now = Date.now();
+    getAdminDatabase()
+      .prepare(
         `
           INSERT INTO member_sessions (session_id, token_hash, staff_id, device_name, created_at, last_seen_at)
           VALUES (?, ?, ?, ?, ?, ?)
         `
-      ).run(sessionId, sha256(token), invite.staff_id, deviceName, now, now);
-    })();
-
-    return { token, member: { sessionId, staffId: invite.staff_id, staffName: name } };
+      )
+      .run(sessionId, sha256(token), staffId, deviceName, now, now);
+    return { token, member: { sessionId, staffId, staffName: name } };
   },
 
-  /** Resolves the Bearer token of the app to a staff member, if it belongs to an active session. */
+  hasPin(staffId: number): boolean {
+    return Boolean(getAdminDatabase().prepare("SELECT 1 FROM member_pins WHERE staff_id = ?").get(staffId));
+  },
+
+  /** Staff ids that have a PIN, for the planner overview. */
+  staffWithPin(): number[] {
+    return (getAdminDatabase().prepare("SELECT staff_id FROM member_pins").all() as Array<{ staff_id: number }>).map(
+      (row) => row.staff_id
+    );
+  },
+
+  setPin(staffId: number, pin: string): void {
+    if (!isValidPin(pin)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Die PIN braucht ${PIN_MIN_LENGTH} bis ${PIN_MAX_LENGTH} Ziffern`,
+      });
+    }
+    getAdminDatabase()
+      .prepare(
+        `
+          INSERT INTO member_pins (staff_id, pin_hash, updated_at) VALUES (?, ?, ?)
+          ON CONFLICT(staff_id) DO UPDATE SET pin_hash = excluded.pin_hash, updated_at = excluded.updated_at
+        `
+      )
+      .run(staffId, bcrypt.hashSync(pin, PIN_HASH_COST), Date.now());
+  },
+
+  verifyPin(staffId: number, pin: string): boolean {
+    const row = getAdminDatabase().prepare("SELECT pin_hash FROM member_pins WHERE staff_id = ?").get(staffId) as
+      | { pin_hash: string }
+      | undefined;
+    return Boolean(row && isValidPin(pin) && bcrypt.compareSync(pin, row.pin_hash));
+  },
+
+  clearPin(staffId: number): boolean {
+    return getAdminDatabase().prepare("DELETE FROM member_pins WHERE staff_id = ?").run(staffId).changes > 0;
+  },
+
+  /** Kürzel + PIN from any device. Returns null for an unknown Kürzel or a wrong PIN alike. */
+  loginWithPin(shortCode: string, pin: string, deviceName: string | null): { token: string; member: Member } | null {
+    const code = normalizeShortCode(shortCode);
+    const staff = code
+      ? (getDatabase().prepare("SELECT staff_id, name FROM staff WHERE short_code = ? AND active = 1").get(code) as
+          | { staff_id: number; name: string }
+          | undefined)
+      : undefined;
+    if (!staff) {
+      // Same work as a real check, so the answer time does not reveal valid Kürzel.
+      bcrypt.compareSync(pin, "$2b$10$lhJ.r4DWfwPlCqLrcMGjQ.luDHeryPcty4RreG2XIp0mP6Cu6Pvhi");
+      return null;
+    }
+    if (!this.verifyPin(staff.staff_id, pin)) return null;
+    return this.createSession(staff.staff_id, staff.name, deviceName);
+  },
+
+  /** Resolves the app token or the browser cookie to a staff member with an active session. */
   getMember(event: any): Member | null {
-    const token = getBearerToken(event);
+    const token = getMemberToken(event)?.token;
     if (!token) return null;
 
     const db = getAdminDatabase();
@@ -147,7 +234,7 @@ export const MemberAccessService = {
   requireMember(event: any): Member {
     const member = this.getMember(event);
     if (!member) {
-      throw createError({ statusCode: 401, statusMessage: "App-Zugang ungültig oder gesperrt" });
+      throw createError({ statusCode: 401, statusMessage: "Nicht angemeldet oder Zugang gesperrt" });
     }
     return member;
   },

@@ -40,6 +40,7 @@ COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/setup.js ./setup.js
 COPY --from=builder /app/config ./config
 COPY --from=builder /app/server/utils/database-migrations.js ./server/utils/database-migrations.js
+COPY --from=builder /app/server/utils/staff-short-code.js ./server/utils/staff-short-code.js
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 COPY --from=builder /app/node_modules/bindings ./node_modules/bindings

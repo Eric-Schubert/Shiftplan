@@ -25,6 +25,7 @@ const emit = defineEmits<{
           <div class="space-y-2">
             <p class="text-sm font-semibold text-gray-900 dark:text-white" :class="{ 'opacity-50': !staffMember.active }">
               {{ staffMember.name }}
+              <span v-if="staffMember.short_code" class="ml-1 font-mono text-xs font-semibold text-[var(--text-3)]">{{ staffMember.short_code }}</span>
             </p>
             <div class="flex flex-wrap gap-2">
               <PrimeTag
@@ -76,6 +77,7 @@ const emit = defineEmits<{
         <PrimeColumn field="name" header="Name" sortable>
           <template #body="{ data }">
             <span :class="{ 'opacity-50': !data.active }">{{ data.name }}</span>
+            <span v-if="data.short_code" class="ml-2 font-mono text-xs font-semibold text-[var(--text-3)]">{{ data.short_code }}</span>
           </template>
         </PrimeColumn>
 

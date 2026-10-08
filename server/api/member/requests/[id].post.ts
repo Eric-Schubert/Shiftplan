@@ -1,4 +1,4 @@
-import { MemberAccessService } from "~/server/services/member-access.service";
+import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
 import { acceptRequest, cancelRequest, declineRequest } from "~/server/utils/shift-request-flow";
 import { validateId } from "~/server/utils/validation";
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
   switch (action) {
     case "accept":
-      return { request: await acceptRequest(request, member, getHeader(event, "origin")) };
+      return { request: await acceptRequest(request, { ...member, source: memberSource(event) }, getHeader(event, "origin")) };
     case "decline":
       return { request: await declineRequest(request, member.staffId, member.staffName) };
     case "cancel":

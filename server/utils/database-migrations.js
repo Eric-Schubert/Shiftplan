@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { assignMissingShortCodes } from "./staff-short-code.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -578,6 +579,18 @@ const MAIN_MIGRATIONS = [
       addColumnIfMissing(database, "shift_day_changes", "request_id", "INTEGER");
     },
   },
+  {
+    id: "008_main_staff_short_code",
+    description: "Kürzel for the personal sign-in with PIN",
+    shouldRun(database) {
+      return hasMissingColumns(database, "staff", ["short_code"]);
+    },
+    up(database) {
+      addColumnIfMissing(database, "staff", "short_code", "TEXT");
+      assignMissingShortCodes(database);
+      database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_staff_short_code ON staff(short_code)");
+    },
+  },
 ];
 
 const ADMIN_MIGRATIONS = [
@@ -914,6 +927,24 @@ const ADMIN_MIGRATIONS = [
 
       addColumnIfMissing(database, "push_devices", "member_session", "TEXT");
       addColumnIfMissing(database, "auth_sessions", "client", "TEXT NOT NULL DEFAULT 'web'");
+    },
+  },
+  {
+    id: "011_admin_member_pins",
+    description: "Personal PIN per staff member and personal browser push",
+    shouldRun(database) {
+      return !tableExists(database, "member_pins") || hasMissingColumns(database, "push_subscriptions", ["staff_id"]);
+    },
+    up(database) {
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS member_pins (
+          staff_id INTEGER PRIMARY KEY,
+          pin_hash TEXT NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      `);
+      // Browsers signed in as a person also get the personal messages of that person.
+      addColumnIfMissing(database, "push_subscriptions", "staff_id", "INTEGER");
     },
   },
 ];

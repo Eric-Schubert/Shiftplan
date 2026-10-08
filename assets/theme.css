@@ -517,6 +517,16 @@ select {
   color: var(--name-pill-text);
 }
 
+/* The signed-in staff member's own name, like in the app. */
+.planner-assignee.is-me {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.planner-assignee.is-me .planner-assignee__name {
+  color: #fff;
+}
+
 .planner-pill-button {
   display: inline-flex;
   align-items: center;

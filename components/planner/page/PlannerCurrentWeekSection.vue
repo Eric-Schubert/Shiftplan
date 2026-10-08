@@ -13,12 +13,24 @@ const props = defineProps<{
   isAdmin: boolean;
   year: number;
   week: number;
+  /** Signed-in staff member, whose name is marked and who may withdraw own absences. */
+  myStaffId?: number | null;
 }>();
 
 const emit = defineEmits<{
   (e: "updated"): void;
   (e: "generate"): void;
 }>();
+
+// Lives here so it stays open while the week reloads after each change.
+const dayShiftId = ref<number | null>(null);
+const dayShift = computed(() => props.shiftList.find((shift) => shift.shift_id === dayShiftId.value) ?? null);
+const dayDialogVisible = computed({
+  get: () => dayShift.value !== null,
+  set: (value: boolean) => {
+    if (!value) dayShiftId.value = null;
+  },
+});
 
 const totalAssigned = computed(() =>
   props.shiftList.reduce((sum, shift) => sum + shift.assigned_staff.length, 0)
@@ -61,7 +73,9 @@ const totalAssigned = computed(() =>
           :week="week"
           :absences="absences"
           :day-changes="dayChanges"
+          :my-staff-id="myStaffId"
           @updated="emit('updated')"
+          @edit-days="dayShiftId = $event"
         />
       </div>
 
@@ -69,6 +83,7 @@ const totalAssigned = computed(() =>
         v-if="shiftList.length > 0"
         :absences="absences"
         :can-edit="canEditShifts"
+        :my-staff-id="myStaffId"
         :year="year"
         :week="week"
         @updated="emit('updated')"
@@ -92,5 +107,15 @@ const totalAssigned = computed(() =>
         </button>
       </div>
     </template>
+
+    <LazyDayChangeDialog
+      v-if="dayShift"
+      v-model:visible="dayDialogVisible"
+      :shift="dayShift"
+      :year="year"
+      :week="week"
+      :day-changes="dayChanges.filter((change) => change.shift_id === dayShift!.shift_id)"
+      @updated="emit('updated')"
+    />
   </section>
 </template>
