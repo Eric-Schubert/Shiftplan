@@ -24,51 +24,16 @@ function isDragTarget(shiftId: number) {
   return props.activeDropTarget === `${props.weekData.pattern_week}-${shiftId}`;
 }
 
-function handleDragOver(event: DragEvent, shiftId: number) {
-  emit("drag-over", {
-    event,
-    patternWeek: props.weekData.pattern_week,
-    shiftId,
-  });
+function dropPayload(event: DragEvent, shiftId: number): RotationDropPayload {
+  return { event, patternWeek: props.weekData.pattern_week, shiftId };
 }
 
-function handleDragLeave(event: DragEvent, shiftId: number) {
-  emit("drag-leave", {
-    event,
-    patternWeek: props.weekData.pattern_week,
-    shiftId,
-  });
-}
-
-function handleDrop(event: DragEvent, shiftId: number) {
-  emit("drop-staff", {
-    event,
-    patternWeek: props.weekData.pattern_week,
-    shiftId,
-  });
-}
-
-function handleChipDragStart(
-  event: DragEvent,
-  shiftId: number,
-  staffId: number,
-  staffName: string
-) {
-  emit("staff-drag-start", {
-    event,
-    patternWeek: props.weekData.pattern_week,
-    shiftId,
-    staffId,
-    staffName,
-  });
+function handleChipDragStart(event: DragEvent, shiftId: number, staffId: number, staffName: string) {
+  emit("staff-drag-start", { ...dropPayload(event, shiftId), staffId, staffName });
 }
 
 function handleOpenAssign(shiftId: number, shiftName: string) {
-  emit("open-assign", {
-    patternWeek: props.weekData.pattern_week,
-    shiftId,
-    shiftName,
-  });
+  emit("open-assign", { patternWeek: props.weekData.pattern_week, shiftId, shiftName });
 }
 </script>
 
@@ -88,9 +53,9 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
         :class="{
           'bg-blue-50/70 dark:bg-blue-900/20': isDragTarget(assignment.shift.shift_id),
         }"
-        @dragover="handleDragOver($event, assignment.shift.shift_id)"
-        @dragleave="handleDragLeave($event, assignment.shift.shift_id)"
-        @drop="handleDrop($event, assignment.shift.shift_id)"
+        @dragover="emit('drag-over', dropPayload($event, assignment.shift.shift_id))"
+        @dragleave="emit('drag-leave', dropPayload($event, assignment.shift.shift_id))"
+        @drop="emit('drop-staff', dropPayload($event, assignment.shift.shift_id))"
       >
         <div class="flex min-w-[150px] items-center gap-2">
           <div
