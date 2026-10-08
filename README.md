@@ -286,11 +286,12 @@ schichtplaner/
 |       |   `-- ShiftRequestManager.vue
 |       |-- rotation/
 |       |   |-- RotationAssignDialog.vue
-|       |   |-- RotationConfigDialog.vue
+|       |   |-- RotationConfigForm.vue
 |       |   |-- RotationManager.vue
 |       |   |-- RotationPatternBoard.vue
 |       |   |-- RotationPatternIntro.vue
 |       |   |-- RotationPatternWeekCard.vue
+|       |   |-- RotationRolloutPanel.vue
 |       |   |-- RotationStaffPool.vue
 |       |   |-- RotationToolbar.vue
 |       |   |-- RotationWizardDialog.vue
@@ -408,6 +409,7 @@ schichtplaner/
 |   |   |   |-- assign.post.ts
 |   |   |   |-- copy-year.post.ts
 |   |   |   |-- day-change.post.ts
+|   |   |   |-- generate-preview.get.ts
 |   |   |   |-- generate.post.ts
 |   |   |   |-- index.get.ts
 |   |   |   |-- unassign.post.ts
@@ -469,6 +471,7 @@ schichtplaner/
 |       |-- database-migrations.js
 |       |-- database.ts
 |       |-- day-change-flow.ts
+|       |-- generation-range.ts
 |       |-- iso-week.ts
 |       |-- member-login.ts
 |       |-- session.ts
@@ -551,7 +554,8 @@ schichtplaner/
 | `POST` | `/api/shiftplan/assign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Assign staff to a weekly shift |
 | `POST` | `/api/shiftplan/copy-year` | Planner/Admin | Yes | - | `overwrite`, `sourceYear`, `targetYear` | Copy shift plans between years |
 | `POST` | `/api/shiftplan/day-change` | Planner/Admin | Yes | - | `present` | Create or update shiftplan data |
-| `POST` | `/api/shiftplan/generate` | Planner/Admin | Yes | - | `week`, `weeks`, `year` | Generate plans from the rotation pattern |
+| `POST` | `/api/shiftplan/generate` | Planner/Admin | Yes | - | `overwrite`, `week`, `weeks`, `year` | Generate plans from the rotation pattern |
+| `GET` | `/api/shiftplan/generate-preview` | Planner/Admin | No | `week`, `weeks`, `year` | - | Preview which weeks a rollout would fill or overwrite |
 | `POST` | `/api/shiftplan/unassign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Remove staff from a weekly shift |
 | `GET` | `/api/shiftplan/year-summary` | Public | No | `year` | - | Read yearly planning coverage |
 
@@ -709,6 +713,7 @@ schichtplaner/
 | `POST` | `/api/shiftplan/copy-year` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/day-change` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/generate` | No | Yes | Yes | Yes |
+| `GET` | `/api/shiftplan/generate-preview` | No | Yes | Yes | No |
 | `POST` | `/api/shiftplan/unassign` | No | Yes | Yes | Yes |
 | `GET` | `/api/shiftplan/year-summary` | Yes | Yes | Yes | No |
 | `GET` | `/api/rotation` | Yes | Yes | Yes | No |

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+defineProps<{
+  /** The wizard was left to edit the pattern and can pick up where it stopped. */
+  resumable?: boolean;
+}>();
+
 const emit = defineEmits<{
   (e: "open-wizard"): void;
 }>();
@@ -21,16 +26,29 @@ const dataStore = useDataStore();
         </p>
       </div>
 
-      <PrimeButton
-        label="Assistent starten"
-        icon="pi pi-compass"
-        class="min-h-11 !px-5"
-        @click="emit('open-wizard')"
-      />
+      <div class="flex flex-wrap gap-2">
+        <YearCopy />
+        <PrimeButton
+          :label="resumable ? 'Assistent fortsetzen' : 'Assistent starten'"
+          :icon="resumable ? 'pi pi-arrow-right' : 'pi pi-compass'"
+          class="min-h-11 !px-5"
+          @click="emit('open-wizard')"
+        />
+      </div>
     </div>
 
-    <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
-      Führt dich durch Excel-Import, Musterprüfung und Jahresausrollung in einem Ablauf.
+    <div
+      v-if="resumable"
+      class="rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-3 text-sm leading-6 text-[var(--accent-strong)]"
+    >
+      Passe das Muster unten an. Wenn alles stimmt, geht es mit <strong>Assistent fortsetzen</strong>
+      beim Prüfen weiter.
+    </div>
+    <div
+      v-else
+      class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]"
+    >
+      Der Assistent führt dich durch Muster, Prüfung und Ausrollen der Wochenpläne.
     </div>
   </div>
 </template>

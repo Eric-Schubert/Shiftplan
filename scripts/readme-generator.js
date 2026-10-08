@@ -237,6 +237,7 @@ function getDescription(endpoint) {
     "POST /api/shiftplan/assign": "Assign staff to a weekly shift",
     "POST /api/shiftplan/unassign": "Remove staff from a weekly shift",
     "POST /api/shiftplan/generate": "Generate plans from the rotation pattern",
+    "GET /api/shiftplan/generate-preview": "Preview which weeks a rollout would fill or overwrite",
     "POST /api/shiftplan/copy-year": "Copy shift plans between years",
     "GET /api/shiftplan/year-summary": "Read yearly planning coverage",
     "GET /api/holidays/public": "Read public holidays",
