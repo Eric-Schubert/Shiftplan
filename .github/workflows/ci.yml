@@ -8,18 +8,49 @@ on:
       - "docs/**"
       - "LICENSE"
       - ".gitignore"
+  # Pull requests always run, so the required checks report a result. For
+  # documentation-only changes the jobs below are skipped, which counts as passed.
   pull_request:
     branches: ["master", "main", "RBA"]
-    paths-ignore:
-      - "*.md"
-      - "docs/**"
-      - "LICENSE"
-      - ".gitignore"
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # Same patterns as paths-ignore on push: *.md in the root, docs/**, LICENSE, .gitignore
+      - name: Detect code changes
+        id: diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          code_files=$(git diff --name-only "$BASE_SHA" HEAD | grep -vE '^([^/]+\.md|docs/.*|LICENSE|\.gitignore)$' || true)
+          if [ -n "$code_files" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only documentation changed, skipping CI jobs."
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Jobs run unless the change is documentation only. If "changes" fails, its output
+  # stays empty and the jobs still run, so a broken check never skips the tests.
   test:
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
 
     steps:
       - name: Checkout repository
@@ -39,7 +70,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [changes, test]
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' }}
     env:
       SHIFTPLAN_ADMIN_PASSWORD: CiAdminPass1
 
@@ -75,6 +107,8 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
 
     steps:
       - name: Checkout repository
@@ -94,7 +128,8 @@ jobs:
 
   docker-smoke:
     runs-on: ubuntu-latest
-    needs: [test, build, typecheck]
+    needs: [changes, test, build, typecheck]
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' && needs.build.result == 'success' && needs.typecheck.result == 'success' }}
 
     steps:
       - name: Checkout repository
