@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { formatAbsenceDay } from "~/types/absence";
 import { REQUEST_STATUS_LABELS, type ShiftRequest } from "~/types/shift-request";
+import { formatRequestPeriod } from "~/utils/request-period";
 
 const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
@@ -8,17 +8,10 @@ const requests = ref<ShiftRequest[]>([]);
 const requiresApproval = ref(false);
 const loading = ref(true);
 const busy = ref<number | null>(null);
-const savingSetting = ref(false);
 const error = ref("");
 
 const pending = computed(() => requests.value.filter((request) => request.status === "pending_approval"));
 const others = computed(() => requests.value.filter((request) => request.status !== "pending_approval"));
-
-function period(request: ShiftRequest): string {
-  return request.date_from === request.date_to
-    ? formatAbsenceDay(request.date_from)
-    : `${formatAbsenceDay(request.date_from)} – ${formatAbsenceDay(request.date_to)}`;
-}
 
 function summary(request: ShiftRequest): string {
   if (request.kind === "takeover") {
@@ -52,23 +45,6 @@ async function decide(request: ShiftRequest, action: "approve" | "reject" | "rev
   }
 }
 
-async function saveSetting(value: boolean) {
-  savingSetting.value = true;
-  error.value = "";
-  try {
-    const result = await authFetch<{ requiresApproval: boolean }>("/api/requests/settings", {
-      method: "PUT",
-      body: { requiresApproval: value },
-    });
-    requiresApproval.value = result.requiresApproval;
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Die Einstellung konnte nicht gespeichert werden";
-    requiresApproval.value = !value;
-  } finally {
-    savingSetting.value = false;
-  }
-}
-
 onMounted(load);
 </script>
 
@@ -80,25 +56,7 @@ onMounted(load);
       nur der betroffene Zeitraum.
     </p>
 
-    <label
-      v-if="authStore.isAdmin"
-      class="flex max-w-[46rem] items-start gap-3 rounded-xl border border-[var(--border-soft)] p-4 text-sm"
-    >
-      <PrimeCheckbox
-        :model-value="requiresApproval"
-        binary
-        input-id="requests-approval"
-        :disabled="savingSetting"
-        @update:model-value="saveSetting"
-      />
-      <span>
-        <span class="block font-medium text-[var(--text-1)]">Freigabe durch die Planung</span>
-        <span class="text-[var(--text-2)]">
-          Ist das aus, gilt eine Übernahme oder ein Tausch, sobald die Kollegin oder der Kollege zusagt. Ist es an,
-          muss die Planung danach noch freigeben.
-        </span>
-      </span>
-    </label>
+    <ShiftRequestApprovalSetting v-if="authStore.isAdmin" v-model="requiresApproval" @error="error = $event" />
 
     <div v-if="loading" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
       <PrimeProgressSpinner class="!h-5 !w-5" />
@@ -111,7 +69,7 @@ onMounted(load);
         <ul class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
           <li v-for="request in pending" :key="request.request_id" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
             <div class="min-w-0 flex-1 text-sm">
-              <p class="font-medium text-[var(--text-1)]">{{ period(request) }} · {{ summary(request) }}</p>
+              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(request) }} · {{ summary(request) }}</p>
               <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
             </div>
             <div class="flex gap-2">
@@ -128,7 +86,7 @@ onMounted(load);
         <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
           <li v-for="request in others" :key="request.request_id" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
             <div class="min-w-0 flex-1 text-sm">
-              <p class="font-medium text-[var(--text-1)]">{{ period(request) }} · {{ summary(request) }}</p>
+              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(request) }} · {{ summary(request) }}</p>
               <p class="text-xs text-[var(--text-3)]">
                 {{ REQUEST_STATUS_LABELS[request.status] }}<template v-if="request.decided_by"> · {{ request.decided_by }}</template>
               </p>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PASSWORD_POLICY_HINT, validatePasswordStrength } from "~/utils/password-policy";
+import { PASSWORD_POLICY_HINT } from "~/utils/password-policy";
+import { newUserProblem } from "~/utils/account-forms";
 import type { UserCreatePayload, UserRole } from "~/types/auth";
 
 const props = defineProps<{
@@ -16,11 +17,7 @@ const { authFetch } = useAuthFetch();
 const createError = ref("");
 const createErrorId = "create-user-error";
 const creating = ref(false);
-const form = ref<UserCreatePayload>({
-  username: "",
-  password: "",
-  role: "planner",
-});
+const form = ref<UserCreatePayload>(createEmptyForm());
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -32,41 +29,22 @@ const roleOptions: Array<{ label: string; value: UserRole }> = [
   { label: "Admin – Vollzugriff", value: "admin" },
 ];
 
+function createEmptyForm(): UserCreatePayload {
+  return { username: "", password: "", role: "planner" };
+}
+
 watch(
   () => props.visible,
   (isVisible) => {
-    if (!isVisible) {
-      createError.value = "";
-      return;
-    }
-
-    form.value = {
-      username: "",
-      password: "",
-      role: "planner",
-    };
+    if (isVisible) form.value = createEmptyForm();
     createError.value = "";
   }
 );
 
 async function createUser() {
-  createError.value = "";
-
-  if (!form.value.username || !form.value.password) {
-    createError.value = "Benutzername und Passwort sind erforderlich.";
-    return;
-  }
-
-  if (form.value.username.trim().length < 3) {
-    createError.value = "Der Benutzername braucht mindestens 3 Zeichen.";
-    return;
-  }
-
-  const strength = validatePasswordStrength(form.value.password);
-  if (!strength.valid) {
-    createError.value = strength.message;
-    return;
-  }
+  const problem = newUserProblem(form.value);
+  createError.value = problem ?? "";
+  if (problem) return;
 
   creating.value = true;
   try {
@@ -94,10 +72,7 @@ async function createUser() {
   >
     <div class="space-y-4">
       <div>
-        <label
-          for="create-username"
-          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label for="create-username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Benutzername
         </label>
         <PrimeInputText
@@ -111,10 +86,7 @@ async function createUser() {
       </div>
 
       <div>
-        <label
-          for="create-password"
-          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label for="create-password" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Passwort
         </label>
         <PrimeInputText
@@ -129,10 +101,7 @@ async function createUser() {
       </div>
 
       <div>
-        <label
-          for="create-role"
-          class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+        <label for="create-role" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Rolle
         </label>
         <PrimeSelect
@@ -146,30 +115,14 @@ async function createUser() {
         />
       </div>
 
-      <small
-        v-if="createError"
-        :id="createErrorId"
-        class="block text-red-600 dark:text-red-400"
-        role="alert"
-      >
+      <small v-if="createError" :id="createErrorId" class="block text-red-600 dark:text-red-400" role="alert">
         {{ createError }}
       </small>
     </div>
 
     <template #footer>
-      <PrimeButton
-        label="Abbrechen"
-        severity="secondary"
-        text
-        @click="dialogVisible = false"
-      />
-      <PrimeButton
-        label="Erstellen"
-        icon="pi pi-check"
-        class="min-h-11"
-        :loading="creating"
-        @click="createUser"
-      />
+      <PrimeButton label="Abbrechen" severity="secondary" text @click="dialogVisible = false" />
+      <PrimeButton label="Erstellen" icon="pi pi-check" class="min-h-11" :loading="creating" @click="createUser" />
     </template>
   </PrimeDialog>
 </template>

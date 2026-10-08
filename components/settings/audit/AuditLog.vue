@@ -20,37 +20,6 @@ async function fetchEntries() {
   }
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "Z");
-  return d.toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-const ACTIONS: Record<string, { label: string; icon: string; color: string; severity: string; separator: string }> = {
-  assign: { label: "Zugewiesen", icon: "mdi:account-plus", color: "text-green-600 dark:text-green-400", severity: "success", separator: " → " },
-  unassign: { label: "Entfernt", icon: "mdi:account-minus", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
-  day_add: { label: "Für einen Tag eingeteilt", icon: "mdi:calendar-plus", color: "text-green-600 dark:text-green-400", severity: "success", separator: " → " },
-  day_remove: { label: "Für einen Tag ausgetragen", icon: "mdi:calendar-remove", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
-  absence: { label: "Ausfall gemeldet", icon: "mdi:account-cancel", color: "text-amber-600 dark:text-amber-400", severity: "warn", separator: " fällt aus · " },
-  absence_cancel: { label: "Ausfall zurückgezogen", icon: "mdi:account-check", color: "text-gray-500 dark:text-gray-400", severity: "secondary", separator: " wieder da · " },
-  generate: { label: "Aus Muster ausgerollt", icon: "mdi:calendar-sync", color: "text-blue-600 dark:text-blue-400", severity: "info", separator: "" },
-  pattern_import: { label: "Muster importiert", icon: "mdi:file-excel", color: "text-blue-600 dark:text-blue-400", severity: "info", separator: "" },
-};
-
-/** Rollouts and imports touch many people at once; their summary sits in the reason. */
-function isBulkEntry(entry: { staff_name: string | null; shift_name: string | null }) {
-  return !entry.staff_name && !entry.shift_name;
-}
-
-function actionInfo(action: string) {
-  return ACTIONS[action] ?? ACTIONS.unassign!;
-}
-
 const totalPages = computed(() => Math.ceil(total.value / limit));
 
 function prevPage() {
@@ -76,92 +45,31 @@ onMounted(fetchEntries);
       Alle manuellen Änderungen am Schichtplan
     </p>
 
-
     <div v-if="loading" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
 
     <template v-else>
-
       <div v-if="entries.length > 0" class="space-y-2">
-        <div
-          v-for="entry in entries"
-          :key="entry.audit_id"
-          class="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 px-4 py-3"
-        >
-          <Icon
-            :name="actionInfo(entry.action).icon"
-            class="text-lg mt-0.5 flex-shrink-0"
-            :class="actionInfo(entry.action).color"
-          />
-
-          <div class="flex-1 min-w-0">
-            <div v-if="isBulkEntry(entry)" class="text-sm text-gray-900 dark:text-white">
-              <span class="font-medium">{{ entry.reason }}</span>
-              <span class="text-gray-500 dark:text-gray-400">
-                · ab KW {{ entry.week_number }}/{{ entry.year }}
-              </span>
-            </div>
-            <div v-else class="text-sm text-gray-900 dark:text-white">
-              <span class="font-medium">{{ entry.staff_name }}</span>
-              <span class="text-gray-500 dark:text-gray-400">
-                {{ actionInfo(entry.action).separator }}
-              </span>
-              <span class="font-medium">{{ entry.shift_name }}</span>
-              <span class="text-gray-500 dark:text-gray-400">
-                · KW {{ entry.week_number }}/{{ entry.year }}
-              </span>
-            </div>
-
-            <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span>{{ entry.username }}</span>
-              <template v-if="entry.source === 'app'">
-                <span>·</span>
-                <span>über App</span>
-              </template>
-              <span>·</span>
-              <span>{{ formatDate(entry.created_at) }}</span>
-              <template v-if="entry.reason && !isBulkEntry(entry)">
-                <span>·</span>
-                <span class="italic">{{ entry.reason }}</span>
-              </template>
-            </div>
-          </div>
-
-          <PrimeTag
-            :value="actionInfo(entry.action).label"
-            :severity="actionInfo(entry.action).severity"
-            class="text-xs flex-shrink-0"
-          />
-        </div>
+        <AuditLogEntry v-for="entry in entries" :key="entry.audit_id" :entry="entry" />
       </div>
 
       <div v-else class="text-center py-8 text-gray-400">
         Noch keine Änderungen protokolliert
       </div>
 
-
-      <div v-if="totalPages > 1" class="mt-4 flex items-center justify-between gap-3 border-t pt-4 dark:border-gray-700">
-        <PrimeButton
-          icon="pi pi-chevron-left"
-          text
-          class="!h-11 !w-11"
-          aria-label="Vorherige Seite"
-          :disabled="page === 0"
-          @click="prevPage"
-        />
+      <SettingsPager
+        v-if="totalPages > 1"
+        :page="page"
+        :total-pages="totalPages"
+        class="dark:border-gray-700"
+        @prev="prevPage"
+        @next="nextPage"
+      >
         <span class="text-sm text-gray-500">
           Seite {{ page + 1 }} von {{ totalPages }} ({{ total }} Einträge)
         </span>
-        <PrimeButton
-          icon="pi pi-chevron-right"
-          text
-          class="!h-11 !w-11"
-          aria-label="Nächste Seite"
-          :disabled="page >= totalPages - 1"
-          @click="nextPage"
-        />
-      </div>
+      </SettingsPager>
     </template>
   </div>
 </template>
