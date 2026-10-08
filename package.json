@@ -55,7 +55,6 @@
     "esbuild": true
   },
   "overrides": {
-    "simple-git": "^4.0.2",
     "postcss-selector-parser": "^7.1.6"
   }
 }
