@@ -21,6 +21,7 @@ npm run dev          # Development server
 npm run test:run     # Run tests once
 npm run build        # Production build
 npm run docs         # Regenerate the generated parts of docs/api.md and docs/releases.md
+npm run lint:length  # Fail on source files over 150 lines (aim for about 100)
 ```
 
 CI fails when the generated docs are stale. After adding or changing an API route, run `npm run docs` and commit the result.

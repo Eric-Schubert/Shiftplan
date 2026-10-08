@@ -11,17 +11,6 @@ const limit = 10;
 
 const totalPages = computed(() => Math.ceil(total.value / limit));
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + "Z");
-  return date.toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 async function fetchMessages() {
   loading.value = true;
   try {
@@ -92,86 +81,31 @@ onMounted(fetchMessages);
 
     <template v-else>
       <div v-if="messages.length > 0" class="space-y-3">
-        <article
+        <ContactMessageCard
           v-for="message in messages"
           :key="message.contact_id"
-          class="planner-panel !rounded-lg !p-4"
-        >
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <h4 class="truncate text-base font-semibold text-[var(--text-1)]">
-                  {{ message.subject || "Kontaktanfrage" }}
-                </h4>
-                <PrimeTag
-                  :value="message.read_at ? 'Gelesen' : 'Neu'"
-                  :severity="message.read_at ? 'secondary' : 'success'"
-                  class="text-xs"
-                />
-              </div>
-
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
-                <span>{{ message.name }}</span>
-                <span aria-hidden="true">|</span>
-                <span>{{ formatDate(message.created_at) }}</span>
-              </div>
-            </div>
-
-            <PrimeButton
-              v-if="!message.read_at"
-              label="Als gelesen markieren"
-              icon="pi pi-check"
-              severity="secondary"
-              outlined
-              class="min-h-10"
-              :loading="updatingId === message.contact_id"
-              @click="markRead(message)"
-            />
-          </div>
-
-          <dl class="mt-4 grid gap-3 text-sm">
-            <div class="grid gap-1">
-              <dt class="font-semibold text-[var(--text-1)]">Rückkontakt</dt>
-              <dd class="break-words text-[var(--text-2)]">{{ message.reply_to }}</dd>
-            </div>
-            <div class="grid gap-1">
-              <dt class="font-semibold text-[var(--text-1)]">Nachricht</dt>
-              <dd class="whitespace-pre-wrap break-words leading-6 text-[var(--text-2)]">
-                {{ message.message }}
-              </dd>
-            </div>
-          </dl>
-        </article>
+          :message="message"
+          :updating="updatingId === message.contact_id"
+          @mark-read="markRead(message)"
+        />
       </div>
 
       <div v-else class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[var(--text-3)]">
         Noch keine Kontaktanfragen vorhanden.
       </div>
 
-      <div
+      <SettingsPager
         v-if="totalPages > 1"
-        class="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border-soft)] pt-4"
+        :page="page"
+        :total-pages="totalPages"
+        class="border-[var(--border-soft)]"
+        @prev="prevPage"
+        @next="nextPage"
       >
-        <PrimeButton
-          icon="pi pi-chevron-left"
-          text
-          class="!h-11 !w-11"
-          aria-label="Vorherige Seite"
-          :disabled="page === 0"
-          @click="prevPage"
-        />
         <span class="text-sm text-[var(--text-2)]">
           Seite {{ page + 1 }} von {{ totalPages }} ({{ total }} Nachrichten)
         </span>
-        <PrimeButton
-          icon="pi pi-chevron-right"
-          text
-          class="!h-11 !w-11"
-          aria-label="Nächste Seite"
-          :disabled="page >= totalPages - 1"
-          @click="nextPage"
-        />
-      </div>
+      </SettingsPager>
     </template>
   </div>
 </template>
