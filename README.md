@@ -227,11 +227,14 @@ schichtplaner/
 |   |   |-- PushDialog.vue
 |   |   `-- TeamAccessGate.vue
 |   |-- planner/
+|   |   |-- absence/
+|   |   |   `-- AbsenceDialog.vue
 |   |   |-- holiday/
 |   |   |   |-- HolidayBannerCard.vue
 |   |   |   |-- HolidayCompactList.vue
 |   |   |   `-- HolidayDetailPanels.vue
 |   |   |-- page/
+|   |   |   |-- PlannerAbsencesPanel.vue
 |   |   |   |-- PlannerBulkGenerateDialog.vue
 |   |   |   |-- PlannerCurrentWeekSection.vue
 |   |   |   |-- PlannerWeekHero.vue
@@ -267,6 +270,10 @@ schichtplaner/
 |       |   `-- ChangePasswordDialog.vue
 |       |-- contact/
 |       |   `-- ContactMessages.vue
+|       |-- members/
+|       |   `-- MemberAccessManager.vue
+|       |-- requests/
+|       |   `-- ShiftRequestManager.vue
 |       |-- rotation/
 |       |   |-- RotationAssignDialog.vue
 |       |   |-- RotationConfigDialog.vue
@@ -347,6 +354,10 @@ schichtplaner/
 |   |   |   |-- absences/
 |   |   |   |   |-- [id].delete.ts
 |   |   |   |   `-- index.post.ts
+|   |   |   |-- requests/
+|   |   |   |   |-- [id].post.ts
+|   |   |   |   |-- index.get.ts
+|   |   |   |   `-- index.post.ts
 |   |   |   |-- logout.post.ts
 |   |   |   |-- me.get.ts
 |   |   |   `-- redeem.post.ts
@@ -362,6 +373,10 @@ schichtplaner/
 |   |   |   |-- status.get.ts
 |   |   |   |-- subscribe.post.ts
 |   |   |   `-- unsubscribe.post.ts
+|   |   |-- requests/
+|   |   |   |-- [id].post.ts
+|   |   |   |-- index.get.ts
+|   |   |   `-- settings.put.ts
 |   |   |-- rotation/
 |   |   |   |-- assign.post.ts
 |   |   |   |-- config.get.ts
@@ -379,6 +394,7 @@ schichtplaner/
 |   |   |-- shiftplan/
 |   |   |   |-- assign.post.ts
 |   |   |   |-- copy-year.post.ts
+|   |   |   |-- day-change.post.ts
 |   |   |   |-- generate.post.ts
 |   |   |   |-- index.get.ts
 |   |   |   |-- unassign.post.ts
@@ -419,11 +435,13 @@ schichtplaner/
 |   |   |-- audit.service.ts
 |   |   |-- contact-mail.service.ts
 |   |   |-- contact.service.ts
+|   |   |-- day-change.service.ts
 |   |   |-- member-access.service.ts
 |   |   |-- push-relay.service.ts
 |   |   |-- push.service.ts
 |   |   |-- rotation-excel.service.ts
 |   |   |-- rotation.service.ts
+|   |   |-- shift-request.service.ts
 |   |   |-- shift.service.ts
 |   |   |-- shiftplan.service.ts
 |   |   |-- staff.service.ts
@@ -435,8 +453,10 @@ schichtplaner/
 |       |-- auth.ts
 |       |-- database-migrations.js
 |       |-- database.ts
+|       |-- day-change-flow.ts
 |       |-- iso-week.ts
 |       |-- session.ts
+|       |-- shift-request-flow.ts
 |       |-- validation.ts
 |       `-- xlsx.ts
 |-- stores/
@@ -449,11 +469,13 @@ schichtplaner/
 |   |-- auth.store.ts
 |   `-- data.store.ts
 |-- types/
+|   |-- absence.ts
 |   |-- analytics.ts
 |   |-- auth.ts
 |   |-- contact.ts
 |   |-- holiday.ts
 |   |-- rotation.ts
+|   |-- shift-request.ts
 |   |-- shift.ts
 |   |-- shiftplan.ts
 |   `-- staff.ts
@@ -510,6 +532,7 @@ schichtplaner/
 | `GET` | `/api/shiftplan` | Public | No | `week`, `year` | - | List shiftplan records |
 | `POST` | `/api/shiftplan/assign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Assign staff to a weekly shift |
 | `POST` | `/api/shiftplan/copy-year` | Planner/Admin | Yes | - | `overwrite`, `sourceYear`, `targetYear` | Copy shift plans between years |
+| `POST` | `/api/shiftplan/day-change` | Planner/Admin | Yes | - | `present` | Create or update shiftplan data |
 | `POST` | `/api/shiftplan/generate` | Planner/Admin | Yes | - | `week`, `weeks`, `year` | Generate plans from the rotation pattern |
 | `POST` | `/api/shiftplan/unassign` | Planner/Admin | Yes | - | `shift_id`, `staff_id`, `week`, `year` | Remove staff from a weekly shift |
 | `GET` | `/api/shiftplan/year-summary` | Public | No | `year` | - | Read yearly planning coverage |
@@ -602,6 +625,9 @@ schichtplaner/
 | `POST` | `/api/member/logout` | Authenticated | Yes | - | - | Create or update member data |
 | `GET` | `/api/member/me` | Authenticated | No | - | - | List member records |
 | `POST` | `/api/member/redeem` | Authenticated | Yes | - | `code`, `deviceName` | Create or update member data |
+| `GET` | `/api/member/requests` | Authenticated | No | - | - | List member records |
+| `POST` | `/api/member/requests` | Authenticated | Yes | - | `shiftId` | Create or update member data |
+| `POST` | `/api/member/requests/:id` | Authenticated | Yes | - | - | Create or update member data |
 
 ### Push API
 
@@ -613,6 +639,14 @@ schichtplaner/
 | `GET` | `/api/push/status` | Planner/Admin | No | - | - | List push records |
 | `POST` | `/api/push/subscribe` | Authenticated | Yes | - | - | Create or update push data |
 | `POST` | `/api/push/unsubscribe` | Authenticated | Yes | - | - | Create or update push data |
+
+### Requests API
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/requests` | Planner/Admin | No | - | - | List requests records |
+| `POST` | `/api/requests/:id` | Planner/Admin | Yes | - | - | Create or update requests data |
+| `PUT` | `/api/requests/settings` | Planner/Admin | Yes | - | `requiresApproval` | API endpoint |
 
 ### Team-access API
 
@@ -651,6 +685,7 @@ schichtplaner/
 | `GET` | `/api/shiftplan` | Yes | Yes | Yes | No |
 | `POST` | `/api/shiftplan/assign` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/copy-year` | No | Yes | Yes | Yes |
+| `POST` | `/api/shiftplan/day-change` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/generate` | No | Yes | Yes | Yes |
 | `POST` | `/api/shiftplan/unassign` | No | Yes | Yes | Yes |
 | `GET` | `/api/shiftplan/year-summary` | Yes | Yes | Yes | No |
@@ -688,12 +723,18 @@ schichtplaner/
 | `POST` | `/api/member/logout` | No | Yes | Yes | Yes |
 | `GET` | `/api/member/me` | No | Yes | Yes | No |
 | `POST` | `/api/member/redeem` | No | Yes | Yes | Yes |
+| `GET` | `/api/member/requests` | No | Yes | Yes | No |
+| `POST` | `/api/member/requests` | No | Yes | Yes | Yes |
+| `POST` | `/api/member/requests/:id` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/devices` | No | Yes | Yes | Yes |
 | `DELETE` | `/api/push/devices` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/notify` | No | Yes | Yes | Yes |
 | `GET` | `/api/push/status` | No | Yes | Yes | No |
 | `POST` | `/api/push/subscribe` | No | Yes | Yes | Yes |
 | `POST` | `/api/push/unsubscribe` | No | Yes | Yes | Yes |
+| `GET` | `/api/requests` | No | Yes | Yes | No |
+| `POST` | `/api/requests/:id` | No | Yes | Yes | Yes |
+| `PUT` | `/api/requests/settings` | No | Yes | Yes | Yes |
 | `GET` | `/api/team-access` | No | No | Yes | No |
 | `POST` | `/api/team-access` | No | No | Yes | Yes |
 | `POST` | `/api/viewer/login` | No | Yes | Yes | Yes |
@@ -711,10 +752,9 @@ schichtplaner/
 
 | Workflow | Runs On | Main Result |
 |----------|---------|-------------|
-| CI | Push: master, main, RBA; PR: master/main | Tests, build, typecheck, and Docker smoke test |
+| CI | Push: master, main, RBA; PR: master/main | Tests, README check, build, typecheck, and Docker smoke test |
 | Auto Version & Release | Push: main, master | Creates version tag and GitHub release for changelog-visible commits |
 | Docker Build & Push | CI success + deploy prefix: master, main, RBA | Builds and pushes GHCR image with generated changelog |
-| Update README | Successful CI push: master, main | Regenerates README sections and commits with [skip ci] |
 
 ### Changelog Prefixes
 
@@ -730,7 +770,7 @@ Hidden from releases: `refactor:`, `style:`, `test:`, `chore:`, `ci:`, `docs:`, 
 2. Auto Version & Release creates a tag for visible commit prefixes.
 3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.
 4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.
-5. README automation updates generated documentation after trusted pushes without retriggering CI.
+5. CI fails when the generated README sections are stale; run `npm run docs` and commit the result.
 <!-- AUTO-GENERATED-WORKFLOWS-END -->
 
 </details>
