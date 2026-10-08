@@ -15,6 +15,7 @@
     "test:run": "vitest run",
     "postinstall": "nuxt prepare",
     "docs": "node scripts/docs-generator.js",
+    "lint:length": "node scripts/check-file-length.js",
     "version:check": "node scripts/resolve-version.js && cat .version",
     "changelog": "node scripts/generate-changelog.js"
   },

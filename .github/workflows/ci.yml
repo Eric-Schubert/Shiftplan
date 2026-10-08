@@ -68,6 +68,9 @@ jobs:
       - name: Run tests
         run: npm run test:run
 
+      - name: Check file length
+        run: npm run lint:length
+
       - name: Check generated docs
         run: |
           npm run docs
