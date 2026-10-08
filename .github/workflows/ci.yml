@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["master", "main", "RBA"]
+    branches: ["master"]
     paths-ignore:
       - "*.md"
       - "docs/**"
@@ -11,7 +11,7 @@ on:
   # Pull requests always run, so the required checks report a result. For
   # documentation-only changes the jobs below are skipped, which counts as passed.
   pull_request:
-    branches: ["master", "main", "RBA"]
+    branches: ["master"]
   workflow_dispatch:
 
 jobs:
