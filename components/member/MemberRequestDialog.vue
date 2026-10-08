@@ -17,10 +17,6 @@ const dialogVisible = computed({
 const { data: shifts } = await useFetch<Shift[]>("/api/shift", { default: () => [] });
 const { data: staff } = await useFetch<Staff[]>("/api/staff", { default: () => [] });
 
-const kindOptions = [
-  { label: "Schicht abgeben", value: "takeover" },
-  { label: "Schichten tauschen", value: "swap" },
-];
 const shiftOptions = computed(() => [
   { label: "Meine Schicht an dem Tag", value: null },
   ...(shifts.value ?? []).filter((shift) => shift.active).map((shift) => ({ label: shift.name, value: shift.shift_id })),
@@ -41,10 +37,6 @@ const to = ref(today);
 const message = ref("");
 const saving = ref(false);
 const error = ref("");
-
-watch(from, (value) => {
-  if (to.value < value) to.value = value;
-});
 
 async function save() {
   if (kind.value === "swap" && !partnerId.value) {
@@ -79,20 +71,7 @@ async function save() {
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <form class="space-y-4 text-sm" @submit.prevent="save">
-      <div class="grid grid-cols-2 gap-1 rounded-lg bg-[var(--surface-muted)] p-1" role="radiogroup" aria-label="Art der Anfrage">
-        <button
-          v-for="option in kindOptions"
-          :key="option.value"
-          type="button"
-          role="radio"
-          :aria-checked="kind === option.value"
-          class="min-h-9 rounded-md px-3 font-medium transition-colors"
-          :class="kind === option.value ? 'bg-[var(--surface)] text-[var(--text-1)] shadow-sm' : 'text-[var(--text-2)] hover:text-[var(--text-1)]'"
-          @click="kind = option.value as 'takeover' | 'swap'"
-        >
-          {{ option.label }}
-        </button>
-      </div>
+      <MemberRequestKindSwitch v-model="kind" />
 
       <template v-if="kind === 'takeover'">
         <p class="text-[var(--text-2)]">Das Team bekommt Bescheid. Wer zuerst zusagt, übernimmt deine Schicht an diesem Tag.</p>
@@ -130,16 +109,7 @@ async function save() {
             class="w-full"
           />
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1.5">
-            <label for="request-from" class="block font-medium text-[var(--text-2)]">Von</label>
-            <input id="request-from" v-model="from" type="date" :min="today" required class="p-inputtext p-component w-full" />
-          </div>
-          <div class="space-y-1.5">
-            <label for="request-to" class="block font-medium text-[var(--text-2)]">Bis</label>
-            <input id="request-to" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
-          </div>
-        </div>
+        <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="request" :min="today" />
         <p class="text-xs text-[var(--text-3)]">Höchstens 8 Wochen am Stück.</p>
       </template>
 

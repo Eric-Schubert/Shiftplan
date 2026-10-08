@@ -15,14 +15,6 @@ const emit = defineEmits<{
 const dataStore = useDataStore();
 
 const defaultColor = backendConfig.validation.shift.defaultColor;
-const colorOptions = [
-  { value: "#22c55e" },
-  { value: "#3b82f6" },
-  { value: "#8b5cf6" },
-  { value: "#f97316" },
-  { value: "#ef4444" },
-  { value: "#06b6d4" },
-];
 
 const saving = ref(false);
 const form = ref<ShiftCreateDTO>(createDefaultForm(props.nextSortOrder));
@@ -112,24 +104,7 @@ async function saveShift() {
         </div>
       </div>
 
-      <div class="flex flex-col gap-2">
-        <label class="font-medium">Farbe</label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="color in colorOptions"
-            :key="color.value"
-            type="button"
-            class="h-10 w-10 rounded-full border-2 transition-transform hover:scale-110"
-            :class="{
-              'scale-110 border-gray-900 dark:border-white': form.color === color.value,
-              'border-transparent': form.color !== color.value,
-            }"
-            :style="{ backgroundColor: color.value }"
-            :aria-label="`Farbe ${color.value} auswählen`"
-            @click="form.color = color.value"
-          />
-        </div>
-      </div>
+      <ShiftColorPicker v-model="form.color" />
 
       <div class="flex flex-col gap-2">
         <label for="shift-min-staff" class="font-medium">Min. Mitarbeiter</label>

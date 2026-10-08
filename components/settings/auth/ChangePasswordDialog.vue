@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PASSWORD_POLICY_HINT, validatePasswordStrength } from "~/utils/password-policy";
+import { PASSWORD_POLICY_HINT } from "~/utils/password-policy";
+import { passwordChangeProblem } from "~/utils/account-forms";
 
 const { authFetch } = useAuthFetch();
 const visible = defineModel<boolean>("visible");
@@ -12,25 +13,17 @@ const success = ref(false);
 const loading = ref(false);
 const passwordErrorId = "change-password-error";
 
+function clearFields() {
+  currentPassword.value = "";
+  newPassword.value = "";
+  confirmPassword.value = "";
+}
+
 async function changePassword() {
-  error.value = "";
+  const problem = passwordChangeProblem(currentPassword.value, newPassword.value, confirmPassword.value);
+  error.value = problem ?? "";
   success.value = false;
-
-  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
-    error.value = "Alle Felder ausfüllen";
-    return;
-  }
-
-  if (newPassword.value !== confirmPassword.value) {
-    error.value = "Neue Passwörter stimmen nicht überein";
-    return;
-  }
-
-  const strength = validatePasswordStrength(newPassword.value);
-  if (!strength.valid) {
-    error.value = strength.message;
-    return;
-  }
+  if (problem) return;
 
   loading.value = true;
 
@@ -44,9 +37,7 @@ async function changePassword() {
     });
 
     success.value = true;
-    currentPassword.value = "";
-    newPassword.value = "";
-    confirmPassword.value = "";
+    clearFields();
 
     setTimeout(() => {
       visible.value = false;
@@ -60,9 +51,7 @@ async function changePassword() {
 }
 
 function onHide() {
-  currentPassword.value = "";
-  newPassword.value = "";
-  confirmPassword.value = "";
+  clearFields();
   error.value = "";
   success.value = false;
 }
@@ -88,44 +77,27 @@ function onHide() {
       </div>
 
       <template v-else>
-        <div class="space-y-1.5">
-          <label for="current-password" class="block text-sm font-medium text-[var(--text-2)]">
-            Aktuelles Passwort
-          </label>
-          <PrimeInputText
-            v-model="currentPassword"
-            id="current-password"
-            type="password"
-            placeholder="Aktuelles Passwort eingeben"
-            :aria-describedby="error ? passwordErrorId : undefined"
-          />
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="new-password" class="block text-sm font-medium text-[var(--text-2)]">
-            Neues Passwort
-          </label>
-          <PrimeInputText
-            v-model="newPassword"
-            id="new-password"
-            type="password"
-            :placeholder="PASSWORD_POLICY_HINT"
-            :aria-describedby="error ? passwordErrorId : undefined"
-          />
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="confirm-password" class="block text-sm font-medium text-[var(--text-2)]">
-            Neues Passwort bestätigen
-          </label>
-          <PrimeInputText
-            v-model="confirmPassword"
-            id="confirm-password"
-            type="password"
-            placeholder="Neues Passwort wiederholen"
-            :aria-describedby="error ? passwordErrorId : undefined"
-          />
-        </div>
+        <ChangePasswordField
+          v-model="currentPassword"
+          input-id="current-password"
+          label="Aktuelles Passwort"
+          placeholder="Aktuelles Passwort eingeben"
+          :described-by="error ? passwordErrorId : undefined"
+        />
+        <ChangePasswordField
+          v-model="newPassword"
+          input-id="new-password"
+          label="Neues Passwort"
+          :placeholder="PASSWORD_POLICY_HINT"
+          :described-by="error ? passwordErrorId : undefined"
+        />
+        <ChangePasswordField
+          v-model="confirmPassword"
+          input-id="confirm-password"
+          label="Neues Passwort bestätigen"
+          placeholder="Neues Passwort wiederholen"
+          :described-by="error ? passwordErrorId : undefined"
+        />
 
         <small
           v-if="error"

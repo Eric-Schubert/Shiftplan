@@ -33,11 +33,6 @@ const days = weekDates(props.year, props.week);
 const from = ref(days[0]!);
 const to = ref(days[0]!);
 const reason = ref<AbsenceReason>("urlaub");
-
-// The range never runs backwards.
-watch(from, (value) => {
-  if (to.value < value) to.value = value;
-});
 const note = ref("");
 const notifyTeam = ref(false);
 const message = ref("");
@@ -97,16 +92,7 @@ async function save() {
         />
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-1.5">
-          <label for="absence-from" class="block font-medium text-[var(--text-2)]">Von</label>
-          <input id="absence-from" v-model="from" type="date" required class="p-inputtext p-component w-full" />
-        </div>
-        <div class="space-y-1.5">
-          <label for="absence-to" class="block font-medium text-[var(--text-2)]">Bis</label>
-          <input id="absence-to" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
-        </div>
-      </div>
+      <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="absence" />
 
       <div class="space-y-1.5">
         <label for="absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
@@ -128,21 +114,7 @@ async function save() {
         </p>
       </div>
 
-      <div class="space-y-2 rounded-lg border border-[var(--border-soft)] p-3">
-        <label class="flex items-center gap-2 font-medium text-[var(--text-1)]">
-          <PrimeCheckbox v-model="notifyTeam" binary input-id="absence-notify" />
-          Team per Push informieren
-        </label>
-        <template v-if="notifyTeam">
-          <PrimeInputText
-            v-model="message"
-            maxlength="160"
-            placeholder="Zusatztext, z. B. Wer kann übernehmen?"
-            class="w-full"
-          />
-          <p class="text-xs text-[var(--text-3)]">Das Team sieht Name und Zeitraum, nie den Grund.</p>
-        </template>
-      </div>
+      <AbsenceNotifyFields v-model:notify="notifyTeam" v-model:message="message" />
 
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </form>

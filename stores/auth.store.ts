@@ -1,15 +1,6 @@
 import { defineStore } from "pinia";
 import type { SessionUser } from "~/types/auth";
-import backendConfig from "../config/backend.config.json";
-
-type AuthSessionResponse =
-  | { authenticated: false }
-  | { authenticated: true; user: SessionUser; csrfToken?: string | null };
-
-type LoginResponse = {
-  success: boolean;
-  user?: SessionUser;
-};
+import { readCsrfCookie, type AuthSessionResponse, type LoginResponse } from "./auth/session";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -45,19 +36,9 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-
-
-
     _readCsrfCookie(): string | null {
-      if (import.meta.server) return null;
-      const cookieName = backendConfig.auth.session.cookies.csrfName;
-      const escapedName = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${escapedName}=([^;]*)`));
-      return match?.[1] ? decodeURIComponent(match[1]) : null;
+      return readCsrfCookie();
     },
-
-
-
 
     async checkSession(): Promise<boolean> {
       this.isChecking = true;
@@ -83,9 +64,6 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-
-
-
     async login(
       username: string,
       password: string
@@ -98,10 +76,7 @@ export const useAuthStore = defineStore("auth", {
 
         if (result.success && result.user) {
           this.user = result.user;
-
-
           this.csrfToken = this._readCsrfCookie();
-
 
           if (!this.csrfToken) {
             const session = await $fetch<AuthSessionResponse>("/api/auth/session");
@@ -121,9 +96,6 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-
-
-
     async logout(): Promise<void> {
       try {
         await $fetch("/api/auth/logout", {
@@ -131,15 +103,12 @@ export const useAuthStore = defineStore("auth", {
           headers: this._csrfHeaders(),
         });
       } catch {
-
+        // Signed out locally either way.
       } finally {
         this.user = null;
         this.csrfToken = null;
       }
     },
-
-
-
 
     _csrfHeaders(): Record<string, string> {
       if (this.csrfToken) {
@@ -148,12 +117,6 @@ export const useAuthStore = defineStore("auth", {
       return {};
     },
 
-
-
-
-    extendSession(): void {
-
-
-    },
+    extendSession(): void {},
   },
 });
