@@ -1,80 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApiClient, type ApiClient, type CookieJar, type Route } from "./helpers/api-harness";
+import { describe, expect, it, vi } from "vitest";
+import type { CookieJar } from "./helpers/api-harness";
+import { ANNA, SAME_ORIGIN, browserWithInvite, client, pinLogin, useMemberPinClient } from "./helpers/member-pin";
+import { webPushMock } from "./helpers/web-push-mock";
 
-const sendNotification = vi.fn();
-vi.mock("web-push", () => ({
-  default: {
-    generateVAPIDKeys: () => ({ publicKey: "test-public-key", privateKey: "test-private-key" }),
-    sendNotification: (...args: unknown[]) => sendNotification(...args),
-  },
-}));
-process.env.SHIFTPLAN_PUSH_RELAY_URL = "off";
-
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["post", "/api/staff", "server/api/staff/index.post"],
-  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
-  ["delete", "/api/staff/:id/pin", "server/api/staff/[id]/pin.delete"],
-  ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
-  ["post", "/api/member/redeem", "server/api/member/redeem.post"],
-  ["post", "/api/member/login", "server/api/member/login.post"],
-  ["put", "/api/member/pin", "server/api/member/pin.put"],
-  ["get", "/api/member/me", "server/api/member/me.get"],
-  ["post", "/api/member/logout", "server/api/member/logout.post"],
-  ["post", "/api/member/absences", "server/api/member/absences/index.post"],
-  ["post", "/api/member-invites", "server/api/member-invites/index.post"],
-  ["get", "/api/member-sessions/pins", "server/api/member-sessions/pins.get"],
-  ["get", "/api/viewer/status", "server/api/viewer/status.get"],
-];
-
-const ANNA = 1;
-const MAX = 2;
-const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
-const KEYS = { p256dh: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQ", auth: "tBHItJI5svbpez7KI4CCXg" };
-
-let client: ApiClient;
-
-/** A browser that redeems the planner's QR code for a person. */
-async function browserWithInvite(staffId: number): Promise<CookieJar> {
-  const planner = await client.loginAs("planner", "planner1234");
-  const invite = await client.request<{ code: string }>("POST", "/api/member-invites", {
-    jar: planner,
-    csrf: true,
-    body: { staffId },
-  });
-  const jar: CookieJar = new Map();
-  const redeem = await client.request("POST", "/api/member/redeem", {
-    jar,
-    headers: SAME_ORIGIN,
-    body: { code: invite.json!.code, client: "web", deviceName: "Firefox" },
-  });
-  expect(redeem.status).toBe(200);
-  return jar;
-}
-
-function pinLogin(shortCode: string, pin: string, extra: Record<string, unknown> = {}, jar?: CookieJar) {
-  return client.request<any>("POST", "/api/member/login", {
-    jar,
-    headers: SAME_ORIGIN,
-    body: { shortCode, pin, ...extra },
-  });
-}
-
-beforeEach(async () => {
-  sendNotification.mockReset();
-  sendNotification.mockResolvedValue({ statusCode: 201 });
-  client = await createApiClient(ROUTES, (db) => {
-    db.prepare("INSERT INTO staff (name, short_code) VALUES ('Anna Weber', 'AW')").run();
-    db.prepare("INSERT INTO staff (name, short_code) VALUES ('Max Mustermann', 'MM')").run();
-    db.prepare(
-      "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Frühschicht', 1, '06:00', '14:00', '#22c55e', 1, 1)"
-    ).run();
-  });
-});
-
-afterEach(() => {
-  client.close();
-});
+vi.mock("web-push", () => webPushMock);
+useMemberPinClient();
 
 describe("sign-in with Kürzel and PIN", () => {
   it("signs a browser in with the QR code, then any device with Kürzel and PIN", async () => {
@@ -152,59 +82,6 @@ describe("sign-in with Kürzel and PIN", () => {
     expect(reset.status).toBe(200);
     expect(afterReset.status).toBe(401);
     expect(memberCannotReset.status).toBe(401);
-  });
-
-  it("only accepts cookie writes from the site itself", async () => {
-    const browser = await browserWithInvite(ANNA);
-    const body = { date: "2099-01-05", reason: "urlaub", notifyTeam: false };
-
-    const foreign = await client.request("POST", "/api/member/absences", {
-      jar: browser,
-      headers: { origin: "https://evil.example", host: "localhost" },
-      body,
-    });
-    const missing = await client.request("POST", "/api/member/absences", { jar: browser, body });
-    const own = await client.request<any>("POST", "/api/member/absences", { jar: browser, headers: SAME_ORIGIN, body });
-
-    expect(foreign.status).toBe(403);
-    expect(missing.status).toBe(403);
-    expect(own.status).toBe(200);
-    expect(own.json.absence.source).toBe("web");
-  });
-
-  it("signs the browser out and forgets the cookie", async () => {
-    const browser = await browserWithInvite(ANNA);
-    const logout = await client.request("POST", "/api/member/logout", { jar: browser, headers: SAME_ORIGIN });
-    const me = await client.request("GET", "/api/member/me", { jar: browser });
-
-    expect(logout.status).toBe(200);
-    expect(browser.get("member_token") ?? "").toBe("");
-    expect(me.status).toBe(401);
-  });
-
-  it("sends a signed-in browser the person's own messages, not their own absence notice", async () => {
-    const anna = await browserWithInvite(ANNA);
-    const max = await browserWithInvite(MAX);
-    await client.request("POST", "/api/push/subscribe", {
-      jar: anna,
-      headers: SAME_ORIGIN,
-      body: { endpoint: "https://fcm.googleapis.com/fcm/send/anna", keys: KEYS },
-    });
-    expect(client.adminDb.prepare("SELECT staff_id FROM push_subscriptions").get()).toEqual({ staff_id: ANNA });
-
-    await client.request("POST", "/api/member/absences", {
-      jar: anna,
-      headers: SAME_ORIGIN,
-      body: { date: "2099-01-05", reason: "urlaub" },
-    });
-    expect(sendNotification).not.toHaveBeenCalled();
-
-    await client.request("POST", "/api/member/absences", {
-      jar: max,
-      headers: SAME_ORIGIN,
-      body: { date: "2099-01-05", reason: "urlaub" },
-    });
-    expect(sendNotification).toHaveBeenCalledTimes(1);
   });
 });
 
