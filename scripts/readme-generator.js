@@ -390,19 +390,15 @@ export function generateWorkflowDocs() {
   const docker = fileExists(".github", "workflows", "docker-build.yml")
     ? readText(".github", "workflows", "docker-build.yml")
     : "";
-  const readme = fileExists(".github", "workflows", "update-readme.yml")
-    ? readText(".github", "workflows", "update-readme.yml")
-    : "";
   const prefixes = parseChangelogPrefixes();
 
   const lines = [
     "### Workflow Summary\n",
     "| Workflow | Runs On | Main Result |",
     "|----------|---------|-------------|",
-    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, build, typecheck, and Docker smoke test |`,
+    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, README check, build, typecheck, and Docker smoke test |`,
     `| Auto Version & Release | Push: ${parseInlineBranches(release).join(", ") || "-"} | Creates version tag and GitHub release for changelog-visible commits |`,
     `| Docker Build & Push | CI success + deploy prefix: ${parseInlineBranches(docker).join(", ") || "-"} | Builds and pushes GHCR image with generated changelog |`,
-    `| Update README | Successful CI push: ${parseInlineBranches(readme).join(", ") || "-"} | Regenerates README sections and commits with [skip ci] |`,
     "",
     "### Changelog Prefixes\n",
     "Release and deploy prefix rules are defined in `scripts/release-prefixes.json`.",
@@ -416,7 +412,7 @@ export function generateWorkflowDocs() {
     "2. Auto Version & Release creates a tag for visible commit prefixes.",
     "3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.",
     "4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.",
-    "5. README automation updates generated documentation after trusted pushes without retriggering CI.",
+    "5. CI fails when the generated README sections are stale; run `npm run docs` and commit the result.",
   ];
 
   return lines.join("\n");
