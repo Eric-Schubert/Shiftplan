@@ -13,3 +13,4 @@ db/*.sqlite
 db/*.sqlite-*
 .idea
 .impeccable.md
+.claude/
