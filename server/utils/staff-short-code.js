@@ -19,8 +19,14 @@ export function isValidShortCode(value) {
   return /^[A-Z0-9]{2,8}$/.test(value);
 }
 
-/** Initials of first and last name, with a number when the Kürzel is taken. */
+/**
+ * A name that already is a Kürzel ("AL", "KMS") stays as it is; otherwise the initials of first
+ * and last name. A number is added when the Kürzel is taken.
+ */
 export function suggestShortCode(name, taken) {
+  const whole = normalizeShortCode(name);
+  if (!/\s/.test(String(name).trim()) && isValidShortCode(whole) && !taken.has(whole)) return whole;
+
   const words = String(name)
     .split(/\s+/)
     .map((word) => normalizeShortCode(word))

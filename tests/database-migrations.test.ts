@@ -49,7 +49,7 @@ describe("database migrations", () => {
     migrateMainDatabase(db);
     db.exec("DROP INDEX idx_staff_short_code");
     db.exec("ALTER TABLE staff DROP COLUMN short_code");
-    for (const name of ["Max Mustermann", "Maria Meier", "Özlem Yılmaz", "Cher"]) {
+    for (const name of ["Max Mustermann", "Maria Meier", "Özlem Yılmaz", "Cher", "AL", "KMS"]) {
       db.prepare("INSERT INTO staff (name) VALUES (?)").run(name);
     }
     db.prepare("DELETE FROM schema_migrations WHERE id = '008_main_staff_short_code'").run();
@@ -59,7 +59,7 @@ describe("database migrations", () => {
     const codes = (db.prepare("SELECT short_code FROM staff ORDER BY staff_id").all() as Array<{ short_code: string }>).map(
       (row) => row.short_code
     );
-    expect(codes).toEqual(["MM", "MM2", "OY", "CH"]);
+    expect(codes).toEqual(["MM", "MM2", "OY", "CHER", "AL", "KMS"]);
     db.close();
   });
 
