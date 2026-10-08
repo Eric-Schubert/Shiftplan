@@ -76,6 +76,8 @@ Holiday example:
 
 ## Docker
 
+For a production setup with HTTPS, the Shiftplan app, push notifications, updates, and backups, follow the self-hosting guide (German): [docs/self-hosting.md](docs/self-hosting.md).
+
 ```bash
 docker build -t schichtplaner .
 docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SecurePassword1 -v ${PWD}/db:/app/db schichtplaner
