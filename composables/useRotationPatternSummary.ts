@@ -1,10 +1,9 @@
 import { getIsoWeekOfDate, getPatternWeekForCalendarWeek } from "~/utils/rotation";
 
 /** Key figures of the stored rotation pattern, shown by the rotation wizard. */
-export function useRotationPatternSummary() {
+export function useRotationPatternSummary(today = getIsoWeekOfDate(new Date())) {
   const dataStore = useDataStore();
 
-  const today = getIsoWeekOfDate(new Date());
   const rotationConfig = computed(() => dataStore.rotationConfig);
   const patternWeeks = computed(() => dataStore.rotationPattern?.weeks ?? []);
 

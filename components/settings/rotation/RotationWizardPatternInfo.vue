@@ -1,8 +1,9 @@
 <script setup lang="ts">
+const props = defineProps<{ today: { year: number; week: number } }>();
 const editing = defineModel<boolean>("editing", { required: true });
 
 const { today, rotationConfig, assignmentCount, currentPatternWeek, assignmentsLabel } =
-  useRotationPatternSummary();
+  useRotationPatternSummary(props.today);
 </script>
 
 <template>

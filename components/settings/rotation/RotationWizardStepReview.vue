@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import type { RotationExcelImportResult } from "~/types/rotation";
 
-defineProps<{
+const props = defineProps<{
   importDone: RotationExcelImportResult | null;
+  today: { year: number; week: number };
 }>();
 
 const emit = defineEmits<{
   (e: "edit-board"): void;
 }>();
 
-const { patternWeeks, currentPatternWeek, understaffedCount, assignmentsLabel } = useRotationPatternSummary();
+const { patternWeeks, currentPatternWeek, understaffedCount, assignmentsLabel } = useRotationPatternSummary(props.today);
 
 function staffingNote(staffCount: number, minStaff: number): string | null {
   if (staffCount === 0) return "unbesetzt";

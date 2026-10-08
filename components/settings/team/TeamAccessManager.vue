@@ -70,7 +70,7 @@ onMounted(load);
       können Schichten weiterhin nur Planer und Admins.
     </p>
 
-    <div v-if="loading" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
+    <div v-if="loading && !access" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
       <PrimeProgressSpinner class="!h-5 !w-5" />
       Wird geladen.
     </div>

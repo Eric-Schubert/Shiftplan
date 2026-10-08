@@ -84,7 +84,7 @@ watch(activeStep, () => {
       <RotationWizardSteps v-model:active-step="activeStep" :steps="steps" />
 
       <section v-if="activeStep === 0" class="space-y-4">
-        <RotationWizardPatternInfo v-model:editing="editingConfig" />
+        <RotationWizardPatternInfo v-model:editing="editingConfig" :today="today" />
         <RotationWizardExcelCard
           :downloading="downloadingTemplate"
           :checking="checkingFile"
@@ -101,6 +101,7 @@ watch(activeStep, () => {
       <RotationWizardStepReview
         v-else-if="activeStep === 1"
         :import-done="importDone"
+        :today="today"
         @edit-board="emit('edit-board')"
       />
 
