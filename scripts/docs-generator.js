@@ -1,8 +1,3 @@
-
-
-
-
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
@@ -14,44 +9,14 @@ const ROOT = path.resolve(__dirname, "..");
 
 export const CONFIG = {
   root: ROOT,
-  readme: path.join(ROOT, "README.md"),
-  includeDirs: [
-    "components",
-    "layouts",
-    "pages",
-    "server",
-    "stores",
-    "types",
-    "scripts",
-  ],
-  ignoreDirs: [
-    "node_modules",
-    ".git",
-    ".nuxt",
-    ".output",
-    "dist",
-    ".github",
-    "db",
-    "tests",
-    "coverage",
-  ],
-  ignoreFiles: [".DS_Store", "Thumbs.db"],
+  files: {
+    api: path.join(ROOT, "docs", "api.md"),
+    releases: path.join(ROOT, "docs", "releases.md"),
+  },
   markers: {
-    structure: {
-      start: "<!-- AUTO-GENERATED-STRUCTURE-START -->",
-      end: "<!-- AUTO-GENERATED-STRUCTURE-END -->",
-    },
     api: {
       start: "<!-- AUTO-GENERATED-API-START -->",
       end: "<!-- AUTO-GENERATED-API-END -->",
-    },
-    rbac: {
-      start: "<!-- AUTO-GENERATED-RBAC-START -->",
-      end: "<!-- AUTO-GENERATED-RBAC-END -->",
-    },
-    components: {
-      start: "<!-- AUTO-GENERATED-COMPONENTS-START -->",
-      end: "<!-- AUTO-GENERATED-COMPONENTS-END -->",
     },
     workflows: {
       start: "<!-- AUTO-GENERATED-WORKFLOWS-START -->",
@@ -95,75 +60,6 @@ function listFilesRecursive(dirPath) {
   return files;
 }
 
-function scanDirectory(dirPath, prefix = "") {
-  const lines = [];
-  const fullPath = path.join(ROOT, dirPath);
-  if (!fs.existsSync(fullPath)) return lines;
-
-  const items = fs.readdirSync(fullPath, { withFileTypes: true })
-    .filter((item) => !CONFIG.ignoreDirs.includes(item.name))
-    .filter((item) => !CONFIG.ignoreFiles.includes(item.name))
-    .filter((item) => !item.name.startsWith("."))
-    .sort((a, b) => {
-      if (a.isDirectory() && !b.isDirectory()) return -1;
-      if (!a.isDirectory() && b.isDirectory()) return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-  items.forEach((item, index) => {
-    const isLast = index === items.length - 1;
-    const connector = isLast ? "`-- " : "|-- ";
-    const childPrefix = prefix + (isLast ? "    " : "|   ");
-
-    if (item.isDirectory()) {
-      lines.push(`${prefix}${connector}${item.name}/`);
-      lines.push(...scanDirectory(path.join(dirPath, item.name), childPrefix));
-    } else {
-      lines.push(`${prefix}${connector}${item.name}`);
-    }
-  });
-
-  return lines;
-}
-
-export function generateStructure() {
-  const lines = ["```text", "schichtplaner/"];
-  const allItems = [];
-
-  for (const dir of CONFIG.includeDirs) {
-    if (fileExists(dir)) allItems.push({ name: dir, isDir: true });
-  }
-
-  const rootFiles = fs.readdirSync(ROOT, { withFileTypes: true })
-    .filter((file) => file.isFile() && !file.name.startsWith("."))
-    .filter((file) => [".ts", ".js", ".json", ".md"].some((ext) => file.name.endsWith(ext)))
-    .filter((file) => !["package-lock.json"].includes(file.name))
-    .map((file) => ({ name: file.name, isDir: false }));
-
-  allItems.push(...rootFiles);
-  allItems.sort((a, b) => {
-    if (a.isDir && !b.isDir) return -1;
-    if (!a.isDir && b.isDir) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  allItems.forEach((item, index) => {
-    const isLast = index === allItems.length - 1;
-    const connector = isLast ? "`-- " : "|-- ";
-    const childPrefix = isLast ? "    " : "|   ";
-
-    if (item.isDir) {
-      lines.push(`${connector}${item.name}/`);
-      lines.push(...scanDirectory(item.name, childPrefix));
-    } else {
-      lines.push(`${connector}${item.name}`);
-    }
-  });
-
-  lines.push("```");
-  return lines.join("\n");
-}
-
 function routeFromApiFile(filePath) {
   const relative = path.relative(path.join(ROOT, "server", "api"), path.join(ROOT, filePath));
   const parts = relative.split(path.sep);
@@ -186,24 +82,56 @@ function routeFromApiFile(filePath) {
   };
 }
 
-function isPublicGetEndpoint(method, route) {
-  if (method !== "GET") return false;
-  return ["/api/staff", "/api/shift", "/api/shiftplan", "/api/rotation", "/api/holidays"].some(
-    (prefix) => route === prefix || route.startsWith(`${prefix}/`),
-  );
+function readStringArray(source, name) {
+  const match = source.match(new RegExp(`const ${name} = \\[([\\s\\S]*?)\\];`));
+  if (!match) return [];
+  return [...match[1].matchAll(/"([^"]+)"/g)].map((item) => item[1]);
 }
 
-function getAccess(endpoint, content) {
-  if (endpoint.route === "/api/auth/login") return "Public";
+function readStringConst(source, name) {
+  return source.match(new RegExp(`const ${name} = "([^"]+)"`))?.[1] ?? null;
+}
+
+// Mirrors the order in server/middleware/auth.ts, which decides who reaches a handler.
+export function loadRouteRules() {
+  const middleware = readText("server", "middleware", "auth.ts");
+  const { routes } = JSON.parse(readText("config", "backend.config.json")).auth;
+
+  return {
+    public: routes.public,
+    publicGetPrefixes: routes.publicGetPrefixes,
+    teamRoutes: readStringArray(middleware, "TEAM_ROUTES"),
+    memberPrefix: readStringConst(middleware, "MEMBER_PREFIX"),
+    builtinReadPrefixes: readStringArray(middleware, "BUILTIN_READ_PREFIXES"),
+  };
+}
+
+function matchesPrefix(route, prefixes) {
+  return prefixes.some((prefix) => route === prefix || route.startsWith(`${prefix}/`));
+}
+
+function getAccess(endpoint, content, rules) {
   if (content.includes("requireAdmin(")) return "Admin";
-  if (content.includes("requirePlanner(")) return "Planner/Admin";
-  if (isPublicGetEndpoint(endpoint.method, endpoint.route)) return "Public";
-  return "Authenticated";
+  if (content.includes("requirePlanner(")) return "Planner";
+  if (content.includes("requireMember(")) return "Member";
+
+  const { method, route } = endpoint;
+  if (rules.public.includes(route)) return "Public";
+  if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "Public";
+  if (rules.teamRoutes.includes(route)) return "Team";
+  if (method === "GET" && matchesPrefix(route, [...rules.publicGetPrefixes, ...rules.builtinReadPrefixes])) {
+    return "Team";
+  }
+  return "Login";
 }
 
-function getCsrfRequirement(endpoint, access) {
-  const mutating = ["POST", "PATCH", "PUT", "DELETE"].includes(endpoint.method);
-  return mutating && access !== "Public" ? "Yes" : "No";
+// CSRF applies only where the middleware checks the planner session.
+function getCsrfRequirement(endpoint, rules) {
+  const { method, route } = endpoint;
+  if (!["POST", "PATCH", "PUT", "DELETE"].includes(method)) return "No";
+  if (rules.public.includes(route) || rules.teamRoutes.includes(route)) return "No";
+  if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "No";
+  return "Yes";
 }
 
 function getBodyFields(content) {
@@ -239,9 +167,15 @@ function getDescription(endpoint) {
     "POST /api/shiftplan/generate": "Generate plans from the rotation pattern",
     "GET /api/shiftplan/generate-preview": "Preview which weeks a rollout would fill or overwrite",
     "POST /api/shiftplan/copy-year": "Copy shift plans between years",
+    "POST /api/shiftplan/day-change": "Put someone into or out of a shift for one day",
     "GET /api/shiftplan/year-summary": "Read yearly planning coverage",
     "GET /api/holidays/public": "Read public holidays",
     "GET /api/holidays/school": "Read school holidays",
+    "POST /api/member/login": "Sign in with Kürzel and PIN",
+    "POST /api/member/redeem": "Redeem a personal QR code",
+    "PUT /api/member/pin": "Set or change the own PIN",
+    "GET /api/member/me": "Read the signed-in employee",
+    "POST /api/viewer/login": "Unlock the plan with the team access code",
   };
 
   const key = `${method} ${route}`;
@@ -257,19 +191,20 @@ function getDescription(endpoint) {
 }
 
 export function getApiEndpoints() {
+  const rules = loadRouteRules();
+
   return listFilesRecursive(path.join("server", "api"))
     .filter((file) => file.endsWith(".ts"))
     .map((file) => {
       const endpoint = routeFromApiFile(file);
       const content = readText(file);
-      const access = getAccess(endpoint, content);
 
       return {
         ...endpoint,
         file,
         group: endpoint.route.split("/")[2] || "root",
-        access,
-        csrf: getCsrfRequirement(endpoint, access),
+        access: getAccess(endpoint, content, rules),
+        csrf: getCsrfRequirement(endpoint, rules),
         query: getQueryFields(content),
         body: getBodyFields(content),
         description: getDescription(endpoint),
@@ -303,7 +238,7 @@ export function generateApiDocs() {
   const lines = [];
   for (const [group, groupEndpoints] of grouped) {
     const title = group.charAt(0).toUpperCase() + group.slice(1);
-    lines.push(`### ${title} API\n`);
+    lines.push(`### ${title}\n`);
     lines.push("| Method | Endpoint | Access | CSRF | Query | Body | Description |");
     lines.push("|--------|----------|--------|------|-------|------|-------------|");
 
@@ -316,55 +251,6 @@ export function generateApiDocs() {
   }
 
   return lines.join("\n").trimEnd();
-}
-
-function roleCanAccess(access, role) {
-  if (access === "Public") return "Yes";
-  if (access === "Authenticated") return role === "Public" ? "No" : "Yes";
-  if (access === "Planner/Admin") return role === "Planner" || role === "Admin" ? "Yes" : "No";
-  if (access === "Admin") return role === "Admin" ? "Yes" : "No";
-  return "No";
-}
-
-export function generateRbacMatrix() {
-  const endpoints = getApiEndpoints();
-  const lines = [
-    "| Method | Endpoint | Public | Planner | Admin | CSRF |",
-    "|--------|----------|--------|---------|-------|------|",
-  ];
-
-  for (const endpoint of endpoints) {
-    lines.push(
-      `| \`${endpoint.method}\` | \`${endpoint.route}\` | ${roleCanAccess(endpoint.access, "Public")} | ${roleCanAccess(endpoint.access, "Planner")} | ${roleCanAccess(endpoint.access, "Admin")} | ${endpoint.csrf} |`,
-    );
-  }
-
-  return lines.join("\n");
-}
-
-export function generateComponentsList() {
-  const compDir = path.join(ROOT, "components");
-  if (!fs.existsSync(compDir)) return "*No components found.*";
-
-  const components = fs.readdirSync(compDir)
-    .filter((file) => file.endsWith(".vue"))
-    .sort()
-    .map((file) => {
-      const content = fs.readFileSync(path.join(compDir, file), "utf-8");
-      const commentMatch = content.match(/\/\*\*\s*\n?\s*\*?\s*([^*\n]+)/);
-      let description = commentMatch ? commentMatch[1].trim() : "";
-      if (description.startsWith("*")) description = "";
-      return { name: file.replace(".vue", ""), file, description };
-    });
-
-  if (components.length === 0) return "*No components found.*";
-
-  const lines = ["| Component | File | Description |", "|-----------|------|-------------|"];
-  for (const component of components) {
-    lines.push(`| \`${component.name}\` | ${component.file} | ${component.description || "-"} |`);
-  }
-
-  return lines.join("\n");
 }
 
 function parseInlineBranches(workflowText) {
@@ -397,7 +283,7 @@ export function generateWorkflowDocs() {
     "### Workflow Summary\n",
     "| Workflow | Runs On | Main Result |",
     "|----------|---------|-------------|",
-    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, README check, build, typecheck, and Docker smoke test |`,
+    `| CI | Push: ${parseInlineBranches(ci).join(", ") || "-"}; PR: master/main | Tests, docs check, build, typecheck, and Docker smoke test |`,
     `| Auto Version & Release | Push: ${parseInlineBranches(release).join(", ") || "-"} | Creates version tag and GitHub release for changelog-visible commits |`,
     `| Docker Build & Push | CI success + deploy prefix: ${parseInlineBranches(docker).join(", ") || "-"} | Builds and pushes GHCR image with generated changelog |`,
     "",
@@ -413,7 +299,7 @@ export function generateWorkflowDocs() {
     "2. Auto Version & Release creates a tag for visible commit prefixes.",
     "3. Docker waits for the release tag, generates the in-app changelog, and pushes the image.",
     "4. Hidden prefixes such as docs, chore, ci, and test do not create releases or Docker images.",
-    "5. CI fails when the generated README sections are stale; run `npm run docs` and commit the result.",
+    "5. CI fails when the generated docs are stale; run `npm run docs` and commit the result.",
   ];
 
   return lines.join("\n");
@@ -431,18 +317,17 @@ function replaceSection(content, marker, generatedContent) {
   };
 }
 
-export function generateReadmeContent(content) {
+const SECTIONS = [
+  { file: "api", marker: "api", generate: generateApiDocs },
+  { file: "releases", marker: "workflows", generate: generateWorkflowDocs },
+];
+
+export function generateDocContent(fileKey, content) {
   let nextContent = content;
   let touched = false;
 
-  for (const [name, generated] of [
-    ["structure", generateStructure()],
-    ["components", generateComponentsList()],
-    ["api", generateApiDocs()],
-    ["rbac", generateRbacMatrix()],
-    ["workflows", generateWorkflowDocs()],
-  ]) {
-    const result = replaceSection(nextContent, CONFIG.markers[name], generated);
+  for (const section of SECTIONS.filter((entry) => entry.file === fileKey)) {
+    const result = replaceSection(nextContent, CONFIG.markers[section.marker], section.generate());
     nextContent = result.content;
     touched = touched || result.touched;
   }
@@ -454,34 +339,38 @@ export function generateReadmeContent(content) {
   };
 }
 
-export function updateReadme() {
-  if (!fs.existsSync(CONFIG.readme)) {
-    console.error("README.md not found.");
-    process.exitCode = 1;
-    return false;
+export function updateDocs() {
+  let changed = false;
+
+  for (const [key, filePath] of Object.entries(CONFIG.files)) {
+    const name = path.relative(ROOT, filePath);
+    if (!fs.existsSync(filePath)) {
+      console.error(`${name} not found.`);
+      process.exitCode = 1;
+      continue;
+    }
+
+    const original = fs.readFileSync(filePath, "utf-8");
+    const result = generateDocContent(key, original);
+
+    if (!result.touched) {
+      console.error(`No generated markers found in ${name}.`);
+      process.exitCode = 1;
+    } else if (result.changed) {
+      fs.writeFileSync(filePath, result.content, "utf-8");
+      console.log(`${name} updated.`);
+      changed = true;
+    } else {
+      console.log(`${name} already up to date.`);
+    }
   }
 
-  const original = fs.readFileSync(CONFIG.readme, "utf-8");
-  const result = generateReadmeContent(original);
-
-  if (!result.touched) {
-    console.log("No generated README markers found.");
-    return false;
-  }
-
-  if (!result.changed) {
-    console.log("README.md already up to date.");
-    return false;
-  }
-
-  fs.writeFileSync(CONFIG.readme, result.content, "utf-8");
-  console.log("README.md updated.");
-  return true;
+  return changed;
 }
 
 function main() {
-  console.log("Generating README content...");
-  updateReadme();
+  console.log("Generating docs...");
+  updateDocs();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
