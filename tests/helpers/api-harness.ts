@@ -16,35 +16,25 @@ import {
   setCookie,
   toPlainHandler,
   type EventHandler,
-  type PlainHandler,
-  type PlainResponse,
 } from "h3";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { vi } from "vitest";
 import type { Database as DatabaseType } from "better-sqlite3";
-import backendConfig from "../../config/backend.config.json";
+import { requestWithCookies, type ApiRequest, type CookieJar } from "./http-client";
 
-export type CookieJar = Map<string, string>;
-export type RequestOptions = {
-  body?: unknown;
-  jar?: CookieJar;
-  csrf?: boolean;
-  headers?: Record<string, string>;
-};
+export type { CookieJar, RequestOptions } from "./http-client";
 export type ApiClient = {
   mainDb: DatabaseType;
   adminDb: DatabaseType;
-  request: <T = any>(method: string, path: string, options?: RequestOptions) => Promise<PlainResponse & { json: T | null }>;
+  request: ApiRequest;
   loginAs: (username: string, password: string) => Promise<CookieJar>;
   close: () => void;
 };
 
 /** [method, route, handler module relative to the project root] */
 export type Route = [string, string, string];
-
-const csrfCookieName = backendConfig.auth.session.cookies.csrfName;
 
 function installH3Globals() {
   Object.assign(globalThis, {
@@ -64,53 +54,15 @@ function installH3Globals() {
   });
 }
 
-function parseBody(body: unknown) {
-  const text = Buffer.isBuffer(body) ? body.toString("utf-8") : body;
-  if (typeof text !== "string" || text.length === 0) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
-}
-
-function updateCookieJar(jar: CookieJar | undefined, response: PlainResponse) {
-  if (!jar) return;
-  for (const [name, header] of response.headers) {
-    if (name.toLowerCase() !== "set-cookie") continue;
-    const [pair] = header.split(";");
-    const separator = pair?.indexOf("=") ?? -1;
-    if (!pair || separator === -1) continue;
-    jar.set(pair.slice(0, separator), pair.slice(separator + 1));
-  }
-}
-
-function requestWithCookies(handler: PlainHandler): ApiClient["request"] {
-  return async (method, requestPath, options = {}) => {
-    const headers: Record<string, string> = { ...options.headers };
-    if (options.jar && options.jar.size > 0) {
-      headers.cookie = [...options.jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
-    }
-    if (options.body !== undefined) headers["content-type"] = "application/json";
-    if (options.csrf && options.jar?.get(csrfCookieName)) {
-      headers["x-csrf-token"] = options.jar.get(csrfCookieName)!;
-    }
-    const response = await handler({
-      method,
-      path: requestPath,
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    });
-    updateCookieJar(options.jar, response);
-    return { ...response, json: parseBody(response.body) };
-  };
-}
-
 /**
  * Real handlers and middleware on fresh SQLite files in a temp directory.
  * Users: admin/admin1234 and planner/planner1234.
  */
-export async function createApiClient(routes: Route[], seed?: (mainDb: DatabaseType) => void): Promise<ApiClient> {
+export async function createApiClient(
+  routes: Route[],
+  seed?: (mainDb: DatabaseType) => void,
+  defaultHeaders?: Record<string, string>
+): Promise<ApiClient> {
   const originalCwd = process.cwd();
   const originalPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-api-"));
@@ -140,7 +92,7 @@ export async function createApiClient(routes: Route[], seed?: (mainDb: DatabaseT
   const app = createApp();
   app.use(await load("server/middleware/auth"));
   app.use(router.handler);
-  const request = requestWithCookies(toPlainHandler(app));
+  const request = requestWithCookies(toPlainHandler(app), defaultHeaders);
 
   return {
     mainDb,
