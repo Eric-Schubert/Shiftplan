@@ -40,3 +40,19 @@ export function suggestShortCode(name, taken) {
     if (!taken.has(candidate)) return candidate;
   }
 }
+
+/** Gives every staff member without a Kürzel one, e.g. people added by a seed after the migration. */
+export function assignMissingShortCodes(database) {
+  const missing = database.prepare("SELECT staff_id, name FROM staff WHERE short_code IS NULL ORDER BY staff_id").all();
+  if (missing.length === 0) return 0;
+  const taken = new Set(
+    database.prepare("SELECT short_code FROM staff WHERE short_code IS NOT NULL").all().map((row) => row.short_code)
+  );
+  const update = database.prepare("UPDATE staff SET short_code = ? WHERE staff_id = ?");
+  for (const row of missing) {
+    const code = suggestShortCode(row.name, taken);
+    taken.add(code);
+    update.run(code, row.staff_id);
+  }
+  return missing.length;
+}

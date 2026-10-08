@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { suggestShortCode } from "./staff-short-code.js";
+import { assignMissingShortCodes } from "./staff-short-code.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -587,13 +587,7 @@ const MAIN_MIGRATIONS = [
     },
     up(database) {
       addColumnIfMissing(database, "staff", "short_code", "TEXT");
-      const taken = new Set();
-      const update = database.prepare("UPDATE staff SET short_code = ? WHERE staff_id = ?");
-      for (const row of database.prepare("SELECT staff_id, name FROM staff ORDER BY staff_id").all()) {
-        const code = suggestShortCode(row.name, taken);
-        taken.add(code);
-        update.run(code, row.staff_id);
-      }
+      assignMissingShortCodes(database);
       database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_staff_short_code ON staff(short_code)");
     },
   },

@@ -3,6 +3,7 @@ import type { Database as DatabaseType } from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { migrateAdminDatabase, migrateMainDatabase } from "./database-migrations.js";
+import { assignMissingShortCodes } from "./staff-short-code.js";
 import { applyConfiguredPragmas, getDatabasePaths } from "~/server/config/database-config";
 
 let db: DatabaseType | null = null;
@@ -24,6 +25,8 @@ export function getDatabase(): DatabaseType {
     db = new Database(databasePath);
     applyConfiguredPragmas(db);
     migrateMainDatabase(db, { logger: logMigration });
+    // setup.js adds its sample staff after the migrations, so they need a Kürzel here.
+    assignMissingShortCodes(db);
   }
   return db;
 }
