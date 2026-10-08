@@ -38,7 +38,14 @@ const ACTIONS: Record<string, { label: string; icon: string; color: string; seve
   day_remove: { label: "Für einen Tag ausgetragen", icon: "mdi:calendar-remove", color: "text-red-600 dark:text-red-400", severity: "danger", separator: " ✕ " },
   absence: { label: "Ausfall gemeldet", icon: "mdi:account-cancel", color: "text-amber-600 dark:text-amber-400", severity: "warn", separator: " fällt aus · " },
   absence_cancel: { label: "Ausfall zurückgezogen", icon: "mdi:account-check", color: "text-gray-500 dark:text-gray-400", severity: "secondary", separator: " wieder da · " },
+  generate: { label: "Aus Muster ausgerollt", icon: "mdi:calendar-sync", color: "text-blue-600 dark:text-blue-400", severity: "info", separator: "" },
+  pattern_import: { label: "Muster importiert", icon: "mdi:file-excel", color: "text-blue-600 dark:text-blue-400", severity: "info", separator: "" },
 };
+
+/** Rollouts and imports touch many people at once; their summary sits in the reason. */
+function isBulkEntry(entry: { staff_name: string | null; shift_name: string | null }) {
+  return !entry.staff_name && !entry.shift_name;
+}
 
 function actionInfo(action: string) {
   return ACTIONS[action] ?? ACTIONS.unassign!;
@@ -89,7 +96,13 @@ onMounted(fetchEntries);
           />
 
           <div class="flex-1 min-w-0">
-            <div class="text-sm text-gray-900 dark:text-white">
+            <div v-if="isBulkEntry(entry)" class="text-sm text-gray-900 dark:text-white">
+              <span class="font-medium">{{ entry.reason }}</span>
+              <span class="text-gray-500 dark:text-gray-400">
+                · ab KW {{ entry.week_number }}/{{ entry.year }}
+              </span>
+            </div>
+            <div v-else class="text-sm text-gray-900 dark:text-white">
               <span class="font-medium">{{ entry.staff_name }}</span>
               <span class="text-gray-500 dark:text-gray-400">
                 {{ actionInfo(entry.action).separator }}
@@ -108,7 +121,7 @@ onMounted(fetchEntries);
               </template>
               <span>·</span>
               <span>{{ formatDate(entry.created_at) }}</span>
-              <template v-if="entry.reason">
+              <template v-if="entry.reason && !isBulkEntry(entry)">
                 <span>·</span>
                 <span class="italic">{{ entry.reason }}</span>
               </template>

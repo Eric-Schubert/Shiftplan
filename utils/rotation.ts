@@ -44,3 +44,12 @@ export function getPatternWeekForCalendarWeek(
 
   return patternIndex + 1;
 }
+
+/** ISO year and week of a date, e.g. 2026-12-31 → KW 53/2026, 2027-01-01 → KW 53/2026. */
+export function getIsoWeekOfDate(date: Date): { year: number; week: number } {
+  const day = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(day.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((day.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return { year: day.getUTCFullYear(), week };
+}

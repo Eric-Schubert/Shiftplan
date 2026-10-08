@@ -165,6 +165,40 @@ describe("Rotation Excel import/export", () => {
     ]);
   });
 
+  it("checks a file without touching the pattern on a dry run", () => {
+    const file = createXlsx({
+      sheets: [
+        {
+          name: "Rotation",
+          headerRows: [1, 7],
+          rows: [
+            ["Schichtplan Rotation Template"],
+            [],
+            ["Startjahr", 2026],
+            ["Startwoche", 3],
+            ["Zykluslänge", 2],
+            [],
+            ["Musterwoche", "Schicht", "Mitarbeiter (Komma getrennt)"],
+            [2, "Spät", "Anna Becker, Ben Wagner"],
+          ],
+        },
+      ],
+    });
+
+    const result = RotationExcelService.importTemplate(file, { dryRun: true });
+
+    expect(result).toMatchObject({
+      dryRun: true,
+      importedRows: 1,
+      importedAssignments: 2,
+      config: { cycle_length: 2, start_year: 2026, start_week: 3 },
+    });
+    expect(db.prepare("SELECT start_week FROM rotation_config").get()).toEqual({ start_week: 1 });
+    expect(db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern").all()).toEqual([
+      { pattern_week: 1, staff_id: 1, shift_id: 1 },
+    ]);
+  });
+
   it("rejects oversized compressed worksheet entries before import", () => {
     const hugeCell = "A".repeat(4 * 1024 * 1024 + 1024);
     const file = createXlsx({

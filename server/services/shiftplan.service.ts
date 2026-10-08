@@ -1,8 +1,15 @@
-import type { Week, ShiftWithStaff, WeeklyShiftplan } from "~/types/shiftplan";
+import type {
+  GenerationPreviewWeek,
+  GenerationResult,
+  Week,
+  ShiftWithStaff,
+  WeeklyShiftplan,
+} from "~/types/shiftplan";
 import type { Staff } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
 import { ShiftService } from "./shift.service";
 import { RotationService } from "./rotation.service";
+import { datesOfISOWeek } from "~/server/utils/iso-week";
 
 export const ShiftplanService = {
 
@@ -186,37 +193,87 @@ export const ShiftplanService = {
 
 
 
+  /**
+   * What a rollout would touch, week by week, without changing anything. Used by the
+   * planner to show which weeks are already planned before it overwrites them.
+   */
+  previewGeneration(startYear: number, startWeek: number, numberOfWeeks: number): GenerationPreviewWeek[] {
+    const db = getDatabase();
+    const countAssignments = db.prepare(`
+      SELECT COUNT(*) AS count FROM shift_assignments sa
+      JOIN weeks w ON w.week_id = sa.week_id
+      WHERE w.year = ? AND w.week_number = ?
+    `);
+    const countDayChanges = db.prepare(
+      "SELECT COUNT(*) AS count FROM shift_day_changes WHERE change_date BETWEEN ? AND ?"
+    );
+
+    return this.listWeeks(startYear, startWeek, numberOfWeeks).map(({ year, week }) => {
+      const dates = datesOfISOWeek(year, week);
+      return {
+        year,
+        week,
+        pattern_week: RotationService.calculatePatternWeek(year, week),
+        existing_assignments: (countAssignments.get(year, week) as { count: number }).count,
+        day_changes: (countDayChanges.get(dates[0], dates[6]) as { count: number }).count,
+      };
+    });
+  },
+
+  /**
+   * Fills several weeks from the rotation pattern in one transaction. Weeks that are
+   * already planned are skipped unless overwrite is set.
+   */
   generateMultipleWeeks(
     startYear: number,
     startWeek: number,
-    numberOfWeeks: number
-  ): { generated: number; weeks: Array<{ year: number; week: number; pattern_week: number }> } {
-    const generatedWeeks: Array<{ year: number; week: number; pattern_week: number }> = [];
+    numberOfWeeks: number,
+    options: { overwrite?: boolean } = {}
+  ): GenerationResult {
+    const db = getDatabase();
+    const overwrite = options.overwrite ?? true;
+    const result: GenerationResult = { generated: 0, skipped: 0, overwritten: 0, weeks: [] };
 
-    let currentYear = startYear;
-    let currentWeek = startWeek;
+    db.transaction(() => {
+      for (const preview of this.previewGeneration(startYear, startWeek, numberOfWeeks)) {
+        const { year, week, pattern_week } = preview;
+
+        if (preview.existing_assignments > 0 && !overwrite) {
+          result.skipped++;
+          result.weeks.push({ year, week, pattern_week, status: "skipped" });
+          continue;
+        }
+
+        this.generateFromPattern(year, week);
+        result.generated++;
+        if (preview.existing_assignments > 0) result.overwritten++;
+        result.weeks.push({
+          year,
+          week,
+          pattern_week,
+          status: preview.existing_assignments > 0 ? "overwritten" : "generated",
+        });
+      }
+    })();
+
+    return result;
+  },
+
+  listWeeks(startYear: number, startWeek: number, numberOfWeeks: number): Array<{ year: number; week: number }> {
+    const weeks: Array<{ year: number; week: number }> = [];
+    let year = startYear;
+    let week = startWeek;
 
     for (let i = 0; i < numberOfWeeks; i++) {
-      const result = this.generateFromPattern(currentYear, currentWeek);
-      generatedWeeks.push({
-        year: currentYear,
-        week: currentWeek,
-        pattern_week: result.pattern_week,
-      });
-
-
-      currentWeek++;
-      const maxWeeks = this.getISOWeeksInYear(currentYear);
-      if (currentWeek > maxWeeks) {
-        currentYear++;
-        currentWeek = 1;
+      weeks.push({ year, week });
+      week++;
+      if (week > this.getISOWeeksInYear(year)) {
+        year++;
+        week = 1;
       }
     }
 
-    return {
-      generated: generatedWeeks.length,
-      weeks: generatedWeeks,
-    };
+    return weeks;
   },
 
 

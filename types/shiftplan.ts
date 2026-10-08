@@ -36,6 +36,24 @@ export interface WeeklyShiftplanWithPattern extends WeeklyShiftplan {
   pattern_week: number;
 }
 
-export interface ShiftplanGenerateResult {
+export interface GenerationPreviewWeek {
+  year: number;
+  week: number;
+  pattern_week: number;
+  /** Assignments the week already has; a rollout replaces them only with overwrite. */
+  existing_assignments: number;
+  /** Day-level changes in that week. A rollout keeps them. */
+  day_changes: number;
+}
+
+export interface GenerationResult {
   generated: number;
+  skipped: number;
+  overwritten: number;
+  weeks: Array<{
+    year: number;
+    week: number;
+    pattern_week: number;
+    status: "generated" | "overwritten" | "skipped";
+  }>;
 }

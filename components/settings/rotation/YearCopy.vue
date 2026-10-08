@@ -8,7 +8,7 @@ const showDialog = ref(false);
       label="Jahr kopieren"
       icon="pi pi-copy"
       severity="secondary"
-      size="small"
+      class="min-h-11"
       @click="showDialog = true"
     />
 

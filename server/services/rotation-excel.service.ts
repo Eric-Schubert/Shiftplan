@@ -16,6 +16,7 @@ type RotationExcelEntry = {
 
 export type RotationExcelImportResult = {
   success: true;
+  dryRun: boolean;
   config: RotationConfig;
   importedRows: number;
   importedAssignments: number;
@@ -117,7 +118,8 @@ export const RotationExcelService = {
     });
   },
 
-  importTemplate(fileData: Buffer): RotationExcelImportResult {
+  /** Reads a filled template and replaces the pattern; with dryRun it only validates and counts. */
+  importTemplate(fileData: Buffer, options: { dryRun?: boolean } = {}): RotationExcelImportResult {
     const workbook = parseXlsx(fileData);
     const rotationSheet =
       workbook.sheets.find((sheet) => normalizeName(sheet.name) === "rotation") ||
@@ -186,10 +188,21 @@ export const RotationExcelService = {
       badRequest("Im Blatt 'Rotation' wurden keine Datenzeilen gefunden");
     }
 
+    if (options.dryRun) {
+      return {
+        success: true,
+        dryRun: true,
+        config: { ...config, config_id: RotationService.getConfig().config_id },
+        importedRows,
+        importedAssignments: entries.length,
+      };
+    }
+
     const updatedPattern = RotationService.replacePattern(config, entries);
 
     return {
       success: true,
+      dryRun: false,
       config: updatedPattern.config,
       importedRows,
       importedAssignments: entries.length,

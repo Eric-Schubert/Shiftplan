@@ -60,6 +60,8 @@ export interface RotationTransferPayload {
 }
 
 export interface RotationExcelImportResult {
+  /** True when the file was only checked and the pattern is unchanged. */
+  dryRun: boolean;
   importedRows: number;
   importedAssignments: number;
   config: RotationConfig;
@@ -70,17 +72,6 @@ export interface RotationConfigPreviewItem {
   week: number;
   patternWeek: number;
   isStart: boolean;
-}
-
-export interface RotationGeneratePreviewItem {
-  year: number;
-  week: number;
-  patternWeek: number;
-}
-
-export interface RotationGenerateResult {
-  generated: number;
-  weeks: Array<{ year: number; week: number; pattern_week: number }>;
 }
 
 export interface RotationYearCopyPreview {

@@ -1,38 +1,26 @@
 <script setup lang="ts">
-import type {
-  RotationExcelImportResult,
-  RotationGeneratePreviewItem,
-  RotationGenerateResult,
-} from "~/types/rotation";
-import { getIsoWeeksInYear, getPatternWeekForCalendarWeek } from "~/utils/rotation";
+import type { RotationExcelImportResult } from "~/types/rotation";
+import { getIsoWeekOfDate, getPatternWeekForCalendarWeek } from "~/utils/rotation";
 
 const props = defineProps<{
   visible: boolean;
+  /** Step to open on, e.g. after the planner edited the pattern in the board. */
+  startStep?: number;
 }>();
 
 const emit = defineEmits<{
   (e: "update:visible", value: boolean): void;
+  /** Closes the wizard so the pattern can be edited in the board; reopening resumes at the review. */
+  (e: "edit-board"): void;
 }>();
 
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
 
 const steps = [
-  {
-    title: "Muster",
-    eyebrow: "1",
-    text: "Importieren oder Startpunkt festlegen",
-  },
-  {
-    title: "Prüfen",
-    eyebrow: "2",
-    text: "Besetzung je Musterwoche kontrollieren",
-  },
-  {
-    title: "Ausrollen",
-    eyebrow: "3",
-    text: "Wochenpläne erzeugen",
-  },
+  { title: "Muster", text: "Übernehmen oder per Excel importieren" },
+  { title: "Prüfen", text: "Besetzung je Musterwoche ansehen" },
+  { title: "Ausrollen", text: "Wochenpläne erzeugen" },
 ];
 
 const dialogVisible = computed({
@@ -40,145 +28,90 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
+const today = getIsoWeekOfDate(new Date());
 const excelFileInput = ref<HTMLInputElement | null>(null);
+const importConfirm = ref<HTMLElement | null>(null);
 const activeStep = ref(0);
+const editingConfig = ref(false);
 const downloadingTemplate = ref(false);
+const checkingFile = ref(false);
 const importingExcel = ref(false);
-const generating = ref(false);
-const showConfigDialog = ref(false);
-const showYearCopyDialog = ref(false);
-const excelImportError = ref<string | null>(null);
-const excelImportResult = ref<RotationExcelImportResult | null>(null);
-const generateResult = ref<RotationGenerateResult | null>(null);
-const rolloutYear = ref(new Date().getFullYear());
-const rolloutWeek = ref(1);
-const rolloutWeeks = ref(4);
-const rolloutFullYear = ref(true);
+const excelError = ref<string | null>(null);
+const pendingImport = ref<{ file: File; check: RotationExcelImportResult } | null>(null);
+const importDone = ref<RotationExcelImportResult | null>(null);
+const rolledOut = ref(false);
 
 const rotationConfig = computed(() => dataStore.rotationConfig);
+const patternWeeks = computed(() => dataStore.rotationPattern?.weeks ?? []);
 
-const assignmentCount = computed(() => {
-  return (
-    dataStore.rotationPattern?.weeks.reduce((total, week) => {
-      return (
-        total +
-        week.assignments.reduce((weekTotal, assignment) => weekTotal + assignment.staff.length, 0)
-      );
-    }, 0) || 0
-  );
-});
+const assignmentCount = computed(() =>
+  patternWeeks.value.reduce(
+    (total, week) => total + week.assignments.reduce((sum, assignment) => sum + assignment.staff.length, 0),
+    0
+  )
+);
 
-const emptyShiftCount = computed(() => {
-  return (
-    dataStore.rotationPattern?.weeks.reduce((total, week) => {
-      return total + week.assignments.filter((assignment) => assignment.staff.length === 0).length;
-    }, 0) || 0
-  );
-});
-
-const rolloutYearMaxWeeks = computed(() => getIsoWeeksInYear(rolloutYear.value));
-
-const weeksToGenerate = computed(() => {
-  if (!rolloutFullYear.value) return rolloutWeeks.value;
-  return Math.max(1, rolloutYearMaxWeeks.value - rolloutWeek.value + 1);
-});
-
-const generatePreviewList = computed<RotationGeneratePreviewItem[]>(() => {
+const currentPatternWeek = computed(() => {
   const config = rotationConfig.value;
-  if (!config) return [];
-
-  const preview: RotationGeneratePreviewItem[] = [];
-  let year = rolloutYear.value;
-  let week = rolloutWeek.value;
-
-  for (let index = 0; index < weeksToGenerate.value; index += 1) {
-    preview.push({
-      year,
-      week,
-      patternWeek: getPatternWeekForCalendarWeek(
-        config.cycle_length,
-        config.start_year,
-        config.start_week,
-        year,
-        week
-      ),
-    });
-
-    week += 1;
-    if (week > getIsoWeeksInYear(year)) {
-      week = 1;
-      year += 1;
-    }
-  }
-
-  return preview;
+  if (!config) return null;
+  return getPatternWeekForCalendarWeek(
+    config.cycle_length,
+    config.start_year,
+    config.start_week,
+    today.year,
+    today.week
+  );
 });
+
+const understaffedCount = computed(() =>
+  patternWeeks.value.reduce(
+    (total, week) =>
+      total + week.assignments.filter((assignment) => assignment.staff.length < assignment.shift.min_staff).length,
+    0
+  )
+);
 
 watch(
   () => props.visible,
   (isVisible) => {
-    if (isVisible) {
-      activeStep.value = 0;
-      resetTransientState();
-      initializeRolloutFromConfig();
-      return;
-    }
-
-    resetTransientState();
+    if (!isVisible) return;
+    activeStep.value = props.startStep ?? 0;
+    editingConfig.value = false;
+    excelError.value = null;
+    pendingImport.value = null;
+    importDone.value = null;
+    rolledOut.value = false;
+    dataStore.fetchRotation();
   }
 );
 
-watch(
-  rolloutYear,
-  () => {
-    if (rolloutWeek.value > rolloutYearMaxWeeks.value) {
-      rolloutWeek.value = rolloutYearMaxWeeks.value;
-    }
-  }
-);
+watch(activeStep, () => {
+  pendingImport.value = null;
+  editingConfig.value = false;
+});
 
-function initializeRolloutFromConfig() {
-  const config = rotationConfig.value;
-  if (!config) return;
-
-  rolloutYear.value = config.start_year;
-  rolloutWeek.value = Math.min(config.start_week, getIsoWeeksInYear(config.start_year));
-  rolloutFullYear.value = true;
+function assignmentsLabel(count: number): string {
+  return count === 1 ? "1 Zuweisung" : `${count} Zuweisungen`;
 }
 
-function resetTransientState() {
-  excelImportError.value = null;
-  excelImportResult.value = null;
-  generateResult.value = null;
-}
-
-function openExcelImport() {
-  excelFileInput.value?.click();
-}
-
-function handleConfigDialogVisible(value: boolean) {
-  showConfigDialog.value = value;
-  if (!value) {
-    initializeRolloutFromConfig();
-  }
+function staffingNote(staffCount: number, minStaff: number): string | null {
+  if (staffCount === 0) return "unbesetzt";
+  if (staffCount < minStaff) return `${staffCount} von ${minStaff}`;
+  return null;
 }
 
 async function downloadExcelTemplate() {
   downloadingTemplate.value = true;
-  excelImportError.value = null;
+  excelError.value = null;
 
   try {
-    const response = await fetch("/api/rotation/excel-template", {
-      credentials: "include",
-    });
-
+    const response = await fetch("/api/rotation/excel-template", { credentials: "include" });
     if (!response.ok) {
-      excelImportError.value = await readResponseError(response);
+      excelError.value = await readResponseError(response);
       return;
     }
 
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(await response.blob());
     const link = document.createElement("a");
     link.href = url;
     link.download = "schichtplan-rotation-template.xlsx";
@@ -187,58 +120,60 @@ async function downloadExcelTemplate() {
     link.remove();
     URL.revokeObjectURL(url);
   } catch (error: any) {
-    excelImportError.value = error.message || "Vorlage konnte nicht geladen werden";
+    excelError.value = error.message || "Vorlage konnte nicht geladen werden";
   } finally {
     downloadingTemplate.value = false;
   }
 }
 
-async function importExcelTemplate(event: Event) {
+function uploadExcel(file: File, dryRun: boolean) {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (dryRun) formData.append("dryRun", "1");
+  return authFetch<RotationExcelImportResult>("/api/rotation/excel-import", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+/** Checks the chosen file first; the pattern is only replaced after confirming. */
+async function checkExcelFile(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-
+  input.value = "";
   if (!file) return;
 
-  importingExcel.value = true;
-  excelImportError.value = null;
-  excelImportResult.value = null;
+  checkingFile.value = true;
+  excelError.value = null;
+  importDone.value = null;
+  pendingImport.value = null;
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    excelImportResult.value = await authFetch<RotationExcelImportResult>("/api/rotation/excel-import", {
-      method: "POST",
-      body: formData,
-    });
-
-    await dataStore.fetchRotation();
-    initializeRolloutFromConfig();
-    activeStep.value = 1;
+    pendingImport.value = { file, check: await uploadExcel(file, true) };
+    await nextTick();
+    importConfirm.value?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   } catch (error: any) {
-    excelImportError.value =
-      error.data?.statusMessage || error.data?.message || "Excel-Import fehlgeschlagen";
+    excelError.value = error.data?.statusMessage || "Die Datei konnte nicht gelesen werden";
   } finally {
-    importingExcel.value = false;
-    input.value = "";
+    checkingFile.value = false;
   }
 }
 
-async function generateRollout() {
-  generating.value = true;
-  generateResult.value = null;
+async function confirmImport() {
+  if (!pendingImport.value) return;
+
+  importingExcel.value = true;
+  excelError.value = null;
 
   try {
-    generateResult.value = await authFetch<RotationGenerateResult>("/api/shiftplan/generate", {
-      method: "POST",
-      body: {
-        year: rolloutYear.value,
-        week: rolloutWeek.value,
-        weeks: weeksToGenerate.value,
-      },
-    });
+    const result = await uploadExcel(pendingImport.value.file, false);
+    await dataStore.fetchRotation();
+    importDone.value = result;
+    activeStep.value = 1;
+  } catch (error: any) {
+    excelError.value = error.data?.statusMessage || "Import fehlgeschlagen, das Muster ist unverändert";
   } finally {
-    generating.value = false;
+    importingExcel.value = false;
   }
 }
 
@@ -257,7 +192,7 @@ async function readResponseError(response: Response): Promise<string> {
     v-model:visible="dialogVisible"
     header="Rotations-Assistent"
     modal
-    :style="{ width: '56rem', maxWidth: 'calc(100vw - 1.5rem)' }"
+    :style="{ width: '52rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div class="space-y-5">
       <input
@@ -265,281 +200,221 @@ async function readResponseError(response: Response): Promise<string> {
         type="file"
         accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         class="hidden"
-        @change="importExcelTemplate"
+        @change="checkExcelFile"
       />
 
-      <div class="grid gap-3 md:grid-cols-3">
-        <button
-          v-for="(step, index) in steps"
-          :key="step.title"
-          type="button"
-          class="rounded-xl border px-4 py-3 text-left transition"
-          :class="
-            activeStep === index
-              ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)]'
-              : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-2)] hover:border-[var(--border-strong)]'
-          "
-          @click="activeStep = index"
-        >
-          <span class="planner-kicker">{{ step.eyebrow }}</span>
-          <span class="mt-1 block text-base font-semibold">{{ step.title }}</span>
-          <span class="mt-1 block text-xs leading-5">{{ step.text }}</span>
-        </button>
-      </div>
+      <ol class="grid grid-cols-3 gap-2">
+        <li v-for="(step, index) in steps" :key="step.title">
+          <button
+            type="button"
+            class="h-full w-full rounded-xl border px-3 py-2.5 text-left transition"
+            :class="
+              activeStep === index
+                ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)]'
+                : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-2)] hover:border-[var(--border-strong)]'
+            "
+            :aria-current="activeStep === index ? 'step' : undefined"
+            @click="activeStep = index"
+          >
+            <span class="flex items-center gap-2 text-sm font-semibold">
+              <i v-if="index < activeStep" class="pi pi-check text-xs" aria-hidden="true"></i>
+              <span v-else class="planner-kicker !text-inherit">{{ index + 1 }}</span>
+              {{ step.title }}
+            </span>
+            <span class="mt-0.5 hidden text-xs leading-5 sm:block">{{ step.text }}</span>
+          </button>
+        </li>
+      </ol>
 
       <section v-if="activeStep === 0" class="space-y-4">
         <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
           <p class="planner-kicker">Aktuelles Muster</p>
-          <div class="mt-2 flex flex-wrap items-center gap-2">
-            <span v-if="rotationConfig" class="planner-chip planner-chip--accent">
-              {{ rotationConfig.cycle_length }} Wochen ab KW
-              {{ rotationConfig.start_week }}/{{ rotationConfig.start_year }}
+          <div v-if="rotationConfig" class="mt-2 flex flex-wrap items-center gap-2">
+            <span class="planner-chip planner-chip--accent">{{ rotationConfig.cycle_length }}-Wochen-Zyklus</span>
+            <span class="planner-chip">
+              Musterwoche 1 = KW {{ rotationConfig.start_week }}/{{ rotationConfig.start_year }}
             </span>
-            <span class="planner-chip planner-chip--muted">
-              {{ assignmentCount }} Zuweisungen im Muster
-            </span>
+            <span class="planner-chip">{{ assignmentsLabel(assignmentCount) }}</span>
           </div>
-          <p class="mt-3 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-            Lade eine Excel-Vorlage herunter, importiere ein fertiges Muster oder passe den
-            Startpunkt direkt in der App an. Nach einem Import bleiben bestehende Wochenpläne
-            unverändert, bis du sie im letzten Schritt ausrollst.
+          <p v-if="currentPatternWeek" class="mt-3 text-sm text-[var(--text-2)]">
+            Diese Woche (KW {{ today.week }}/{{ today.year }}) ist Musterwoche {{ currentPatternWeek }}.
+            <button
+              v-if="!editingConfig"
+              type="button"
+              class="ml-1 font-medium text-[var(--accent-strong)] underline-offset-2 hover:underline"
+              @click="editingConfig = true"
+            >
+              Startpunkt ändern
+            </button>
           </p>
+
+          <div v-if="editingConfig" class="mt-4 border-t border-[var(--border-soft)] pt-4">
+            <RotationConfigForm @saved="editingConfig = false" @cancel="editingConfig = false" />
+          </div>
         </div>
 
-        <div class="grid gap-3 md:grid-cols-3">
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="font-semibold text-[var(--text-1)]">Vorlage holen</p>
-            <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
-              Excel-Datei mit allen aktiven Mitarbeitenden und Schichten herunterladen.
-            </p>
+        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
+          <p class="font-semibold text-[var(--text-1)]">Muster per Excel übernehmen <span class="font-normal text-[var(--text-3)]">(optional)</span></p>
+          <p class="mt-1 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
+            Nur nötig, wenn du das Muster lieber in Excel pflegst. Sonst einfach auf
+            <strong>Weiter</strong>.
+          </p>
+          <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
+            <li>1. Vorlage herunterladen, sie enthält das aktuelle Muster und alle Mitarbeitenden.</li>
+            <li>2. In Excel ausfüllen und speichern.</li>
+            <li>3. Hochladen. Du siehst vor dem Ersetzen, was übernommen wird.</li>
+          </ol>
+          <div class="mt-4 flex flex-wrap gap-2">
             <PrimeButton
-              label="Excel-Vorlage"
+              label="Vorlage herunterladen"
               icon="pi pi-download"
               severity="secondary"
-              class="mt-4 min-h-11 w-full"
+              class="min-h-11"
               :loading="downloadingTemplate"
               @click="downloadExcelTemplate"
             />
-          </div>
-
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="font-semibold text-[var(--text-1)]">Muster importieren</p>
-            <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
-              Fertige Vorlage einlesen und das Rotationsmuster ersetzen.
-            </p>
             <PrimeButton
-              label="Excel importieren"
+              label="Ausgefüllte Datei hochladen"
               icon="pi pi-upload"
               severity="secondary"
-              class="mt-4 min-h-11 w-full"
-              :loading="importingExcel"
-              @click="openExcelImport"
+              class="min-h-11"
+              :loading="checkingFile"
+              @click="excelFileInput?.click()"
             />
           </div>
 
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="font-semibold text-[var(--text-1)]">Startpunkt setzen</p>
-            <p class="mt-2 min-h-12 text-sm leading-6 text-[var(--text-2)]">
-              Zykluslänge, Startjahr und Startwoche feinjustieren.
+          <div
+            v-if="pendingImport"
+            ref="importConfirm"
+            class="mt-4 rounded-xl border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm text-[var(--text-1)]"
+          >
+            <p class="font-semibold">„{{ pendingImport.file.name }}“ ist in Ordnung.</p>
+            <p class="mt-1 leading-6 text-[var(--text-2)]">
+              Neues Muster: {{ pendingImport.check.config.cycle_length }}-Wochen-Zyklus, Musterwoche 1 =
+              KW {{ pendingImport.check.config.start_week }}/{{ pendingImport.check.config.start_year }},
+              {{ assignmentsLabel(pendingImport.check.importedAssignments) }}.
+              Es ersetzt das aktuelle Muster ({{ assignmentsLabel(assignmentCount) }}). Wochenpläne bleiben
+              unverändert, bis du sie im letzten Schritt ausrollst.
             </p>
-            <PrimeButton
-              label="Konfiguration"
-              icon="pi pi-cog"
-              severity="secondary"
-              class="mt-4 min-h-11 w-full"
-              @click="showConfigDialog = true"
-            />
+            <div class="mt-3 flex flex-wrap gap-2">
+              <PrimeButton
+                label="Muster ersetzen"
+                icon="pi pi-check"
+                class="min-h-11"
+                :loading="importingExcel"
+                @click="confirmImport"
+              />
+              <PrimeButton
+                label="Abbrechen"
+                severity="secondary"
+                text
+                class="min-h-11"
+                @click="pendingImport = null"
+              />
+            </div>
           </div>
-        </div>
 
-        <div
-          v-if="excelImportResult"
-          class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
-        >
-          Import abgeschlossen: {{ excelImportResult.importedRows }} Zeilen gelesen,
-          {{ excelImportResult.importedAssignments }} Zuweisungen übernommen.
-        </div>
-
-        <div
-          v-if="excelImportError"
-          class="rounded-xl border border-[var(--border-soft)] bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]"
-        >
-          {{ excelImportError }}
+          <p
+            v-if="excelError"
+            class="mt-4 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]"
+          >
+            {{ excelError }}
+          </p>
         </div>
       </section>
 
       <section v-else-if="activeStep === 1" class="space-y-4">
-        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
-          <p class="planner-kicker">Prüfschritt</p>
-          <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
-            Kontrolliere das Muster unten im Board
-          </h3>
-          <p class="mt-2 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-            Der Assistent lässt das Muster sichtbar auf der Seite. Wenn du hier weitergehst,
-            wird noch nichts verändert. Erst im nächsten Schritt werden Wochenpläne erzeugt.
+        <p
+          v-if="importDone"
+          class="rounded-xl bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
+        >
+          <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>
+          Muster übernommen: {{ assignmentsLabel(importDone.importedAssignments) }}.
+        </p>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p
+            class="text-sm"
+            :class="understaffedCount > 0 ? 'text-[var(--warning-ink)]' : 'text-[var(--positive-ink)]'"
+          >
+            <template v-if="understaffedCount > 0">
+              <i class="pi pi-exclamation-triangle mr-1" aria-hidden="true"></i>
+              {{ understaffedCount }} {{ understaffedCount === 1 ? "Schicht ist" : "Schichten sind" }}
+              im Muster unter der Mindestbesetzung.
+            </template>
+            <template v-else>
+              <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>
+              Alle Schichten sind im Muster besetzt.
+            </template>
           </p>
+          <PrimeButton
+            label="Im Board bearbeiten"
+            icon="pi pi-pencil"
+            severity="secondary"
+            class="min-h-11 shrink-0"
+            @click="emit('edit-board')"
+          />
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-3">
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="planner-kicker">Zyklus</p>
-            <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
-              {{ rotationConfig?.cycle_length || 0 }}
+        <div class="grid max-h-[50vh] gap-3 overflow-y-auto sm:grid-cols-2">
+          <div
+            v-for="week in patternWeeks"
+            :key="week.pattern_week"
+            class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-3"
+          >
+            <p class="flex items-center gap-2 text-sm font-semibold text-[var(--text-1)]">
+              Musterwoche {{ week.pattern_week }}
+              <span v-if="week.pattern_week === currentPatternWeek" class="planner-chip planner-chip--accent">
+                diese Woche
+              </span>
             </p>
-            <p class="text-sm text-[var(--text-2)]">Musterwochen</p>
+            <ul class="mt-2 space-y-1.5 text-sm">
+              <li v-for="assignment in week.assignments" :key="assignment.shift.shift_id" class="flex gap-2">
+                <span
+                  class="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                  :style="{ backgroundColor: assignment.shift.color }"
+                  aria-hidden="true"
+                ></span>
+                <span class="w-20 shrink-0 font-medium text-[var(--text-1)]">{{ assignment.shift.name }}</span>
+                <span class="min-w-0 text-[var(--text-2)]">
+                  {{ assignment.staff.map((staff) => staff.name).join(", ") }}
+                  <span
+                    v-if="staffingNote(assignment.staff.length, assignment.shift.min_staff)"
+                    class="font-medium text-[var(--warning-ink)]"
+                  >
+                    {{ assignment.staff.length > 0 ? "·" : "" }}
+                    {{ staffingNote(assignment.staff.length, assignment.shift.min_staff) }}
+                  </span>
+                </span>
+              </li>
+            </ul>
           </div>
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="planner-kicker">Start</p>
-            <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
-              KW {{ rotationConfig?.start_week || "-" }}
-            </p>
-            <p class="text-sm text-[var(--text-2)]">{{ rotationConfig?.start_year || "" }}</p>
-          </div>
-          <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-            <p class="planner-kicker">Offene Schichten</p>
-            <p class="mt-2 text-2xl font-semibold text-[var(--text-1)]">
-              {{ emptyShiftCount }}
-            </p>
-            <p class="text-sm text-[var(--text-2)]">ohne Person im Muster</p>
-          </div>
-        </div>
-
-        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
-          Tipp: Wenn die Musterkarten unten passen, gehe auf <strong>Weiter</strong>.
-          Falls noch Namen fehlen, kannst du sie direkt im Board per Drag & Drop ergänzen.
         </div>
       </section>
 
       <section v-else class="space-y-4">
-        <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4">
-          <p class="planner-kicker">Ausrollen</p>
-          <h3 class="mt-2 text-lg font-semibold text-[var(--text-1)]">
-            Wochenpläne aus dem aktuellen Muster erzeugen
-          </h3>
-          <p class="mt-2 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-            Die ausgewählten Wochen werden mit dem aktuellen Rotationsmuster neu befüllt.
-            Vorhandene Zuweisungen in diesen Wochen werden ersetzt.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="flex flex-col gap-2">
-            <label for="wizard-rollout-year" class="font-medium">Startjahr</label>
-            <PrimeInputNumber
-              v-model="rolloutYear"
-              input-id="wizard-rollout-year"
-              :min="2020"
-              :max="2100"
-              :use-grouping="false"
-            />
-          </div>
-
-          <div class="flex flex-col gap-2">
-            <label for="wizard-rollout-week" class="font-medium">Startwoche</label>
-            <PrimeInputNumber
-              v-model="rolloutWeek"
-              input-id="wizard-rollout-week"
-              :min="1"
-              :max="rolloutYearMaxWeeks"
-              show-buttons
-            />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="wizard-rollout-weeks" class="font-medium">Anzahl Wochen</label>
-          <PrimeInputNumber
-            v-if="!rolloutFullYear"
-            v-model="rolloutWeeks"
-            input-id="wizard-rollout-weeks"
-            :min="1"
-            :max="53"
-            show-buttons
-          />
-          <div
-            v-else
-            class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-3 py-2 text-sm font-medium text-[var(--text-1)]"
-          >
-            {{ weeksToGenerate }} Wochen automatisch
-          </div>
-        </div>
-
-        <label
-          for="wizard-full-year"
-          class="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-2)]"
-        >
-          <PrimeCheckbox
-            v-model="rolloutFullYear"
-            input-id="wizard-full-year"
-            binary
-            class="mt-0.5"
-          />
-          <span>
-            <span class="block font-semibold text-[var(--text-1)]">Bis Jahresende ausrollen</span>
-            <span class="block leading-5">
-              Generiert KW {{ rolloutWeek }}/{{ rolloutYear }} bis KW
-              {{ rolloutYearMaxWeeks }}/{{ rolloutYear }} ({{ weeksToGenerate }} Wochen).
-            </span>
-          </span>
-        </label>
-
-        <div class="overflow-hidden rounded-xl border border-[var(--border-soft)]">
-          <div class="bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-1)]">
-            Vorschau: Diese Wochen werden erzeugt
-          </div>
-          <div class="max-h-52 space-y-1 overflow-y-auto p-4 text-sm">
-            <div
-              v-for="preview in generatePreviewList"
-              :key="`${preview.year}-${preview.week}`"
-              class="flex justify-between rounded-lg px-2 py-1 text-[var(--text-2)]"
-            >
-              <span>KW {{ preview.week }}/{{ preview.year }}</span>
-              <span>Muster {{ preview.patternWeek }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-if="generateResult"
-          class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
-        >
-          {{ generateResult.generated }} Wochen erfolgreich ausgerollt.
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <PrimeButton
-            label="Ausrollen"
-            icon="pi pi-sync"
-            class="min-h-11"
-            :loading="generating"
-            @click="generateRollout"
-          />
-          <PrimeButton
-            label="Jahr kopieren"
-            icon="pi pi-copy"
-            severity="secondary"
-            class="min-h-11"
-            @click="showYearCopyDialog = true"
-          />
-        </div>
+        <p class="max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
+          Erzeugt die Wochenpläne aus dem Muster. Wochen, die schon geplant sind, bleiben
+          unangetastet, außer du wählst ausdrücklich „überschreiben“.
+        </p>
+        <RotationRolloutPanel
+          :initial-year="today.year"
+          :initial-week="today.week"
+          @generated="rolledOut = true"
+        />
       </section>
     </div>
 
     <template #footer>
-      <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <PrimeButton
-          label="Schliessen"
-          text
-          class="min-h-11"
-          @click="dialogVisible = false"
-        />
-        <div class="flex justify-end gap-2">
+      <div class="flex w-full items-center justify-between gap-2">
+        <PrimeButton label="Schließen" text class="min-h-11" @click="dialogVisible = false" />
+        <div class="flex gap-2">
           <PrimeButton
+            v-if="activeStep > 0"
             label="Zurück"
             severity="secondary"
             text
             class="min-h-11"
-            :disabled="activeStep === 0"
             @click="activeStep -= 1"
           />
           <PrimeButton
@@ -550,18 +425,15 @@ async function readResponseError(response: Response): Promise<string> {
             class="min-h-11"
             @click="activeStep += 1"
           />
+          <PrimeButton
+            v-else-if="rolledOut"
+            label="Fertig"
+            icon="pi pi-check"
+            class="min-h-11"
+            @click="dialogVisible = false"
+          />
         </div>
       </div>
     </template>
   </PrimeDialog>
-
-  <RotationConfigDialog
-    :visible="showConfigDialog"
-    @update:visible="handleConfigDialogVisible"
-  />
-
-  <YearCopyDialog
-    :visible="showYearCopyDialog"
-    @update:visible="showYearCopyDialog = $event"
-  />
 </template>
