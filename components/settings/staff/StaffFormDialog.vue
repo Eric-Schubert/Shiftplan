@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const saving = ref(false);
+const error = ref("");
 const form = ref<StaffCreateDTO>(createDefaultForm());
 
 const dialogVisible = computed({
@@ -26,12 +27,13 @@ watch(
   ([isVisible, staff]) => {
     if (!isVisible) return;
     form.value = staff ? createEditForm(staff) : createDefaultForm();
+    error.value = "";
   },
   { immediate: true }
 );
 
 function createDefaultForm(): StaffCreateDTO {
-  return { name: "", active: 1, is_parttime: 0 };
+  return { name: "", active: 1, is_parttime: 0, short_code: "" };
 }
 
 function createEditForm(staff: Staff): StaffCreateDTO {
@@ -39,6 +41,7 @@ function createEditForm(staff: Staff): StaffCreateDTO {
     name: staff.name,
     active: staff.active,
     is_parttime: staff.is_parttime,
+    short_code: staff.short_code ?? "",
   };
 }
 
@@ -46,6 +49,7 @@ async function saveStaff() {
   if (!form.value.name.trim()) return;
 
   saving.value = true;
+  error.value = "";
   try {
     if (props.staff) {
       await dataStore.updateStaff(props.staff.staff_id, form.value);
@@ -54,6 +58,8 @@ async function saveStaff() {
     }
 
     dialogVisible.value = false;
+  } catch (cause: any) {
+    error.value = cause?.data?.statusMessage || "Speichern fehlgeschlagen";
   } finally {
     saving.value = false;
   }
@@ -77,6 +83,18 @@ async function saveStaff() {
         />
       </div>
 
+      <div class="flex flex-col gap-2">
+        <label for="staff-short-code" class="font-medium">Kürzel</label>
+        <PrimeInputText
+          id="staff-short-code"
+          v-model="form.short_code"
+          maxlength="8"
+          class="font-mono uppercase"
+          :placeholder="isEditing ? '' : 'Leer lassen für Initialen'"
+        />
+        <small class="text-xs text-[var(--text-3)]">Zum Anmelden mit PIN, 2 bis 8 Buchstaben oder Ziffern.</small>
+      </div>
+
       <div class="flex items-center gap-2">
         <PrimeCheckbox
           v-model="form.is_parttime"
@@ -87,6 +105,8 @@ async function saveStaff() {
         />
         <label for="parttime">Teilzeit</label>
       </div>
+
+      <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </div>
 
     <template #footer>

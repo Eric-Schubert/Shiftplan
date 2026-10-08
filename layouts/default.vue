@@ -58,6 +58,8 @@ onMounted(() => {
             <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
           </span>
 
+          <MemberAccountButton v-if="!isSettingsPage" />
+
           <button
             type="button"
             class="app-icon-button"

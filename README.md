@@ -151,11 +151,13 @@ SHIFTPLAN_PUSH_RELAY_URL=off
 
 ## Personal App Access And Absences
 
-Planners create a personal QR code for one employee (`POST /api/member-invites`). The Shiftplan app redeems it once within 7 days and receives a token bound to that person, so nobody can act as someone else. Planners see and revoke devices; revoking also removes the device's push registration.
+Planners create a personal QR code for one employee (`POST /api/member-invites`). The Shiftplan app or a browser redeems it once within 7 days and receives a session bound to that person, so nobody can act as someone else. On the first sign-in the employee sets a PIN (6 to 12 digits) and from then on signs in on any device with Kürzel and PIN (`POST /api/member/login`). Every employee gets a Kürzel from their initials, editable under Mitarbeiter. Wrong PINs are rate-limited per network and per Kürzel; planners can reset a forgotten PIN. Browsers keep the session in an HttpOnly cookie and writes must come from the same origin. Planners see and revoke devices; revoking also removes the device's push registration.
 
 Employees report their own absence for one day or a range of up to 8 weeks (vacation, private, other), also for weeks that are not planned yet. The shift counts as open on those days, and the team gets one push such as "Anna Weber fällt Do. 08.10. aus – Frühschicht offen". The reason is only visible to planners and is deleted 90 days after the absence date. Every change made in the app appears in the audit log as "über App".
 
-The weekly plan stays the basis; planners can additionally put someone into or out of a shift for a single day (`POST /api/shiftplan/day-change`).
+Signed-in employees can do the same in the browser as in the app: see their shifts highlighted, report absences, give away a shift and take over or swap shifts.
+
+The weekly plan stays the basis; planners can additionally put someone into or out of a shift for a single day (`POST /api/shiftplan/day-change`), in the web app via **Tage** on a shift.
 
 For a public demo instance, `SHIFTPLAN_DEMO_MEMBER_CODE` enables a reusable code that signs in as one person (`SHIFTPLAN_DEMO_MEMBER_NAME`, default: first active employee). It lets store reviewers and visitors try the app without a QR code. Never set it on a real instance.
 
@@ -226,6 +228,13 @@ schichtplaner/
 |   |   |-- InstallBanner.vue
 |   |   |-- PushDialog.vue
 |   |   `-- TeamAccessGate.vue
+|   |-- member/
+|   |   |-- MemberAbsenceDialog.vue
+|   |   |-- MemberAccountButton.vue
+|   |   |-- MemberLoginDialog.vue
+|   |   |-- MemberPanel.vue
+|   |   |-- MemberPinFields.vue
+|   |   `-- MemberRequestDialog.vue
 |   |-- planner/
 |   |   |-- absence/
 |   |   |   `-- AbsenceDialog.vue
@@ -241,6 +250,7 @@ schichtplaner/
 |   |   |   |-- PushPromptCard.vue
 |   |   |   `-- TeamNotifyDialog.vue
 |   |   |-- shift/
+|   |   |   |-- DayChangeDialog.vue
 |   |   |   |-- ShiftAssignDialog.vue
 |   |   |   `-- ShiftAssigneeList.vue
 |   |   |-- HolidayInfo.vue
@@ -358,14 +368,17 @@ schichtplaner/
 |   |   |   |   |-- [id].post.ts
 |   |   |   |   |-- index.get.ts
 |   |   |   |   `-- index.post.ts
+|   |   |   |-- login.post.ts
 |   |   |   |-- logout.post.ts
 |   |   |   |-- me.get.ts
+|   |   |   |-- pin.put.ts
 |   |   |   `-- redeem.post.ts
 |   |   |-- member-invites/
 |   |   |   `-- index.post.ts
 |   |   |-- member-sessions/
 |   |   |   |-- [id].delete.ts
-|   |   |   `-- index.get.ts
+|   |   |   |-- index.get.ts
+|   |   |   `-- pins.get.ts
 |   |   |-- push/
 |   |   |   |-- devices.delete.ts
 |   |   |   |-- devices.post.ts
@@ -400,6 +413,8 @@ schichtplaner/
 |   |   |   |-- unassign.post.ts
 |   |   |   `-- year-summary.get.ts
 |   |   |-- staff/
+|   |   |   |-- [id]/
+|   |   |   |   `-- pin.delete.ts
 |   |   |   |-- [id].delete.ts
 |   |   |   |-- [id].get.ts
 |   |   |   |-- [id].patch.ts
@@ -455,8 +470,10 @@ schichtplaner/
 |       |-- database.ts
 |       |-- day-change-flow.ts
 |       |-- iso-week.ts
+|       |-- member-login.ts
 |       |-- session.ts
 |       |-- shift-request-flow.ts
+|       |-- staff-short-code.js
 |       |-- validation.ts
 |       `-- xlsx.ts
 |-- stores/
@@ -510,10 +527,11 @@ schichtplaner/
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/staff` | Public | No | - | - | List staff records |
-| `POST` | `/api/staff` | Admin | Yes | - | `active`, `is_parttime`, `name` | Create or update staff data |
+| `POST` | `/api/staff` | Admin | Yes | - | `active`, `is_parttime`, `name`, `short_code` | Create or update staff data |
 | `GET` | `/api/staff/:id` | Public | No | - | - | Read one staff record |
-| `PATCH` | `/api/staff/:id` | Admin | Yes | - | `active`, `is_parttime`, `name` | Update one staff record |
+| `PATCH` | `/api/staff/:id` | Admin | Yes | - | `active`, `is_parttime`, `name`, `short_code` | Update one staff record |
 | `DELETE` | `/api/staff/:id` | Admin | Yes | - | - | Delete one staff record |
+| `DELETE` | `/api/staff/:id/pin` | Planner/Admin | Yes | - | - | Delete one staff record |
 
 ### Shift API
 
@@ -615,6 +633,7 @@ schichtplaner/
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/member-sessions` | Planner/Admin | No | - | - | List member-sessions records |
 | `DELETE` | `/api/member-sessions/:id` | Planner/Admin | Yes | - | - | Delete one member-sessions record |
+| `GET` | `/api/member-sessions/pins` | Planner/Admin | No | - | - | List member-sessions records |
 
 ### Member API
 
@@ -622,8 +641,10 @@ schichtplaner/
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/member/absences` | Authenticated | Yes | - | `reason`, `shiftId` | Create or update member data |
 | `DELETE` | `/api/member/absences/:id` | Authenticated | Yes | - | - | Delete one member record |
+| `POST` | `/api/member/login` | Authenticated | Yes | - | `deviceName`, `pin`, `shortCode` | Create or update member data |
 | `POST` | `/api/member/logout` | Authenticated | Yes | - | - | Create or update member data |
 | `GET` | `/api/member/me` | Authenticated | No | - | - | List member records |
+| `PUT` | `/api/member/pin` | Authenticated | Yes | - | `currentPin`, `pin` | API endpoint |
 | `POST` | `/api/member/redeem` | Authenticated | Yes | - | `code`, `deviceName` | Create or update member data |
 | `GET` | `/api/member/requests` | Authenticated | No | - | - | List member records |
 | `POST` | `/api/member/requests` | Authenticated | Yes | - | `shiftId` | Create or update member data |
@@ -677,6 +698,7 @@ schichtplaner/
 | `GET` | `/api/staff/:id` | Yes | Yes | Yes | No |
 | `PATCH` | `/api/staff/:id` | No | No | Yes | Yes |
 | `DELETE` | `/api/staff/:id` | No | No | Yes | Yes |
+| `DELETE` | `/api/staff/:id/pin` | No | Yes | Yes | Yes |
 | `GET` | `/api/shift` | Yes | Yes | Yes | No |
 | `POST` | `/api/shift` | No | No | Yes | Yes |
 | `GET` | `/api/shift/:id` | Yes | Yes | Yes | No |
@@ -718,10 +740,13 @@ schichtplaner/
 | `POST` | `/api/member-invites` | No | Yes | Yes | Yes |
 | `GET` | `/api/member-sessions` | No | Yes | Yes | No |
 | `DELETE` | `/api/member-sessions/:id` | No | Yes | Yes | Yes |
+| `GET` | `/api/member-sessions/pins` | No | Yes | Yes | No |
 | `POST` | `/api/member/absences` | No | Yes | Yes | Yes |
 | `DELETE` | `/api/member/absences/:id` | No | Yes | Yes | Yes |
+| `POST` | `/api/member/login` | No | Yes | Yes | Yes |
 | `POST` | `/api/member/logout` | No | Yes | Yes | Yes |
 | `GET` | `/api/member/me` | No | Yes | Yes | No |
+| `PUT` | `/api/member/pin` | No | Yes | Yes | Yes |
 | `POST` | `/api/member/redeem` | No | Yes | Yes | Yes |
 | `GET` | `/api/member/requests` | No | Yes | Yes | No |
 | `POST` | `/api/member/requests` | No | Yes | Yes | Yes |

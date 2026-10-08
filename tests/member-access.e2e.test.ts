@@ -107,8 +107,8 @@ describe("personal app access", () => {
 
     expect(code).toMatch(/^[A-Z2-9]{10}$/);
     expect(path).toBe(`/?einladung=${code}`);
-    expect(staff).toEqual({ id: ANNA, name: "Anna Weber" });
-    expect(me.json).toEqual({ staff: { id: ANNA, name: "Anna Weber" } });
+    expect(staff).toMatchObject({ id: ANNA, name: "Anna Weber" });
+    expect(me.json).toMatchObject({ staff: { id: ANNA, name: "Anna Weber" } });
     expect(again.status).toBe(401);
     expect(formatted.status).toBe(401);
     expect(client.adminDb.prepare("SELECT token_hash FROM member_sessions").get()).not.toEqual({ token_hash: token });
@@ -149,7 +149,7 @@ describe("personal app access", () => {
       const wrong = await redeem("DEMO2");
 
       expect(first.status).toBe(200);
-      expect(first.json!.staff).toEqual({ id: MAX, name: "Max Mustermann" });
+      expect(first.json!.staff).toMatchObject({ id: MAX, name: "Max Mustermann" });
       expect(second.status).toBe(200);
       expect(wrong.status).toBe(401);
     } finally {

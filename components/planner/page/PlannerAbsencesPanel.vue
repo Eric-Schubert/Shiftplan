@@ -4,6 +4,8 @@ import { ABSENCE_REASON_LABELS, formatAbsenceDay, formatAbsenceRange, type Absen
 const props = defineProps<{
   absences: Absence[];
   canEdit: boolean;
+  /** Signed-in staff member, who may withdraw their own absences. */
+  myStaffId?: number | null;
   year: number;
   week: number;
 }>();
@@ -30,6 +32,10 @@ const sorted = computed(() => {
     });
 });
 
+function canRemove(absence: Absence): boolean {
+  return props.canEdit || (props.myStaffId != null && absence.staff_id === props.myStaffId);
+}
+
 function isRange(absence: Absence): boolean {
   return absence.range_from !== absence.range_to;
 }
@@ -38,7 +44,12 @@ async function remove(absence: Absence) {
   removing.value = absence.absence_id;
   error.value = "";
   try {
-    await authFetch(`/api/absences/${absence.absence_id}${isRange(absence) ? "?range=1" : ""}`, { method: "DELETE" });
+    const query = isRange(absence) ? "?range=1" : "";
+    if (props.canEdit) {
+      await authFetch(`/api/absences/${absence.absence_id}${query}`, { method: "DELETE" });
+    } else {
+      await $fetch(`/api/member/absences/${absence.absence_id}${query}`, { method: "DELETE" });
+    }
     emit("updated");
   } catch (cause: any) {
     error.value = cause?.data?.statusMessage || "Ausfall konnte nicht gelöscht werden";
@@ -83,7 +94,7 @@ async function remove(absence: Absence) {
         </span>
         <span v-if="absence.source === 'app'" class="planner-chip !py-0 text-[0.6875rem]">über App</span>
         <button
-          v-if="canEdit"
+          v-if="canRemove(absence)"
           type="button"
           class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-3)] transition-colors hover:bg-[var(--danger-soft)] hover:text-[var(--danger-ink)] disabled:opacity-50"
           :aria-label="isRange(absence) ? `Zeitraum von ${absence.staff_name} löschen` : `Ausfall von ${absence.staff_name} löschen`"

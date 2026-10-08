@@ -9,9 +9,10 @@ const props = defineProps<{
   week: number;
   absences?: Absence[];
   dayChanges?: ShiftDayChange[];
+  myStaffId?: number | null;
 }>();
 
-const emit = defineEmits<{ updated: [] }>();
+const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
 
@@ -79,11 +80,15 @@ const {
         :shift="shift"
         :absences="absences"
         :day-changes="dayChanges"
+        :my-staff-id="myStaffId"
+        :year="year"
+        :week="week"
         :can-edit="authStore.canEditShifts"
         @drag-start="onDragStart"
         @drag-end="onDragEnd"
         @unassign="unassignStaff"
         @add="showAssignDialog = true"
+        @edit-days="emit('edit-days', shift.shift_id)"
       />
     </div>
 
