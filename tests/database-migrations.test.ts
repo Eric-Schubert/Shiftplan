@@ -25,6 +25,7 @@ describe("database migrations", () => {
       "004_main_page_visits_schema",
       "005_main_absences_schema",
       "006_main_absence_ranges_day_changes",
+      "007_main_shift_requests",
     ]);
     expect(second.applied).toHaveLength(0);
     expect(columnNames(db, "absences")).toEqual(

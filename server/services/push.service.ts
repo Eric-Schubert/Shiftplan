@@ -466,6 +466,30 @@ export const PushService = {
     return { sent: web.sent + native.sent, failed: web.failed + native.failed };
   },
 
+  /**
+   * App message to specific people, e.g. the partner of a swap request. Browsers are
+   * team-wide and not tied to a person, so only app devices are reached.
+   */
+  async sendToStaff(staffIds: number[], payload: PushPayload & { kind?: string }): Promise<SendCounts> {
+    const wanted = new Set(staffIds);
+    const tokens = listDevices()
+      .filter((device) => device.staff_id !== null && wanted.has(device.staff_id))
+      .map((device) => device.token);
+    if (tokens.length === 0) return { sent: 0, failed: 0 };
+    return this.sendNative([
+      {
+        title: payload.title,
+        body: payload.body,
+        data: {
+          instanceId: TeamAccessService.getInstanceId(),
+          url: payload.url,
+          ...(payload.kind ? { kind: payload.kind } : {}),
+        },
+        tokens,
+      },
+    ]);
+  },
+
   async sendNative(messages: NativeMessage[]): Promise<SendCounts> {
     const result = await PushRelayService.send(messages, relayInstance());
     for (const token of result.invalidTokens) this.removeDevice(token);

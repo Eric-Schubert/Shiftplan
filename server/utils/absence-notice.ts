@@ -20,6 +20,8 @@ export function buildAbsenceNotice(input: {
   to?: string | null;
   shiftName: string | null;
   message?: string | null;
+  /** Adds the question who takes over; the app shows the open requests. */
+  seekingTakeover?: boolean;
 }) {
   const to = input.to && input.to !== input.from ? input.to : null;
   const parsed = parseISODate(input.from)!;
@@ -30,8 +32,8 @@ export function buildAbsenceNotice(input: {
 
   return {
     title: "Ausfall im Team",
-    body: `${input.staffName} fällt ${label} aus${shift}${extra ? `\n${extra}` : ""}`,
-    url: `/?year=${year}&week=${week}`,
+    body: `${input.staffName} fällt ${label} aus${shift}${input.seekingTakeover ? " – wer übernimmt?" : ""}${extra ? `\n${extra}` : ""}`,
+    url: input.seekingTakeover ? "/?anfragen=1" : `/?year=${year}&week=${week}`,
     year,
     week,
   };

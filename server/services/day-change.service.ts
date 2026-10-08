@@ -94,6 +94,8 @@ export const DayChangeService = {
     present: boolean;
     source: "web" | "app";
     createdBy: string;
+    /** Set when a takeover or swap request makes the change, so it can be undone. */
+    requestId?: number;
   }): { kind: DayChangeKind } | null {
     if (!parseISODate(input.date)) badRequest("Ungültiges Datum");
     const db = getDatabase();
@@ -117,13 +119,21 @@ export const DayChangeService = {
     } else {
       db.prepare(
         `
-          INSERT INTO shift_day_changes (staff_id, shift_id, change_date, kind, source, created_by)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO shift_day_changes (staff_id, shift_id, change_date, kind, source, created_by, request_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(staff_id, shift_id, change_date)
-          DO UPDATE SET kind = excluded.kind, source = excluded.source,
+          DO UPDATE SET kind = excluded.kind, source = excluded.source, request_id = excluded.request_id,
                         created_by = excluded.created_by, created_at = datetime('now')
         `
-      ).run(input.staffId, input.shiftId, input.date, input.present ? "add" : "remove", input.source, input.createdBy);
+      ).run(
+        input.staffId,
+        input.shiftId,
+        input.date,
+        input.present ? "add" : "remove",
+        input.source,
+        input.createdBy,
+        input.requestId ?? null
+      );
     }
     return { kind: input.present ? "add" : "remove" };
   },
