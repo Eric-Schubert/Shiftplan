@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     shiftId,
     reason: body.reason as AbsenceReason,
     notifyTeam: body?.notifyTeam !== false,
+    seekTakeover: body?.seekTakeover === true,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     actor: { userId: 0, username: member.staffName, source: "app" },
   });

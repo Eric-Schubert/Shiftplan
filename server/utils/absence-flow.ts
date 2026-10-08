@@ -1,5 +1,7 @@
 import { AbsenceService, type Absence, type AbsenceReason } from "~/server/services/absence.service";
 import { AuditService } from "~/server/services/audit.service";
+import { ShiftRequestService } from "~/server/services/shift-request.service";
+import { createTakeover } from "~/server/utils/shift-request-flow";
 import { PushService } from "~/server/services/push.service";
 import { buildAbsenceNotice, formatNoticeDay } from "~/server/utils/absence-notice";
 import { weekOfDate } from "~/server/utils/iso-week";
@@ -47,6 +49,8 @@ export async function reportAbsence(input: {
   note?: string | null;
   notifyTeam: boolean;
   message?: string | null;
+  /** Open a takeover request for every day of the absence that has a shift. */
+  seekTakeover?: boolean;
   actor: Actor;
 }): Promise<{ absences: Absence[]; skipped: string[]; notified: { sent: number; failed: number } | null }> {
   const { absences, skipped } = AbsenceService.create({
@@ -61,6 +65,27 @@ export async function reportAbsence(input: {
   });
   logPerWeek(absences, "absence", input.actor);
 
+  if (input.seekTakeover) {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const absence of absences) {
+      if (absence.shift_id === null || absence.absence_date < today) continue;
+      try {
+        await createTakeover({
+          staffId: absence.staff_id,
+          staffName: absence.staff_name,
+          date: absence.absence_date,
+          shiftId: absence.shift_id,
+          message: input.message,
+          absenceId: absence.absence_id,
+          notifyTeam: false,
+        });
+      } catch (error) {
+        // The shift may already have a request; the absence itself stays valid.
+        console.warn("[absence] Übernahme-Anfrage nicht angelegt:", (error as Error).message);
+      }
+    }
+  }
+
   let notified = null;
   if (input.notifyTeam) {
     const first = absences[0]!;
@@ -73,6 +98,7 @@ export async function reportAbsence(input: {
           to: last.absence_date,
           shiftName: first.shift_name,
           message: input.message,
+          seekingTakeover: input.seekTakeover,
         }),
         { excludeStaffId: first.staff_id }
       );
@@ -89,6 +115,7 @@ export function cancelAbsence(absence: Absence, actor: Actor, wholeRange = false
   const affected = wholeRange && absence.batch_id ? AbsenceService.listBatch(absence.batch_id) : [absence];
   if (wholeRange && absence.batch_id) AbsenceService.cancelBatch(absence.batch_id);
   else AbsenceService.cancel(absence.absence_id);
+  ShiftRequestService.cancelForAbsence(affected.map((entry) => entry.absence_id));
   logPerWeek(affected, "absence_cancel", actor);
   return affected.length;
 }
