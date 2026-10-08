@@ -1,4 +1,4 @@
-# Schichtplaner
+# Shiftplan
 
 [![CI](https://github.com/Eric-Schubert/Shiftplan/actions/workflows/ci.yml/badge.svg)](https://github.com/Eric-Schubert/Shiftplan/actions/workflows/ci.yml)
 ![Nuxt](https://img.shields.io/badge/Nuxt-4.x-00DC82?logo=nuxt.js)
