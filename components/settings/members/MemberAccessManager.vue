@@ -11,6 +11,8 @@ const creatingFor = ref<number | null>(null);
 const invite = ref<Invite | null>(null);
 const qrSvg = ref("");
 const deviceToRevoke = ref<MemberDevice | null>(null);
+const withPin = ref<Set<number>>(new Set());
+const resettingPin = ref<number | null>(null);
 const revoking = ref(false);
 const error = ref("");
 
@@ -48,7 +50,12 @@ function formatDate(timestamp: number, withTime = false): string {
 async function loadDevices() {
   loading.value = true;
   try {
-    devices.value = await authFetch<MemberDevice[]>("/api/member-sessions");
+    const [sessions, pins] = await Promise.all([
+      authFetch<MemberDevice[]>("/api/member-sessions"),
+      authFetch<{ staffIds: number[] }>("/api/member-sessions/pins"),
+    ]);
+    devices.value = sessions;
+    withPin.value = new Set(pins.staffIds);
   } finally {
     loading.value = false;
   }
@@ -87,6 +94,19 @@ async function revoke() {
   }
 }
 
+async function resetPin(staffId: number) {
+  resettingPin.value = staffId;
+  error.value = "";
+  try {
+    await authFetch(`/api/staff/${staffId}/pin`, { method: "DELETE" });
+    await loadDevices();
+  } catch (cause: any) {
+    error.value = cause?.data?.statusMessage || "PIN konnte nicht zurückgesetzt werden";
+  } finally {
+    resettingPin.value = null;
+  }
+}
+
 onMounted(async () => {
   await Promise.all([dataStore.init(), loadDevices()]);
 });
@@ -95,9 +115,10 @@ onMounted(async () => {
 <template>
   <div class="space-y-4">
     <p class="max-w-[46rem] text-sm leading-6 text-[var(--text-2)]">
-      Jede Person bekommt einen eigenen QR-Code für die Shiftplan-App. Damit sieht sie den Plan, wird bei
-      Änderungen benachrichtigt und kann eigene Ausfälle melden. Ein Code ist 7 Tage gültig und nur einmal
-      nutzbar. Verliert jemand sein Handy, sperrst du hier das Gerät.
+      Jede Person bekommt einen eigenen QR-Code für die Shiftplan-App oder den Browser. Bei der ersten Anmeldung
+      legt sie eine PIN fest und meldet sich danach auf jedem Gerät mit Kürzel und PIN an. Ein Code ist 7 Tage
+      gültig und nur einmal nutzbar. Verliert jemand sein Handy, sperrst du hier das Gerät. PIN vergessen: PIN
+      zurücksetzen und einen neuen QR-Code erzeugen.
     </p>
 
     <div v-if="loading" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
@@ -108,7 +129,24 @@ onMounted(async () => {
     <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
       <li v-for="member in staff" :key="member.staff_id" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
         <div class="min-w-0 flex-1">
-          <p class="font-medium text-[var(--text-1)]">{{ member.name }}</p>
+          <p class="font-medium text-[var(--text-1)]">
+            {{ member.name }}
+            <span v-if="member.short_code" class="ml-1 font-mono text-xs font-semibold text-[var(--text-3)]">{{ member.short_code }}</span>
+          </p>
+          <p class="text-xs text-[var(--text-3)]">
+            <template v-if="withPin.has(member.staff_id)">
+              PIN festgelegt ·
+              <button
+                type="button"
+                class="font-semibold text-[var(--danger-ink)] hover:underline disabled:opacity-50"
+                :disabled="resettingPin === member.staff_id"
+                @click="resetPin(member.staff_id)"
+              >
+                PIN zurücksetzen
+              </button>
+            </template>
+            <template v-else>Noch keine PIN</template>
+          </p>
           <p v-if="!devicesByStaff.get(member.staff_id)" class="text-xs text-[var(--text-3)]">Noch kein Gerät eingerichtet</p>
           <ul v-else class="mt-1 space-y-1">
             <li
@@ -157,7 +195,7 @@ onMounted(async () => {
           :aria-label="`Persönlicher QR-Code für ${invite.staffName}`"
           v-html="qrSvg"
         ></div>
-        <p class="text-[var(--text-2)]">Mit der Shiftplan-App scannen. Ohne Kamera geht auch der Code:</p>
+        <p class="text-[var(--text-2)]">Mit der Shiftplan-App scannen oder im Browser öffnen. Ohne Kamera geht auch der Code:</p>
         <p class="font-mono text-xl font-semibold tracking-widest text-[var(--text-1)]">{{ invite.code }}</p>
         <p class="text-xs text-[var(--text-3)]">
           Gültig bis {{ formatDate(invite.expiresAt, true) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.

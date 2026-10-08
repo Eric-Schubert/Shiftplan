@@ -6,6 +6,7 @@ import {
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 import { TeamAccessService } from "~/server/services/team-access.service";
+import { getMemberToken } from "~/server/services/member-access.service";
 
 // Employee routes without a planner login. They check the team access code themselves.
 const TEAM_ROUTES = [
@@ -24,6 +25,20 @@ const MEMBER_PREFIX = "/api/member/";
 // Plan data read by employees, gated like the configured plan routes.
 const BUILTIN_READ_PREFIXES = ["/api/absences"];
 
+
+/**
+ * A browser signed in with Kürzel and PIN authenticates with a cookie. Writes must then come
+ * from this site itself, which the browser states in the Origin header.
+ */
+function isSameOriginRequest(event: any): boolean {
+  const origin = getHeader(event, "origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === getRequestHost(event, { xForwardedHost: getAuthConfig().trustProxyHeaders });
+  } catch {
+    return false;
+  }
+}
 
 function isPublicGetRoute(path: string): boolean {
   return getAuthConfig().routes.publicGetPrefixes.some(
@@ -47,6 +62,9 @@ export default defineEventHandler((event) => {
 
 
   if (TEAM_ROUTES.includes(path) || path.startsWith(MEMBER_PREFIX)) {
+    if (method !== "GET" && getMemberToken(event)?.viaCookie && !isSameOriginRequest(event)) {
+      throw createError({ statusCode: 403, statusMessage: "Ungültige Herkunft der Anfrage" });
+    }
     return;
   }
 

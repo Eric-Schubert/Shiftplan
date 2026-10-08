@@ -8,6 +8,7 @@ const emit = defineEmits<{
 }>();
 
 const { login } = useViewerAccess();
+const showMemberLogin = useState<boolean>("member-login-open", () => false);
 const code = ref("");
 const error = ref(props.initialError || "");
 const loading = ref(false);
@@ -76,7 +77,14 @@ async function submit() {
           :loading="loading"
         />
 
-        <div class="pt-2 text-center">
+        <div class="flex flex-col items-center gap-2 pt-2 text-center">
+          <button
+            type="button"
+            class="text-sm font-medium text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+            @click="showMemberLogin = true"
+          >
+            Mit Kürzel und PIN anmelden
+          </button>
           <NuxtLink
             to="/settings"
             :prefetch="false"

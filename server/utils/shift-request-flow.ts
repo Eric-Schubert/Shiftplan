@@ -108,7 +108,7 @@ export async function createSwap(input: {
 /** A colleague accepts. Without planner approval the plan changes right away. */
 export async function acceptRequest(
   request: ShiftRequest,
-  member: { staffId: number; staffName: string },
+  member: { staffId: number; staffName: string; source?: "web" | "app" },
   origin?: string
 ): Promise<ShiftRequest> {
   ShiftRequestService.checkAccept(request, member.staffId);
@@ -129,7 +129,7 @@ export async function acceptRequest(
     return updated;
   }
 
-  const applied = apply(accepted, { userId: 0, username: member.staffName, source: "app" }, origin);
+  const applied = apply(accepted, { userId: 0, username: member.staffName, source: member.source ?? "app" }, origin);
   const updated = ShiftRequestService.setStatus(request.request_id, "done", { partnerStaffId: member.staffId, applied });
   await notify(
     PushService.sendToStaff([request.requester_staff_id], {

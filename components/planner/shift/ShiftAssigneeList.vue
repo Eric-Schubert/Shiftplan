@@ -7,6 +7,9 @@ const props = defineProps<{
   canEdit: boolean;
   absences?: Absence[];
   dayChanges?: ShiftDayChange[];
+  myStaffId?: number | null;
+  year?: number;
+  week?: number;
 }>();
 
 const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => change.shift_id === props.shift.shift_id));
@@ -53,6 +56,7 @@ const emit = defineEmits<{
   (e: "drag-end"): void;
   (e: "unassign", staffId: number): void;
   (e: "add"): void;
+  (e: "edit-days"): void;
 }>();
 </script>
 
@@ -62,7 +66,10 @@ const emit = defineEmits<{
       v-for="staff in shift.assigned_staff"
       :key="staff.staff_id"
       class="planner-assignee inline-flex h-8 items-center gap-1 rounded-lg pl-2.5 text-[0.8125rem]"
-      :class="canEdit ? 'cursor-grab pr-1 active:cursor-grabbing hover:border-[var(--border-strong)]' : 'pr-2.5'"
+      :class="[
+        canEdit ? 'cursor-grab pr-1 active:cursor-grabbing hover:border-[var(--border-strong)]' : 'pr-2.5',
+        { 'is-me': staff.staff_id === myStaffId },
+      ]"
       :draggable="canEdit"
       @dragstart="emit('drag-start', $event, staff.staff_id, staff.name)"
       @dragend="emit('drag-end')"
@@ -99,6 +106,7 @@ const emit = defineEmits<{
       v-for="guest in dayGuests"
       :key="`guest-${guest.staffId}`"
       class="planner-assignee inline-flex h-8 items-center gap-1 rounded-lg border-dashed px-2.5 text-[0.8125rem]"
+      :class="{ 'is-me': guest.staffId === myStaffId }"
       :title="`Nur an einzelnen Tagen in ${props.shift.name}`"
     >
       <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">{{ guest.name }}</span>
@@ -116,6 +124,17 @@ const emit = defineEmits<{
     >
       <i class="pi pi-plus text-[0.7rem]" aria-hidden="true"></i>
       <span>Hinzufügen</span>
+    </button>
+
+    <button
+      v-if="canEdit && year && week"
+      type="button"
+      class="planner-pill-button"
+      :aria-label="`Einzelne Tage in ${props.shift.name} ändern`"
+      @click="emit('edit-days')"
+    >
+      <i class="pi pi-calendar text-[0.7rem]" aria-hidden="true"></i>
+      <span>Tage</span>
     </button>
   </div>
 </template>

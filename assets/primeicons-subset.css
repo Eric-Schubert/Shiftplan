@@ -228,3 +228,15 @@
 .pi-user:before {
   content: "\e939";
 }
+
+.pi-sign-in:before {
+  content: "\e970";
+}
+
+.pi-arrow-right-arrow-left:before {
+  content: "\e9fc";
+}
+
+.pi-calendar-times:before {
+  content: "\e952";
+}

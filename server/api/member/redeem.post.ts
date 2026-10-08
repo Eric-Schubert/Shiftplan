@@ -1,5 +1,5 @@
 import { DEVICE_NAME_MAX_LENGTH, MemberAccessService } from "~/server/services/member-access.service";
-import { TeamAccessService } from "~/server/services/team-access.service";
+import { memberLoginResponse } from "~/server/utils/member-login";
 import { checkRateLimit, getClientIP, recordFailedLogin, resetRateLimit } from "~/server/utils/session";
 
 export default defineEventHandler(async (event) => {
@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 429, statusMessage: "Zu viele Versuche. Bitte warten." });
   }
 
-  const body = await readBody<{ code?: unknown; deviceName?: unknown }>(event);
+  const body = await readBody<{ code?: unknown; deviceName?: unknown; client?: unknown }>(event);
   const code = typeof body?.code === "string" ? body.code : "";
   const deviceName =
     typeof body?.deviceName === "string" ? body.deviceName.trim().slice(0, DEVICE_NAME_MAX_LENGTH) || null : null;
@@ -24,10 +24,5 @@ export default defineEventHandler(async (event) => {
   }
 
   resetRateLimit(rateLimitKey);
-  return {
-    token: result.token,
-    staff: { id: result.member.staffId, name: result.member.staffName },
-    instanceId: TeamAccessService.getInstanceId(),
-    instanceName: TeamAccessService.getInstanceName(),
-  };
+  return memberLoginResponse(event, result, body?.client);
 });

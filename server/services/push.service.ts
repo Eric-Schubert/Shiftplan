@@ -298,7 +298,8 @@ export const PushService = {
     return keys.publicKey;
   },
 
-  subscribe(input: unknown): void {
+  /** A browser signed in as a person also gets that person's own messages. */
+  subscribe(input: unknown, staffId: number | null = null): void {
     const subscription = input as Partial<PushSubscriptionInput> | null;
     const endpoint = subscription?.endpoint;
 
@@ -323,11 +324,11 @@ export const PushService = {
 
     db.prepare(
       `
-        INSERT INTO push_subscriptions (endpoint, p256dh, auth)
-        VALUES (?, ?, ?)
-        ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth
+        INSERT INTO push_subscriptions (endpoint, p256dh, auth, staff_id)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, staff_id = excluded.staff_id
       `
-    ).run(endpoint, subscription!.keys!.p256dh, subscription!.keys!.auth);
+    ).run(endpoint, subscription!.keys!.p256dh, subscription!.keys!.auth, staffId);
   },
 
   unsubscribe(endpoint: unknown): void {
@@ -446,7 +447,7 @@ export const PushService = {
     payload: PushPayload & { year: number; week: number },
     options: { excludeStaffId?: number } = {}
   ): Promise<SendCounts> {
-    const web = await this.sendWebPush(payload);
+    const web = await this.sendWebPush(payload, { excludeStaffId: options.excludeStaffId });
     const tokens = listDevices()
       .filter((device) => options.excludeStaffId === undefined || device.staff_id !== options.excludeStaffId)
       .map((device) => device.token);
@@ -467,16 +468,17 @@ export const PushService = {
   },
 
   /**
-   * App message to specific people, e.g. the partner of a swap request. Browsers are
-   * team-wide and not tied to a person, so only app devices are reached.
+   * Message to specific people, e.g. the partner of a swap request: their app devices and
+   * browsers signed in as them. Team-wide browsers are not reached.
    */
   async sendToStaff(staffIds: number[], payload: PushPayload & { kind?: string }): Promise<SendCounts> {
     const wanted = new Set(staffIds);
+    const web = await this.sendWebPush(payload, { staffIds });
     const tokens = listDevices()
       .filter((device) => device.staff_id !== null && wanted.has(device.staff_id))
       .map((device) => device.token);
-    if (tokens.length === 0) return { sent: 0, failed: 0 };
-    return this.sendNative([
+    if (tokens.length === 0) return web;
+    const native = await this.sendNative([
       {
         title: payload.title,
         body: payload.body,
@@ -488,6 +490,7 @@ export const PushService = {
         tokens,
       },
     ]);
+    return { sent: web.sent + native.sent, failed: web.failed + native.failed };
   },
 
   async sendNative(messages: NativeMessage[]): Promise<SendCounts> {
@@ -496,10 +499,20 @@ export const PushService = {
     return { sent: result.sent, failed: result.failed };
   },
 
-  async sendWebPush(payload: PushPayload): Promise<SendCounts> {
-    const subscriptions = getAdminDatabase()
-      .prepare("SELECT subscription_id, endpoint, p256dh, auth FROM push_subscriptions")
-      .all() as StoredSubscription[];
+  /** All browsers, only those of some people (`staffIds`) or all but one person's. */
+  async sendWebPush(
+    payload: PushPayload,
+    filter: { staffIds?: number[]; excludeStaffId?: number } = {}
+  ): Promise<SendCounts> {
+    const subscriptions = (
+      getAdminDatabase()
+        .prepare("SELECT subscription_id, endpoint, p256dh, auth, staff_id FROM push_subscriptions")
+        .all() as Array<StoredSubscription & { staff_id: number | null }>
+    ).filter((subscription) =>
+      filter.staffIds
+        ? subscription.staff_id !== null && filter.staffIds.includes(subscription.staff_id)
+        : filter.excludeStaffId === undefined || subscription.staff_id !== filter.excludeStaffId
+    );
     if (subscriptions.length === 0) return { sent: 0, failed: 0 };
 
     const vapidDetails = {

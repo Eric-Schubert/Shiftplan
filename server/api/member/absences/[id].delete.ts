@@ -1,5 +1,5 @@
 import { AbsenceService } from "~/server/services/absence.service";
-import { MemberAccessService } from "~/server/services/member-access.service";
+import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
 import { cancelAbsence } from "~/server/utils/absence-flow";
 import { validateId } from "~/server/utils/validation";
 
@@ -13,7 +13,7 @@ export default defineEventHandler((event) => {
 
   const cancelled = cancelAbsence(
     absence,
-    { userId: 0, username: member.staffName, source: "app" },
+    { userId: 0, username: member.staffName, source: memberSource(event) },
     getQuery(event).range === "1"
   );
   return { success: true, cancelled };

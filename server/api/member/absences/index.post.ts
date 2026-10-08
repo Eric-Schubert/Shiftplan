@@ -1,4 +1,4 @@
-import { MemberAccessService } from "~/server/services/member-access.service";
+import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
 import { ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence.service";
 import { reportAbsence } from "~/server/utils/absence-flow";
 import { ABSENCE_MESSAGE_MAX_LENGTH } from "~/server/utils/absence-notice";
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     notifyTeam: body?.notifyTeam !== false,
     seekTakeover: body?.seekTakeover === true,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
-    actor: { userId: 0, username: member.staffName, source: "app" },
+    actor: { userId: 0, username: member.staffName, source: memberSource(event) },
   });
 
   const absences = result.absences.map((absence) => ({ ...absence, note: undefined }));
