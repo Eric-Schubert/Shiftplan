@@ -48,4 +48,4 @@ Internal IDs are not exposed for editing in the template. The visible fields are
 
 ## Version History
 
-The version history is available in the app through the version indicator in the header. New versions show only the newest entry on first visit; the full history remains available separately.
+The version history is available in the app through the version indicator in the header.

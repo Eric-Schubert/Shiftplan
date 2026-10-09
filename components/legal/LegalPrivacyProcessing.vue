@@ -45,9 +45,8 @@
 
   <LegalPrivacySection id="lokal">
     <p>
-      Im Browser werden einzelne Komforteinstellungen lokal gespeichert, zum Beispiel der
-      gewählte Hell- oder Dunkelmodus, der zuletzt gelesene Versionshinweis und ob der
-      Installations- oder Benachrichtigungshinweis ausgeblendet wurde. Diese Werte bleiben auf
+      Im Browser werden zwei Komforteinstellungen lokal gespeichert: der gewählte Hell- oder
+      Dunkelmodus und ob der Hinweis zu Benachrichtigungen ausgeblendet wurde. Diese Werte bleiben auf
       dem Gerät und werden nicht für Werbung oder externes Tracking genutzt. Die Speicherung
       ist für die gewünschten Einstellungen erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
     </p>
