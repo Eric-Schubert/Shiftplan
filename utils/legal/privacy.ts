@@ -18,3 +18,6 @@ export type PrivacySectionId = (typeof PRIVACY_SECTIONS)[number]["id"];
 
 export const PRIVACY_LINK_CLASS =
   "font-medium text-[var(--accent-strong)] underline underline-offset-4 decoration-[color-mix(in_srgb,currentColor_35%,transparent)] transition hover:decoration-current";
+
+// Push relay of ES Software for the Shiftplan app (SHIFTPLAN_PUSH_RELAY_URL unset).
+export const DEFAULT_RELAY_HOST = "push.shiftplan.info";

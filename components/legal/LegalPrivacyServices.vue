@@ -2,6 +2,8 @@
 defineProps<{
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
+  appPush: boolean;
+  relayHost: string | null;
 }>();
 </script>
 
@@ -42,14 +44,17 @@ defineProps<{
       oder Microsoft. Die Anwendung speichert die vom Browser gelieferte Zustelladresse, die
       zugehörigen Schlüssel und, bei persönlicher Anmeldung, die Zuordnung zur Person.
       Nachrichten werden Ende-zu-Ende verschlüsselt über den Push-Dienst zugestellt; der Dienst
-      sieht den Inhalt nicht, aber technische Daten wie Zeitpunkt und Zielgerät.
+      sieht den Inhalt nicht, aber technische Daten wie Zeitpunkt und Zielgerät. Diese
+      Push-Dienste können Daten in den USA verarbeiten; die Anbieter stützen das auf das EU-US
+      Data Privacy Framework (Art. 45 DSGVO) bzw. auf Standardvertragsklauseln (Art. 46 Abs. 2
+      lit. c DSGVO).
       Benachrichtigungen enthalten Schicht, Tag oder Kalenderwoche, Namen und gegebenenfalls
       Zusatztexte aus Ausfallmeldungen, Anfragen oder Nachrichten der Planung, aber nie den
       erfassten Grund eines Ausfalls. Die Einwilligung lässt sich jederzeit über die Glocke in
       der Anwendung oder in den Browser-Einstellungen widerrufen.
     </p>
 
-    <LegalPrivacyAppServices />
+    <LegalPrivacyAppServices :app-push="appPush" :relay-host="relayHost" />
 
     <h4>Feiertage und Schulferien</h4>
     <p>

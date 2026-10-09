@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { DEFAULT_RELAY_HOST } from "~/utils/legal/privacy";
+
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
 
-// Microsoft is named only where contact mail via Graph is configured. Without an answer it
-// stays listed: one recipient too many is better than one missing.
+// Microsoft and the push relay are named as this instance is set up. Without an answer both
+// stay listed: one recipient too many is better than one missing.
 const { data: facts } = await useFetch("/api/legal/privacy");
 const usesMicrosoft = computed(() => facts.value?.microsoft ?? true);
+const appPush = computed(() => facts.value?.appPush ?? true);
+const relayHost = computed(() => (facts.value ? facts.value.relayHost : DEFAULT_RELAY_HOST));
 
 useSeoMeta({
   title: "Datenschutz | Shiftplan",
@@ -27,7 +31,12 @@ useSeoMeta({
       <article class="privacy-body">
         <LegalPrivacyPurpose />
         <LegalPrivacyProcessing :uses-microsoft="usesMicrosoft" />
-        <LegalPrivacyServices :uses-cloudflare="usesCloudflare" :uses-microsoft="usesMicrosoft" />
+        <LegalPrivacyServices
+          :uses-cloudflare="usesCloudflare"
+          :uses-microsoft="usesMicrosoft"
+          :app-push="appPush"
+          :relay-host="relayHost"
+        />
         <LegalPrivacyRetention />
         <LegalPrivacyRights />
       </article>

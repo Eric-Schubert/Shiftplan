@@ -9,9 +9,9 @@
     <p>
       <strong>Widerspruchsrecht:</strong> Soweit Daten auf Grundlage berechtigter Interessen
       verarbeitet werden (Art. 6 Abs. 1 lit. f DSGVO), etwa beim Kontaktformular, beim
-      Anmeldeschutz, in Server-Protokollen oder bei der Besuchsstatistik, kannst du dieser
-      Verarbeitung aus Gründen, die sich aus deiner besonderen Situation ergeben, jederzeit
-      widersprechen (Art. 21 Abs. 1 DSGVO).
+      Anmeldeschutz, in Server-Protokollen, bei der Besuchsstatistik oder bei Benachrichtigungen
+      in der App, kannst du dieser Verarbeitung aus Gründen, die sich aus deiner besonderen
+      Situation ergeben, jederzeit widersprechen (Art. 21 Abs. 1 DSGVO).
     </p>
     <p>
       Außerdem kannst du dich bei einer Datenschutzaufsichtsbehörde beschweren, insbesondere an

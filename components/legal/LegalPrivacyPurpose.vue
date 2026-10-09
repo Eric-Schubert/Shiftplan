@@ -58,12 +58,14 @@
       </li>
     </ul>
     <p>
-      <strong>Wer was sieht:</strong> Namen, Kürzel, Schichten, Rotation, tagesgenaue Änderungen
-      und Ausfälle (ohne Grund und Notiz), jeweils mit Angabe, wer sie eingetragen hat, sieht
-      jeder mit Zugang zum Plan. Ist ein Team-Zugangscode gesetzt, sind das nur Personen mit
-      Code, persönlichem Zugang oder Planer-Anmeldung. Ohne Code kann jeder, der die Adresse
-      kennt, den Plan lesen. Grund und Notiz eines Ausfalls, das Änderungsprotokoll, die
-      persönlichen Zugänge und Kontaktanfragen sehen nur Planer.
+      <strong>Wer was sieht:</strong> Namen, Kürzel, Teilzeit-Kennzeichen, Schichten, Rotation,
+      tagesgenaue Änderungen und Ausfälle (ohne Grund und Notiz), jeweils mit Angabe, wer sie
+      eingetragen hat, sieht jeder mit Zugang zum Plan. Ist ein Team-Zugangscode gesetzt, sind
+      das nur Personen mit Code, persönlichem Zugang oder Planer-Anmeldung. Ohne Code kann jeder,
+      der die Adresse kennt, den Plan lesen. Offene Übernahmeanfragen mit ihrer Nachricht sehen
+      alle persönlich angemeldeten Mitarbeitenden, Tauschanfragen nur die Beteiligten und die
+      Planung. Grund und Notiz eines Ausfalls und die persönlichen Zugänge sehen nur Planer, das
+      Änderungsprotokoll und Kontaktanfragen nur Administratoren.
     </p>
   </LegalPrivacySection>
 </template>

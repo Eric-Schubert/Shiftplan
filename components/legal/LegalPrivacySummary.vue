@@ -18,8 +18,8 @@
         <span class="text-[var(--text-2)]"> Sie sind nicht Ende-zu-Ende-verschlüsselt und enthalten deshalb nur Woche und Schicht. Namen stehen nur in Ausfallmeldungen, Anfragen und Nachrichten der Planung.</span>
       </li>
       <li class="py-3">
-        <strong class="text-[var(--text-1)]">Keine Werbung, keine Analyse-Dienste von Dritten.</strong>
-        <span class="text-[var(--text-2)]"> Die eigene Besuchsstatistik speichert keine IP-Adressen im Klartext und wird nach 90 Tagen bereinigt.</span>
+        <strong class="text-[var(--text-1)]">Keine Werbung, kein Tracking.</strong>
+        <span class="text-[var(--text-2)]"> Die eigene Besuchsstatistik speichert keine IP-Adressen im Klartext und wird nach 90 Tagen bereinigt. Nur der QR-Scanner der Android-App meldet technische Nutzungsdaten an Google.</span>
       </li>
       <li class="py-3 last:pb-0">
         <strong class="text-[var(--text-1)]">Cookies nur für Anmeldung und Zugang.</strong>

@@ -55,11 +55,13 @@ Web Push uses VAPID keys that each instance generates on first use and stores in
 SHIFTPLAN_PUSH_SUBJECT=mailto:support@example.com
 ```
 
-Pushes to the native Shiftplan app go through the push relay at `https://push.shiftplan.info`. To switch app pushes off entirely:
+Pushes to the native Shiftplan app go through the push relay at `https://push.shiftplan.info` as long as `SHIFTPLAN_PUSH_RELAY_URL` is not set. To switch app pushes off entirely:
 
 ```bash
 SHIFTPLAN_PUSH_RELAY_URL=off
 ```
+
+An empty value (`SHIFTPLAN_PUSH_RELAY_URL=`) switches app pushes off as well. Any other URL is used as the relay. The privacy policy follows this setting: it names `push.shiftplan.info` with Cloudflare, the host of a custom relay, or states that the instance sends no app pushes.
 
 See [Features](features.md#team-access-and-push-notifications) for how push works.
 
