@@ -2,7 +2,7 @@ import { getBackendConfig } from "./backend-config";
 
 const MS_PER_MINUTE = 60 * 1000;
 
-export function getContactConfig() {
+function getContactConfig() {
   return getBackendConfig().contact;
 }
 

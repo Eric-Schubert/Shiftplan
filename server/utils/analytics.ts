@@ -8,7 +8,7 @@ export function isLikelyBot(userAgent: string): boolean {
   return !userAgent || BOT_USER_AGENT_PATTERN.test(userAgent);
 }
 
-export function isTrackablePath(path: string): boolean {
+function isTrackablePath(path: string): boolean {
   if (!path || path.startsWith("/api/")) return false;
   if (path.startsWith("/_nuxt/") || path.startsWith("/fonts/")) return false;
   if (path === "/settings" || path.startsWith("/settings/")) return false;

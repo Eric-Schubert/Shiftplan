@@ -63,8 +63,6 @@ export class AuditService {
   static getEntries(options?: {
     limit?: number;
     offset?: number;
-    year?: number;
-    weekNumber?: number;
   }): { entries: AuditEntry[]; total: number } {
     const db = getDatabase();
     const auditConfig = getAuditConfig();
@@ -72,28 +70,13 @@ export class AuditService {
     const limit = Math.min(auditConfig.maxLimit, Math.max(1, requestedLimit));
     const offset = options?.offset || 0;
 
-    let whereClause = "";
-    const params: any[] = [];
-
-    if (options?.year) {
-      whereClause += " WHERE year = ?";
-      params.push(options.year);
-    }
-
-    if (options?.weekNumber) {
-      whereClause += whereClause ? " AND week_number = ?" : " WHERE week_number = ?";
-      params.push(options.weekNumber);
-    }
-
     const total = db
-      .prepare(`SELECT COUNT(*) as count FROM audit_log${whereClause}`)
-      .get(...params) as { count: number };
+      .prepare("SELECT COUNT(*) as count FROM audit_log")
+      .get() as { count: number };
 
     const entries = db
-      .prepare(
-        `SELECT * FROM audit_log${whereClause} ORDER BY created_at DESC, audit_id DESC LIMIT ? OFFSET ?`
-      )
-      .all(...params, limit, offset) as AuditEntry[];
+      .prepare("SELECT * FROM audit_log ORDER BY created_at DESC, audit_id DESC LIMIT ? OFFSET ?")
+      .all(limit, offset) as AuditEntry[];
 
     return { entries, total: total.count };
   }
