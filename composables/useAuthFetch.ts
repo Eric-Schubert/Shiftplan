@@ -1,11 +1,7 @@
-
-
-
 import backendConfig from "../config/backend.config.json";
 
 export function useAuthFetch() {
   const authStore = useAuthStore();
-
 
   async function authFetch<T = any>(
     url: string,

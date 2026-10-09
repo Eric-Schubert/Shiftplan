@@ -22,7 +22,6 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/staff` | Team | No | - | - | List staff records |
 | `POST` | `/api/staff` | Admin | Yes | - | `active`, `is_parttime`, `name`, `short_code` | Create or update staff data |
-| `GET` | `/api/staff/:id` | Team | No | - | - | Read one staff record |
 | `PATCH` | `/api/staff/:id` | Admin | Yes | - | `active`, `is_parttime`, `name`, `short_code` | Update one staff record |
 | `DELETE` | `/api/staff/:id` | Admin | Yes | - | - | Delete one staff record |
 | `DELETE` | `/api/staff/:id/pin` | Planner | Yes | - | - | Delete one staff record |
@@ -33,7 +32,6 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/shift` | Team | No | - | - | List shift records |
 | `POST` | `/api/shift` | Admin | Yes | - | `color`, `end_time`, `min_staff`, `name`, `sort_order`, `start_time` | Create or update shift data |
-| `GET` | `/api/shift/:id` | Team | No | - | - | Read one shift record |
 | `PATCH` | `/api/shift/:id` | Admin | Yes | - | `active`, `color`, `end_time`, `min_staff`, `name`, `sort_order`, `start_time` | Update one shift record |
 | `DELETE` | `/api/shift/:id` | Admin | Yes | - | - | Delete one shift record |
 
@@ -56,7 +54,6 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/rotation` | Team | No | - | - | List rotation records |
 | `POST` | `/api/rotation/assign` | Planner | Yes | - | `pattern_week`, `shift_id`, `staff_id` | Create or update rotation data |
-| `GET` | `/api/rotation/config` | Team | No | - | - | List rotation records |
 | `PATCH` | `/api/rotation/config` | Planner | Yes | - | `cycle_length`, `start_week`, `start_year` | Update one rotation record |
 | `POST` | `/api/rotation/excel-import` | Planner | Yes | - | - | Create or update rotation data |
 | `GET` | `/api/rotation/excel-template` | Planner | No | - | - | List rotation records |
@@ -78,7 +75,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
-| `GET` | `/api/audit` | Admin | No | `limit`, `offset`, `week`, `year` | - | List audit log entries |
+| `GET` | `/api/audit` | Admin | No | `limit`, `offset` | - | List audit log entries |
 
 ### Holidays
 

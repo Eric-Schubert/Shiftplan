@@ -115,16 +115,12 @@ export function getTestDatabase(): DatabaseType {
 
 
 
-export function closeTestDatabase(): void {
+export function cleanupTestDatabase(): void {
   if (testDb) {
     testDb.close();
     testDb = null;
   }
 }
-
-
-export const cleanupTestDatabase = closeTestDatabase;
-
 
 
 

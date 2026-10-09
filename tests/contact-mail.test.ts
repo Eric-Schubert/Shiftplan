@@ -98,7 +98,7 @@ describe("ContactMailService", () => {
     expect(String(sendMailCall[0])).toContain(
       "https://graph.microsoft.com/v1.0/users/postfach%40example.com/sendMail"
     );
-    expect(sendMailPayload?.message.subject).toBe("[Schichtplaner] Dienstplan");
+    expect(sendMailPayload?.message.subject).toBe("[Shiftplan] Dienstplan");
     expect(sendMailPayload?.message.toRecipients).toEqual([
       { emailAddress: { address: "ziel@example.com" } },
     ]);

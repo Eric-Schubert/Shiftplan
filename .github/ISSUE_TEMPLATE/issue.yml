@@ -46,7 +46,7 @@ body:
     attributes:
       label: Version
       description: Which app version or commit are you using?
-      placeholder: v2.7.0 or commit SHA
+      placeholder: v3.2.1 or commit SHA
   - type: dropdown
     id: deployment
     attributes:
