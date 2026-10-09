@@ -213,7 +213,7 @@
   },
   "contactMail": {
     "provider": "graph",
-    "subjectPrefix": "[Schichtplaner]",
+    "subjectPrefix": "[Shiftplan]",
     "saveToSentItemsDefault": false,
     "tokenSkewSeconds": 60,
     "graphScope": "https://graph.microsoft.com/.default",

@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, "..");
 const VERSION_FILE = path.join(ROOT, ".version");
 
-export function resolveVersion() {
+function resolveVersion() {
   if (process.env.APP_VERSION) {
     return process.env.APP_VERSION;
   }
@@ -36,7 +36,7 @@ export function resolveVersion() {
   }
 }
 
-export function getFallbackVersion() {
+function getFallbackVersion() {
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf-8"));
     return pkg.version || "0.0.0";

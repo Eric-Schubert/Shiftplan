@@ -23,10 +23,6 @@ export function getDeployPrefixes() {
   return loadReleaseRules().deploy;
 }
 
-export function getSkipTokens() {
-  return loadReleaseRules().skipTokens;
-}
-
 export function parseCommitMessage(message = "") {
   const firstLine = String(message).split(/\r?\n/, 1)[0].trim();
   const match = firstLine.match(/^([a-z]+)(?:\([^)]+\))?(!)?:\s+.+/);
@@ -71,51 +67,24 @@ function writeGithubOutputs(outputs) {
   }
 }
 
-function printJson(value) {
-  console.log(JSON.stringify(value, null, 2));
-}
-
 function main() {
-  const command = process.argv[2] || "print";
+  const command = process.argv[2];
   const message = process.env.HEAD_MESSAGE || process.argv.slice(3).join(" ");
 
-  if (command === "github-output") {
-    const result = evaluateCommitMessage(message);
-    writeGithubOutputs({
-      type: result.type,
-      conventional: String(result.conventional),
-      breaking: String(result.breaking),
-      visible: String(result.visible),
-      hidden: String(result.hidden),
-      release: String(result.release),
-      deploy: String(result.deploy),
-      skip_ci: String(result.skipCi),
-    });
+  if (command !== "github-output") {
+    console.error(`Unknown release-rules command: ${command}`);
+    process.exitCode = 2;
     return;
   }
 
-  if (command === "check-release") {
-    process.exitCode = evaluateCommitMessage(message).release ? 0 : 1;
-    return;
-  }
-
-  if (command === "check-deploy") {
-    process.exitCode = evaluateCommitMessage(message).deploy ? 0 : 1;
-    return;
-  }
-
-  if (command === "print") {
-    printJson(loadReleaseRules());
-    return;
-  }
-
-  if (command === "evaluate") {
-    printJson(evaluateCommitMessage(message));
-    return;
-  }
-
-  console.error(`Unknown release-rules command: ${command}`);
-  process.exitCode = 2;
+  // Only the keys auto-version.yml and docker-build.yml read.
+  const result = evaluateCommitMessage(message);
+  writeGithubOutputs({
+    type: result.type,
+    breaking: String(result.breaking),
+    release: String(result.release),
+    deploy: String(result.deploy),
+  });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
