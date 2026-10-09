@@ -98,21 +98,16 @@ const previous = getLatestTag();
 const releaseType = getReleaseType();
 const nextVersion = bumpVersion(previous.version, releaseType).join(".");
 const newTag = `v${nextVersion}`;
-const dryRun = process.env.DRY_RUN === "true";
 
 if (tagExists(newTag)) {
   throw new Error(`Tag ${newTag} already exists.`);
 }
 
-if (!dryRun) {
-  gitInherit(["tag", newTag]);
-  gitInherit(["push", "origin", newTag]);
-}
+gitInherit(["tag", newTag]);
+gitInherit(["push", "origin", newTag]);
 
 writeOutputs({
   previous_tag: previous.tag,
-  previous_version: previous.tag.replace(/^v/, ""),
   new_tag: newTag,
-  new_version: nextVersion,
   release_type: releaseType,
 });

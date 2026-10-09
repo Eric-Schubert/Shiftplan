@@ -1,6 +1,7 @@
 .git
 .github
 .idea
+.claude/
 .nuxt
 .output
 .data

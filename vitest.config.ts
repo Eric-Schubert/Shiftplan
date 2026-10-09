@@ -3,17 +3,10 @@ import { resolve } from "path";
 
 export default defineConfig({
   test: {
-    environment: "node",
-    globals: true,
     include: ["tests/**/*.test.ts"],
 
     pool: "forks",
     fileParallelism: false,
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["server/services/**/*.ts"],
-    },
   },
   resolve: {
     alias: {
