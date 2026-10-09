@@ -52,11 +52,12 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
   }
   const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
 
+  // Only active people: a deactivated person's app must not come back in their name.
   let staffId: number | null = member?.staffId ?? null;
   if (!member && device.staffId !== undefined && device.staffId !== null) {
     const exists =
       Number.isInteger(device.staffId) &&
-      getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ?").get(device.staffId);
+      getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ? AND active = 1").get(device.staffId);
     if (!exists) throw invalid("Unbekannter Mitarbeiter");
     staffId = device.staffId as number;
   }

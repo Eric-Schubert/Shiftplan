@@ -1,5 +1,5 @@
 import { DayChangeService } from "~/server/services/day-change.service";
-import { badRequest, conflict, isAbsent, today } from "~/server/services/shift-request/common";
+import { activeStaffName, badRequest, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 
 /** Day changes that swap all shifts of two people in a range. Shared shifts stay as they are. */
@@ -37,6 +37,7 @@ export function takeoverChanges(request: ShiftRequest, helperId: number): Array<
 /** A colleague says yes. Throws if the request can no longer be accepted by them. */
 export function checkAccept(request: ShiftRequest, staffId: number): void {
   if (request.status !== "open") conflict("Die Anfrage ist nicht mehr offen");
+  if (!activeStaffName(request.requester_staff_id)) conflict("Die Anfrage ist nicht mehr offen");
   if (request.date_to < today()) conflict("Die Anfrage ist abgelaufen");
   if (request.kind === "swap") {
     if (request.partner_staff_id !== staffId) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });

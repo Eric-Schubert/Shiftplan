@@ -10,7 +10,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Body first: the person is checked right before the write, not before a pause in between.
+  const body = await readBody(event);
   const member = MemberAccessService.getMember(event);
-  PushService.registerDevice(await readBody(event), member ?? undefined);
+  PushService.registerDevice(body, member ?? undefined);
   return { success: true };
 });

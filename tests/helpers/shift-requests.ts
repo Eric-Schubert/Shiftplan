@@ -17,6 +17,7 @@ const ROUTES: Route[] = [
   ["post", "/api/requests/settings", "server/api/requests/settings.put"],
   ["post", "/api/requests/:id", "server/api/requests/[id].post"],
   ["post", "/api/member-invites", "server/api/member-invites/index.post"],
+  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
 ];
 
 export const ANNA = 1;

@@ -84,3 +84,13 @@ export function cancelForAbsence(absenceIds: number[]): number {
     )
     .run(...absenceIds).changes;
 }
+
+/** Open requests of a deactivated person: nobody can take them up any more. */
+export function cancelForStaff(staffId: number): number {
+  return getDatabase()
+    .prepare(
+      `UPDATE shift_requests SET status = 'cancelled', decided_at = datetime('now')
+        WHERE status IN ('open', 'pending_approval') AND (requester_staff_id = ? OR partner_staff_id = ?)`
+    )
+    .run(staffId, staffId).changes;
+}

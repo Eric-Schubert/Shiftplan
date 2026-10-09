@@ -7,6 +7,8 @@ const showFormDialog = ref(false);
 const editingStaff = ref<Staff | null>(null);
 const showDeleteDialog = ref(false);
 const staffToDelete = ref<Staff | null>(null);
+const showDeactivateDialog = ref(false);
+const staffToDeactivate = ref<Staff | null>(null);
 
 function openCreateDialog() {
   editingStaff.value = null;
@@ -23,7 +25,13 @@ function openDeleteDialog(staff: Staff) {
   showDeleteDialog.value = true;
 }
 
+// Deactivating signs out every device and deletes the PIN, so it asks first. Activating does not.
 async function toggleActive(staff: Staff) {
+  if (staff.active) {
+    staffToDeactivate.value = staff;
+    showDeactivateDialog.value = true;
+    return;
+  }
   await dataStore.toggleStaffActive(staff.staff_id);
 }
 </script>
@@ -53,6 +61,12 @@ async function toggleActive(staff: Staff) {
       :visible="showDeleteDialog"
       :staff="staffToDelete"
       @update:visible="showDeleteDialog = $event"
+    />
+
+    <StaffDeactivateDialog
+      :visible="showDeactivateDialog"
+      :staff="staffToDeactivate"
+      @update:visible="showDeactivateDialog = $event"
     />
   </div>
 </template>
