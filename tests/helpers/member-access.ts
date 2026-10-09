@@ -11,7 +11,11 @@ const ROUTES: Route[] = [
   ["post", "/api/team-access", "server/api/team-access/index.post"],
   ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
   ["post", "/api/push/devices", "server/api/push/devices.post"],
+  ["post", "/api/push/notify", "server/api/push/notify.post"],
+  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
+  ["delete", "/api/staff/:id", "server/api/staff/[id].delete"],
   ["post", "/api/member/redeem", "server/api/member/redeem.post"],
+  ["put", "/api/member/pin", "server/api/member/pin.put"],
   ["get", "/api/member/me", "server/api/member/me.get"],
   ["post", "/api/member/logout", "server/api/member/logout.post"],
   ["post", "/api/member/absences", "server/api/member/absences/index.post"],
@@ -30,6 +34,7 @@ export const EARLY = 1;
 // KW 41/2026: Monday 05.10. to Sunday 11.10.
 export const THURSDAY = "2026-10-08";
 export const FCM_ENDPOINT = "https://fcm.googleapis.com/fcm/send/web-1";
+export const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
 
 /** The client of the running test. */
 export let client: ApiClient;

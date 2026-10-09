@@ -1,10 +1,13 @@
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
+import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 
 const MAX_DEVICES = 5000;
 const MAX_DEVICE_TOKEN_LENGTH = 4096;
 
+/** App devices that get pushes. Leftovers of removed people are purged first. */
 export function listDevices(): StoredDevice[] {
+  purgeMemberAccess();
   return getAdminDatabase()
     .prepare("SELECT token, staff_id, scope FROM push_devices")
     .all() as StoredDevice[];
