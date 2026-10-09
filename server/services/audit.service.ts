@@ -1,6 +1,7 @@
 import { getDatabase } from "~/server/utils/database";
 import { getAuditConfig } from "~/server/config/domain-config";
 import type { AuditAction, AuditEntry } from "~/types/auth";
+import { purgeOldAuditEntries } from "~/server/services/audit/purge";
 
 export class AuditService {
 
@@ -20,7 +21,7 @@ export class AuditService {
     source?: "web" | "app";
   }): void {
     const db = getDatabase();
-
+    purgeOldAuditEntries();
 
     let shiftName = params.shiftName;
     let staffName = params.staffName;
@@ -65,6 +66,7 @@ export class AuditService {
     offset?: number;
   }): { entries: AuditEntry[]; total: number } {
     const db = getDatabase();
+    purgeOldAuditEntries();
     const auditConfig = getAuditConfig();
     const requestedLimit = Number.isFinite(options?.limit) ? Math.trunc(options!.limit!) : auditConfig.defaultLimit;
     const limit = Math.min(auditConfig.maxLimit, Math.max(1, requestedLimit));

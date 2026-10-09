@@ -7,15 +7,15 @@
     <ul class="mt-4 divide-y divide-[var(--border-soft)] text-[0.9375rem] leading-6">
       <li class="py-3 first:pt-0">
         <strong class="text-[var(--text-1)]">Gründe für Ausfälle sieht nur die Planung.</strong>
-        <span class="text-[var(--text-2)]"> Das Team erfährt nur, wer fehlt. Gründe werden nach 90 Tagen gelöscht.</span>
+        <span class="text-[var(--text-2)]"> Wer den Plan sehen kann, erfährt nur, wer fehlt. Gründe werden nach 90 Tagen gelöscht.</span>
       </li>
       <li class="py-3">
-        <strong class="text-[var(--text-1)]">Kein Konto für Mitarbeitende.</strong>
-        <span class="text-[var(--text-2)]"> Der App-Zugang läuft über einen persönlichen QR-Code, ohne E-Mail-Adresse oder Telefonnummer.</span>
+        <strong class="text-[var(--text-1)]">Kein Konto mit E-Mail-Adresse für Mitarbeitende.</strong>
+        <span class="text-[var(--text-2)]"> Der persönliche Zugang in App und Browser startet mit einem QR-Code der Planung, danach geht auch die Anmeldung mit Kürzel und selbst gewählter PIN. E-Mail-Adresse oder Telefonnummer sind nicht nötig.</span>
       </li>
       <li class="py-3">
         <strong class="text-[var(--text-1)]">App-Hinweise auf Planänderungen nennen keine Namen.</strong>
-        <span class="text-[var(--text-2)]"> Sie laufen unverschlüsselt über Google und Apple und enthalten deshalb nur Woche und Schicht.</span>
+        <span class="text-[var(--text-2)]"> Sie sind nicht Ende-zu-Ende-verschlüsselt und enthalten deshalb nur Woche und Schicht. Namen stehen nur in Ausfallmeldungen, Anfragen und Nachrichten der Planung.</span>
       </li>
       <li class="py-3">
         <strong class="text-[var(--text-1)]">Keine Werbung, keine Analyse-Dienste von Dritten.</strong>

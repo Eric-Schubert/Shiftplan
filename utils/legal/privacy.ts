@@ -5,7 +5,7 @@ export const PRIVACY_SECTIONS = [
   { id: "daten", title: "Verarbeitete Daten" },
   { id: "kontakt", title: "Kontaktformular und E-Mail" },
   { id: "cookies", title: "Anmeldung, Sicherheit und Cookies" },
-  { id: "lokal", title: "Lokale Speicherung im Browser" },
+  { id: "lokal", title: "Lokale Speicherung im Browser und in der App" },
   { id: "statistik", title: "Besuchsstatistik" },
   { id: "dienste", title: "Externe Dienste" },
   { id: "speicherdauer", title: "Speicherdauer" },

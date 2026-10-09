@@ -3,6 +3,11 @@ const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
 
+// Microsoft is named only where contact mail via Graph is configured. Without an answer it
+// stays listed: one recipient too many is better than one missing.
+const { data: facts } = await useFetch("/api/legal/privacy");
+const usesMicrosoft = computed(() => facts.value?.microsoft ?? true);
+
 useSeoMeta({
   title: "Datenschutz | Shiftplan",
   description:
@@ -21,8 +26,8 @@ useSeoMeta({
 
       <article class="privacy-body">
         <LegalPrivacyPurpose />
-        <LegalPrivacyProcessing />
-        <LegalPrivacyServices :uses-cloudflare="usesCloudflare" />
+        <LegalPrivacyProcessing :uses-microsoft="usesMicrosoft" />
+        <LegalPrivacyServices :uses-cloudflare="usesCloudflare" :uses-microsoft="usesMicrosoft" />
         <LegalPrivacyRetention />
         <LegalPrivacyRights />
       </article>
@@ -84,6 +89,14 @@ useSeoMeta({
 
 .privacy-body :deep(a:hover) {
   text-decoration-color: currentColor;
+}
+
+.privacy-body :deep(h4) {
+  margin: 1.5rem 0 0.375rem;
+  color: var(--text-1);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 .privacy-body :deep(code) {

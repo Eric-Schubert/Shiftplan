@@ -113,6 +113,12 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/instance` | Team | No | - | - | List instance records |
 
+### Legal
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/legal/privacy` | Public | No | - | - | Read which optional services the privacy policy names |
+
 ### Member-invites
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |

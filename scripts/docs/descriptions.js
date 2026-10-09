@@ -21,6 +21,7 @@ const EXACT_DESCRIPTIONS = {
   "PUT /api/member/pin": "Set or change the own PIN",
   "GET /api/member/me": "Read the signed-in employee",
   "POST /api/viewer/login": "Unlock the plan with the team access code",
+  "GET /api/legal/privacy": "Read which optional services the privacy policy names",
 };
 
 export function getDescription(endpoint) {

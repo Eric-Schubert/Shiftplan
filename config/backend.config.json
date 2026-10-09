@@ -47,7 +47,8 @@
         "/api/auth/login",
         "/api/auth/session",
         "/api/analytics/visit",
-        "/api/contact"
+        "/api/contact",
+        "/api/legal/privacy"
       ],
       "publicGetPrefixes": [
         "/api/_nuxt_icon",

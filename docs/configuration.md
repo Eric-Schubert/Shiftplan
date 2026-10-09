@@ -80,7 +80,7 @@ CONTACT_MAIL_SUBJECT_PREFIX=[Shiftplan]
 CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
 ```
 
-Create a Microsoft Entra app registration with the Microsoft Graph application permission `Mail.Send`, grant admin consent, and ideally restrict the app to the sending mailbox. Without these variables, the contact form still works and stores requests locally only.
+Create a Microsoft Entra app registration with the Microsoft Graph application permission `Mail.Send`, grant admin consent, and ideally restrict the app to the sending mailbox. Without these variables, the contact form still works and stores requests locally only. The privacy policy names Microsoft only when this setup is complete.
 
 ## Demo Instance
 

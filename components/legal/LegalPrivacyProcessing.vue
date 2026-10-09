@@ -1,3 +1,9 @@
+<script setup lang="ts">
+defineProps<{
+  usesMicrosoft: boolean;
+}>();
+</script>
+
 <template>
   <LegalPrivacySection id="kontakt">
     <p>
@@ -6,12 +12,10 @@
       aus IP-Adresse und User-Agent gebildeten Hash sowie den User-Agent, um Missbrauch zu
       begrenzen und Kontaktanfragen nachvollziehbar zu halten.
     </p>
-    <p>
-      Die Benachrichtigung kann über Microsoft Graph an ein Microsoft-365- beziehungsweise
-      Exchange-Online-Postfach zugestellt werden. Dabei werden die Inhalte der Kontaktanfrage
-      an Microsoft übermittelt. Der Versand erfolgt über das konfigurierte Postfach; die von
-      der anfragenden Person angegebene E-Mail-Adresse wird nur als Rückkontakt und, wenn sie
-      eine gültige E-Mail-Adresse ist, als Antwortadresse der Nachricht verwendet.
+    <p v-if="usesMicrosoft">
+      Über neue Anfragen benachrichtigen wir per E-Mail über Microsoft 365 (Microsoft Graph).
+      Dabei werden Name, Rückkontakt, Betreff und Nachricht an Microsoft übermittelt. Ist der
+      Rückkontakt eine gültige E-Mail-Adresse, nutzen wir sie als Antwortadresse.
     </p>
     <p>
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, wenn die Anfrage auf einen Vertrag oder
@@ -24,10 +28,11 @@
   <LegalPrivacySection id="cookies">
     <p>
       Für geschützte Bereiche setzt die Anwendung technisch notwendige Cookies. Das Cookie
-      <code>session_token</code> hält die Anmeldung für bis zu 30 Minuten aktiv und ist für
-      JavaScript nicht lesbar. Das Cookie <code>csrf_token</code> schützt Formulare und
-      API-Aufrufe vor missbräuchlicher Nutzung. Diese Cookies sind für die Anmeldung unbedingt
-      erforderlich und benötigen daher keine Einwilligung (§ 25 Abs. 2 Nr. 2 TDDDG).
+      <code>session_token</code> hält die Anmeldung der Planung für bis zu 30 Minuten aktiv und
+      ist für JavaScript nicht lesbar. Das Cookie <code>csrf_token</code> schützt Formulare und
+      API-Aufrufe vor missbräuchlicher Nutzung und gilt ebenso lange. Diese Cookies sind für die
+      Anmeldung unbedingt erforderlich und benötigen daher keine Einwilligung (§ 25 Abs. 2 Nr. 2
+      TDDDG).
     </p>
     <p>
       Ist der Schichtplan durch einen Team-Zugangscode geschützt, setzt die Anwendung nach
@@ -36,10 +41,24 @@
       technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
     </p>
     <p>
+      Meldet sich jemand im Browser persönlich an (Kürzel und PIN oder Einladungslink), setzt
+      die Anwendung das Cookie <code>member_token</code>. Es ist für JavaScript nicht lesbar,
+      gilt bis zu 365 Tage und wird beim Abmelden gelöscht. Auch dieses Cookie ist technisch
+      erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+    </p>
+    <p>
       Fehlgeschlagene Anmeldeversuche werden zur Angriffserkennung begrenzt. Dafür kann die
       IP-Adresse temporär in einer Rate-Limit-Tabelle verarbeitet werden. Rechtsgrundlage ist
       Art. 6 Abs. 1 lit. f DSGVO; unser Interesse liegt in Zugriffsschutz, Missbrauchsabwehr
       und Stabilität der Anwendung.
+    </p>
+    <p>
+      Beim Aufruf verarbeitet der Server technisch notwendige Verbindungsdaten (IP-Adresse,
+      Zeitpunkt, aufgerufene Adresse, Browser-Kennung), um die Seite auszuliefern. Bei
+      Instanzen unter shiftplan.info speichert der vorgeschaltete Webserver (Reverse Proxy) diese
+      Daten zusammen mit dem Statuscode in Zugriffsprotokollen, um Fehler zu finden und Angriffe
+      abzuwehren, und löscht sie spätestens nach 15 Tagen. Rechtsgrundlage ist Art. 6 Abs. 1
+      lit. f DSGVO.
     </p>
   </LegalPrivacySection>
 
@@ -47,8 +66,20 @@
     <p>
       Im Browser werden zwei Komforteinstellungen lokal gespeichert: der gewählte Hell- oder
       Dunkelmodus und ob der Hinweis zu Benachrichtigungen ausgeblendet wurde. Diese Werte bleiben auf
-      dem Gerät und werden nicht für Werbung oder externes Tracking genutzt. Die Speicherung
-      ist für die gewünschten Einstellungen erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+      dem Gerät und werden nicht für Werbung oder externes Tracking genutzt.
+    </p>
+    <p>
+      Die Shiftplan-App speichert auf dem Gerät die Adresse des Teams, den gewählten Namen, die
+      Benachrichtigungswahl und nach einer Planer-Anmeldung Benutzername und Rolle. Die
+      Zugangsschlüssel liegen im Schlüsselbund (iOS) bzw. im Android Keystore. Damit der Plan
+      auch ohne Netz lesbar bleibt, behält die App außerdem die zuletzt geladenen Wochenpläne mit
+      den Namen des Teams; Wochen, die mehr als zwei Wochen zurückliegen, entfernt sie beim
+      nächsten Laden. Passwörter, PINs und Ausfallgründe speichert die App nicht. Wie sich diese
+      Daten entfernen lassen, steht unter <a href="#app-daten-loeschen">App-Daten löschen</a>.
+    </p>
+    <p>
+      Diese Speicherung ist für die gewünschten Einstellungen und für die App erforderlich (§ 25
+      Abs. 2 Nr. 2 TDDDG).
     </p>
   </LegalPrivacySection>
 

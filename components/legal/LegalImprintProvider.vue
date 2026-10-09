@@ -6,12 +6,14 @@ const runtimeConfig = useRuntimeConfig();
 const imprint = computed(() => runtimeConfig.public.imprint || {});
 const addressLines = computed(() => imprintAddressLines(imprint.value));
 
+// § 5 Abs. 1 DDG: name, postal address and an e-mail address are always required.
 const hasCoreImprint = computed(
   () =>
     Boolean(imprint.value.providerName) &&
     Boolean(imprint.value.streetAddress) &&
     Boolean(imprint.value.postalCode) &&
-    Boolean(imprint.value.city)
+    Boolean(imprint.value.city) &&
+    Boolean(imprint.value.publicEmail)
 );
 </script>
 

@@ -86,7 +86,8 @@ SHIFTPLAN_TRUST_PROXY_HEADERS=true
 # Zeitzone für Kalenderwochen und Push-Bündelung
 TZ=Europe/Berlin
 
-# Impressum und Verantwortlicher in der Datenschutzerklärung
+# Impressum und Verantwortlicher in der Datenschutzerklärung.
+# Pflicht: Name, Straße, PLZ, Ort und E-Mail. Sonst zeigt /impressum eine Warnung.
 NUXT_PUBLIC_IMPRINT_PROVIDER_NAME=Muster GmbH
 NUXT_PUBLIC_IMPRINT_STREET_ADDRESS=Musterstraße 1
 NUXT_PUBLIC_IMPRINT_POSTAL_CODE=01067
@@ -111,7 +112,8 @@ SHIFTPLAN_PUSH_SUBJECT=
 SHIFTPLAN_PUSH_RELAY_URL=
 
 # Optional: Benachrichtigung über das Kontaktformular per Microsoft Graph.
-# Ohne diese Werte landen Anfragen nur im Admin-Bereich.
+# Ohne diese Werte landen Anfragen nur im Admin-Bereich. Mit ihnen nennt die
+# Datenschutzerklärung Microsoft automatisch als Auftragsverarbeiter.
 CONTACT_MAIL_PROVIDER=
 CONTACT_MAIL_TO=
 CONTACT_MAIL_GRAPH_TENANT_ID=
@@ -341,6 +343,7 @@ Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende entsche
 
 - Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung löst keine Pushes aus.
 - Ausfallmeldungen an das Team, z. B. „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“. Den Grund enthält eine Nachricht nie. Die Person, die fehlt, bekommt die Nachricht nicht selbst.
+- Übernahme- und Tauschanfragen sowie deren Zu- und Absagen, mit Name und optionaler Nachricht.
 - Freie Nachrichten der Planung über „Team benachrichtigen“.
 
 In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“.
@@ -398,10 +401,10 @@ Danach `docker compose up -d`. Die App funktioniert weiter, zeigt Änderungen ab
 Wer selbst betreibt, ist für die Daten der eigenen Instanz verantwortlich.
 
 - Impressum und Datenschutzerklärung liefert Shiftplan unter `/impressum` und `/datenschutz` mit. Die Angaben zum Verantwortlichen kommen aus den `NUXT_PUBLIC_IMPRINT_*`-Variablen.
-- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, das Push-Relay mit Firebase und APNs sowie die OpenHolidays API. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare.
-- Bei App-Pushes laufen Titel und Text über das Relay von ES Software sowie über Google und Apple. Automatische Hinweise auf Planänderungen enthalten nur Kalenderwoche und Schicht. Ausfallmeldungen enthalten Name, Tag und Schicht, nie den Grund. Freie Nachrichten der Planung enthalten deren Text.
+- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, das Push-Relay (hinter Cloudflare) mit Firebase und APNs, QR-Scan und Update-Hinweis der App sowie die OpenHolidays API. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare für die Auslieferung der Instanz, mit gesetzten `CONTACT_MAIL_*`-Werten Microsoft 365.
+- Bei App-Pushes laufen Titel und Text über das Relay von ES Software, über Cloudflare sowie über Google und Apple. Automatische Hinweise auf Planänderungen enthalten nur Kalenderwoche und Schicht. Ausfallmeldungen enthalten Name, Tag, Schicht und einen optionalen Zusatztext, nie den Grund. Übernahme- und Tauschanfragen enthalten Name, Schicht oder Zeitraum und eine optionale Nachricht, freie Nachrichten der Planung deren Text.
 - Wenn das für euch nicht passt, App-Pushes mit `SHIFTPLAN_PUSH_RELAY_URL=off` abschalten.
-- Prüft, ob die mitgelieferte Datenschutzerklärung zu eurem Einsatz passt (Beschäftigungskontext, Betriebsrat, eigene Dienste wie Cloudflare). Sie ersetzt keine Rechtsberatung.
+- Prüft, ob die mitgelieferte Datenschutzerklärung zu eurem Einsatz passt (Beschäftigungskontext, Betriebsrat, eigene Dienste wie Cloudflare, Zugriffsprotokolle eures Reverse Proxys). Die genannte Löschfrist für Server-Protokolle gilt nur für Instanzen unter shiftplan.info. Sie ersetzt keine Rechtsberatung.
 
 ## Updates
 
@@ -456,9 +459,9 @@ Backups außerhalb des Servers aufbewahren. Sie enthalten personenbezogene Daten
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID-Kontakt für Web Push | `mailto:` + Impressums-E-Mail |
 | `SHIFTPLAN_BACKEND_CONFIG_PATH` | anderer Pfad für `backend.config.json` | `/app/config/backend.config.json` |
 | `TZ` | Zeitzone | `UTC` |
-| `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher | leer |
+| `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher. Pflicht: Name, Straße, PLZ, Ort und E-Mail, sonst zeigt `/impressum` eine Warnung | leer |
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | Cloudflare in der Datenschutzerklärung nennen | `false` |
-| `CONTACT_MAIL_*` | Benachrichtigung über das Kontaktformular per Microsoft Graph | aus |
+| `CONTACT_MAIL_*` | Benachrichtigung über das Kontaktformular per Microsoft Graph, die Datenschutzerklärung nennt Microsoft dann automatisch | aus |
 | `NUXT_PUBLIC_DEMO_LOGIN_*`, `SHIFTPLAN_DEMO_MEMBER_*` | nur für öffentliche Demos | aus |
 
 ## Fehlersuche
