@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CookieJar } from "./helpers/api-harness";
-import { ANNA, MAX, SAME_ORIGIN, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
-import { relayCalls } from "./helpers/relay-stub";
-import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
+import {
+  ANNA,
+  MAX,
+  SAME_ORIGIN,
+  bearer,
+  client,
+  inviteAndRedeem,
+  teamMessage,
+  useMemberAccessClient,
+} from "./helpers/member-access";
+import { KEYS, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
 useMemberAccessClient();
@@ -37,17 +45,6 @@ async function annaWithEverything() {
   });
   await invite();
   return { admin, planner, token: anna.token, browser };
-}
-
-/** Who a planner's team message reaches: browser endpoints and app tokens. */
-async function teamMessage(planner: CookieJar) {
-  sendNotification.mockClear();
-  relayCalls.length = 0;
-  await client.request("POST", "/api/push/notify", { jar: planner, csrf: true, body: { message: "Wer kann Samstag?" } });
-  return {
-    browsers: sendNotification.mock.calls.map(([subscription]) => subscription.endpoint),
-    apps: relayCalls.filter((call) => call.url.endsWith("/v1/send")).flatMap((call) => call.body.tokens).sort(),
-  };
 }
 
 function tablesWith(staffId: number): string[] {

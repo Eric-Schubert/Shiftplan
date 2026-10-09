@@ -20,6 +20,7 @@ const EXACT_DESCRIPTIONS = {
   "POST /api/member/redeem": "Redeem a personal QR code",
   "PUT /api/member/pin": "Set or change the own PIN",
   "GET /api/member/me": "Read the signed-in employee",
+  "POST /api/member/logout": "Sign out the employee, or end the app's team-code token",
   "POST /api/viewer/login": "Unlock the plan with the team access code",
   "GET /api/legal/privacy": "Read which optional services and push relay the privacy policy names",
 };

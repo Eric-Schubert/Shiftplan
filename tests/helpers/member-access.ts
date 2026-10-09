@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./api-harness";
+import { createApiClient, type ApiClient, type CookieJar, type Route } from "./api-harness";
 import { relayCalls, stubRelay } from "./relay-stub";
 import { sendNotification } from "./web-push-mock";
 
@@ -9,6 +9,7 @@ const ROUTES: Route[] = [
   ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
   ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
   ["post", "/api/team-access", "server/api/team-access/index.post"],
+  ["post", "/api/viewer/login", "server/api/viewer/login.post"],
   ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
   ["post", "/api/push/devices", "server/api/push/devices.post"],
   ["post", "/api/push/notify", "server/api/push/notify.post"],
@@ -58,6 +59,17 @@ export async function inviteAndRedeem(staffId: number, deviceName = "iPhone von 
   );
   expect(redeem.status).toBe(200);
   return { code: invite.json!.code, path: invite.json!.path, token: redeem.json!.token, staff: redeem.json!.staff };
+}
+
+/** Who a planner's team message reaches: browser endpoints and app tokens. */
+export async function teamMessage(planner: CookieJar) {
+  sendNotification.mockClear();
+  relayCalls.length = 0;
+  await client.request("POST", "/api/push/notify", { jar: planner, csrf: true, body: { message: "Wer kann Samstag?" } });
+  return {
+    browsers: sendNotification.mock.calls.map(([subscription]) => subscription.endpoint),
+    apps: relayCalls.filter((call) => call.url.endsWith("/v1/send")).flatMap((call) => call.body.tokens).sort(),
+  };
 }
 
 /**
