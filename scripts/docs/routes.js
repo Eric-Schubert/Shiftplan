@@ -43,6 +43,7 @@ export function loadRouteRules() {
     publicGetPrefixes: routes.publicGetPrefixes,
     teamRoutes: readStringArray(middleware, "TEAM_ROUTES"),
     memberPrefix: readStringConst(middleware, "MEMBER_PREFIX"),
+    legalPrefix: readStringConst(middleware, "LEGAL_PREFIX"),
     builtinReadPrefixes: readStringArray(middleware, "BUILTIN_READ_PREFIXES"),
   };
 }
@@ -58,6 +59,7 @@ export function getAccess(endpoint, content, rules) {
 
   const { method, route } = endpoint;
   if (rules.public.includes(route)) return "Public";
+  if (method === "GET" && rules.legalPrefix && route.startsWith(rules.legalPrefix)) return "Public";
   if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "Public";
   if (rules.teamRoutes.includes(route)) return "Team";
   if (method === "GET" && matchesPrefix(route, [...rules.publicGetPrefixes, ...rules.builtinReadPrefixes])) {

@@ -45,8 +45,11 @@ export function countSubscriptions(): number {
   return row.count;
 }
 
-/** A browser signed in as a person also gets that person's own messages. */
-export function subscribe(input: unknown, staffId: number | null = null): void {
+/**
+ * A browser signed in as a person also gets that person's own messages. The subscription is
+ * bound to that sign-in, so signing out or revoking it removes the subscription too.
+ */
+export function subscribe(input: unknown, member: { sessionId: string; staffId: number } | null = null): void {
   const subscription = input as Partial<PushSubscriptionInput> | null;
   const endpoint = subscription?.endpoint;
 
@@ -71,11 +74,15 @@ export function subscribe(input: unknown, staffId: number | null = null): void {
 
   db.prepare(
     `
-      INSERT INTO push_subscriptions (endpoint, p256dh, auth, staff_id)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth, staff_id = excluded.staff_id
+      INSERT INTO push_subscriptions (endpoint, p256dh, auth, staff_id, member_session)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(endpoint) DO UPDATE SET
+        p256dh = excluded.p256dh,
+        auth = excluded.auth,
+        staff_id = excluded.staff_id,
+        member_session = excluded.member_session
     `
-  ).run(endpoint, subscription!.keys!.p256dh, subscription!.keys!.auth, staffId);
+  ).run(endpoint, subscription!.keys!.p256dh, subscription!.keys!.auth, member?.staffId ?? null, member?.sessionId ?? null);
 }
 
 export function unsubscribe(endpoint: unknown): void {

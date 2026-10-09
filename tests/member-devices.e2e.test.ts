@@ -1,6 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import { ANNA, EARLY, MAX, THURSDAY, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
-import { webPushMock } from "./helpers/web-push-mock";
+import type { CookieJar } from "./helpers/api-harness";
+import {
+  ANNA,
+  EARLY,
+  FCM_ENDPOINT,
+  MAX,
+  SAME_ORIGIN,
+  THURSDAY,
+  bearer,
+  client,
+  inviteAndRedeem,
+  useMemberAccessClient,
+} from "./helpers/member-access";
+import { KEYS, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
 useMemberAccessClient();
@@ -67,12 +79,40 @@ describe("personal app access", () => {
     expect(list.json).toEqual([expect.objectContaining({ staffName: "Anna Weber", deviceName: "iPhone von Anna" })]);
     expect(revoke.status).toBe(200);
     expect(after.status).toBe(401);
-    expect(client.adminDb.prepare("SELECT COUNT(*) AS count FROM push_devices").get()).toEqual({ count: 0 });
+    expect(count("push_devices")).toBe(0);
+    expect(count("member_sessions")).toBe(0);
   });
 
-  it("signs a device out on its own", async () => {
+  it("signs a device out on its own and forgets it", async () => {
     const { token } = await inviteAndRedeem(ANNA);
+    await client.request("POST", "/api/push/devices", { headers: bearer(token), body: { platform: "ios", token: "anna:APA91b" } });
     await client.request("POST", "/api/member/logout", { headers: bearer(token) });
+
     expect((await client.request("GET", "/api/member/me", { headers: bearer(token) })).status).toBe(401);
+    expect([count("member_sessions"), count("push_devices")]).toEqual([0, 0]);
+  });
+
+  it("drops the push subscription of a browser that signs out, but not the team's", async () => {
+    const planner = await client.loginAs("planner", "planner1234");
+    const invite = await client.request<{ code: string }>("POST", "/api/member-invites", {
+      jar: planner,
+      csrf: true,
+      body: { staffId: ANNA },
+    });
+    const browser: CookieJar = new Map();
+    const web = { jar: browser, headers: SAME_ORIGIN };
+    await client.request("POST", "/api/member/redeem", { ...web, body: { code: invite.json!.code, client: "web" } });
+    await client.request("POST", "/api/push/subscribe", { ...web, body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    const team = { endpoint: "https://web.push.apple.com/team", keys: KEYS };
+    await client.request("POST", "/api/push/subscribe", { body: team });
+
+    await client.request("POST", "/api/member/logout", web);
+
+    expect(client.adminDb.prepare("SELECT endpoint FROM push_subscriptions").all()).toEqual([{ endpoint: team.endpoint }]);
+    expect(count("member_sessions")).toBe(0);
   });
 });
+
+function count(table: string): number {
+  return (client.adminDb.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get() as { count: number }).count;
+}

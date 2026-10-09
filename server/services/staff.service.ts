@@ -1,5 +1,7 @@
 import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
+import { removeStaffAccess } from "~/server/services/member-access/cleanup";
+import { cancelForStaff } from "~/server/services/shift-request/queries";
 import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/utils/staff-short-code.js";
 
 function takenShortCodes(exceptId?: number): Set<string> {
@@ -56,19 +58,27 @@ export const StaffService = {
       data.short_code !== undefined
         ? checkShortCode(data.short_code, id)
         : (current.short_code ?? suggestShortCode(data.name ?? current.name, takenShortCodes(id)));
+    const active = data.active ?? current.active;
     db.prepare("UPDATE staff SET name = ?, active = ?, is_parttime = ?, short_code = ? WHERE staff_id = ?").run(
       data.name ?? current.name,
-      data.active ?? current.active,
+      active,
       data.is_parttime ?? current.is_parttime,
       shortCode,
       id
     );
+    // A deactivated person loses app and browser access, gets no more team pushes and
+    // drops out of open requests, so accepting one cannot put them back into the plan.
+    if (!active) {
+      removeStaffAccess(id);
+      cancelForStaff(id);
+    }
     return this.getById(id);
   },
 
   delete(id: number): boolean {
     const db = getDatabase();
     const result = db.prepare("DELETE FROM staff WHERE staff_id = ?").run(id);
+    if (result.changes > 0) removeStaffAccess(id);
     return result.changes > 0;
   },
 };

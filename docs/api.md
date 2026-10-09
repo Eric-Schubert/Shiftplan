@@ -113,6 +113,12 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/instance` | Team | No | - | - | List instance records |
 
+### Legal
+
+| Method | Endpoint | Access | CSRF | Query | Body | Description |
+|--------|----------|--------|------|-------|------|-------------|
+| `GET` | `/api/legal/privacy` | Public | No | - | - | Read which optional services and push relay the privacy policy names |
+
 ### Member-invites
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
@@ -134,7 +140,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 | `POST` | `/api/member/absences` | Member | No | - | `reason`, `shiftId` | Create or update member data |
 | `DELETE` | `/api/member/absences/:id` | Member | No | - | - | Delete one member record |
 | `POST` | `/api/member/login` | Public | No | - | `deviceName`, `pin`, `shortCode` | Sign in with Kürzel and PIN |
-| `POST` | `/api/member/logout` | Public | No | - | - | Create or update member data |
+| `POST` | `/api/member/logout` | Public | No | - | - | Sign out the employee, or end the app's team-code token |
 | `GET` | `/api/member/me` | Member | No | - | - | Read the signed-in employee |
 | `PUT` | `/api/member/pin` | Member | No | - | `currentPin`, `pin` | Set or change the own PIN |
 | `POST` | `/api/member/redeem` | Public | No | - | `code`, `deviceName` | Redeem a personal QR code |

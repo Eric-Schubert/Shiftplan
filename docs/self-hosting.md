@@ -86,7 +86,10 @@ SHIFTPLAN_TRUST_PROXY_HEADERS=true
 # Zeitzone für Kalenderwochen und Push-Bündelung
 TZ=Europe/Berlin
 
-# Impressum und Verantwortlicher in der Datenschutzerklärung
+# Impressum und Verantwortlicher in der Datenschutzerklärung.
+# Pflicht: Name, Straße, PLZ, Ort und E-Mail, sonst zeigt /impressum eine Warnung.
+# Bei GmbH, UG usw. zusätzlich Rechtsform im Namen, Vertretungsberechtigte und
+# Registergericht/-nummer.
 NUXT_PUBLIC_IMPRINT_PROVIDER_NAME=Muster GmbH
 NUXT_PUBLIC_IMPRINT_STREET_ADDRESS=Musterstraße 1
 NUXT_PUBLIC_IMPRINT_POSTAL_CODE=01067
@@ -95,8 +98,9 @@ NUXT_PUBLIC_IMPRINT_COUNTRY=Deutschland
 NUXT_PUBLIC_IMPRINT_PUBLIC_EMAIL=it@example.de
 NUXT_PUBLIC_IMPRINT_PHONE=
 NUXT_PUBLIC_IMPRINT_REPRESENTED_BY=Max Muster
-NUXT_PUBLIC_IMPRINT_REGISTER_COURT=
-NUXT_PUBLIC_IMPRINT_REGISTER_NUMBER=
+NUXT_PUBLIC_IMPRINT_REGISTER_COURT=Amtsgericht Dresden
+NUXT_PUBLIC_IMPRINT_REGISTER_NUMBER=HRB 12345
+# USt-IdNr. oder Wirtschafts-Identifikationsnummer (W-IdNr.), falls vorhanden
 NUXT_PUBLIC_IMPRINT_VAT_ID=
 
 # true, wenn die Instanz über Cloudflare (Proxy) ausgeliefert wird.
@@ -106,12 +110,13 @@ NUXT_PUBLIC_PRIVACY_CLOUDFLARE=false
 # Kontakt für Web Push (VAPID). Standard: mailto: mit der Impressums-E-Mail.
 SHIFTPLAN_PUSH_SUBJECT=
 
-# Relay für App-Pushes. Leer lassen = https://push.shiftplan.info.
-# "off" schaltet App-Pushes ab, siehe Abschnitt Push-Nachrichten.
-SHIFTPLAN_PUSH_RELAY_URL=
+# Relay für App-Pushes: nicht setzen = https://push.shiftplan.info.
+# "off" (oder ein leerer Wert) schaltet App-Pushes ab, siehe Abschnitt Push-Nachrichten.
+# SHIFTPLAN_PUSH_RELAY_URL=off
 
 # Optional: Benachrichtigung über das Kontaktformular per Microsoft Graph.
-# Ohne diese Werte landen Anfragen nur im Admin-Bereich.
+# Ohne diese Werte landen Anfragen nur im Admin-Bereich. Mit ihnen nennt die
+# Datenschutzerklärung Microsoft automatisch als Auftragsverarbeiter.
 CONTACT_MAIL_PROVIDER=
 CONTACT_MAIL_TO=
 CONTACT_MAIL_GRAPH_TENANT_ID=
@@ -147,6 +152,12 @@ services:
       - "127.0.0.1:3000:3000"
     volumes:
       - ./db:/app/db
+    # Log klein halten: höchstens 3 Dateien à 1 MB, die älteste fällt weg
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "3"
     healthcheck:
       test:
         - CMD
@@ -314,7 +325,7 @@ Die Shiftplan-App für iPhone und Android verbindet sich mit jeder Instanz. Mita
 
 Der QR-Code enthält eine Adresse wie `https://plan.example.de/?einladung=CODE`. Die App merkt sich die Instanz und bekommt einen Zugang, der an diese eine Person gebunden ist. Ohne Kamera geht es über „Ohne Kamera einrichten“: Adresse `plan.example.de` eingeben und den Code unter dem QR-Code abtippen.
 
-Unter **App-Zugänge** siehst du alle eingerichteten Geräte und kannst einzelne sperren. Ein gesperrtes Gerät verliert sofort den Zugang und bekommt keine Pushes mehr. PIN vergessen: dort „PIN zurücksetzen“ und einen neuen QR-Code erzeugen. Das Kürzel änderst du unter **Mitarbeiter**.
+Unter **App-Zugänge** siehst du alle eingerichteten Geräte und kannst einzelne sperren. Ein gesperrtes Gerät verliert sofort den Zugang und bekommt keine Pushes mehr. Wer unter **Mitarbeiter** entfernt oder deaktiviert wird, verliert sofort alle persönlichen Zugänge, PIN, offenen QR-Codes und Push-Registrierungen, offene Anfragen werden zurückgezogen. Lesezugriff und Team-Pushes über den Team-Link bleiben: Ohne Zugangscode kann jeder mit dem Link den Plan lesen und im Browser Team-Pushes abonnieren, mit Code jeder Browser, der den Code schon einmal eingegeben hat (bis zu 180 Tage). Um jemanden ganz auszusperren, unter **Team-Zugang** einen Zugangscode setzen bzw. ändern. Deaktivieren lässt sich rückgängig machen, die Person braucht danach aber einen neuen QR-Code. Zugänge, die 365 Tage nicht genutzt wurden, löscht die Instanz selbst. PIN vergessen: dort „PIN zurücksetzen“ und einen neuen QR-Code erzeugen. Das Kürzel änderst du unter **Mitarbeiter**.
 
 ### Planer-Anmeldung in der App
 
@@ -326,11 +337,11 @@ Die App kann mehrere Schichtpläne speichern, z. B. von zwei Teams oder Arbeitge
 
 ## Push-Nachrichten
 
-Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende entscheiden selbst, ob sie Benachrichtigungen wollen.
+Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende können Benachrichtigungen jederzeit abschalten.
 
 | | Im Browser (Web Push) | In der Shiftplan-App |
 |---|---|---|
-| Einschalten | Glocke im Kopf der Web-App | in der App unter Benachrichtigungen |
+| Einschalten | Glocke im Kopf der Web-App | nach dem Einrichten an („Alle“), abschaltbar in der App unter Benachrichtigungen |
 | Weg | Push-Dienst des Browserherstellers | Relay `push.shiftplan.info` → Firebase / APNs |
 | Verschlüsselung | Ende-zu-Ende | Transportverschlüsselung, nicht Ende-zu-Ende |
 | Planänderungen | mit Namen („neu: …, entfällt: …“) | nur Woche und Schicht, keine Namen |
@@ -341,6 +352,7 @@ Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende entsche
 
 - Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung löst keine Pushes aus.
 - Ausfallmeldungen an das Team, z. B. „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“. Den Grund enthält eine Nachricht nie. Die Person, die fehlt, bekommt die Nachricht nicht selbst.
+- Übernahme- und Tauschanfragen sowie deren Zu- und Absagen, mit Name und optionaler Nachricht.
 - Freie Nachrichten der Planung über „Team benachrichtigen“.
 
 In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“.
@@ -353,7 +365,7 @@ Ein eigenes Relay ist mit der offiziellen App nicht möglich, weil die Geräte-T
 
 ### Was dabei passiert
 
-1. Ein Gerät aktiviert in der App Benachrichtigungen. Die App meldet ihr Geräte-Token an deine Instanz. Es liegt nur in deiner Datenbank.
+1. Nach dem Einrichten stehen Benachrichtigungen in der App auf „Alle“. Die App meldet ihr Geräte-Token an deine Instanz. Es liegt nur in deiner Datenbank. Das Token selbst holt die App bei jedem Start von Firebase bzw. APNs, auch ohne eingerichtetes Team; dafür ist ES Software als Anbieter der App verantwortlich.
 2. Beim ersten Push registriert sich deine Instanz automatisch beim Relay. Sie schickt dabei den Namen aus „Name in der App“ und ihre HTTPS-Adresse. Das Relay antwortet mit einer Instanz-ID und einem Secret, die Instanz speichert beides in ihrer Admin-Datenbank.
 3. Für jeden Push schickt die Instanz Titel, Text, die Geräte-Tokens und einen Link in die App (Kalenderwoche) an das Relay. Das Relay gibt sie an Firebase weiter und meldet ungültige Tokens zurück. Die Instanz löscht diese Geräte dann.
 
@@ -364,7 +376,7 @@ Das Relay speichert:
 
 Es speichert keine Nachrichteninhalte und keine Geräte-Tokens, die Logs enthalten nur Zähler.
 
-Solange kein Gerät in der App Benachrichtigungen aktiviert hat, nimmt die Instanz keinen Kontakt zum Relay auf.
+Solange kein Gerät mit der App für Pushes angemeldet ist, nimmt die Instanz keinen Kontakt zum Relay auf.
 
 ### Limits
 
@@ -398,10 +410,11 @@ Danach `docker compose up -d`. Die App funktioniert weiter, zeigt Änderungen ab
 Wer selbst betreibt, ist für die Daten der eigenen Instanz verantwortlich.
 
 - Impressum und Datenschutzerklärung liefert Shiftplan unter `/impressum` und `/datenschutz` mit. Die Angaben zum Verantwortlichen kommen aus den `NUXT_PUBLIC_IMPRINT_*`-Variablen.
-- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, das Push-Relay mit Firebase und APNs sowie die OpenHolidays API. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare.
-- Bei App-Pushes laufen Titel und Text über das Relay von ES Software sowie über Google und Apple. Automatische Hinweise auf Planänderungen enthalten nur Kalenderwoche und Schicht. Ausfallmeldungen enthalten Name, Tag und Schicht, nie den Grund. Freie Nachrichten der Planung enthalten deren Text.
+- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, die App (Push-Registrierung, QR-Scan, Update-Hinweis) sowie die OpenHolidays API. Für die Verarbeitung in der App selbst nennt sie ES Software als Verantwortlichen. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare für die Auslieferung der Instanz, mit gesetzten `CONTACT_MAIL_*`-Werten Microsoft 365.
+- Den Weg der App-Pushes beschreibt sie passend zu `SHIFTPLAN_PUSH_RELAY_URL`: nicht gesetzt das Relay `push.shiftplan.info` (hinter Cloudflare) mit Firebase und APNs, bei einer eigenen URL deren Host, bei `off` oder leerem Wert, dass die Instanz keine App-Pushes verschickt.
+- Bei App-Pushes laufen Titel und Text über das Relay von ES Software, über Cloudflare sowie über Google und Apple. Automatische Hinweise auf Planänderungen enthalten nur Kalenderwoche und Schicht. Ausfallmeldungen enthalten Name, Tag oder Zeitraum, Schicht und einen optionalen Zusatztext, nie den Grund. Übernahme- und Tauschanfragen enthalten Name, Schicht oder Zeitraum und eine optionale Nachricht, freie Nachrichten der Planung deren Text.
 - Wenn das für euch nicht passt, App-Pushes mit `SHIFTPLAN_PUSH_RELAY_URL=off` abschalten.
-- Prüft, ob die mitgelieferte Datenschutzerklärung zu eurem Einsatz passt (Beschäftigungskontext, Betriebsrat, eigene Dienste wie Cloudflare). Sie ersetzt keine Rechtsberatung.
+- Prüft, ob die mitgelieferte Datenschutzerklärung zu eurem Einsatz passt (Beschäftigungskontext, Betriebsrat, eigene Dienste wie Cloudflare, Zugriffsprotokolle eures Reverse Proxys). Die genannte Löschfrist für Zugriffsprotokolle gilt nur für Instanzen unter shiftplan.info. Kontaktanfragen löscht die Instanz selbst nach einem Jahr, entfernte Ausfälle 90 Tage nach dem Ausfalltag. Die mitgelieferte Datenschutzerklärung ersetzt keine Rechtsberatung.
 
 ## Updates
 
@@ -452,13 +465,13 @@ Backups außerhalb des Servers aufbewahren. Sie enthalten personenbezogene Daten
 |---|---|---|
 | `SHIFTPLAN_ADMIN_PASSWORD` | Start-Passwort für `admin`, nur beim ersten Start | – (Pflicht beim ersten Start) |
 | `SHIFTPLAN_TRUST_PROXY_HEADERS` | Client-IP aus `X-Forwarded-For` übernehmen | `false` |
-| `SHIFTPLAN_PUSH_RELAY_URL` | Relay für App-Pushes, `off` schaltet sie ab | `https://push.shiftplan.info` |
+| `SHIFTPLAN_PUSH_RELAY_URL` | Relay für App-Pushes, `off` oder ein leerer Wert schaltet sie ab | nicht gesetzt: `https://push.shiftplan.info` |
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID-Kontakt für Web Push | `mailto:` + Impressums-E-Mail |
 | `SHIFTPLAN_BACKEND_CONFIG_PATH` | anderer Pfad für `backend.config.json` | `/app/config/backend.config.json` |
 | `TZ` | Zeitzone | `UTC` |
-| `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher | leer |
+| `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher. Pflicht: Name, Straße, PLZ, Ort und E-Mail, bei GmbH, UG usw. auch Vertretungsberechtigte und Register. Fehlt Name, Anschrift oder E-Mail, zeigt `/impressum` eine Warnung | leer |
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | Cloudflare in der Datenschutzerklärung nennen | `false` |
-| `CONTACT_MAIL_*` | Benachrichtigung über das Kontaktformular per Microsoft Graph | aus |
+| `CONTACT_MAIL_*` | Benachrichtigung über das Kontaktformular per Microsoft Graph, die Datenschutzerklärung nennt Microsoft dann automatisch | aus |
 | `NUXT_PUBLIC_DEMO_LOGIN_*`, `SHIFTPLAN_DEMO_MEMBER_*` | nur für öffentliche Demos | aus |
 
 ## Fehlersuche
@@ -476,7 +489,8 @@ Ein QR-Code gilt 7 Tage und nur einmal. Unter App-Zugänge einen neuen erzeugen.
 
 1. In der App prüfen, ob Benachrichtigungen an sind und ob „Nur meine“ gewählt ist.
 2. Auf dem Handy die Systemeinstellung für Mitteilungen der App prüfen.
-3. Im Log der Instanz nachsehen:
+3. In der `.env` nach `SHIFTPLAN_PUSH_RELAY_URL=` ohne Wert suchen. Ältere Fassungen dieser Anleitung hatten die Zeile so in der Vorlage, ein leerer Wert schaltet App-Pushes aber ab (`/datenschutz` sagt dann „Diese Instanz verschickt keine Pushes an die Shiftplan-App“). Zeile löschen und `docker compose up -d`.
+4. Im Log der Instanz nachsehen:
 
    ```bash
    docker compose logs shiftplan | grep "\[push\]"
@@ -485,7 +499,7 @@ Ein QR-Code gilt 7 Tage und nur einmal. Unter App-Zugänge einen neuen erzeugen.
    - `Relay-Registrierung fehlgeschlagen`: Die Instanz erreicht `push.shiftplan.info` nicht (ausgehende Firewall, DNS, Proxy) oder hat das Registrierungslimit erreicht. Test: `docker compose exec shiftplan wget -qO- https://push.shiftplan.info/healthz`
    - `Relay-Versand fehlgeschlagen: Relay responded with 429`: Limit erreicht, später erneut oder support@es-software.eu.
    - `Relay responded with 403`: Die Instanz ist beim Relay gesperrt, support@es-software.eu.
-4. Pushes kommen nur für Änderungen in der aktuellen und der nächsten Woche.
+5. Pushes kommen nur für Änderungen in der aktuellen und der nächsten Woche.
 
 **Web Push im Browser kommt nicht.**
 Web Push braucht HTTPS. Auf dem iPhone muss die Seite über Teilen → Zum Home-Bildschirm installiert sein (iOS 16.4 oder neuer), die Glocke dann in der installierten Web-App antippen.

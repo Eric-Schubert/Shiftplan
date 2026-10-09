@@ -10,6 +10,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  PushService.subscribe(await readBody(event), MemberAccessService.getMember(event)?.staffId ?? null);
+  PushService.subscribe(await readBody(event), MemberAccessService.getMember(event));
   return { success: true };
 });

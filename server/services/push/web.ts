@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
+import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import { getVapidDetails } from "~/server/services/push/vapid";
 import type { PushPayload, SendCounts, StoredSubscription } from "~/server/services/push/types";
 
@@ -11,6 +12,7 @@ export async function sendWebPush(
   payload: PushPayload,
   filter: { staffIds?: number[]; excludeStaffId?: number } = {}
 ): Promise<SendCounts> {
+  purgeMemberAccess();
   const subscriptions = (
     getAdminDatabase()
       .prepare("SELECT subscription_id, endpoint, p256dh, auth, staff_id FROM push_subscriptions")

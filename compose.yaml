@@ -16,6 +16,12 @@ services:
     volumes:
       - schichtplaner-db:/app/db
       - ./config/backend.config.json:/app/config/backend.config.json:ro
+    # Keep the container log small: at most 3 files of 1 MB, the oldest goes first.
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: "3"
     healthcheck:
       test:
         - CMD

@@ -84,4 +84,26 @@ describe("swap requests", () => {
     expect(tooLong.status).toBe(400);
     expect(await staffOn(EARLY, THURSDAY)).toEqual([ANNA]);
   });
+
+  it("withdraws open requests of a person who is deactivated", async () => {
+    const anna = await member(ANNA, "anna:tok");
+    const max = await member(MAX, "max:tok");
+    const created = await client.request<any>("POST", "/api/member/requests", {
+      headers: bearer(anna),
+      body: { kind: "swap", partnerStaffId: MAX, from: THURSDAY, to: THURSDAY },
+    });
+    const id = created.json!.request.request_id;
+    const admin = await client.loginAs("admin", "admin1234");
+
+    await client.request("PATCH", `/api/staff/${ANNA}`, { jar: admin, csrf: true, body: { active: false } });
+    const accept = await client.request("POST", `/api/member/requests/${id}`, { headers: bearer(max), body: { action: "accept" } });
+    const status = client.mainDb.prepare("SELECT status FROM shift_requests WHERE request_id = ?").get(id);
+    // Requests left over from before this cleanup existed are refused too.
+    client.mainDb.prepare("UPDATE shift_requests SET status = 'open' WHERE request_id = ?").run(id);
+    const leftover = await client.request("POST", `/api/member/requests/${id}`, { headers: bearer(max), body: { action: "accept" } });
+
+    expect(status).toEqual({ status: "cancelled" });
+    expect([accept.status, leftover.status]).toEqual([409, 409]);
+    expect(await staffOn(LATE, THURSDAY)).toEqual([MAX]);
+  });
 });

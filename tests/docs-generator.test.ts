@@ -26,6 +26,7 @@ describe("docs generator", () => {
     expect(apiDocs).toContain("| `POST` | `/api/shiftplan/assign` | Planner | Yes |");
     expect(apiDocs).toContain("| `POST` | `/api/auth/login` | Public | No |");
     expect(apiDocs).toContain("| `POST` | `/api/contact` | Public | No |");
+    expect(apiDocs).toContain("| `GET` | `/api/legal/privacy` | Public | No |");
     expect(apiDocs).toContain("| `GET` | `/api/shiftplan` | Team | No |");
     expect(apiDocs).toContain("| `GET` | `/api/absences` | Team | No |");
     expect(apiDocs).toContain("| `POST` | `/api/viewer/login` | Team | No |");

@@ -9,6 +9,7 @@ import teamAccessPushSchema from "./008-team-access-push-schema.js";
 import appDevicesSchema from "./009-app-devices-schema.js";
 import memberAccessSchema from "./010-member-access-schema.js";
 import memberPins from "./011-member-pins.js";
+import pushSubscriptionSession from "./012-push-subscription-session.js";
 
 // Order matters: migrations run top to bottom and are recorded by id.
 export const ADMIN_MIGRATIONS = [
@@ -23,4 +24,5 @@ export const ADMIN_MIGRATIONS = [
   appDevicesSchema,
   memberAccessSchema,
   memberPins,
+  pushSubscriptionSession,
 ];

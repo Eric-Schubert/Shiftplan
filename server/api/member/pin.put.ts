@@ -3,8 +3,9 @@ import { checkRateLimit, recordFailedLogin, resetRateLimit } from "~/server/util
 
 /** Sets the personal PIN. Changing an existing PIN needs the current one. */
 export default defineEventHandler(async (event) => {
-  const member = MemberAccessService.requireMember(event);
+  // Body first, so a person deactivated in the meantime is no longer accepted.
   const body = await readBody<{ pin?: unknown; currentPin?: unknown }>(event);
+  const member = MemberAccessService.requireMember(event);
 
   if (MemberAccessService.hasPin(member.staffId)) {
     const key = `member-pin-change:${member.staffId}`;

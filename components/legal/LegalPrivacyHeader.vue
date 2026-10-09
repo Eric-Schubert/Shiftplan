@@ -29,7 +29,8 @@ const lastUpdated = "Oktober 2026";
     class="mt-8 max-w-[44rem] border-l-4 border-[var(--brand-red)] bg-[var(--surface)] py-3 pl-4 pr-4 text-[0.9375rem] leading-7 text-[var(--text-1)]"
   >
     <strong>Das ist eine öffentliche Demo.</strong>
-    Alle eingegebenen Daten sind für andere Besucherinnen und Besucher sichtbar und werden
-    regelmäßig automatisch gelöscht. Bitte gib hier keine echten personenbezogenen Daten ein.
+    Was du hier einträgst, sehen alle anderen Besucherinnen und Besucher. Alle 30 Minuten wird die
+    Demo komplett zurückgesetzt: Plan-Daten, Anmeldungen, Push-Registrierungen und
+    Kontaktanfragen werden gelöscht. Bitte gib hier keine echten personenbezogenen Daten ein.
   </aside>
 </template>

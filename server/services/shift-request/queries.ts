@@ -1,5 +1,6 @@
 import { getDatabase } from "~/server/utils/database";
 import { today } from "~/server/services/shift-request/common";
+import { purgeOldMessages } from "~/server/services/shift-request/purge";
 import type { AppliedChange, ShiftRequest, ShiftRequestStatus } from "~/server/services/shift-request/types";
 
 const SELECT_REQUEST = `
@@ -18,6 +19,7 @@ export function getById(requestId: number): ShiftRequest | undefined {
 
 /** What a staff member sees: open takeovers of the team plus everything they are part of. */
 export function listForMember(staffId: number): ShiftRequest[] {
+  purgeOldMessages();
   return getDatabase()
     .prepare(
       `${SELECT_REQUEST}
@@ -30,6 +32,7 @@ export function listForMember(staffId: number): ShiftRequest[] {
 }
 
 export function listForPlanner(): ShiftRequest[] {
+  purgeOldMessages();
   return getDatabase()
     .prepare(
       `${SELECT_REQUEST}
@@ -80,4 +83,14 @@ export function cancelForAbsence(absenceIds: number[]): number {
         WHERE status IN ('open', 'pending_approval') AND absence_id IN (${absenceIds.map(() => "?").join(",")})`
     )
     .run(...absenceIds).changes;
+}
+
+/** Open requests of a deactivated person: nobody can take them up any more. */
+export function cancelForStaff(staffId: number): number {
+  return getDatabase()
+    .prepare(
+      `UPDATE shift_requests SET status = 'cancelled', decided_at = datetime('now')
+        WHERE status IN ('open', 'pending_approval') AND (requester_staff_id = ? OR partner_staff_id = ?)`
+    )
+    .run(staffId, staffId).changes;
 }

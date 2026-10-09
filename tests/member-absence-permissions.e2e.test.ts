@@ -81,4 +81,19 @@ describe("absences", () => {
 
     expect(rows).toEqual([expect.objectContaining({ staff_name: "Anna Weber", reason: null, note: null })]);
   });
+
+  it("deletes removed absences 90 days after the day", async () => {
+    const insert = client.mainDb.prepare(
+      "INSERT INTO absences (staff_id, absence_date, reason, source, created_by, cancelled_at) VALUES (?, date('now', ?), 'privat', 'web', 'planner', ?)"
+    );
+    insert.run(ANNA, "-100 days", "2026-01-01 08:00:00");
+    insert.run(ANNA, "-100 days", null);
+    insert.run(ANNA, "-10 days", "2026-01-01 08:00:00");
+    const { AbsenceService } = await import("../server/services/absence.service");
+
+    AbsenceService.listForWeek(2026, 41, true);
+
+    const rows = client.mainDb.prepare("SELECT cancelled_at IS NOT NULL AS removed FROM absences ORDER BY absence_date").all();
+    expect(rows).toEqual([{ removed: 0 }, { removed: 1 }]);
+  });
 });

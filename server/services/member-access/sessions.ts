@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
+import { deleteSessions, purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import { sha256, staffName } from "~/server/services/member-access/common";
 import { getMemberToken } from "~/server/services/member-access/token";
 
@@ -40,6 +41,7 @@ export function getMember(event: any): Member | null {
   const token = getMemberToken(event)?.token;
   if (!token) return null;
 
+  purgeMemberAccess();
   const db = getAdminDatabase();
   const session = db
     .prepare(
@@ -67,6 +69,7 @@ export function requireMember(event: any): Member {
 }
 
 export function listSessions(staffId?: number): MemberSession[] {
+  purgeMemberAccess();
   const rows = getAdminDatabase()
     .prepare(
       `
@@ -100,12 +103,7 @@ export function listSessions(staffId?: number): MemberSession[] {
   }));
 }
 
-/** Revoking a device also drops its push registration. */
+/** Revoking or signing out deletes the session and the push registrations made with it. */
 export function revokeSession(sessionId: string): boolean {
-  const db = getAdminDatabase();
-  const result = db
-    .prepare("UPDATE member_sessions SET revoked_at = ? WHERE session_id = ? AND revoked_at IS NULL")
-    .run(Date.now(), sessionId);
-  db.prepare("DELETE FROM push_devices WHERE member_session = ?").run(sessionId);
-  return result.changes > 0;
+  return deleteSessions([sessionId]) > 0;
 }

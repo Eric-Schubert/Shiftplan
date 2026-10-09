@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./api-harness";
+import { createApiClient, type ApiClient, type CookieJar, type Route } from "./api-harness";
 import { relayCalls, stubRelay } from "./relay-stub";
 import { sendNotification } from "./web-push-mock";
 
@@ -9,9 +9,14 @@ const ROUTES: Route[] = [
   ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
   ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
   ["post", "/api/team-access", "server/api/team-access/index.post"],
+  ["post", "/api/viewer/login", "server/api/viewer/login.post"],
   ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
   ["post", "/api/push/devices", "server/api/push/devices.post"],
+  ["post", "/api/push/notify", "server/api/push/notify.post"],
+  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
+  ["delete", "/api/staff/:id", "server/api/staff/[id].delete"],
   ["post", "/api/member/redeem", "server/api/member/redeem.post"],
+  ["put", "/api/member/pin", "server/api/member/pin.put"],
   ["get", "/api/member/me", "server/api/member/me.get"],
   ["post", "/api/member/logout", "server/api/member/logout.post"],
   ["post", "/api/member/absences", "server/api/member/absences/index.post"],
@@ -30,6 +35,7 @@ export const EARLY = 1;
 // KW 41/2026: Monday 05.10. to Sunday 11.10.
 export const THURSDAY = "2026-10-08";
 export const FCM_ENDPOINT = "https://fcm.googleapis.com/fcm/send/web-1";
+export const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
 
 /** The client of the running test. */
 export let client: ApiClient;
@@ -53,6 +59,17 @@ export async function inviteAndRedeem(staffId: number, deviceName = "iPhone von 
   );
   expect(redeem.status).toBe(200);
   return { code: invite.json!.code, path: invite.json!.path, token: redeem.json!.token, staff: redeem.json!.staff };
+}
+
+/** Who a planner's team message reaches: browser endpoints and app tokens. */
+export async function teamMessage(planner: CookieJar) {
+  sendNotification.mockClear();
+  relayCalls.length = 0;
+  await client.request("POST", "/api/push/notify", { jar: planner, csrf: true, body: { message: "Wer kann Samstag?" } });
+  return {
+    browsers: sendNotification.mock.calls.map(([subscription]) => subscription.endpoint),
+    apps: relayCalls.filter((call) => call.url.endsWith("/v1/send")).flatMap((call) => call.body.tokens).sort(),
+  };
 }
 
 /**
