@@ -69,23 +69,41 @@ describe("retention", () => {
   });
 });
 
+type Facts = { microsoft: boolean; appPush: boolean; relayHost: string | null };
+
 describe("privacy facts", () => {
   it("names Microsoft only with a complete contact mail setup", async () => {
-    const without = await client.request<{ microsoft: boolean }>("GET", "/api/legal/privacy");
+    const without = await client.request<Facts>("GET", "/api/legal/privacy");
     vi.stubEnv("CONTACT_MAIL_PROVIDER", "graph");
-    const incomplete = await client.request<{ microsoft: boolean }>("GET", "/api/legal/privacy");
+    const incomplete = await client.request<Facts>("GET", "/api/legal/privacy");
     vi.stubEnv("CONTACT_MAIL_TO", "team@example.com");
     vi.stubEnv("CONTACT_MAIL_GRAPH_TENANT_ID", "tenant");
     vi.stubEnv("CONTACT_MAIL_GRAPH_CLIENT_ID", "client");
     vi.stubEnv("CONTACT_MAIL_GRAPH_CLIENT_SECRET", "secret");
     vi.stubEnv("CONTACT_MAIL_GRAPH_FROM", "postfach@example.com");
-    const complete = await client.request<{ microsoft: boolean }>("GET", "/api/legal/privacy");
+    const complete = await client.request<Facts>("GET", "/api/legal/privacy");
 
-    expect([without.status, without.json, incomplete.json, complete.json]).toEqual([
+    expect([without.status, without.json?.microsoft, incomplete.json?.microsoft, complete.json?.microsoft]).toEqual([
       200,
-      { microsoft: false },
-      { microsoft: false },
-      { microsoft: true },
+      false,
+      false,
+      true,
     ]);
+  });
+
+  it("is public without the route in backend.config.json and names the relay host only", async () => {
+    const facts = async (relay: string | undefined) => {
+      vi.stubEnv("SHIFTPLAN_PUSH_RELAY_URL", relay);
+      const { appPush, relayHost } = (await client.request<Facts>("GET", "/api/legal/privacy")).json!;
+      return { appPush, relayHost };
+    };
+
+    expect(await facts(undefined)).toEqual({ appPush: true, relayHost: "push.shiftplan.info" });
+    expect(await facts("https://user:secret@relay.example.net/v2/")).toEqual({
+      appPush: true,
+      relayHost: "relay.example.net",
+    });
+    expect(await facts("off")).toEqual({ appPush: false, relayHost: null });
+    expect(await facts("")).toEqual({ appPush: false, relayHost: null });
   });
 });

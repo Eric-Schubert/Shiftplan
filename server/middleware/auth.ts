@@ -25,6 +25,9 @@ const MEMBER_PREFIX = "/api/member/";
 // Plan data read by employees, gated like the configured plan routes.
 const BUILTIN_READ_PREFIXES = ["/api/absences"];
 
+// Facts for /datenschutz. Open in code, so instances with their own backend.config.json keep them public.
+const LEGAL_PREFIX = "/api/legal/";
+
 
 /**
  * A browser signed in with Kürzel and PIN authenticates with a cookie. Writes must then come
@@ -57,6 +60,11 @@ export default defineEventHandler((event) => {
 
 
   if (getAuthConfig().routes.public.includes(path)) {
+    return;
+  }
+
+
+  if (method === "GET" && path.startsWith(LEGAL_PREFIX)) {
     return;
   }
 
