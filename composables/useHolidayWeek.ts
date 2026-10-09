@@ -12,8 +12,8 @@ interface HolidayWeekEntry {
 const holidayWeekCache = reactive<Record<string, HolidayWeekEntry>>({});
 const holidayWeekRequests = new Map<string, Promise<void>>();
 
-function getCacheKey(year: number, week: number, states?: string) {
-  return `${year}-${week}-${states || "default"}`;
+function getCacheKey(year: number, week: number) {
+  return `${year}-${week}`;
 }
 
 function ensureCacheEntry(key: string): HolidayWeekEntry {
@@ -30,12 +30,12 @@ function ensureCacheEntry(key: string): HolidayWeekEntry {
   return holidayWeekCache[key];
 }
 
-async function loadHolidayWeek(year: number, week: number, states?: string) {
+async function loadHolidayWeek(year: number, week: number) {
   if (import.meta.server) {
     return;
   }
 
-  const key = getCacheKey(year, week, states);
+  const key = getCacheKey(year, week);
   const entry = ensureCacheEntry(key);
 
   if (entry.loaded && !entry.error) {
@@ -56,7 +56,7 @@ async function loadHolidayWeek(year: number, week: number, states?: string) {
       query: { year, week },
     }),
     $fetch<{ grouped: SchoolHolidayPeriod[] }>("/api/holidays/school", {
-      query: states ? { year, week, states } : { year, week },
+      query: { year, week },
     }),
   ])
     .then(([holidays, school]) => {
@@ -77,20 +77,16 @@ async function loadHolidayWeek(year: number, week: number, states?: string) {
   await request;
 }
 
-export function useHolidayWeek(
-  year: number | Ref<number>,
-  week: number | Ref<number>,
-  states?: string
-) {
+export function useHolidayWeek(year: number | Ref<number>, week: number | Ref<number>) {
   const resolvedYear = computed(() => unref(year));
   const resolvedWeek = computed(() => unref(week));
-  const cacheKey = computed(() => getCacheKey(resolvedYear.value, resolvedWeek.value, states));
+  const cacheKey = computed(() => getCacheKey(resolvedYear.value, resolvedWeek.value));
   const entry = computed(() => ensureCacheEntry(cacheKey.value));
 
   watch(
-    () => [resolvedYear.value, resolvedWeek.value, states],
+    () => [resolvedYear.value, resolvedWeek.value],
     () => {
-      void loadHolidayWeek(resolvedYear.value, resolvedWeek.value, states);
+      void loadHolidayWeek(resolvedYear.value, resolvedWeek.value);
     },
     { immediate: true }
   );
@@ -100,6 +96,5 @@ export function useHolidayWeek(
     schoolHolidays: computed(() => entry.value.schoolHolidays),
     loading: computed(() => entry.value.loading),
     error: computed(() => entry.value.error),
-    hasLoaded: computed(() => entry.value.loaded),
   };
 }

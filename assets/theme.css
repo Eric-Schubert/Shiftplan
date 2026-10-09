@@ -787,8 +787,7 @@ select {
 
 .changelog-release,
 .changelog-detail__hero,
-.changelog-detail__panel,
-.changelog-empty {
+.changelog-detail__panel {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-lg);
@@ -973,20 +972,6 @@ select {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
-}
-
-.changelog-empty {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-  padding: 1rem;
-  color: var(--text-2);
-  line-height: 1.55;
-}
-
-.changelog-empty strong {
-  display: block;
-  color: var(--text-1);
 }
 
 .changelog-footer {
