@@ -1,18 +1,12 @@
 import { getSessionToken, getSessionData } from "~/server/utils/session";
 import type { UserRole, SessionUser } from "~/types/auth";
 
-
-
-
 export function getSessionUser(event: any): SessionUser | null {
   const token = getSessionToken(event);
   return getSessionData(token);
 }
 
-
-
-
-export function requireRole(event: any, allowedRoles: UserRole[]): SessionUser {
+function requireRole(event: any, allowedRoles: UserRole[]): SessionUser {
   const user = getSessionUser(event);
 
   if (!user) {
@@ -32,15 +26,9 @@ export function requireRole(event: any, allowedRoles: UserRole[]): SessionUser {
   return user;
 }
 
-
-
-
 export function requireAdmin(event: any): SessionUser {
   return requireRole(event, ["admin"]);
 }
-
-
-
 
 export function requirePlanner(event: any): SessionUser {
   return requireRole(event, ["admin", "planner"]);

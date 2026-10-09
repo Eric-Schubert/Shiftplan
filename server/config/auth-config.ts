@@ -6,7 +6,7 @@ export function getAuthConfig() {
   return getBackendConfig().auth;
 }
 
-export function getPasswordPolicyConfig() {
+function getPasswordPolicyConfig() {
   return getAuthConfig().passwordPolicy;
 }
 

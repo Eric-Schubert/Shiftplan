@@ -8,8 +8,6 @@ export default defineEventHandler((event) => {
 
   const limit = query.limit ? Number(query.limit) : undefined;
   const offset = Number(query.offset) || 0;
-  const year = query.year ? Number(query.year) : undefined;
-  const weekNumber = query.week ? Number(query.week) : undefined;
 
-  return AuditService.getEntries({ limit, offset, year, weekNumber });
+  return AuditService.getEntries({ limit, offset });
 });
