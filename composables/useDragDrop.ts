@@ -1,6 +1,3 @@
-
-
-
 import { reactive, readonly } from "vue";
 
 interface DragPayload {
@@ -23,10 +20,8 @@ export function useDragDrop() {
     state.isDragging = true;
     state.payload = payload;
 
-
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("application/json", JSON.stringify(payload));
-
 
     const el = event.target as HTMLElement;
     if (el) {
@@ -47,7 +42,6 @@ export function useDragDrop() {
   function getPayload(): DragPayload | null {
     return state.payload;
   }
-
 
   function isValidDrop(targetShiftId: number): boolean {
     return state.payload !== null && state.payload.sourceShiftId !== targetShiftId;

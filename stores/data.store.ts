@@ -41,10 +41,6 @@ export const useDataStore = defineStore("data", {
       return this.staff.filter((staff) => staff.active);
     },
 
-    activeShifts(): Shift[] {
-      return this.shifts.filter((shift) => shift.active);
-    },
-
     rotationConfig(): RotationConfig | null {
       return this.rotationPattern?.config || null;
     },
