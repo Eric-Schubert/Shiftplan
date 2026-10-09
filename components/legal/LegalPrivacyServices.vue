@@ -3,6 +3,7 @@ defineProps<{
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
   appPush: boolean;
+  defaultRelay: boolean;
   relayHost: string | null;
 }>();
 </script>
@@ -54,7 +55,7 @@ defineProps<{
       der Anwendung oder in den Browser-Einstellungen widerrufen.
     </p>
 
-    <LegalPrivacyAppServices :app-push="appPush" :relay-host="relayHost" />
+    <LegalPrivacyAppServices :app-push="appPush" :default-relay="defaultRelay" :relay-host="relayHost" />
 
     <h4>Feiertage und Schulferien</h4>
     <p>

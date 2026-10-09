@@ -1,14 +1,14 @@
 <!-- Dienste, die die Shiftplan-App (iOS und Android) anspricht. Teil des Abschnitts "dienste". -->
 <script setup lang="ts">
-import { DEFAULT_RELAY_HOST } from "~/utils/legal/privacy";
-
 const props = defineProps<{
   /** False when this instance sends nothing to the app (SHIFTPLAN_PUSH_RELAY_URL=off). */
   appPush: boolean;
+  /** The instance uses ES Software's relay push.shiftplan.info (SHIFTPLAN_PUSH_RELAY_URL unset). */
+  defaultRelay: boolean;
   relayHost: string | null;
 }>();
 
-const ownRelay = computed(() => props.appPush && props.relayHost === DEFAULT_RELAY_HOST);
+const ownRelay = computed(() => props.appPush && props.defaultRelay);
 </script>
 
 <template>
@@ -38,7 +38,7 @@ const ownRelay = computed(() => props.appPush && props.relayHost === DEFAULT_REL
     die App Mitteilungen zeigen darf; auf Android 12 und älter gibt es diese Abfrage nicht.
   </p>
   <p v-if="ownRelay">
-    Pushes an die App schickt diese Instanz über den Push-Dienst {{ DEFAULT_RELAY_HOST }} von ES
+    Pushes an die App schickt diese Instanz über den Push-Dienst push.shiftplan.info von ES
     Software, der über das Netzwerk von Cloudflare (Cloudflare, Inc., 101 Townsend St., San
     Francisco, CA 94107, USA) erreichbar ist, an Firebase Cloud Messaging und auf iPhones weiter
     an Apple.
@@ -66,8 +66,9 @@ const ownRelay = computed(() => props.appPush && props.relayHost === DEFAULT_REL
     Schichten besetzt bleiben. Bei eingeschalteten Benachrichtigungen ist das Gerätetoken für die
     Zustellung unbedingt erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG). Widersprechen kannst du
     jederzeit: Wählst du in der App je Team unter „Benachrichtigungen“ „Aus“, löscht die Instanz
-    das Gerätetoken und schickt diesem Gerät nichts mehr. In den Systemeinstellungen lassen sich
-    Mitteilungen der App zusätzlich ganz abschalten.
+    das Gerätetoken und schickt diesem Gerät nichts mehr. Die App meldet das nur, wenn sie die
+    Instanz in diesem Moment erreicht. In den Systemeinstellungen lassen sich Mitteilungen der
+    App zusätzlich ganz abschalten.
   </p>
   <p>
     Google kann die Daten in den USA verarbeiten. Die Google LLC

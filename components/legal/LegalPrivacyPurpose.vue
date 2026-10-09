@@ -8,7 +8,9 @@
     <p>
       Soweit die Anwendung im Beschäftigungskontext eingesetzt wird, verarbeitet der jeweilige
       Arbeitgeber die Planungsdaten zur Durchführung des Beschäftigungsverhältnisses auf
-      Grundlage von Art. 6 Abs. 1 lit. b und c DSGVO.
+      Grundlage von Art. 6 Abs. 1 lit. b und c DSGVO. Verantwortlich für die Planungsdaten ist
+      dann der Arbeitgeber des Teams. Betreibt der unter „Verantwortlich“ genannte Anbieter die
+      Instanz für einen Arbeitgeber, tut er das in dessen Auftrag (Art. 28 DSGVO).
     </p>
     <p>
       Mitarbeitende können über die Shiftplan-App oder nach persönlicher Anmeldung im Browser

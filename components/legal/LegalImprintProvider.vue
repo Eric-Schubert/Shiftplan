@@ -6,15 +6,17 @@ const runtimeConfig = useRuntimeConfig();
 const imprint = computed(() => runtimeConfig.public.imprint || {});
 const addressLines = computed(() => imprintAddressLines(imprint.value));
 
-// § 5 Abs. 1 DDG: name, postal address and an e-mail address are always required.
 const hasCoreImprint = computed(
   () =>
     Boolean(imprint.value.providerName) &&
     Boolean(imprint.value.streetAddress) &&
     Boolean(imprint.value.postalCode) &&
-    Boolean(imprint.value.city) &&
-    Boolean(imprint.value.publicEmail)
+    Boolean(imprint.value.city)
 );
+// § 5 Abs. 1 DDG also requires an e-mail address. Without it the data shows with a warning.
+const missingEmail = computed(() => !imprint.value.publicEmail);
+// W-IdNr. (§ 139c AO): DE123456789-00001, USt-IdNr.: DE123456789.
+const taxIdLabel = computed(() => (/-\d{5}$/.test(imprint.value.vatId ?? "") ? "W-IdNr." : "USt-IdNr."));
 </script>
 
 <template>
@@ -63,13 +65,13 @@ const hasCoreImprint = computed(
         </div>
 
         <div v-if="imprint.vatId" class="grid gap-1">
-          <dt class="font-semibold text-[var(--text-1)]">Umsatzsteuer-ID</dt>
+          <dt class="font-semibold text-[var(--text-1)]">{{ taxIdLabel }}</dt>
           <dd class="text-[var(--text-2)]">{{ imprint.vatId }}</dd>
         </div>
       </dl>
     </div>
 
-    <div v-else class="mt-4 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
+    <div v-if="!hasCoreImprint || missingEmail" class="mt-4 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
       Das Impressum ist noch nicht vollständig konfiguriert.
     </div>
   </section>

@@ -13,10 +13,10 @@ export function makeNameLookup<T extends Staff | Shift>(items: T[], label: strin
     lookup.set(key, matches);
   }
 
-  for (const [name, matches] of lookup.entries()) {
+  // No names in the log: it is kept longer than the plan data and may outlive a person.
+  for (const matches of lookup.values()) {
     if (matches.length > 1) {
-      const names = matches.map((item) => item.name).join(", ");
-      console.warn(`[rotation-excel] ${label} '${name}' ist nicht eindeutig: ${names}`);
+      console.warn(`[rotation-excel] ${label}: ${matches.length} Einträge mit gleichem Namen`);
     }
   }
 

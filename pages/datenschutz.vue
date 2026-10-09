@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { DEFAULT_RELAY_HOST } from "~/utils/legal/privacy";
-
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
@@ -10,7 +8,8 @@ const usesCloudflare = Boolean(privacy?.cloudflare);
 const { data: facts } = await useFetch("/api/legal/privacy");
 const usesMicrosoft = computed(() => facts.value?.microsoft ?? true);
 const appPush = computed(() => facts.value?.appPush ?? true);
-const relayHost = computed(() => (facts.value ? facts.value.relayHost : DEFAULT_RELAY_HOST));
+const defaultRelay = computed(() => facts.value?.defaultRelay ?? true);
+const relayHost = computed(() => facts.value?.relayHost ?? null);
 
 useSeoMeta({
   title: "Datenschutz | Shiftplan",
@@ -35,6 +34,7 @@ useSeoMeta({
           :uses-cloudflare="usesCloudflare"
           :uses-microsoft="usesMicrosoft"
           :app-push="appPush"
+          :default-relay="defaultRelay"
           :relay-host="relayHost"
         />
         <LegalPrivacyRetention />

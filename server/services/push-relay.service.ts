@@ -1,6 +1,6 @@
 import { getAdminDatabase } from "~/server/utils/database";
 
-const DEFAULT_RELAY_URL = "https://push.shiftplan.info";
+export const DEFAULT_RELAY_URL = "https://push.shiftplan.info";
 const RELAY_ID_SETTING = "relay_instance_id";
 const RELAY_SECRET_SETTING = "relay_secret";
 const RELAY_URL_SETTING = "relay_url";

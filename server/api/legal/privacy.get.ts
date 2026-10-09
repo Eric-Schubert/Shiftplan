@@ -1,5 +1,5 @@
 import { getContactMailConfig } from "~/server/services/contact-mail/config";
-import { getRelayUrl } from "~/server/services/push-relay.service";
+import { DEFAULT_RELAY_URL, getRelayUrl } from "~/server/services/push-relay.service";
 
 /** Only the host name: a custom relay address may carry credentials in its user info or path. */
 function hostOf(url: string | null): string | null {
@@ -23,5 +23,11 @@ export default defineEventHandler(() => {
     // Incomplete mail settings never send anything to Microsoft.
   }
   const relayUrl = getRelayUrl();
-  return { microsoft, appPush: relayUrl !== null, relayHost: hostOf(relayUrl) };
+  return {
+    microsoft,
+    appPush: relayUrl !== null,
+    // ES Software's own relay, which the policy describes in detail.
+    defaultRelay: relayUrl === DEFAULT_RELAY_URL,
+    relayHost: hostOf(relayUrl),
+  };
 });

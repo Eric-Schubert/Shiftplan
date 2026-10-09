@@ -20,6 +20,7 @@ beforeEach(async () => {
       ["post", "/api/auth/login", "server/api/auth/login.post"],
       ["get", "/api/audit", "server/api/audit/index.get"],
       ["get", "/api/requests", "server/api/requests/index.get"],
+      ["get", "/api/contact/messages", "server/api/contact/messages.get"],
       ["get", "/api/legal/privacy", "server/api/legal/privacy.get"],
     ],
     (db) => {
@@ -67,9 +68,22 @@ describe("retention", () => {
       { date_to: "2026-07-06", message: null },
     ]);
   });
+
+  it("deletes contact requests a year after they came in", async () => {
+    const insert = client.adminDb.prepare(
+      "INSERT INTO contact_messages (name, reply_to, message, created_at) VALUES ('Eva', 'eva@example.com', 'Hallo', ?)"
+    );
+    insert.run("2025-10-04 07:00:00");
+    insert.run("2025-10-06 08:00:00");
+    const admin = await client.loginAs("admin", "admin1234");
+
+    const list = await client.request<{ messages: { created_at: string }[] }>("GET", "/api/contact/messages", { jar: admin });
+
+    expect(list.json!.messages.map((entry) => entry.created_at)).toEqual(["2025-10-06 08:00:00"]);
+  });
 });
 
-type Facts = { microsoft: boolean; appPush: boolean; relayHost: string | null };
+type Facts = { microsoft: boolean; appPush: boolean; defaultRelay: boolean; relayHost: string | null };
 
 describe("privacy facts", () => {
   it("names Microsoft only with a complete contact mail setup", async () => {
@@ -94,16 +108,22 @@ describe("privacy facts", () => {
   it("is public without the route in backend.config.json and names the relay host only", async () => {
     const facts = async (relay: string | undefined) => {
       vi.stubEnv("SHIFTPLAN_PUSH_RELAY_URL", relay);
-      const { appPush, relayHost } = (await client.request<Facts>("GET", "/api/legal/privacy")).json!;
-      return { appPush, relayHost };
+      const { appPush, defaultRelay, relayHost } = (await client.request<Facts>("GET", "/api/legal/privacy")).json!;
+      return { appPush, defaultRelay, relayHost };
     };
 
-    expect(await facts(undefined)).toEqual({ appPush: true, relayHost: "push.shiftplan.info" });
+    expect(await facts(undefined)).toEqual({ appPush: true, defaultRelay: true, relayHost: "push.shiftplan.info" });
+    expect(await facts("https://push.shiftplan.info/")).toEqual({
+      appPush: true,
+      defaultRelay: true,
+      relayHost: "push.shiftplan.info",
+    });
     expect(await facts("https://user:secret@relay.example.net/v2/")).toEqual({
       appPush: true,
+      defaultRelay: false,
       relayHost: "relay.example.net",
     });
-    expect(await facts("off")).toEqual({ appPush: false, relayHost: null });
-    expect(await facts("")).toEqual({ appPush: false, relayHost: null });
+    expect(await facts("off")).toEqual({ appPush: false, defaultRelay: false, relayHost: null });
+    expect(await facts("")).toEqual({ appPush: false, defaultRelay: false, relayHost: null });
   });
 });
