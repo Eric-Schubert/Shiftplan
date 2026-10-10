@@ -70,15 +70,15 @@ defineProps<{
     </p>
     <p>
       Die Shiftplan-App speichert auf dem Gerät die Adresse des Teams, den gewählten Namen, die
-      Benachrichtigungswahl, einen ausgeblendeten Update-Hinweis und nach einer Planer-Anmeldung
-      Benutzername und Rolle. Die Zugangsschlüssel liegen im Schlüsselbund (iOS) bzw. im Android
-      Keystore. Damit der Plan
-      auch ohne Netz lesbar bleibt, behält die App außerdem die zuletzt geladenen Wochenpläne mit
-      den Namen des Teams; Wochen, die mehr als zwei Wochen zurückliegen, entfernt sie beim
-      nächsten Laden. Passwörter, PINs und Ausfallgründe speichert die App nicht. Wie sich diese
-      Daten entfernen lassen, steht unter <a href="#app-daten-loeschen">App-Daten löschen</a>.
-      Für die Verarbeitung in der App ist ES Software als Anbieter der App verantwortlich (siehe
-      <a href="#dienste">Externe Dienste</a>).
+      Benachrichtigungswahl, einen ausgeblendeten Update-Hinweis, nach einer Planer-Anmeldung
+      Benutzername und Rolle und, bis die Abmeldung bei der Instanz geklappt hat, das Gerätetoken
+      eines Teams, bei dem Benachrichtigungen ausgeschaltet wurden. Die Zugangsschlüssel liegen im
+      Schlüsselbund (iOS) bzw. im Android Keystore. Damit der Plan auch ohne Netz lesbar bleibt,
+      behält die App außerdem die zuletzt geladenen Wochenpläne mit den Namen des Teams; Wochen,
+      die mehr als zwei Wochen zurückliegen, entfernt sie beim nächsten Laden. Passwörter, PINs und
+      Ausfallgründe speichert die App nicht. Wie sich diese Daten entfernen lassen, steht unter
+      <a href="#app-daten-loeschen">App-Daten löschen</a>. Für die Verarbeitung in der App ist ES
+      Software als Anbieter der App verantwortlich (siehe <a href="#dienste">Externe Dienste</a>).
     </p>
     <p>
       Diese Speicherung ist für die gewünschten Einstellungen und für die App erforderlich (§ 25

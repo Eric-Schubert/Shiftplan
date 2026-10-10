@@ -56,6 +56,7 @@ defineProps<{
     </p>
 
     <LegalPrivacyAppServices :app-push="appPush" :default-relay="defaultRelay" :relay-host="relayHost" />
+    <LegalPrivacyAppScan />
 
     <h4>Feiertage und Schulferien</h4>
     <p>

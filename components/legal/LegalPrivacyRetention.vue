@@ -27,8 +27,9 @@
       <dd>
         werden gelöscht, sobald Benachrichtigungen ausgeschaltet werden, der persönliche Zugang
         des Geräts bzw. Browsers endet, der Zugangscode geändert wird oder der Push-Dienst sie
-        als ungültig meldet. Das Ausschalten meldet die App nur, wenn sie die Instanz in diesem
-        Moment erreicht; sonst bleibt das Token bis zu einem der anderen Fälle gespeichert.
+        als ungültig meldet. Ist die Instanz beim Ausschalten nicht erreichbar, holt die App die
+        Abmeldung nach; App-Versionen vor 1.3.0 tun das nicht, dort bleibt das Token bis zu einem
+        der anderen Fälle gespeichert.
       </dd>
       <dt>Persönliche Zugänge (App und Browser)</dt>
       <dd>
