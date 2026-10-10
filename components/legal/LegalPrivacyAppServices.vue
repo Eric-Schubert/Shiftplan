@@ -24,18 +24,20 @@ const ownRelay = computed(() => props.appPush && props.defaultRelay);
 
   <h4>Benachrichtigungen in der Shiftplan-App</h4>
   <p>
-    Bei jedem Start meldet sich die App bei Firebase Cloud Messaging an (Google Ireland Limited,
-    Gordon House, Barrow Street, Dublin 4, Irland), auf iPhones zusätzlich beim Apple Push
-    Notification Service (Apple Inc., One Apple Park Way, Cupertino, CA 95014, USA), und erhält
-    ein Gerätetoken für Benachrichtigungen. Das geschieht derzeit auch, bevor ein Team
-    eingerichtet ist, und auch bei ausgeschalteten Benachrichtigungen. Google bzw. Apple erhalten
-    dabei eine auf dem Gerät abgelegte Kennung der App-Installation, App- und Geräteinformationen
-    und die IP-Adresse, aber keine Daten aus Shiftplan.
+    Benachrichtigungen sind in der App zunächst aus. Nach dem Einrichten eines Teams fragt die
+    App, ob du alle, nur deine oder vorerst keine Benachrichtigungen möchtest; auf iPhones und ab
+    Android 13 fragt danach zusätzlich das System. Erst wenn du zustimmst, meldet sich die App bei
+    Firebase Cloud Messaging an (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+    Irland), auf iPhones zusätzlich beim Apple Push Notification Service (Apple Inc., One Apple
+    Park Way, Cupertino, CA 95014, USA), erhält ein Gerätetoken und meldet es an diese Instanz.
+    Google bzw. Apple erhalten dabei eine auf dem Gerät abgelegte Kennung der App-Installation,
+    App- und Geräteinformationen und die IP-Adresse, aber keine Daten aus Shiftplan. Schaltest du
+    Benachrichtigungen bei allen Teams aus, löscht die App das Gerätetoken.
   </p>
   <p>
-    Nach dem Einrichten eines Teams stehen Benachrichtigungen auf „Alle“, und die App meldet das
-    Gerätetoken an diese Instanz. Auf iPhones und ab Android 13 fragt das System dabei einmal, ob
-    die App Mitteilungen zeigen darf; auf Android 12 und älter gibt es diese Abfrage nicht.
+    App-Versionen vor 1.3.0 melden sich bei jedem Start bei Firebase und Apple an, auch ohne
+    eingerichtetes Team und bei ausgeschalteten Benachrichtigungen, und stellen Benachrichtigungen
+    nach dem Einrichten auf „Alle“. Ein Update auf die aktuelle Version beendet das.
   </p>
   <p v-if="ownRelay">
     Pushes an die App schickt diese Instanz über den Push-Dienst push.shiftplan.info von ES
@@ -61,14 +63,15 @@ const ownRelay = computed(() => props.appPush && props.defaultRelay);
     <template v-if="ownRelay">Der Push-Dienst speichert weder Inhalte noch Gerätetokens.</template>
   </p>
   <p>
-    Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Das berechtigte Interesse liegt darin, Teams
-    ohne weiteres Zutun über Planänderungen, Ausfälle und Anfragen zu informieren, damit
-    Schichten besetzt bleiben. Bei eingeschalteten Benachrichtigungen ist das Gerätetoken für die
-    Zustellung unbedingt erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG). Widersprechen kannst du
-    jederzeit: Wählst du in der App je Team unter „Benachrichtigungen“ „Aus“, löscht die Instanz
-    das Gerätetoken und schickt diesem Gerät nichts mehr. Die App meldet das nur, wenn sie die
-    Instanz in diesem Moment erreicht. In den Systemeinstellungen lassen sich Mitteilungen der
-    App zusätzlich ganz abschalten.
+    Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Du
+    kannst sie jederzeit widerrufen: Wählst du in der App je Team unter „Benachrichtigungen“
+    „Aus“, löscht die Instanz das Gerätetoken und schickt diesem Gerät nichts mehr. Ist die
+    Instanz in diesem Moment nicht erreichbar, holt die App die Abmeldung nach. In den
+    Systemeinstellungen lassen sich Mitteilungen der App zusätzlich ganz abschalten. Für
+    App-Versionen vor 1.3.0 ist Rechtsgrundlage Art. 6 Abs. 1 lit. f DSGVO; das berechtigte
+    Interesse liegt darin, Teams ohne weiteres Zutun über Planänderungen, Ausfälle und Anfragen
+    zu informieren. Dort meldet die App das Ausschalten nur, wenn sie die Instanz in diesem
+    Moment erreicht.
   </p>
   <p>
     Google kann die Daten in den USA verarbeiten. Die Google LLC
@@ -77,32 +80,5 @@ const ownRelay = computed(() => props.appPush && props.defaultRelay);
     Angemessenheitsbeschlusses der EU-Kommission (Art. 45 DSGVO). Auch Apple kann die Daten in den
     USA verarbeiten und stützt diese Übermittlung auf Standardvertragsklauseln der EU-Kommission
     (Art. 46 Abs. 2 lit. c DSGVO).
-  </p>
-
-  <h4>QR-Code-Scan in der App</h4>
-  <p>
-    Die Kamera nutzt die App nur, wenn jemand „QR-Code scannen“ tippt. Das Bild wird auf dem
-    Gerät ausgewertet, nicht gespeichert und nicht übertragen. Auf iPhones erkennt Apple Vision
-    den Code vollständig auf dem Gerät. Auf Android übernimmt das Google ML Kit. ML Kit sendet
-    dabei technische Nutzungs- und Leistungsdaten an Google: Hersteller und Modell, Android- und
-    App-Version, App-Kennung, eine zufällige Kennung der Installation, Bildformat und -auflösung,
-    Erkennungsdauer und Fehlercodes. Bilder und Codeinhalte sind nicht dabei. Rechtsgrundlage ist
-    Art. 6 Abs. 1 lit. f DSGVO; das berechtigte Interesse liegt in einer einfachen und
-    zuverlässigen Einrichtung der App. Google kann diese Daten in den USA verarbeiten; die Google
-    LLC ist unter dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO). Ohne Kamera lässt
-    sich die App über „Ohne Kamera einrichten“ mit Adresse und Code verbinden.
-  </p>
-
-  <h4>Update-Hinweis in der App</h4>
-  <p>
-    Nach dem Start prüft die Shiftplan-App, ob eine neuere Version verfügbar ist. Auf iPhones
-    fragt sie dazu beim App Store von Apple nach und überträgt nur die App-Kennung und das Land,
-    auf Android läuft die Prüfung über die Google-Play-App auf dem Gerät. Apple bzw. Google
-    erhalten dabei technisch bedingt die IP-Adresse des Geräts. Daten aus Shiftplan wie Namen
-    oder Schichten werden nicht übertragen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; das
-    berechtigte Interesse liegt darin, auf Updates mit Fehlerbehebungen hinzuweisen. Apple Inc.
-    und Google LLC können dabei Daten in den USA verarbeiten; Grundlage sind
-    Standardvertragsklauseln (Apple, Art. 46 Abs. 2 lit. c DSGVO) bzw. das EU-US Data Privacy
-    Framework (Google, Art. 45 DSGVO).
   </p>
 </template>
