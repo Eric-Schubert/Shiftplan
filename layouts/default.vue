@@ -44,9 +44,7 @@ onMounted(() => {
     <header class="app-header sticky top-0 z-50">
       <div class="mx-auto flex h-14 max-w-[80rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5 rounded-lg">
-          <span class="app-logo-mark inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg">
-            <i class="pi pi-calendar text-sm" aria-hidden="true"></i>
-          </span>
+          <img src="/favicon.svg" alt="" class="h-8 w-8 flex-shrink-0 rounded-lg" width="32" height="32" />
           <h1 class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">Shiftplan</h1>
         </NuxtLink>
 

@@ -196,11 +196,6 @@ select {
   transform: none;
 }
 
-.app-logo-mark {
-  background: var(--accent);
-  color: #ffffff;
-}
-
 .app-icon-button {
   display: inline-flex;
   height: 2.25rem;
