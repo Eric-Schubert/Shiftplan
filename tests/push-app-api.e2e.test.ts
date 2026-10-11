@@ -52,9 +52,31 @@ describe("app api e2e", () => {
       version: "9.9.9",
       apiVersion: 1,
       codeRequired: false,
+      nextWeekFromSaturday: true,
     });
     expect(after.json).toMatchObject({ name: "Pflegeteam Nord", codeRequired: true });
     expect(after.json.instanceId).toBe(before.json.instanceId);
+  });
+
+  it("lets admins keep the running week on weekends", async () => {
+    const admin = await client.loginAs("admin", "admin1234");
+    const invalid = await client.request("POST", "/api/team-access", {
+      jar: admin,
+      csrf: true,
+      body: { nextWeekFromSaturday: "nein" },
+    });
+    const saved = await client.request("POST", "/api/team-access", {
+      jar: admin,
+      csrf: true,
+      body: { nextWeekFromSaturday: false },
+    });
+    const access = await client.request("GET", "/api/team-access", { jar: admin });
+    const instance = await client.request("GET", "/api/instance");
+
+    expect(invalid.status).toBe(400);
+    expect(saved.json).toEqual({ nextWeekFromSaturday: false });
+    expect(access.json).toMatchObject({ nextWeekFromSaturday: false });
+    expect(instance.json).toMatchObject({ nextWeekFromSaturday: false });
   });
 
   it("reads the plan with a bearer token and signs out again", async () => {

@@ -10,7 +10,12 @@ import { validateString } from "~/server/utils/validation";
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const body = await readBody<{ code?: unknown; generate?: unknown; instanceName?: unknown }>(event);
+  const body = await readBody<{
+    code?: unknown;
+    generate?: unknown;
+    instanceName?: unknown;
+    nextWeekFromSaturday?: unknown;
+  }>(event);
 
   if (body?.instanceName !== undefined) {
     const instanceName = validateString(body.instanceName, "Name", {
@@ -19,6 +24,14 @@ export default defineEventHandler(async (event) => {
     })!;
     TeamAccessService.setInstanceName(instanceName);
     return { instanceName };
+  }
+
+  if (body?.nextWeekFromSaturday !== undefined) {
+    if (typeof body.nextWeekFromSaturday !== "boolean") {
+      throw createError({ statusCode: 400, statusMessage: "nextWeekFromSaturday muss true oder false sein" });
+    }
+    TeamAccessService.setNextWeekFromSaturday(body.nextWeekFromSaturday);
+    return { nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday() };
   }
 
   if (body?.code === null) {

@@ -15,6 +15,8 @@ export const useAppStore = defineStore("app", {
   state: () => ({
     selectedYear: getEffectiveCurrentYear(),
     selectedWeek: getEffectiveCurrentWeek(),
+    // Instance setting, loaded by plugins/instance-settings.ts.
+    nextWeekFromSaturday: true,
     isDarkMode: false,
     _initialized: false,
   }),
@@ -24,9 +26,12 @@ export const useAppStore = defineStore("app", {
       return getWeekDateRange(this.selectedWeek, this.selectedYear);
     },
 
-    /** The week „Heute“ jumps to (next week from Saturday on). */
+    /** The week „Heute“ jumps to (next week from Saturday on, unless the team works weekends). */
     isCurrentWeek(): boolean {
-      return this.selectedYear === getEffectiveCurrentYear() && this.selectedWeek === getEffectiveCurrentWeek();
+      return (
+        this.selectedYear === getEffectiveCurrentYear(this.nextWeekFromSaturday) &&
+        this.selectedWeek === getEffectiveCurrentWeek(this.nextWeekFromSaturday)
+      );
     },
 
     currentWeekLabel(): string | null {
@@ -98,8 +103,13 @@ export const useAppStore = defineStore("app", {
     },
 
     goToCurrentWeek() {
-      this.selectedYear = getEffectiveCurrentYear();
-      this.selectedWeek = getEffectiveCurrentWeek();
+      this.selectedYear = getEffectiveCurrentYear(this.nextWeekFromSaturday);
+      this.selectedWeek = getEffectiveCurrentWeek(this.nextWeekFromSaturday);
+    },
+
+    setNextWeekFromSaturday(enabled: boolean) {
+      this.nextWeekFromSaturday = enabled;
+      this.goToCurrentWeek();
     },
 
     setWeek(year: number, week: number) {

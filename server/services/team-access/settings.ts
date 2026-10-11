@@ -3,6 +3,7 @@ import { getAdminDatabase } from "~/server/utils/database";
 
 const INSTANCE_NAME_SETTING = "instance_name";
 const INSTANCE_ID_SETTING = "instance_uid";
+const NEXT_WEEK_FROM_SATURDAY_SETTING = "next_week_from_saturday";
 const DEFAULT_INSTANCE_NAME = "Schichtplaner";
 
 export function getSetting(key: string): string | null {
@@ -34,4 +35,17 @@ export function setInstanceName(name: string): void {
       "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
     )
     .run(INSTANCE_NAME_SETTING, name);
+}
+
+/** From Saturday on the planner opens next week. Teams with weekend shifts turn this off. */
+export function getNextWeekFromSaturday(): boolean {
+  return getSetting(NEXT_WEEK_FROM_SATURDAY_SETTING) !== "0";
+}
+
+export function setNextWeekFromSaturday(enabled: boolean): void {
+  getAdminDatabase()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    )
+    .run(NEXT_WEEK_FROM_SATURDAY_SETTING, enabled ? "1" : "0");
 }
