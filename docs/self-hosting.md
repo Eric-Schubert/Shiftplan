@@ -107,6 +107,10 @@ NUXT_PUBLIC_IMPRINT_VAT_ID=
 # Die Datenschutzerklärung nennt Cloudflare dann als Auftragsverarbeiter.
 NUXT_PUBLIC_PRIVACY_CLOUDFLARE=false
 
+# Hoster mit Anschrift, wenn der Server gemietet ist (z. B. „netcup GmbH, Emmy-Noether-Straße 10,
+# 76131 Karlsruhe“). Die Datenschutzerklärung nennt ihn dann als Auftragsverarbeiter. Leer bei eigenem Server.
+NUXT_PUBLIC_PRIVACY_HOSTER=
+
 # Kontakt für Web Push (VAPID). Standard: mailto: mit der Impressums-E-Mail.
 SHIFTPLAN_PUSH_SUBJECT=
 
@@ -410,8 +414,8 @@ Danach `docker compose up -d`. Die App funktioniert weiter, zeigt Änderungen ab
 Wer selbst betreibt, ist für die Daten der eigenen Instanz verantwortlich.
 
 - Impressum und Datenschutzerklärung liefert Shiftplan unter `/impressum` und `/datenschutz` mit. Die Angaben zum Verantwortlichen kommen aus den `NUXT_PUBLIC_IMPRINT_*`-Variablen.
-- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, die App (Push-Registrierung, QR-Scan, Update-Hinweis) sowie die OpenHolidays API. Für die Verarbeitung in der App selbst nennt sie ES Software als Verantwortlichen. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare für die Auslieferung der Instanz, mit gesetzten `CONTACT_MAIL_*`-Werten Microsoft 365.
-- Den Weg der App-Pushes beschreibt sie passend zu `SHIFTPLAN_PUSH_RELAY_URL`: nicht gesetzt das Relay `push.shiftplan.info` (hinter Cloudflare) mit Firebase und APNs, bei einer eigenen URL deren Host, bei `off` oder leerem Wert, dass die Instanz keine App-Pushes verschickt.
+- Die mitgelieferte Datenschutzerklärung beschreibt Kontaktformular, Cookies, Statistik, Web Push, die App (Push-Registrierung, QR-Scan, Update-Hinweis) sowie die OpenHolidays API. Für die Verarbeitung in der App selbst nennt sie ES Software als Verantwortlichen. Mit `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true` nennt sie zusätzlich Cloudflare für die Auslieferung der Instanz, mit `NUXT_PUBLIC_PRIVACY_HOSTER` den Hoster des Servers, mit gesetzten `CONTACT_MAIL_*`-Werten Microsoft 365.
+- Den Weg der App-Pushes beschreibt sie passend zu `SHIFTPLAN_PUSH_RELAY_URL`: nicht gesetzt das Relay `push.shiftplan.info` (bei netcup, hinter Cloudflare) mit Firebase und APNs, bei einer eigenen URL deren Host, bei `off` oder leerem Wert, dass die Instanz keine App-Pushes verschickt.
 - Bei App-Pushes laufen Titel und Text über das Relay von ES Software, über Cloudflare sowie über Google und Apple. Automatische Hinweise auf Planänderungen enthalten nur Kalenderwoche und Schicht. Ausfallmeldungen enthalten Name, Tag oder Zeitraum, Schicht und einen optionalen Zusatztext, nie den Grund. Übernahme- und Tauschanfragen enthalten Name, Schicht oder Zeitraum und eine optionale Nachricht, freie Nachrichten der Planung deren Text.
 - Wenn das für euch nicht passt, App-Pushes mit `SHIFTPLAN_PUSH_RELAY_URL=off` abschalten.
 - Prüft, ob die mitgelieferte Datenschutzerklärung zu eurem Einsatz passt (Beschäftigungskontext, Betriebsrat, eigene Dienste wie Cloudflare, Zugriffsprotokolle eures Reverse Proxys). Die genannte Löschfrist für Zugriffsprotokolle gilt nur für Instanzen unter shiftplan.info. Kontaktanfragen löscht die Instanz selbst nach einem Jahr, entfernte Ausfälle 90 Tage nach dem Ausfalltag. Die mitgelieferte Datenschutzerklärung ersetzt keine Rechtsberatung.
@@ -471,6 +475,7 @@ Backups außerhalb des Servers aufbewahren. Sie enthalten personenbezogene Daten
 | `TZ` | Zeitzone | `UTC` |
 | `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher. Pflicht: Name, Straße, PLZ, Ort und E-Mail, bei GmbH, UG usw. auch Vertretungsberechtigte und Register. Fehlt Name, Anschrift oder E-Mail, zeigt `/impressum` eine Warnung | leer |
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | Cloudflare in der Datenschutzerklärung nennen | `false` |
+| `NUXT_PUBLIC_PRIVACY_HOSTER` | Hoster mit Anschrift in der Datenschutzerklärung nennen | leer |
 | `CONTACT_MAIL_*` | Benachrichtigung über das Kontaktformular per Microsoft Graph, die Datenschutzerklärung nennt Microsoft dann automatisch | aus |
 | `NUXT_PUBLIC_DEMO_LOGIN_*`, `SHIFTPLAN_DEMO_MEMBER_*` | nur für öffentliche Demos | aus |
 

@@ -41,9 +41,10 @@ const ownRelay = computed(() => props.appPush && props.defaultRelay);
   </p>
   <p v-if="ownRelay">
     Pushes an die App schickt diese Instanz über den Push-Dienst push.shiftplan.info von ES
-    Software, der über das Netzwerk von Cloudflare (Cloudflare, Inc., 101 Townsend St., San
+    Software, der auf einem Server der netcup GmbH (Emmy-Noether-Straße 10, 76131 Karlsruhe) in
+    Deutschland läuft und über das Netzwerk von Cloudflare (Cloudflare, Inc., 101 Townsend St., San
     Francisco, CA 94107, USA) erreichbar ist, an Firebase Cloud Messaging und auf iPhones weiter
-    an Apple.
+    an Apple. netcup handelt dabei als Auftragsverarbeiter von ES Software.
   </p>
   <p v-else-if="appPush">
     Pushes an die App schickt diese Instanz über den vom Betreiber eingerichteten

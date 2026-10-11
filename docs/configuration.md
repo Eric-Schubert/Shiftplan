@@ -47,6 +47,8 @@ The local `.env` file is not copied into the image. Pass it at runtime with `--e
 
 If the instance is served through Cloudflare, set `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true`. The privacy policy then lists Cloudflare as a processor.
 
+If the instance runs on a rented server, set `NUXT_PUBLIC_PRIVACY_HOSTER` to the provider's name and address, for example `netcup GmbH, Emmy-Noether-Straße 10, 76131 Karlsruhe`. The privacy policy then lists the hoster as a processor. Leave it empty when you run the server yourself.
+
 ## Push Notifications
 
 Web Push uses VAPID keys that each instance generates on first use and stores in the admin database. The VAPID contact defaults to `mailto:` with `NUXT_PUBLIC_IMPRINT_PUBLIC_EMAIL`. Set it explicitly if needed:

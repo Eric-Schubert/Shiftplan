@@ -2,6 +2,7 @@
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
+const hoster = String(privacy?.hoster || "").trim();
 
 // Microsoft and the push relay are named as this instance is set up. Without an answer both
 // stay listed: one recipient too many is better than one missing.
@@ -31,6 +32,7 @@ useSeoMeta({
         <LegalPrivacyPurpose />
         <LegalPrivacyProcessing :uses-microsoft="usesMicrosoft" />
         <LegalPrivacyServices
+          :hoster="hoster"
           :uses-cloudflare="usesCloudflare"
           :uses-microsoft="usesMicrosoft"
           :app-push="appPush"
