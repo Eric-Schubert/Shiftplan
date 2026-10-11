@@ -1,5 +1,10 @@
 <script setup lang="ts">
-type TeamAccess = { code: string | null; instanceName: string; subscriberCount: number };
+type TeamAccess = {
+  code: string | null;
+  instanceName: string;
+  nextWeekFromSaturday: boolean;
+  subscriberCount: number;
+};
 type PendingAction = "generate" | "custom" | "remove";
 
 const { authFetch } = useAuthFetch();
@@ -10,6 +15,7 @@ const error = ref("");
 const customCode = ref("");
 const pendingAction = ref<PendingAction | null>(null);
 const instanceName = ref("");
+const nextWeekFromSaturday = ref(true);
 
 const confirmVisible = computed({
   get: () => pendingAction.value !== null,
@@ -23,6 +29,7 @@ async function load() {
   try {
     access.value = await authFetch<TeamAccess>("/api/team-access");
     instanceName.value = access.value.instanceName;
+    nextWeekFromSaturday.value = access.value.nextWeekFromSaturday;
   } finally {
     loading.value = false;
   }
@@ -106,6 +113,7 @@ onMounted(load);
 
       <TeamAccessCustomCodeForm v-model:code="customCode" :saving="saving" @submit="requestChange('custom')" />
       <TeamAccessNameForm v-model:name="instanceName" @error="error = $event" />
+      <TeamAccessWeekStartSetting v-model="nextWeekFromSaturday" @error="error = $event" />
 
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </template>

@@ -56,40 +56,27 @@ export function getUpcomingWeeks(year: number, week: number, count: number): Upc
   return weeks;
 }
 
-function isSaturdayOrLater(): boolean {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  return dayOfWeek === 0 || dayOfWeek === 6;
+/** ISO week-numbering year: Monday 29.12.2025 already belongs to week 1 of 2026. */
+export function getISOWeekYear(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  return d.getUTCFullYear();
 }
 
-/** From Saturday on, the planner opens on next week. */
-export function getEffectiveCurrentWeek(): number {
-  const today = new Date();
-  let week = getISOWeek(today);
-
-  if (isSaturdayOrLater()) {
-    const year = today.getFullYear();
-    const maxWeeks = getISOWeeksInYear(year);
-    week++;
-    if (week > maxWeeks) {
-      week = 1;
-    }
+/** Today, or next Monday on Saturday and Sunday when the team does not work weekends. */
+function plannerDate(nextWeekFromSaturday: boolean): Date {
+  const date = new Date();
+  const day = date.getDay();
+  if (nextWeekFromSaturday && (day === 6 || day === 0)) {
+    date.setDate(date.getDate() + (day === 6 ? 2 : 1));
   }
-
-  return week;
+  return date;
 }
 
-export function getEffectiveCurrentYear(): number {
-  const today = new Date();
-  let year = today.getFullYear();
+export function getEffectiveCurrentWeek(nextWeekFromSaturday = true): number {
+  return getISOWeek(plannerDate(nextWeekFromSaturday));
+}
 
-  if (isSaturdayOrLater()) {
-    const week = getISOWeek(today);
-    const maxWeeks = getISOWeeksInYear(year);
-    if (week >= maxWeeks) {
-      year++;
-    }
-  }
-
-  return year;
+export function getEffectiveCurrentYear(nextWeekFromSaturday = true): number {
+  return getISOWeekYear(plannerDate(nextWeekFromSaturday));
 }

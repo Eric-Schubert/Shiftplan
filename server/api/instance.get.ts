@@ -10,5 +10,6 @@ export default defineEventHandler(() => {
     version: String(useRuntimeConfig().public.appVersion || ""),
     apiVersion: APP_API_VERSION,
     codeRequired: TeamAccessService.isCodeRequired(),
+    nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday(),
   };
 });

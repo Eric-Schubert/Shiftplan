@@ -8,6 +8,7 @@ export default defineEventHandler((event) => {
   return {
     code: TeamAccessService.getAccessCode(),
     instanceName: TeamAccessService.getInstanceName(),
+    nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday(),
     subscriberCount: PushService.countRecipients(),
   };
 });

@@ -5,8 +5,10 @@ import { MemberAccessService } from "~/server/services/member-access.service";
 import {
   getInstanceId,
   getInstanceName,
+  getNextWeekFromSaturday,
   getSetting,
   setInstanceName,
+  setNextWeekFromSaturday,
 } from "~/server/services/team-access/settings";
 import {
   VIEWER_COOKIE_NAME,
@@ -37,6 +39,8 @@ export const TeamAccessService = {
   getInstanceId,
   getInstanceName,
   setInstanceName,
+  getNextWeekFromSaturday,
+  setNextWeekFromSaturday,
 
   getAccessCode(): string | null {
     return getSetting(ACCESS_CODE_SETTING);

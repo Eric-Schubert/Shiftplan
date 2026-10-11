@@ -701,6 +701,11 @@ components:
           const: 1
         codeRequired:
           type: boolean
+        nextWeekFromSaturday:
+          type: boolean
+          description: >-
+            true: ab Samstag die nächste Woche als aktuelle Woche zeigen. false bei Teams mit
+            Wochenendschichten. Fehlt das Feld (ältere Instanz), wie true behandeln.
 
     StaffRef:
       type: object
