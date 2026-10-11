@@ -3,6 +3,8 @@ defineProps<{
   selectedWeek: number;
   selectedYear: number;
   formattedWeekRange: string;
+  isCurrentWeek: boolean;
+  currentWeekLabel: string | null;
   patternWeek?: number | null;
   canEditShifts: boolean;
   generating: boolean;
@@ -27,6 +29,7 @@ const emit = defineEmits<{
           KW {{ selectedWeek }}
         </h2>
         <span class="planner-chip tabular-nums">{{ selectedYear }}</span>
+        <span v-if="currentWeekLabel" class="planner-chip planner-chip--current">{{ currentWeekLabel }}</span>
         <span v-if="patternWeek" class="planner-chip planner-chip--accent">
           Muster {{ patternWeek }}
         </span>
@@ -72,7 +75,14 @@ const emit = defineEmits<{
         <button type="button" aria-label="Vorherige Woche anzeigen" @click="emit('previous')">
           <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i>
         </button>
-        <button type="button" @click="emit('today')">Heute</button>
+        <button
+          type="button"
+          :class="{ 'is-active': isCurrentWeek }"
+          :aria-current="isCurrentWeek ? 'date' : undefined"
+          @click="emit('today')"
+        >
+          Heute
+        </button>
         <button type="button" aria-label="Nächste Woche anzeigen" @click="emit('next')">
           <i class="pi pi-chevron-right text-xs" aria-hidden="true"></i>
         </button>

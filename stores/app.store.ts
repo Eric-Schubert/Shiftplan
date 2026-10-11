@@ -24,6 +24,16 @@ export const useAppStore = defineStore("app", {
       return getWeekDateRange(this.selectedWeek, this.selectedYear);
     },
 
+    /** The week „Heute“ jumps to (next week from Saturday on). */
+    isCurrentWeek(): boolean {
+      return this.selectedYear === getEffectiveCurrentYear() && this.selectedWeek === getEffectiveCurrentWeek();
+    },
+
+    currentWeekLabel(): string | null {
+      if (!this.isCurrentWeek) return null;
+      return this.selectedWeek === getISOWeek(new Date()) ? "Diese Woche" : "Ab Montag";
+    },
+
     formattedWeekRange(): string {
       return formatWeekDateRange(this.weekDateRange);
     },

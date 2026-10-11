@@ -240,3 +240,7 @@
 .pi-calendar-times:before {
   content: "\e952";
 }
+
+.pi-wifi:before {
+  content: "\e96f";
+}

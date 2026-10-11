@@ -40,6 +40,7 @@ onMounted(() => {
 
 <template>
   <div class="app-shell">
+    <a href="#main" class="app-skip-link">Zum Inhalt springen</a>
     <header class="app-header sticky top-0 z-50">
       <div class="mx-auto flex h-14 max-w-[80rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5 rounded-lg">
@@ -106,7 +107,7 @@ onMounted(() => {
       </div>
     </header>
 
-    <main class="app-main mx-auto max-w-[80rem] px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+    <main id="main" tabindex="-1" class="app-main mx-auto max-w-[80rem] px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
       <slot />
     </main>
 

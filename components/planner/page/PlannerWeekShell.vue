@@ -55,6 +55,8 @@ function jumpWeeks(offset: number) {
       :selected-week="appStore.selectedWeek"
       :selected-year="appStore.selectedYear"
       :formatted-week-range="appStore.formattedWeekRange"
+      :is-current-week="appStore.isCurrentWeek"
+      :current-week-label="appStore.currentWeekLabel"
       :pattern-week="shiftplan?.pattern_week"
       :can-edit-shifts="authStore.canEditShifts"
       :generating="generating"
