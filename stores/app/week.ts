@@ -34,10 +34,10 @@ export function getWeekDateRange(week: number, year: number): { start: Date; end
   return { start, end };
 }
 
-/** „06.10. - 12.10.“ */
+/** „06.10. – 12.10.“ */
 export function formatWeekDateRange({ start, end }: { start: Date; end: Date }): string {
   const formatDate = (date: Date) => date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-  return `${formatDate(start)} - ${formatDate(end)}`;
+  return `${formatDate(start)} – ${formatDate(end)}`;
 }
 
 /** The `count` weeks after the given one, across year boundaries. */

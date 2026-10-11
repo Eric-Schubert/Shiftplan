@@ -46,9 +46,7 @@ const totalAssigned = computed(() =>
       </span>
     </div>
 
-    <div v-if="pending" class="planner-shift-list flex justify-center py-10">
-      <PrimeProgressSpinner class="!h-8 !w-8" />
-    </div>
+    <PlannerShiftSkeleton v-if="pending" />
 
     <template v-else-if="hasShiftplan">
       <div v-if="shiftList.length === 0" class="planner-empty">
@@ -107,6 +105,15 @@ const totalAssigned = computed(() =>
         </button>
       </div>
     </template>
+
+    <div v-else class="planner-empty" role="alert">
+      <i class="pi pi-wifi text-3xl text-[var(--text-3)]" aria-hidden="true"></i>
+      <div class="space-y-1.5">
+        <h4 class="text-base font-semibold text-[var(--text-1)]">Plan konnte nicht geladen werden</h4>
+        <p class="mx-auto max-w-[36rem] text-sm leading-6">Prüfe die Verbindung und lade die Woche neu.</p>
+      </div>
+      <PrimeButton label="Erneut laden" icon="pi pi-refresh" size="small" class="min-h-9" @click="emit('updated')" />
+    </div>
 
     <LazyDayChangeDialog
       v-if="dayShift"

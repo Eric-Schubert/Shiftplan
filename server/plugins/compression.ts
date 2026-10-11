@@ -32,6 +32,12 @@ export default defineNitroPlugin((nitroApp) => {
       return;
     }
 
+    // Nuxt renders error pages in a nested /__nuxt_error request and copies its headers,
+    // but not the compressed body, so browsers failed to decode every 404/500 page.
+    if (event.path.startsWith("/__nuxt_error")) {
+      return;
+    }
+
     if (typeof response.body !== "string" && !Buffer.isBuffer(response.body)) {
       return;
     }

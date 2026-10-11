@@ -48,8 +48,10 @@ const assignmentCount = computed(() =>
     </div>
 
     <div class="flex flex-1 flex-col gap-3 px-4 py-3">
-      <div v-if="loading" class="flex items-center justify-center py-4 text-[var(--text-3)]">
-        <i class="pi pi-spin pi-spinner text-sm" aria-hidden="true"></i>
+      <div v-if="loading" class="space-y-2.5 py-1" aria-hidden="true">
+        <span class="planner-skeleton block h-3.5 w-3/4"></span>
+        <span class="planner-skeleton block h-3.5 w-2/3"></span>
+        <span class="planner-skeleton block h-3.5 w-1/2"></span>
       </div>
 
       <template v-else>

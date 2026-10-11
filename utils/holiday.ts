@@ -37,7 +37,7 @@ export function formatHolidayPeriod(start: string, end: string): string {
   const formatDate = (date: Date) =>
     date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 
-  return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  return `${formatDate(startDate)} – ${formatDate(endDate)}`;
 }
 
 export function shortenHolidayName(name: string): string {
