@@ -18,9 +18,13 @@ const reasonOptions = (Object.keys(ABSENCE_REASON_LABELS) as AbsenceReason[]).ma
   value: reason,
 }));
 
+const appStore = useAppStore();
+// Teams that open next week on Saturday do not work weekends; the server leaves those days out.
+const weekdaysOnly = computed(() => appStore.nextWeekFromSaturday);
 const today = todayISO();
-const from = ref(today);
-const to = ref(today);
+const from = ref(weekdaysOnly.value ? nextWeekday(today) : today);
+const to = ref(from.value);
+const weekend = computed(() => (weekdaysOnly.value && from.value && to.value ? weekendShare(from.value, to.value) : "none"));
 const reason = ref<AbsenceReason>("urlaub");
 const notifyTeam = ref(true);
 const seekTakeover = ref(false);
@@ -40,6 +44,7 @@ watch(notifyTeam, (value) => {
 });
 
 async function save() {
+  if (weekend.value === "all") return;
   saving.value = true;
   error.value = "";
   try {
@@ -82,6 +87,10 @@ async function save() {
           <input id="member-absence-to" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
         </div>
       </div>
+      <p v-if="weekend === 'some'" class="text-xs text-[var(--text-3)]">Samstag und Sonntag werden nicht eingetragen.</p>
+      <p v-else-if="weekend === 'all'" class="text-xs font-medium text-[var(--warning-ink)]">
+        Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig.
+      </p>
 
       <div class="space-y-1.5">
         <label for="member-absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
@@ -125,7 +134,14 @@ async function save() {
 
     <template #footer>
       <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
-      <PrimeButton label="Ausfall melden" icon="pi pi-check" class="min-h-11" :loading="saving" @click="save" />
+      <PrimeButton
+        label="Ausfall melden"
+        icon="pi pi-check"
+        class="min-h-11"
+        :loading="saving"
+        :disabled="weekend === 'all'"
+        @click="save"
+      />
     </template>
   </PrimeDialog>
 </template>

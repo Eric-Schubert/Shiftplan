@@ -22,7 +22,14 @@ export type CreateInput = {
   createdBy: string;
   /** Longest allowed range; defaults to ABSENCE_MAX_DAYS. */
   maxDays?: number;
+  /** Leave out Saturdays and Sundays, for teams that never work weekends. */
+  weekdaysOnly?: boolean;
 };
+
+function isWeekend(date: string): boolean {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return day === 0 || day === 6;
+}
 
 function badRequest(message: string): never {
   throw createError({ statusCode: 400, statusMessage: message });
@@ -34,10 +41,12 @@ function badRequest(message: string): never {
  */
 export function insertAbsences(input: CreateInput): { ids: number[]; skipped: string[] } {
   const maxDays = input.maxDays ?? ABSENCE_MAX_DAYS;
-  const dates = datesBetween(input.from, input.to || input.from, maxDays);
-  if (!dates) {
+  const range = datesBetween(input.from, input.to || input.from, maxDays);
+  if (!range) {
     badRequest(`Ungültiger Zeitraum (höchstens ${maxDays === ABSENCE_MAX_DAYS ? "8 Wochen" : "1 Jahr"})`);
   }
+  const dates = input.weekdaysOnly ? range.filter((date) => !isWeekend(date)) : range;
+  if (dates.length === 0) badRequest("Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig");
   if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");
   const note = input.note?.trim() || null;
   if (note && note.length > ABSENCE_NOTE_MAX_LENGTH) {

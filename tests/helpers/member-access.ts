@@ -102,3 +102,9 @@ export function useMemberAccessClient() {
     client.close();
   });
 }
+
+/** The team works weekends, so staff may report absences on Saturday and Sunday. */
+export async function allowWeekends() {
+  const admin = await client.loginAs("admin", "admin1234");
+  await client.request("POST", "/api/team-access", { jar: admin, csrf: true, body: { nextWeekFromSaturday: false } });
+}

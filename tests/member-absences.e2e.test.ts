@@ -7,6 +7,7 @@ import {
   THURSDAY,
   bearer,
   client,
+  allowWeekends,
   inviteAndRedeem,
   useMemberAccessClient,
 } from "./helpers/member-access";
@@ -74,6 +75,7 @@ describe("absences", () => {
   });
 
   it("enters a range across weeks with one push and withdraws it as a whole", async () => {
+    await allowWeekends();
     const anna = await inviteAndRedeem(ANNA);
     const max = await inviteAndRedeem(MAX, "Pixel von Max");
     await client.request("POST", "/api/push/devices", { headers: bearer(max.token), body: { platform: "android", token: "max:APA91b" } });

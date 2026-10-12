@@ -130,7 +130,9 @@ paths:
       description: |
         Ein Eintrag pro Tag von `from` bis `to` (höchstens 56 Tage), auch für Tage, die noch
         nicht geplant sind. Tage mit vorhandenem Ausfall werden übersprungen (`skipped`), nur
-        wenn alle schon belegt sind, kommt 409. Die Schicht wird aus dem Plan übernommen, wenn
+        wenn alle schon belegt sind, kommt 409. Ist `nextWeekFromSaturday` an (Team arbeitet
+        nicht am Wochenende), werden Samstage und Sonntage weggelassen; ein Zeitraum nur aus
+        Wochenendtagen gibt 400. Die Schicht wird aus dem Plan übernommen, wenn
         die Person an dem Tag genau einer zugeteilt ist. Mehrere Tage teilen sich eine
         `batch_id`. Ohne `notifyTeam: false` bekommt das Team einen Push „Anna Weber fällt
         Do. 08.10. aus – Frühschicht offen“ bzw. „… fällt Mo. 12.10. – Fr. 23.10. aus“, nie
@@ -582,26 +584,48 @@ paths:
             type: integer
       responses:
         "200":
-          description: OK
+          description: |
+            `grouped` fasst die Ferien pro Zeitraum zusammen (mit allen Bundesländern),
+            `holidays` hat einen Eintrag je Bundesland.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    start:
-                      type: string
-                      format: date
-                    end:
-                      type: string
-                      format: date
-                    states:
-                      type: array
-                      items:
-                        $ref: "#/components/schemas/Subdivision"
+                type: object
+                properties:
+                  grouped:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        start:
+                          type: string
+                          format: date
+                        end:
+                          type: string
+                          format: date
+                        states:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Subdivision"
+                  holidays:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        start:
+                          type: string
+                          format: date
+                        end:
+                          type: string
+                          format: date
+                        state:
+                          type: string
+                        stateName:
+                          type: string
 
   /api/push/devices:
     post:
