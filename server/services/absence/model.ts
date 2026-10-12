@@ -3,6 +3,8 @@ export type AbsenceReason = (typeof ABSENCE_REASONS)[number];
 export const ABSENCE_NOTE_MAX_LENGTH = 200;
 /** Longest range that can be entered at once (8 weeks). */
 export const ABSENCE_MAX_DAYS = 56;
+/** Admins may enter up to a year at once, e.g. parental leave. */
+export const ABSENCE_ADMIN_MAX_DAYS = 366;
 
 export type Absence = {
   absence_id: number;
