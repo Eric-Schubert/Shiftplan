@@ -2,6 +2,7 @@
 import type { StyleValue } from "vue";
 import type { ShiftWithStaff, WeeklyShiftplanWithPattern } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
+import { understaffedDates, workDates } from "~/utils/shift-coverage";
 
 const props = defineProps<{
   shiftplan: WeeklyShiftplanWithPattern | null | undefined;
@@ -21,9 +22,12 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 
 const shiftList = computed<ShiftWithStaff[]>(() => props.shiftplan?.shifts ?? []);
-const fullyStaffedShifts = computed(() =>
-  shiftList.value.filter((shift) => shift.assigned_staff.length >= shift.min_staff).length
-);
+// A shift is only „im Soll“ when every work day is covered after day changes and absences.
+const fullyStaffedShifts = computed(() => {
+  const dates = workDates(appStore.selectedYear, appStore.selectedWeek, !appStore.nextWeekFromSaturday);
+  const dayChanges = props.shiftplan?.day_changes ?? [];
+  return shiftList.value.filter((shift) => understaffedDates(shift, dates, dayChanges, props.absences).length === 0).length;
+});
 const coverageNote = computed(() =>
   shiftList.value.length === 0
     ? "Noch keine Planbasis"

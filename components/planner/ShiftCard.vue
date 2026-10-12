@@ -2,6 +2,7 @@
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
 import { useShiftCardInteractions } from "~/composables/useShiftCardInteractions";
+import { formatWeekdays, understaffedDates, workDates } from "~/utils/shift-coverage";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
@@ -15,6 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
+const appStore = useAppStore();
 
 const shift = toRef(props, "shift");
 const year = toRef(props, "year");
@@ -24,7 +26,6 @@ const {
   showAssignDialog,
   assigning,
   availableStaff,
-  isUnderstaffed,
   isDropTarget,
   isHovering,
   shiftCardStyle,
@@ -41,6 +42,14 @@ const {
   year,
   week,
   onUpdated: () => emit("updated"),
+});
+
+// Days on which day changes and absences leave the shift short; all work days read as plain „Unterbesetzt“.
+const understaffedNote = computed(() => {
+  const dates = workDates(props.year, props.week, !appStore.nextWeekFromSaturday);
+  const short = understaffedDates(props.shift, dates, props.dayChanges ?? [], props.absences ?? []);
+  if (short.length === 0) return "";
+  return short.length === dates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(short)}`;
 });
 </script>
 
@@ -64,10 +73,10 @@ const {
         <div class="flex flex-wrap items-center gap-2">
           <p class="truncate text-[0.9375rem] font-semibold text-[var(--text-1)]">{{ shift.name }}</p>
           <span
-            v-if="isUnderstaffed"
+            v-if="understaffedNote"
             class="rounded-md bg-[var(--warning-soft)] px-1.5 py-0.5 text-[0.6875rem] font-semibold text-[var(--warning-ink)]"
           >
-            Unterbesetzt
+            {{ understaffedNote }}
           </span>
         </div>
         <div class="planner-time-badge mt-0.5">

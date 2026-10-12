@@ -26,10 +26,6 @@ export function useShiftCardInteractions({
     return dataStore.activeStaff.filter((staff) => !assignedIds.includes(staff.staff_id));
   });
 
-  const isUnderstaffed = computed(
-    () => shift.value.assigned_staff.length < shift.value.min_staff
-  );
-
   const shiftCardStyle = computed(() => ({
     "--shift-accent": shift.value.color,
   }));
@@ -78,7 +74,6 @@ export function useShiftCardInteractions({
     showAssignDialog,
     assigning,
     availableStaff,
-    isUnderstaffed,
     shiftCardStyle,
     assignStaff,
     unassignStaff,
