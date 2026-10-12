@@ -584,26 +584,48 @@ paths:
             type: integer
       responses:
         "200":
-          description: OK
+          description: |
+            `grouped` fasst die Ferien pro Zeitraum zusammen (mit allen Bundesländern),
+            `holidays` hat einen Eintrag je Bundesland.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    start:
-                      type: string
-                      format: date
-                    end:
-                      type: string
-                      format: date
-                    states:
-                      type: array
-                      items:
-                        $ref: "#/components/schemas/Subdivision"
+                type: object
+                properties:
+                  grouped:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        start:
+                          type: string
+                          format: date
+                        end:
+                          type: string
+                          format: date
+                        states:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Subdivision"
+                  holidays:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        start:
+                          type: string
+                          format: date
+                        end:
+                          type: string
+                          format: date
+                        state:
+                          type: string
+                        stateName:
+                          type: string
 
   /api/push/devices:
     post:
