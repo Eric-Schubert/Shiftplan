@@ -250,6 +250,7 @@ paths:
                   $ref: "#/components/schemas/Absence"
     post:
       summary: Ausfall für eine Person eintragen (Planer)
+      description: Zeitraum höchstens 56 Tage, für Admins bis 366 Tage.
       requestBody:
         required: true
         content:

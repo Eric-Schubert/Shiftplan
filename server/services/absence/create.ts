@@ -20,6 +20,8 @@ export type CreateInput = {
   note?: string | null;
   source: "web" | "app";
   createdBy: string;
+  /** Longest allowed range; defaults to ABSENCE_MAX_DAYS. */
+  maxDays?: number;
 };
 
 function badRequest(message: string): never {
@@ -31,9 +33,10 @@ function badRequest(message: string): never {
  * skipped; the shift comes from the plan when the person works exactly one that day.
  */
 export function insertAbsences(input: CreateInput): { ids: number[]; skipped: string[] } {
-  const dates = datesBetween(input.from, input.to || input.from, ABSENCE_MAX_DAYS);
+  const maxDays = input.maxDays ?? ABSENCE_MAX_DAYS;
+  const dates = datesBetween(input.from, input.to || input.from, maxDays);
   if (!dates) {
-    badRequest(`Ungültiger Zeitraum (höchstens ${ABSENCE_MAX_DAYS / 7} Wochen)`);
+    badRequest(`Ungültiger Zeitraum (höchstens ${maxDays === ABSENCE_MAX_DAYS ? "8 Wochen" : "1 Jahr"})`);
   }
   if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");
   const note = input.note?.trim() || null;

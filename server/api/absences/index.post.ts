@@ -1,4 +1,4 @@
-import { ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence.service";
+import { ABSENCE_ADMIN_MAX_DAYS, ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence.service";
 import { reportAbsence, requestSource } from "~/server/utils/absence-flow";
 import { ABSENCE_MESSAGE_MAX_LENGTH } from "~/server/utils/absence-notice";
 import { requirePlanner } from "~/server/utils/auth";
@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     note: validateString(body?.note, "Notiz", { maxLength: 200 }) ?? null,
     notifyTeam: body?.notifyTeam === true,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
+    maxDays: user.role === "admin" ? ABSENCE_ADMIN_MAX_DAYS : undefined,
     actor: { userId: user.userId, username: user.username, source: requestSource(event) },
   });
 

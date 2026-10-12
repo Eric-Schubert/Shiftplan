@@ -65,6 +65,25 @@ describe("absences", () => {
     expect(sendNotification).not.toHaveBeenCalled();
   });
 
+  it("allows ranges longer than 8 weeks only for admins", async () => {
+    const body = { staffId: MAX, from: "2026-10-12", to: "2026-12-31", reason: "sonstiges" };
+    const planner = await client.loginAs("planner", "planner1234");
+    const admin = await client.loginAs("admin", "admin1234");
+
+    const asPlanner = await client.request("POST", "/api/absences", { jar: planner, csrf: true, body });
+    const asAdmin = await client.request<{ absences: unknown[] }>("POST", "/api/absences", { jar: admin, csrf: true, body });
+    const tooLong = await client.request("POST", "/api/absences", {
+      jar: admin,
+      csrf: true,
+      body: { ...body, staffId: ANNA, to: "2027-10-13" },
+    });
+
+    expect(asPlanner.status).toBe(400);
+    expect(asAdmin.status).toBe(200);
+    expect(asAdmin.json!.absences).toHaveLength(81);
+    expect(tooLong.status).toBe(400);
+  });
+
   it("forgets reasons and notes after 90 days but keeps the absence", async () => {
     client.mainDb
       .prepare(

@@ -5,6 +5,7 @@ import type { Absence, PublicAbsence } from "~/server/services/absence/model";
 import { purgeOldReasons } from "~/server/services/absence/purge";
 
 export {
+  ABSENCE_ADMIN_MAX_DAYS,
   ABSENCE_MAX_DAYS,
   ABSENCE_NOTE_MAX_LENGTH,
   ABSENCE_REASONS,

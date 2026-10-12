@@ -13,6 +13,7 @@ const emit = defineEmits<{
 }>();
 
 const dataStore = useDataStore();
+const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
 
 const dialogVisible = computed({
@@ -110,7 +111,8 @@ async function save() {
         <label for="absence-note" class="block font-medium text-[var(--text-2)]">Notiz (optional)</label>
         <PrimeInputText id="absence-note" v-model="note" maxlength="200" class="w-full" />
         <p class="text-xs text-[var(--text-3)]">
-          Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht. Höchstens 8 Wochen am Stück.
+          Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht.
+          Höchstens {{ authStore.isAdmin ? "1 Jahr" : "8 Wochen" }} am Stück.
         </p>
       </div>
 

@@ -51,6 +51,7 @@ export async function reportAbsence(input: {
   message?: string | null;
   /** Open a takeover request for every day of the absence that has a shift. */
   seekTakeover?: boolean;
+  maxDays?: number;
   actor: Actor;
 }): Promise<{ absences: Absence[]; skipped: string[]; notified: { sent: number; failed: number } | null }> {
   const { absences, skipped } = AbsenceService.create({
@@ -62,6 +63,7 @@ export async function reportAbsence(input: {
     note: input.note,
     source: input.actor.source,
     createdBy: input.actor.username,
+    maxDays: input.maxDays,
   });
   logPerWeek(absences, "absence", input.actor);
 
