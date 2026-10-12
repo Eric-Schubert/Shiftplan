@@ -13,6 +13,11 @@ const props = defineProps<{
   isAdmin: boolean;
   year: number;
   week: number;
+  workdays: string[];
+  /** Date → short holiday name. */
+  holidays: Map<string, string>;
+  /** Work days without holidays. */
+  coverageDates: string[];
   /** Signed-in staff member, whose name is marked and who may withdraw own absences. */
   myStaffId?: number | null;
 }>();
@@ -21,6 +26,9 @@ const emit = defineEmits<{
   (e: "updated"): void;
   (e: "generate"): void;
 }>();
+
+// Everyone reads the week grid; planners switch to the cards to edit the plan.
+const view = ref<"week" | "plan">("week");
 
 // Lives here so it stays open while the week reloads after each change.
 const dayShiftId = ref<number | null>(null);
@@ -41,9 +49,10 @@ const totalAssigned = computed(() =>
   <section class="planner-current-week">
     <div class="planner-section-heading !mb-3">
       <h3 class="text-sm font-semibold text-[var(--text-1)]">Schichten</h3>
-      <span v-if="shiftList.length > 0" class="planner-chip tabular-nums">
-        {{ coverageNote }}
-      </span>
+      <div v-if="shiftList.length > 0" class="flex flex-wrap items-center justify-end gap-2">
+        <PlannerViewSwitch v-if="canEditShifts" v-model="view" />
+        <span class="planner-chip tabular-nums">{{ coverageNote }}</span>
+      </div>
     </div>
 
     <PlannerShiftSkeleton v-if="pending" />
@@ -62,6 +71,18 @@ const totalAssigned = computed(() =>
         </NuxtLink>
       </div>
 
+      <ShiftWeekGrid
+        v-else-if="view === 'week'"
+        :shifts="shiftList"
+        :workdays="workdays"
+        :holidays="holidays"
+        :day-changes="dayChanges"
+        :absences="absences"
+        :can-edit="canEditShifts"
+        :my-staff-id="myStaffId"
+        @edit-days="dayShiftId = $event"
+      />
+
       <div v-else class="planner-shift-list">
         <ShiftCard
           v-for="shift in shiftList"
@@ -69,7 +90,7 @@ const totalAssigned = computed(() =>
           :shift="shift"
           :year="year"
           :week="week"
-          :absences="absences"
+          :coverage-dates="coverageDates"
           :day-changes="dayChanges"
           :my-staff-id="myStaffId"
           @updated="emit('updated')"

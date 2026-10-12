@@ -2,6 +2,7 @@
 import type { StyleValue } from "vue";
 import type { ShiftWithStaff, WeeklyShiftplanWithPattern } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
+import { shortenHolidayName } from "~/utils/holiday";
 import { understaffedDates, workDates } from "~/utils/shift-coverage";
 
 const props = defineProps<{
@@ -22,11 +23,19 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 
 const shiftList = computed<ShiftWithStaff[]>(() => props.shiftplan?.shifts ?? []);
+const { holidays } = useHolidayWeek(
+  computed(() => appStore.selectedYear),
+  computed(() => appStore.selectedWeek)
+);
+const workdays = computed(() => workDates(appStore.selectedYear, appStore.selectedWeek, !appStore.nextWeekFromSaturday));
+const holidayNames = computed(() => new Map(holidays.value.map((holiday) => [holiday.date, shortenHolidayName(holiday.name)])));
+// Nobody is expected to work on holidays, so they never leave a shift short.
+const coverageDates = computed(() => workdays.value.filter((date) => !holidayNames.value.has(date)));
+
 // A shift is only „im Soll“ when every work day is covered after day changes and absences.
 const fullyStaffedShifts = computed(() => {
-  const dates = workDates(appStore.selectedYear, appStore.selectedWeek, !appStore.nextWeekFromSaturday);
   const dayChanges = props.shiftplan?.day_changes ?? [];
-  return shiftList.value.filter((shift) => understaffedDates(shift, dates, dayChanges, props.absences).length === 0).length;
+  return shiftList.value.filter((shift) => understaffedDates(shift, coverageDates.value, dayChanges, props.absences).length === 0).length;
 });
 const coverageNote = computed(() =>
   shiftList.value.length === 0
@@ -61,6 +70,9 @@ const coverageNote = computed(() =>
         :week="appStore.selectedWeek"
         :absences="absences"
         :day-changes="shiftplan?.day_changes ?? []"
+        :workdays="workdays"
+        :holidays="holidayNames"
+        :coverage-dates="coverageDates"
         :my-staff-id="myStaffId"
         @updated="emit('updated')"
         @generate="emit('generate')"
