@@ -52,6 +52,8 @@ export async function reportAbsence(input: {
   /** Open a takeover request for every day of the absence that has a shift. */
   seekTakeover?: boolean;
   maxDays?: number;
+  /** Leave out Saturdays and Sundays, for teams that never work weekends. */
+  weekdaysOnly?: boolean;
   actor: Actor;
 }): Promise<{ absences: Absence[]; skipped: string[]; notified: { sent: number; failed: number } | null }> {
   const { absences, skipped } = AbsenceService.create({
@@ -64,6 +66,7 @@ export async function reportAbsence(input: {
     source: input.actor.source,
     createdBy: input.actor.username,
     maxDays: input.maxDays,
+    weekdaysOnly: input.weekdaysOnly,
   });
   logPerWeek(absences, "absence", input.actor);
 

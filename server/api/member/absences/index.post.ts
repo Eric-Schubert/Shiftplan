@@ -1,4 +1,5 @@
 import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
+import { TeamAccessService } from "~/server/services/team-access.service";
 import { ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence.service";
 import { reportAbsence } from "~/server/utils/absence-flow";
 import { ABSENCE_MESSAGE_MAX_LENGTH } from "~/server/utils/absence-notice";
@@ -25,6 +26,8 @@ export default defineEventHandler(async (event) => {
     notifyTeam: body?.notifyTeam !== false,
     seekTakeover: body?.seekTakeover === true,
     message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
+    // Teams that open next week on Saturday do not work weekends.
+    weekdaysOnly: TeamAccessService.getNextWeekFromSaturday(),
     actor: { userId: 0, username: member.staffName, source: memberSource(event) },
   });
 
