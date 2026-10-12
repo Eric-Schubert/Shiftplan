@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
-import type { Absence } from "~/types/absence";
 import { formatWeekdays } from "~/utils/shift-coverage";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
   canEdit: boolean;
-  absences?: Absence[];
   dayChanges?: ShiftDayChange[];
   myStaffId?: number | null;
   year?: number;
@@ -15,24 +13,16 @@ const props = defineProps<{
 
 const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => change.shift_id === props.shift.shift_id));
 
-// Absences of a person in this shift, or without a shift (planner entries).
-function absencesOf(staffId: number): Absence[] {
-  return (props.absences ?? []).filter(
-    (absence) => absence.staff_id === staffId && (absence.shift_id === null || absence.shift_id === props.shift.shift_id)
-  );
-}
-
-/** Weekdays on which an assigned person is taken out of this shift, unless they are absent anyway. */
+/** Weekdays on which an assigned person is taken out of this shift. */
 function removedDays(staffId: number): string {
-  const absent = new Set(absencesOf(staffId).map((absence) => absence.absence_date));
   return formatWeekdays(
     shiftChanges.value
-      .filter((change) => change.kind === "remove" && change.staff_id === staffId && !absent.has(change.change_date))
+      .filter((change) => change.kind === "remove" && change.staff_id === staffId)
       .map((change) => change.change_date)
   );
 }
 
-/** People who only join this shift on single days, with those days and their absences on them. */
+/** People who only join this shift on single days, with those days. */
 const dayGuests = computed(() => {
   const assigned = new Set(props.shift.assigned_staff.map((staff) => staff.staff_id));
   const guests = new Map<number, { staffId: number; name: string; dates: string[] }>();
@@ -42,11 +32,7 @@ const dayGuests = computed(() => {
     guest.dates.push(change.change_date);
     guests.set(change.staff_id, guest);
   }
-  return [...guests.values()].map((guest) => ({
-    ...guest,
-    days: formatWeekdays(guest.dates),
-    absences: absencesOf(guest.staffId).filter((absence) => guest.dates.includes(absence.absence_date)),
-  }));
+  return [...guests.values()].map((guest) => ({ ...guest, days: formatWeekdays(guest.dates) }));
 });
 
 const emit = defineEmits<{
@@ -75,7 +61,6 @@ const emit = defineEmits<{
       <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">
         {{ staff.name }}
       </span>
-      <ShiftAbsenceChip :absences="absencesOf(staff.staff_id)" />
       <span
         v-if="removedDays(staff.staff_id)"
         class="rounded bg-[var(--surface-muted)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--text-2)]"
@@ -105,7 +90,6 @@ const emit = defineEmits<{
       <span class="rounded bg-[var(--positive-soft)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--positive-ink)]">
         nur {{ guest.days }}
       </span>
-      <ShiftAbsenceChip :absences="guest.absences" />
     </span>
 
     <button

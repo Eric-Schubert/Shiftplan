@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
-import type { Absence } from "~/types/absence";
 import { useShiftCardInteractions } from "~/composables/useShiftCardInteractions";
-import { formatWeekdays, understaffedDates, workDates } from "~/utils/shift-coverage";
+import { formatWeekdays, understaffedDates } from "~/utils/shift-coverage";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
   year: number;
   week: number;
-  absences?: Absence[];
   dayChanges?: ShiftDayChange[];
+  /** Work days without holidays. */
+  coverageDates: string[];
   myStaffId?: number | null;
 }>();
 
 const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
-const appStore = useAppStore();
 
 const shift = toRef(props, "shift");
 const year = toRef(props, "year");
@@ -44,12 +43,11 @@ const {
   onUpdated: () => emit("updated"),
 });
 
-// Days on which day changes and absences leave the shift short; all work days read as plain „Unterbesetzt“.
+// Gaps in the plan itself; absences show up in the week grid. All days short reads as plain „Unterbesetzt“.
 const understaffedNote = computed(() => {
-  const dates = workDates(props.year, props.week, !appStore.nextWeekFromSaturday);
-  const short = understaffedDates(props.shift, dates, props.dayChanges ?? [], props.absences ?? []);
+  const short = understaffedDates(props.shift, props.coverageDates, props.dayChanges ?? [], []);
   if (short.length === 0) return "";
-  return short.length === dates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(short)}`;
+  return short.length === props.coverageDates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(short)}`;
 });
 </script>
 
@@ -87,7 +85,6 @@ const understaffedNote = computed(() => {
 
       <ShiftAssigneeList
         :shift="shift"
-        :absences="absences"
         :day-changes="dayChanges"
         :my-staff-id="myStaffId"
         :year="year"
