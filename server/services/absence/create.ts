@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { getDatabase } from "~/server/utils/database";
-import { datesBetween } from "~/server/utils/iso-week";
+import { datesBetween, isWeekendDate } from "~/server/utils/iso-week";
 import {
   ABSENCE_MAX_DAYS,
   ABSENCE_NOTE_MAX_LENGTH,
@@ -26,11 +26,6 @@ export type CreateInput = {
   weekdaysOnly?: boolean;
 };
 
-function isWeekend(date: string): boolean {
-  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
-  return day === 0 || day === 6;
-}
-
 function badRequest(message: string): never {
   throw createError({ statusCode: 400, statusMessage: message });
 }
@@ -45,7 +40,7 @@ export function insertAbsences(input: CreateInput): { ids: number[]; skipped: st
   if (!range) {
     badRequest(`Ungültiger Zeitraum (höchstens ${maxDays === ABSENCE_MAX_DAYS ? "8 Wochen" : "1 Jahr"})`);
   }
-  const dates = input.weekdaysOnly ? range.filter((date) => !isWeekend(date)) : range;
+  const dates = input.weekdaysOnly ? range.filter((date) => !isWeekendDate(date)) : range;
   if (dates.length === 0) badRequest("Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig");
   if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");
   const note = input.note?.trim() || null;

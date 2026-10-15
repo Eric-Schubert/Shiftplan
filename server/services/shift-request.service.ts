@@ -1,19 +1,11 @@
 import { getAdminDatabase } from "~/server/utils/database";
 import { createSwap, createTakeover } from "~/server/services/shift-request/create";
-import {
-  appliedChanges,
-  cancelForAbsence,
-  getById,
-  listForMember,
-  listForPlanner,
-  setStatus,
-  setUndoRequest,
-} from "~/server/services/shift-request/queries";
-import { checkAccept, isPresent, swapChanges, takeoverChanges } from "~/server/services/shift-request/rules";
+import { appliedChanges, getById, listForMember, listForPlanner } from "~/server/services/shift-request/queries";
+import { checkAccept, checkApplicable, isPresent, plannedChanges } from "~/server/services/shift-request/rules";
+import { cancelForAbsence, setStatus, setUndoRequest } from "~/server/services/shift-request/updates";
 
 export {
   REQUEST_MESSAGE_MAX_LENGTH,
-  SWAP_MAX_DAYS,
   type AppliedChange,
   type ShiftRequest,
   type ShiftRequestKind,
@@ -47,9 +39,9 @@ export const ShiftRequestService = {
   listForPlanner,
   createTakeover,
   createSwap,
-  swapChanges,
-  takeoverChanges,
+  plannedChanges,
   checkAccept,
+  checkApplicable,
   setStatus,
   setUndoRequest,
   appliedChanges,

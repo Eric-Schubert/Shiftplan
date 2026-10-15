@@ -1,9 +1,11 @@
 import { ShiftRequestService, type ShiftRequest } from "~/server/services/shift-request.service";
-import { conflict, isAbsent, today } from "~/server/services/shift-request/common";
-import { revertRequest } from "./apply";
+import { activeStaffName, conflict, isAbsent, today } from "~/server/services/shift-request/common";
+import { revertRequest, revertableChanges, withCurrent } from "./apply";
 import { describeRequest, notifyStaff } from "./notify";
 
 type Member = { staffId: number; staffName: string; source?: "web" | "app" };
+
+const PLAN_MOVED = "Der Plan hat sich seitdem geändert. Bitte wende dich an die Planung.";
 
 /** The other person of a request; anyone else does not see it at all. */
 function otherOf(request: ShiftRequest, staffId: number): { id: number; name: string } {
@@ -14,16 +16,18 @@ function otherOf(request: ShiftRequest, staffId: number): { id: number; name: st
   throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
 }
 
-/** Only before the day, and only if the person who gets shifts back is not away then. */
-function checkUndo(request: ShiftRequest, receiver: { id: number; name: string }): void {
+/** Only before the day, only while both are in the team and nobody gets a shift back on a day they are away. */
+function checkUndo(request: ShiftRequest, other: { id: number; name: string }): void {
   if (request.status !== "done") conflict("Nur durchgeführte Anfragen lassen sich stornieren");
   if (request.date_from <= today()) conflict("Stornieren geht nur bis zum Vortag");
-  const returned = ShiftRequestService.appliedChanges(request.request_id).filter(
-    (change) => change.staffId === receiver.id && change.before
-  );
-  if (returned.some((change) => isAbsent(receiver.id, change.date))) {
-    conflict(`${receiver.name} ist an dem Tag abwesend und kann nichts zurücknehmen`);
-  }
+  if (!activeStaffName(other.id)) conflict(`${other.name} ist nicht mehr im Team`);
+  const names = new Map([
+    [request.requester_staff_id, request.requester_name],
+    [request.partner_staff_id, request.partner_name ?? ""],
+  ]);
+  const returned = revertableChanges(request, PLAN_MOVED).filter((change) => change.before);
+  const away = returned.find((change) => isAbsent(change.staffId, change.date));
+  if (away) conflict(`${names.get(away.staffId)} ist an dem Tag abwesend und kann nichts zurücknehmen`);
 }
 
 function subject(request: ShiftRequest): string {
@@ -33,9 +37,11 @@ function subject(request: ShiftRequest): string {
 /** One of the two asks to undo; the plan stays as it is until the other one confirms. */
 export async function requestUndo(request: ShiftRequest, member: Member): Promise<ShiftRequest> {
   const other = otherOf(request, member.staffId);
-  checkUndo(request, other);
-  if (request.undo_requested_by !== null) conflict("Ein Storno ist schon angefragt");
-  const updated = ShiftRequestService.setUndoRequest(request.request_id, member.staffId);
+  const updated = withCurrent(request, (current) => {
+    checkUndo(current, other);
+    if (current.undo_requested_by !== null) conflict("Ein Storno ist schon angefragt");
+    return ShiftRequestService.setUndoRequest(current.request_id, member.staffId, null);
+  });
   await notifyStaff(
     [other.id],
     "Storno angefragt",
@@ -47,11 +53,13 @@ export async function requestUndo(request: ShiftRequest, member: Member): Promis
 /** The other person agrees: every day change of the request goes back, without the planner. */
 export async function confirmUndo(request: ShiftRequest, member: Member, origin?: string): Promise<ShiftRequest> {
   const other = otherOf(request, member.staffId);
-  if (request.undo_requested_by === null) conflict("Es ist kein Storno angefragt");
-  if (request.undo_requested_by === member.staffId) conflict("Den Storno muss die andere Person bestätigen");
-  checkUndo(request, { id: member.staffId, name: member.staffName });
-  revertRequest(request, { userId: 0, username: member.staffName, source: member.source ?? "app" }, origin);
-  const updated = ShiftRequestService.setStatus(request.request_id, "reverted", { decidedBy: member.staffName });
+  const updated = withCurrent(request, (current) => {
+    if (current.undo_requested_by === null) conflict("Es ist kein Storno angefragt");
+    if (current.undo_requested_by === member.staffId) conflict("Den Storno muss die andere Person bestätigen");
+    checkUndo(current, other);
+    revertRequest(current, { userId: 0, username: member.staffName, source: member.source ?? "app" }, PLAN_MOVED, origin);
+    return ShiftRequestService.setStatus(current.request_id, "reverted", { expected: "done", decidedBy: member.staffName });
+  });
   await notifyStaff(
     [other.id],
     "Storno bestätigt",
@@ -63,9 +71,12 @@ export async function confirmUndo(request: ShiftRequest, member: Member, origin?
 /** The other person says no, or the asker takes the ask back. */
 export async function declineUndo(request: ShiftRequest, member: Member): Promise<ShiftRequest> {
   const other = otherOf(request, member.staffId);
-  if (request.status !== "done" || request.undo_requested_by === null) conflict("Es ist kein Storno angefragt");
-  const updated = ShiftRequestService.setUndoRequest(request.request_id, null);
-  if (request.undo_requested_by === other.id) {
+  const { updated, asker } = withCurrent(request, (current) => {
+    if (current.status !== "done" || current.undo_requested_by === null) conflict("Es ist kein Storno angefragt");
+    const asker = current.undo_requested_by;
+    return { updated: ShiftRequestService.setUndoRequest(current.request_id, null, asker), asker };
+  });
+  if (asker === other.id) {
     await notifyStaff(
       [other.id],
       "Storno abgelehnt",

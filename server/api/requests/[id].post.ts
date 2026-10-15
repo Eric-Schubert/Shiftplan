@@ -7,9 +7,10 @@ import { validateId } from "~/server/utils/validation";
 /** Planner: approve or reject a request waiting for approval, or revert a finished one. */
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
+  // Body first: the request is read after the last await, so it is never a stale copy.
+  const { action } = (await readBody(event)) ?? {};
   const request = ShiftRequestService.getById(validateId(getRouterParam(event, "id"), "id"));
   if (!request) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
-  const { action } = (await readBody(event)) ?? {};
   if (action !== "approve" && action !== "reject" && action !== "revert") {
     throw createError({ statusCode: 400, statusMessage: "action muss approve, reject oder revert sein" });
   }

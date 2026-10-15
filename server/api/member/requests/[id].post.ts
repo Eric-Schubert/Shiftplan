@@ -16,9 +16,10 @@ import { validateId } from "~/server/utils/validation";
  */
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
+  // Body first: the request is read after the last await, so it is never a stale copy.
+  const { action } = (await readBody(event)) ?? {};
   const request = ShiftRequestService.getById(validateId(getRouterParam(event, "id"), "id"));
   if (!request) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
-  const { action } = (await readBody(event)) ?? {};
   const actor = { ...member, source: memberSource(event) };
   const origin = getHeader(event, "origin");
 

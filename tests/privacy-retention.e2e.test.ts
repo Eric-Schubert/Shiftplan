@@ -51,7 +51,7 @@ describe("retention", () => {
 
   it("forgets request messages 90 days after the request but keeps the request", async () => {
     const insert = client.mainDb.prepare(
-      "INSERT INTO shift_requests (kind, status, requester_staff_id, date_from, date_to, message, created_by) VALUES ('takeover', 'open', 1, ?, ?, ?, 'Anna Weber')"
+      "INSERT INTO shift_requests (kind, status, requester_staff_id, date_from, date_to, message, created_by, decided_at) VALUES ('takeover', 'cancelled', 1, ?, ?, ?, 'Anna Weber', '2026-10-01 08:00:00')"
     );
     insert.run("2026-07-06", "2026-07-06", "bin krank");
     insert.run("2026-07-07", "2026-07-07", "Arzttermin");
