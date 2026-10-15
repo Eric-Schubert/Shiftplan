@@ -3,7 +3,8 @@ import type { IsoWeek } from "~/server/services/rotation-excel/calendar";
 import type { RotationConfig } from "~/types/rotation";
 
 type InstructionInput = {
-  config: Pick<RotationConfig, "cycle_length">;
+  config: Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">;
+  staffCount: number;
   /** Upcoming calendar weeks per pattern week, index 0 = Woche 1. */
   calendarWeeks: IsoWeek[][];
   current: { week: IsoWeek; patternWeek: number };
@@ -45,6 +46,20 @@ function exampleText({ config, calendarWeeks, example }: InstructionInput): stri
   );
 }
 
+/** What the file was built from, so a missing person or shift is noticed before filling it in. */
+function contentsText({ config, staffCount, shiftNames }: InstructionInput): string {
+  const staff =
+    staffCount === 0
+      ? "keine Mitarbeitenden (bitte zuerst in der App anlegen)"
+      : `${staffCount} ${staffCount === 1 ? "Person" : "Mitarbeitende"}`;
+  const shifts =
+    shiftNames.length === 0
+      ? "keine Schichten (bitte zuerst in der App anlegen)"
+      : `${shiftNames.length} ${shiftNames.length === 1 ? "Schicht" : "Schichten"} (${shiftNames.join(", ")})`;
+
+  return `${staff}, ${shifts}, ${config.cycle_length}-Wochen-Zyklus ab KW ${config.start_week}/${config.start_year}.`;
+}
+
 export function createInstructionRows(input: InstructionInput): XlsxCell[][] {
   const { config, current, shiftNames } = input;
   const twoShifts = shiftNames.length >= 2 ? `${shiftNames[0]}, ${shiftNames[1]}` : "Früh, Spät";
@@ -53,10 +68,21 @@ export function createInstructionRows(input: InstructionInput): XlsxCell[][] {
   return [
     [{ value: "Anleitung: Rotation in Excel ausfüllen", style: "title" }],
     [],
+    section("Bevor du loslegst"),
+    item(
+      "Erst in der App",
+      "Alle Mitarbeitenden und Schichten anlegen und Startwoche und Zykluslänge festlegen. Erst danach diese Vorlage herunterladen."
+    ),
+    item("In dieser Datei", contentsText(input)),
+    item(
+      "Fehlt etwas?",
+      "Nicht in Excel ergänzen, das klappt beim Hochladen nicht. In der App anlegen und die Vorlage neu herunterladen."
+    ),
+    [],
     section("In 3 Schritten"),
     item(
       "1. Öffnen",
-      "Geh ins Blatt „Rotation“. Jede Zeile ist eine Person, jede Spalte eine Woche."
+      "Unten auf den Reiter „Rotation“ klicken. Jede Zeile ist eine Person, jede Spalte eine Woche."
     ),
     item(
       "2. Ausfüllen",
@@ -84,14 +110,6 @@ export function createInstructionRows(input: InstructionInput): XlsxCell[][] {
     item(
       "Zwei Schichten",
       `Arbeitet jemand in einer Woche zwei Schichten, schreib beide mit Komma: „${twoShifts}“. Excel fragt dann nach, einfach mit „Ja“ bestätigen.`
-    ),
-    item(
-      "Neue Person",
-      "Neue Mitarbeitende oder Schichten zuerst in der App anlegen und danach die Vorlage neu herunterladen."
-    ),
-    item(
-      "Zyklus ändern",
-      "Startwoche oder Zykluslänge änderst du am einfachsten in der App. Danach die Vorlage neu herunterladen, damit Spalten und KW passen."
     ),
     item(
       "Nicht ändern",

@@ -73,8 +73,8 @@ export function createRotationTemplate(): Buffer {
     [
       {
         value:
-          staff.length === 0
-            ? "Noch keine aktiven Mitarbeitenden. Lege sie zuerst in der App an."
+          staff.length === 0 || shifts.length === 0
+            ? "Noch nicht alles angelegt: erst Mitarbeitende und Schichten in der App anlegen, dann die Vorlage neu herunterladen."
             : `Gerade (KW ${thisWeek.week}/${thisWeek.year}) läuft Woche ${current.patternWeek}.`,
         style: "hint",
       },
@@ -101,7 +101,23 @@ export function createRotationTemplate(): Buffer {
   ];
 
   return createXlsx({
+    // The instructions come first, so a first-time user reads them before filling anything in.
     sheets: [
+      {
+        name: "Anleitung",
+        rows: createInstructionRows({
+          config,
+          staffCount: staff.length,
+          calendarWeeks,
+          current,
+          example: example || {
+            name: staff[0]?.name || "Anna Beispiel",
+            values: [shifts[0]?.name || "Früh", shifts[1]?.name || ""],
+          },
+          shiftNames: shifts.map((entry) => entry.name),
+        }),
+        columnWidths: [22, 100],
+      },
       {
         name: "Rotation",
         rows: rotationRows,
@@ -115,20 +131,6 @@ export function createRotationTemplate(): Buffer {
           shiftNames: shifts.map((entry) => entry.name),
           shiftsSheet: SHIFTS_SHEET,
         }),
-      },
-      {
-        name: "Anleitung",
-        rows: createInstructionRows({
-          config,
-          calendarWeeks,
-          current,
-          example: example || {
-            name: staff[0]?.name || "Anna Beispiel",
-            values: [shifts[0]?.name || "Früh", shifts[1]?.name || ""],
-          },
-          shiftNames: shifts.map((entry) => entry.name),
-        }),
-        columnWidths: [22, 100],
       },
       {
         name: SHIFTS_SHEET,

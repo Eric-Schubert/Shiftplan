@@ -20,7 +20,7 @@ describe("Rotation Excel template", () => {
     const rotation = workbook.sheets.find((sheet) => sheet.name === "Rotation");
     const shifts = workbook.sheets.find((sheet) => sheet.name === "Schichten");
 
-    expect(workbook.sheets.map((sheet) => sheet.name)).toEqual(["Rotation", "Anleitung", "Schichten"]);
+    expect(workbook.sheets.map((sheet) => sheet.name)).toEqual(["Anleitung", "Rotation", "Schichten"]);
     expect(rotation?.rows[2]?.slice(0, 2)).toEqual(["Startjahr", 2026]);
     expect(rotation?.rows[3]?.slice(0, 2)).toEqual(["Startwoche", 1]);
     expect(rotation?.rows[4]?.slice(0, 2)).toEqual(["Zykluslänge", 2]);
@@ -46,12 +46,17 @@ describe("Rotation Excel template", () => {
     const instructions = workbook.sheets.find((sheet) => sheet.name === "Anleitung");
     const example = instructions?.rows.find((row) => row?.[0] === "Beispiel")?.[1];
 
-    const rotationXml = readZip(file).get("xl/worksheets/sheet1.xml")?.toString("utf-8");
+    const files = readZip(file);
+    const instructionsXml = files.get("xl/worksheets/sheet1.xml")?.toString("utf-8");
+    const rotationXml = files.get("xl/worksheets/sheet2.xml")?.toString("utf-8");
+    const contents = instructions?.rows.find((row) => row?.[0] === "In dieser Datei")?.[1];
 
     expect(String(example)).toContain("in KW 43 Früh und in KW 44 frei");
     expect(String(example)).toContain("ab KW 45 wieder Früh");
     expect(rotationXml).toContain('sqref="B8:C9"><formula1>Schichten!$A$2:$A$3</formula1>');
-    expect(rotationXml).toContain('<sheetView tabSelected="1" workbookViewId="0"><pane xSplit="1" ySplit="7" topLeftCell="B8"');
+    expect(contents).toBe("2 Mitarbeitende, 2 Schichten (Früh, Spät), 2-Wochen-Zyklus ab KW 1/2026.");
+    expect(instructionsXml).toContain('<sheetView tabSelected="1" workbookViewId="0"/>');
+    expect(rotationXml).toContain('<sheetView workbookViewId="0"><pane xSplit="1" ySplit="7" topLeftCell="B8"');
   });
 
   it("imports its own template without changing the pattern", () => {
