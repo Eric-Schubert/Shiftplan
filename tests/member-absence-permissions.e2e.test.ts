@@ -1,8 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
-import { ANNA, MAX, THURSDAY, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
-import { sendNotification, webPushMock } from "./helpers/web-push-mock";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  ANNA,
+  FCM_ENDPOINT,
+  MAX,
+  THURSDAY,
+  bearer,
+  client,
+  inviteAndRedeem,
+  useMemberAccessClient,
+} from "./helpers/member-access";
+import { relayCalls } from "./helpers/relay-stub";
+import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
+// KW 41 is over by now, and staff report absences from today on: the clock stands on its Monday.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 useMemberAccessClient();
 
 describe("absences", () => {
@@ -47,7 +64,11 @@ describe("absences", () => {
     ]);
   });
 
-  it("lets planners manage absences for anyone", async () => {
+  it("lets planners manage absences for anyone and pushes only when asked", async () => {
+    const anna = await inviteAndRedeem(ANNA);
+    await client.request("POST", "/api/push/devices", { headers: bearer(anna.token), body: { platform: "ios", token: "anna:APA91b" } });
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    const appSends = () => relayCalls.filter((call) => call.url.endsWith("/v1/send")).length;
     const planner = await client.loginAs("planner", "planner1234");
     const create = await client.request<{ absence: { absence_id: number; shift_id: number | null } }>("POST", "/api/absences", {
       jar: planner,
@@ -58,11 +79,19 @@ describe("absences", () => {
       jar: planner,
       csrf: true,
     });
+    const silent = { browsers: sendNotification.mock.calls.length, apps: appSends() };
+    await client.request("POST", "/api/absences", {
+      jar: planner,
+      csrf: true,
+      body: { staffId: MAX, date: "2026-10-09", reason: "privat", notifyTeam: true },
+    });
 
     expect(create.status).toBe(200);
     expect(create.json!.absence.shift_id).toBeNull();
     expect(remove.status).toBe(200);
-    expect(sendNotification).not.toHaveBeenCalled();
+    expect(silent).toEqual({ browsers: 0, apps: 0 });
+    // The same browser and app do get the push once the planner asks for it.
+    expect({ browsers: sendNotification.mock.calls.length, apps: appSends() }).toEqual({ browsers: 1, apps: 1 });
   });
 
   it("allows ranges longer than 8 weeks only for admins", async () => {
@@ -85,6 +114,7 @@ describe("absences", () => {
   });
 
   it("forgets reasons and notes after 90 days but keeps the absence", async () => {
+    vi.useRealTimers(); // Purging compares with SQLite's own clock.
     client.mainDb
       .prepare(
         "INSERT INTO absences (staff_id, absence_date, reason, note, source, created_by) VALUES (?, date('now', '-100 days'), 'privat', 'Umzug', 'web', 'planner')"
@@ -102,6 +132,7 @@ describe("absences", () => {
   });
 
   it("deletes removed absences 90 days after the day", async () => {
+    vi.useRealTimers(); // Purging compares with SQLite's own clock.
     const insert = client.mainDb.prepare(
       "INSERT INTO absences (staff_id, absence_date, reason, source, created_by, cancelled_at) VALUES (?, date('now', ?), 'privat', 'web', 'planner', ?)"
     );

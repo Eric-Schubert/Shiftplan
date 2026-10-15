@@ -24,6 +24,8 @@ export type CreateInput = {
   maxDays?: number;
   /** Leave out Saturdays and Sundays, for teams that never work weekends. */
   weekdaysOnly?: boolean;
+  /** First day that may be entered (YYYY-MM-DD); staff report from today on only. */
+  notBefore?: string;
 };
 
 function badRequest(message: string): never {
@@ -40,6 +42,7 @@ export function insertAbsences(input: CreateInput): { ids: number[]; skipped: st
   if (!range) {
     badRequest(`Ungültiger Zeitraum (höchstens ${maxDays === ABSENCE_MAX_DAYS ? "8 Wochen" : "1 Jahr"})`);
   }
+  if (input.notBefore && range[0]! < input.notBefore) badRequest("Ausfälle lassen sich nur ab heute melden");
   const dates = input.weekdaysOnly ? range.filter((date) => !isWeekendDate(date)) : range;
   if (dates.length === 0) badRequest("Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig");
   if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");

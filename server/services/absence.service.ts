@@ -3,6 +3,7 @@ import { datesOfISOWeek } from "~/server/utils/iso-week";
 import { insertAbsences, type CreateInput } from "~/server/services/absence/create";
 import type { Absence, PublicAbsence } from "~/server/services/absence/model";
 import { purgeOldReasons } from "~/server/services/absence/purge";
+import { resolveShifts } from "~/server/services/absence/resolve";
 
 export {
   ABSENCE_ADMIN_MAX_DAYS,
@@ -33,7 +34,7 @@ export const AbsenceService = {
   listForWeek(year: number, week: number, includeReason: boolean): Array<Absence | PublicAbsence> {
     this.purgeOldReasons();
     const dates = datesOfISOWeek(year, week);
-    const rows = getDatabase()
+    const stored = getDatabase()
       .prepare(
         `${SELECT_ABSENCE}
           WHERE a.cancelled_at IS NULL AND a.absence_date BETWEEN ? AND ?
@@ -41,6 +42,7 @@ export const AbsenceService = {
         `
       )
       .all(dates[0], dates[6]) as Absence[];
+    const rows = resolveShifts(stored);
 
     if (includeReason) return rows;
     return rows.map(({ reason: _reason, note: _note, ...rest }) => rest);
@@ -64,16 +66,14 @@ export const AbsenceService = {
     return { absences: ids.map((id) => this.getById(id)!), skipped };
   },
 
-  cancelBatch(batchId: string): number {
+  /** Withdraws the given days; returns how many were still active. */
+  cancel(absenceIds: number[]): number {
+    if (absenceIds.length === 0) return 0;
     return getDatabase()
-      .prepare("UPDATE absences SET cancelled_at = datetime('now') WHERE batch_id = ? AND cancelled_at IS NULL")
-      .run(batchId).changes;
-  },
-
-  cancel(absenceId: number): boolean {
-    const result = getDatabase()
-      .prepare("UPDATE absences SET cancelled_at = datetime('now') WHERE absence_id = ? AND cancelled_at IS NULL")
-      .run(absenceId);
-    return result.changes > 0;
+      .prepare(
+        `UPDATE absences SET cancelled_at = datetime('now')
+          WHERE cancelled_at IS NULL AND absence_id IN (${absenceIds.map(() => "?").join(",")})`
+      )
+      .run(...absenceIds).changes;
   },
 };

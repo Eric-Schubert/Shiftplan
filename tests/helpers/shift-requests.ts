@@ -12,6 +12,8 @@ const ROUTES: Route[] = [
   ["post", "/api/member/redeem", "server/api/member/redeem.post"],
   ["post", "/api/member/absences", "server/api/member/absences/index.post"],
   ["delete", "/api/member/absences/:id", "server/api/member/absences/[id].delete"],
+  ["get", "/api/absences", "server/api/absences/index.get"],
+  ["delete", "/api/absences/:id", "server/api/absences/[id].delete"],
   ["get", "/api/member/requests", "server/api/member/requests/index.get"],
   ["post", "/api/member/requests", "server/api/member/requests/index.post"],
   ["post", "/api/member/requests/:id", "server/api/member/requests/[id].post"],

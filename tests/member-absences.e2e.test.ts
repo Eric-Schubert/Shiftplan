@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ANNA,
   EARLY,
@@ -16,9 +16,18 @@ import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
 useMemberAccessClient();
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+/** KW 41 is over by now, and staff report absences from today on. */
+function onMonday() {
+  vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
+}
 
 describe("absences", () => {
   it("lets staff report their own absence and tells the team without the reason", async () => {
+    onMonday();
     const anna = await inviteAndRedeem(ANNA);
     const max = await inviteAndRedeem(MAX, "Pixel von Max");
     await client.request("POST", "/api/push/devices", { headers: bearer(anna.token), body: { platform: "ios", token: "anna:APA91b" } });
@@ -46,6 +55,7 @@ describe("absences", () => {
   });
 
   it("accepts unplanned days and skips days that already have an absence", async () => {
+    onMonday();
     const anna = await inviteAndRedeem(ANNA);
     const max = await inviteAndRedeem(MAX);
     const report = (token: string, from: string, to?: string) =>
@@ -75,6 +85,7 @@ describe("absences", () => {
   });
 
   it("enters a range across weeks with one push and withdraws it as a whole", async () => {
+    onMonday();
     await allowWeekends();
     const anna = await inviteAndRedeem(ANNA);
     const max = await inviteAndRedeem(MAX, "Pixel von Max");

@@ -55,6 +55,8 @@ export async function reportAbsence(input: {
   maxDays?: number;
   /** Leave out Saturdays and Sundays, for teams that never work weekends. */
   weekdaysOnly?: boolean;
+  /** First day that may be entered; staff report from today on only. */
+  notBefore?: string;
   actor: Actor;
 }): Promise<{ absences: Absence[]; skipped: string[]; notified: { sent: number; failed: number } | null }> {
   const { absences, skipped } = AbsenceService.create({
@@ -68,9 +70,11 @@ export async function reportAbsence(input: {
     createdBy: input.actor.username,
     maxDays: input.maxDays,
     weekdaysOnly: input.weekdaysOnly,
+    notBefore: input.notBefore,
   });
   logPerWeek(absences, "absence", input.actor);
 
+  let takeovers = 0;
   if (input.seekTakeover) {
     const today = planningToday();
     for (const absence of absences) {
@@ -85,6 +89,7 @@ export async function reportAbsence(input: {
           absenceId: absence.absence_id,
           notifyTeam: false,
         });
+        takeovers += 1;
       } catch (error) {
         // The shift may already have a request; the absence itself stays valid.
         console.warn("[absence] Übernahme-Anfrage nicht angelegt:", (error as Error).message);
@@ -104,7 +109,8 @@ export async function reportAbsence(input: {
           to: last.absence_date,
           shiftName: first.shift_name,
           message: input.message,
-          seekingTakeover: input.seekTakeover,
+          // Only ask who takes over when there is a request to take up.
+          seekingTakeover: takeovers > 0,
         }),
         { excludeStaffId: first.staff_id }
       );
@@ -116,12 +122,18 @@ export async function reportAbsence(input: {
   return { absences, skipped, notified };
 }
 
-/** Withdraws one day, or the whole range when `wholeRange` is set. */
+/**
+ * Withdraws one day, or the range when `wholeRange` is set. A range that already began ends
+ * today: the days before stay, so the past keeps showing who was away.
+ */
 export function cancelAbsence(absence: Absence, actor: Actor, wholeRange = false): number {
-  const affected = wholeRange && absence.batch_id ? AbsenceService.listBatch(absence.batch_id) : [absence];
-  if (wholeRange && absence.batch_id) AbsenceService.cancelBatch(absence.batch_id);
-  else AbsenceService.cancel(absence.absence_id);
-  ShiftRequestService.cancelForAbsence(affected.map((entry) => entry.absence_id));
+  const range = wholeRange && absence.batch_id ? AbsenceService.listBatch(absence.batch_id) : [absence];
+  const today = planningToday();
+  const upcoming = range.filter((entry) => entry.absence_date >= today);
+  const affected = wholeRange && upcoming.length > 0 ? upcoming : range;
+  const ids = affected.map((entry) => entry.absence_id);
+  AbsenceService.cancel(ids);
+  ShiftRequestService.cancelForAbsence(ids);
   logPerWeek(affected, "absence_cancel", actor);
   return affected.length;
 }
