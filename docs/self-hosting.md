@@ -179,7 +179,7 @@ services:
       retries: 3
 ```
 
-Statt `latest` kannst du eine feste Version angeben, z. B. `ghcr.io/eric-schubert/shiftplan:v2.18.0`. Dann bestimmst du selbst, wann aktualisiert wird.
+Statt `latest` kannst du eine feste Version angeben, z. B. `ghcr.io/eric-schubert/shiftplan:3.10.2` (ohne `v` davor). Dann bestimmst du selbst, wann aktualisiert wird.
 
 ### 4. Starten
 

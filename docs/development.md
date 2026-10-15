@@ -4,7 +4,7 @@
 
 Requirements:
 
-- Node.js 20+
+- Node.js 24 (the version CI and the Docker image use, see `.nvmrc`)
 - npm
 
 ```bash
@@ -12,13 +12,14 @@ npm install
 SHIFTPLAN_ADMIN_PASSWORD=SecurePassword1 npm run dev
 ```
 
-The app starts at `http://localhost:3000`. The password is only read on the first start, when the `admin` user is created. See [Configuration](configuration.md#admin-password).
+The app starts at `http://localhost:3000`. The password is only read on the first start, when the `admin` user is created. See [Configuration](configuration.md#admin-password). Add `SHIFTPLAN_SEED_DEMO_DATA=true` on the first start for sample staff and shifts.
 
 ## Commands
 
 ```bash
 npm run dev          # Development server
 npm run test:run     # Run tests once
+npm run typecheck    # Type check the app and server/**
 npm run build        # Production build
 npm run docs         # Regenerate the generated parts of docs/api.md and docs/releases.md
 npm run lint:length  # Fail on source files over 150 lines (aim for about 100)
