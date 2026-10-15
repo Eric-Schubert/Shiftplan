@@ -1,5 +1,5 @@
 import { getContactMailDefaults } from "~/server/config/contact-mail-config";
-import type { ContactMailConfig } from "~/server/services/contact-mail/config";
+import { GRAPH_REQUEST_TIMEOUT_MS, type ContactMailConfig } from "~/server/services/contact-mail/config";
 
 type GraphTokenResponse = {
   access_token?: string;
@@ -45,6 +45,7 @@ export async function getGraphAccessToken(config: ContactMailConfig): Promise<st
         "content-type": "application/x-www-form-urlencoded",
       },
       body,
+      signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
     }
   );
 

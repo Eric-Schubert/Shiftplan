@@ -30,8 +30,9 @@ info:
     - `year`, `week`: nur bei Planänderungen
     Automatische Änderungs-Pushes nennen nur Kalenderwochen und Schichten, keine Namen.
 
-    Ein neuer Zugangscode macht alle Tokens ungültig und löscht alle registrierten Geräte.
-    Dann liefern geschützte Endpunkte 401 und die App fragt den Code neu ab.
+    Ein neuer Zugangscode macht alle Team-Tokens (`POST /api/viewer/login`) ungültig und löscht
+    die damit registrierten Geräte. Dann liefern geschützte Endpunkte 401 und die App fragt den
+    Code neu ab. Persönliche Tokens und ihre Geräte bleiben gültig.
 
     `apiVersion` steigt nur bei inkompatiblen Änderungen. Neue Felder können jederzeit
     dazukommen und sind von der App zu ignorieren.
@@ -633,6 +634,13 @@ paths:
       description: |
         Mehrfach aufrufbar, z. B. wenn sich das FCM-Token oder „Ich bin …“ ändert.
         Bei `scope: mine` bekommt das Gerät nur Pushes zu Schichten von `staffId`.
+
+        Mit persönlichem Token gehört das Gerät immer dieser Person, `staffId` wird ignoriert.
+        Mit Team-Token (oder ohne Zugangscode) dient `staffId` nur dem Filter `scope: mine`
+        und dem Ausblenden eigener Ausfallmeldungen. Persönliche Nachrichten (Anfragen, Zu- und
+        Absagen) bekommen nur Geräte, die mit persönlichem Token registriert sind.
+
+        Pro Person bleiben die zehn zuletzt registrierten Geräte, ältere fallen weg.
       requestBody:
         required: true
         content:
@@ -659,6 +667,8 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
         "401":
+          $ref: "#/components/responses/Error"
+        "429":
           $ref: "#/components/responses/Error"
     delete:
       summary: Gerät abmelden

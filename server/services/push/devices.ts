@@ -2,14 +2,16 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 
-const MAX_DEVICES = 5000;
+// Team devices without a personal sign-in share this cap; personal ones are capped per person.
+const MAX_TEAM_DEVICES = 5000;
+const MAX_DEVICES_PER_PERSON = 10;
 const MAX_DEVICE_TOKEN_LENGTH = 4096;
 
 /** App devices that get pushes. Leftovers of removed people are purged first. */
 export function listDevices(): StoredDevice[] {
   purgeMemberAccess();
   return getAdminDatabase()
-    .prepare("SELECT token, staff_id, scope FROM push_devices")
+    .prepare("SELECT token, staff_id, scope, member_session IS NOT NULL AS personal FROM push_devices")
     .all() as StoredDevice[];
 }
 
@@ -20,10 +22,37 @@ export function countDevices(): number {
   return row.count;
 }
 
+function countTeamDevices(): number {
+  const row = getAdminDatabase()
+    .prepare("SELECT COUNT(*) AS count FROM push_devices WHERE member_session IS NULL")
+    .get() as { count: number };
+  return row.count;
+}
+
+/**
+ * Keeps the newest devices of one person. Personal and team devices are trimmed apart,
+ * so someone claiming a colleague in team mode never pushes out that colleague's own phone.
+ */
+function trimDevicesOfPerson(staffId: number, personal: boolean, keepToken: string): void {
+  getAdminDatabase()
+    .prepare(
+      `
+        DELETE FROM push_devices WHERE device_id IN (
+          SELECT device_id FROM push_devices
+          WHERE staff_id = ? AND (member_session IS NOT NULL) = ? AND token != ?
+          ORDER BY updated_at DESC, device_id DESC
+          LIMIT -1 OFFSET ?
+        )
+      `
+    )
+    .run(staffId, personal ? 1 : 0, keepToken, MAX_DEVICES_PER_PERSON - 1);
+}
+
 /**
  * Native app device with its FCM token. Re-registering updates staff and scope.
  * A device registered with a personal app session always belongs to that person;
- * the client cannot claim someone else.
+ * the client cannot claim someone else. In team mode the chosen person only filters
+ * "only mine" plan changes; personal messages need a personal sign-in.
  */
 export function registerDevice(input: unknown, member?: { sessionId: string; staffId: number }): void {
   const device = input as {
@@ -67,22 +96,25 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
 
   const db = getAdminDatabase();
   const exists = db.prepare("SELECT 1 FROM push_devices WHERE token = ?").get(token);
-  if (!exists && countDevices() >= MAX_DEVICES) {
+  if (!exists && !member && countTeamDevices() >= MAX_TEAM_DEVICES) {
     throw createError({ statusCode: 429, statusMessage: "Zu viele registrierte Geräte" });
   }
 
-  db.prepare(
-    `
-      INSERT INTO push_devices (platform, token, staff_id, scope, member_session)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(token) DO UPDATE SET
-        platform = excluded.platform,
-        staff_id = excluded.staff_id,
-        scope = excluded.scope,
-        member_session = excluded.member_session,
-        updated_at = datetime('now')
-    `
-  ).run(device.platform, token, staffId, scope, member?.sessionId ?? null);
+  db.transaction(() => {
+    db.prepare(
+      `
+        INSERT INTO push_devices (platform, token, staff_id, scope, member_session)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(token) DO UPDATE SET
+          platform = excluded.platform,
+          staff_id = excluded.staff_id,
+          scope = excluded.scope,
+          member_session = excluded.member_session,
+          updated_at = datetime('now')
+      `
+    ).run(device.platform, token, staffId, scope, member?.sessionId ?? null);
+    if (staffId !== null) trimDevicesOfPerson(staffId, Boolean(member), token);
+  })();
 }
 
 export function removeDevice(token: unknown): void {

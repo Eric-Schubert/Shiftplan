@@ -13,4 +13,8 @@ export const webPushMock = {
   },
 };
 
-export const KEYS = { p256dh: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQ", auth: "tBHItJI5svbpez7KI4CCXg" };
+/** Keys of a real browser subscription: a P-256 point and a 16-byte secret. */
+export const KEYS = {
+  p256dh: "BO8gYYxBIGJfQjUtMqXtcXhCAKJc0ld_UoB1Mr7v4vLs1hc80jzC22UYzFpcn8XvPnrASMBzbTv7M_RXDgJmYmY",
+  auth: "kaRwQKGgwE9l7EQzI46Bgw",
+};

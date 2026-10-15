@@ -1,5 +1,8 @@
 import { getContactMailDefaults } from "~/server/config/contact-mail-config";
 
+/** A stalled Microsoft endpoint must not hold the visitor's contact request. */
+export const GRAPH_REQUEST_TIMEOUT_MS = 10_000;
+
 export type ContactMailConfig = {
   provider: "graph";
   to: string[];

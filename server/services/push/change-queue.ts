@@ -6,7 +6,7 @@ import { buildChangePayload, buildNativeMessages } from "~/server/services/push/
 import { rememberOrigin } from "~/server/services/push/origin";
 import { sendNative } from "~/server/services/push/send";
 import { sendWebPush } from "~/server/services/push/web";
-import { getNotifiableWeeks } from "~/server/services/push/weeks";
+import { getNotifiableWeeks, getPlanningToday } from "~/server/services/push/weeks";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
 
 // Changes are bundled so a planner editing several slots sends one push.
@@ -19,13 +19,14 @@ let firstPendingAt = 0;
 
 /**
  * Queues a manual plan change for the bundled push. Changes outside the current
- * and next week are regular planning and stay silent.
+ * and next week are regular planning, corrections of past days are bookkeeping;
+ * both stay silent.
  */
 export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const isNotifiable = getNotifiableWeeks().some(
     (week) => week.year === change.year && week.week === change.week
   );
-  if (!isNotifiable) return;
+  if (!isNotifiable || (change.date && change.date < getPlanningToday())) return;
 
   const db = getDatabase();
   const shift = db
@@ -42,6 +43,7 @@ export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const pending = pendingChanges.get(key) || {
     year: change.year,
     week: change.week,
+    date: change.date,
     // A day change reads „Früh Di. 13.10.“ so it groups apart from the whole week.
     shiftName: change.date ? `${shift.name} ${formatNoticeDay(change.date)}` : shift.name,
     shiftOrder: shift.sort_order,
@@ -71,16 +73,21 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
   const payload = buildChangePayload(changes);
   if (!payload) return null;
 
-  try {
-    const web = await sendWebPush(payload);
-    const native = await sendNative(
-      buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())
-    );
-    return { sent: web.sent + native.sent, failed: web.failed + native.failed };
-  } catch (error) {
-    console.error("[push] Änderungs-Push fehlgeschlagen:", error);
-    return null;
+  // Browsers and apps go out independently: one channel failing does not cost the other.
+  const results = await Promise.allSettled([
+    sendWebPush(payload),
+    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())))(),
+  ]);
+  const counts: SendCounts = { sent: 0, failed: 0 };
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error("[push] Änderungs-Push fehlgeschlagen:", result.reason);
+      continue;
+    }
+    counts.sent += result.value.sent;
+    counts.failed += result.value.failed;
   }
+  return counts;
 }
 
 export function hasPendingChanges(): boolean {

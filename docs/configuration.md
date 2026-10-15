@@ -69,6 +69,12 @@ Web Push uses VAPID keys that each instance generates on first use and stores in
 SHIFTPLAN_PUSH_SUBJECT=mailto:support@example.com
 ```
 
+The instance tells the push relay its public address. Set it explicitly so it never depends on request headers; without it, the instance uses the address of the last plan change, and only a public `https://` address counts. With neither `SHIFTPLAN_PUSH_SUBJECT` nor an imprint email it is also the VAPID contact.
+
+```bash
+SHIFTPLAN_PUBLIC_URL=https://plan.example.de
+```
+
 Pushes to the native Shiftplan app go through the push relay at `https://push.shiftplan.info` as long as `SHIFTPLAN_PUSH_RELAY_URL` is not set. To switch app pushes off entirely:
 
 ```bash

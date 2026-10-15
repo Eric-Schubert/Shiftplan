@@ -32,6 +32,8 @@ export type ShiftChange = {
 export type PendingChange = {
   year: number;
   week: number;
+  /** YYYY-MM-DD for a change of a single day. */
+  date?: string;
   shiftName: string;
   shiftOrder: number;
   staffId: number;
@@ -43,6 +45,8 @@ export type StoredDevice = {
   token: string;
   staff_id: number | null;
   scope: DeviceScope;
+  /** 1 when registered with a personal app sign-in, 0 for a team device. */
+  personal: 0 | 1;
 };
 
 export type SendCounts = { sent: number; failed: number };
