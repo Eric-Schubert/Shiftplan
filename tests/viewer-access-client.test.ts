@@ -15,4 +15,16 @@ describe("access in the browser", () => {
 
     expect(onGranted).toHaveBeenCalledTimes(1);
   });
+
+  it("keeps a failed load after access was granted from going unhandled", async () => {
+    const needsAccessCode = ref(true);
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    watchAccessGranted(needsAccessCode, () => Promise.reject(new Error("offline")));
+
+    needsAccessCode.value = false;
+    await nextTick();
+
+    await vi.waitFor(() => expect(logged).toHaveBeenCalledOnce());
+    logged.mockRestore();
+  });
 });
