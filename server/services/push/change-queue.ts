@@ -6,7 +6,7 @@ import { buildChangePayload, buildNativeMessages } from "~/server/services/push/
 import { rememberOrigin } from "~/server/services/push/origin";
 import { sendNative } from "~/server/services/push/send";
 import { sendWebPush } from "~/server/services/push/web";
-import { getNotifiableWeeks } from "~/server/services/push/weeks";
+import { getNotifiableWeeks, getPlanningToday } from "~/server/services/push/weeks";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
 
 // Changes are bundled so a planner editing several slots sends one push.
@@ -19,13 +19,14 @@ let firstPendingAt = 0;
 
 /**
  * Queues a manual plan change for the bundled push. Changes outside the current
- * and next week are regular planning and stay silent.
+ * and next week are regular planning, corrections of past days are bookkeeping;
+ * both stay silent.
  */
 export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const isNotifiable = getNotifiableWeeks().some(
     (week) => week.year === change.year && week.week === change.week
   );
-  if (!isNotifiable) return;
+  if (!isNotifiable || (change.date && change.date < getPlanningToday())) return;
 
   const db = getDatabase();
   const shift = db
