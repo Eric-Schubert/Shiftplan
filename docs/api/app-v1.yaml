@@ -3,39 +3,38 @@ info:
   title: Shiftplan App API
   version: "1"
   description: |
-    Endpunkte, die die Shiftplan-App (iOS/Android) nutzt. Jede Instanz bzw. jeder
-    Mandant hat eine eigene Basis-URL, z. B. https://firma.shiftplan.info.
+    Endpoints used by the Shiftplan app (iOS/Android). Each instance or tenant has its own
+    base URL, for example https://company.shiftplan.info.
 
-    Ablauf in der App (Mitarbeitende):
-    1. Persönlichen QR-Code scannen, den ein Planer für genau diese Person erzeugt hat:
-       `https://<instanz>/?einladung=<CODE>`. Basis-URL ist der Origin, der Code steht im
-       Parameter `einladung`. Gültig 7 Tage, einmal einlösbar.
-    2. `GET /api/instance` prüft, ob es eine Shiftplan-Instanz mit passender `apiVersion` ist.
-    3. `POST /api/member/redeem` löst den Code ein und liefert ein Token, das an diese Person
-       gebunden ist. Die App speichert es sicher und schickt es bei jedem Aufruf als
+    Flow in the app (employees):
+    1. Scan the personal QR code that a planner created for exactly this person:
+       `https://<instance>/?einladung=<CODE>`. The base URL is the origin, the code is in the
+       `einladung` parameter. Valid for 7 days, can be redeemed once.
+    2. `GET /api/instance` checks that this is a Shiftplan instance with a matching `apiVersion`.
+    3. `POST /api/member/redeem` redeems the code and returns a token bound to this person.
+       The app stores it securely and sends it with every request as
        `Authorization: Bearer <token>`.
-    4. Plan, Ausfälle und Feiertage lesen, eigene Ausfälle melden, Push-Gerät registrieren.
+    4. Read the plan, absences and holidays, report own absences, register the push device.
 
-    Planer melden sich mit `POST /api/auth/login` und `client: app` an und erhalten ebenfalls
-    ein Bearer-Token (14 Tage, verlängert sich bei Nutzung). Mit Bearer-Token ist kein
-    CSRF-Token nötig.
+    Planners sign in with `POST /api/auth/login` and `client: app` and also receive a bearer
+    token (14 days, extended with use). Requests with a bearer token need no CSRF token.
 
-    `POST /api/viewer/login` (Team-Zugangscode) bleibt für die Leseansicht im Browser und
-    ältere App-Versionen.
+    `POST /api/viewer/login` (team access code) remains for the read-only view in the browser
+    and for older app versions.
 
-    Pushes an die App kommen über Firebase Cloud Messaging. Sichtbar sind Titel und Text,
-    die Datenfelder enthalten:
-    - `instanceId`: wie in `GET /api/instance`, ordnet den Push der gespeicherten Instanz zu
-    - `url`: Pfad, der geöffnet werden soll, z. B. `/?year=2026&week=41`
-    - `year`, `week`: nur bei Planänderungen
-    Automatische Änderungs-Pushes nennen nur Kalenderwochen und Schichten, keine Namen.
+    Pushes to the app arrive through Firebase Cloud Messaging. Title and text are visible,
+    the data fields contain:
+    - `instanceId`: as in `GET /api/instance`, maps the push to the stored instance
+    - `url`: path to open, for example `/?year=2026&week=41`
+    - `year`, `week`: only for plan changes
+    Automatic change pushes only mention calendar weeks and shifts, no names.
 
-    Ein neuer Zugangscode macht alle Team-Tokens (`POST /api/viewer/login`) ungültig und löscht
-    die damit registrierten Geräte. Dann liefern geschützte Endpunkte 401 und die App fragt den
-    Code neu ab. Persönliche Tokens und ihre Geräte bleiben gültig.
+    A new access code invalidates all team tokens (`POST /api/viewer/login`) and deletes the
+    devices registered with them. Protected endpoints then return 401 and the app asks for the
+    code again. Personal tokens and their devices stay valid.
 
-    `apiVersion` steigt nur bei inkompatiblen Änderungen. Neue Felder können jederzeit
-    dazukommen und sind von der App zu ignorieren.
+    `apiVersion` only increases with incompatible changes. New fields can be added at any time
+    and must be ignored by the app.
 servers:
   - url: https://{instance}
     variables:
@@ -47,7 +46,7 @@ security:
 paths:
   /api/instance:
     get:
-      summary: Instanz beschreiben
+      summary: Describe the instance
       security: []
       responses:
         "200":
@@ -59,7 +58,7 @@ paths:
 
   /api/member/redeem:
     post:
-      summary: Persönlichen QR-Code einlösen
+      summary: Redeem a personal QR code
       security: []
       requestBody:
         required: true
@@ -71,14 +70,14 @@ paths:
               properties:
                 code:
                   type: string
-                  description: Groß-/Kleinschreibung, Leerzeichen und Bindestriche egal
+                  description: Case, spaces and hyphens are ignored
                 deviceName:
                   type: string
                   maxLength: 60
-                  description: Wird Planern in der Geräteliste angezeigt, z. B. „iPhone von Anna“
+                  description: Shown to planners in the device list, for example „iPhone von Anna“
       responses:
         "200":
-          description: Eingelöst
+          description: Redeemed
           content:
             application/json:
               schema:
@@ -100,7 +99,7 @@ paths:
 
   /api/member/me:
     get:
-      summary: Eigene Person zum Mitarbeiter-Token
+      summary: The person bound to the member token
       responses:
         "200":
           description: OK
@@ -112,7 +111,7 @@ paths:
                   staff:
                     $ref: "#/components/schemas/StaffRef"
         "401":
-          description: Token ungültig oder Gerät gesperrt, die App muss neu eingerichtet werden
+          description: Token invalid or device revoked, the app has to be set up again
           content:
             application/json:
               schema:
@@ -120,25 +119,25 @@ paths:
 
   /api/member/logout:
     post:
-      summary: Dieses Gerät abmelden (Token wird gesperrt)
+      summary: Sign out this device (revokes the token)
       responses:
         "200":
           $ref: "#/components/responses/Success"
 
   /api/member/absences:
     post:
-      summary: Eigenen Ausfall melden (ein Tag oder Zeitraum)
+      summary: Report an own absence (one day or a period)
       description: |
-        Ein Eintrag pro Tag von `from` bis `to` (höchstens 56 Tage), auch für Tage, die noch
-        nicht geplant sind. `from` darf nicht vor heute liegen (Zeitzone der Instanz), sonst
-        400 „Ausfälle lassen sich nur ab heute melden“. Tage mit vorhandenem Ausfall werden
-        übersprungen (`skipped`), nur wenn alle schon belegt sind, kommt 409. Ist `nextWeekFromSaturday` an (Team arbeitet
-        nicht am Wochenende), werden Samstage und Sonntage weggelassen; ein Zeitraum nur aus
-        Wochenendtagen gibt 400. Die Schicht wird aus dem Plan übernommen, wenn
-        die Person an dem Tag genau einer zugeteilt ist. Mehrere Tage teilen sich eine
-        `batch_id`. Ohne `notifyTeam: false` bekommt das Team einen Push „Anna Weber fällt
-        Do. 08.10. aus – Frühschicht offen“ bzw. „… fällt Mo. 12.10. – Fr. 23.10. aus“, nie
-        mit Grund.
+        One entry per day from `from` to `to` (at most 56 days), also for days that are not
+        planned yet. `from` must not be before today (time zone of the instance), otherwise
+        400 „Ausfälle lassen sich nur ab heute melden“. Days that already have an absence are
+        skipped (`skipped`); only if all days are taken, the response is 409. If
+        `nextWeekFromSaturday` is on (the team does not work on weekends), Saturdays and Sundays
+        are left out; a period of weekend days only returns 400. The shift is taken from the
+        plan if the person is assigned to exactly one shift on that day. Several days share one
+        `batch_id`. Unless `notifyTeam` is `false`, the team gets a push „Anna Weber fällt
+        Do. 08.10. aus – Frühschicht offen“ or „… fällt Mo. 12.10. – Fr. 23.10. aus“, never
+        with the reason.
       requestBody:
         required: true
         content:
@@ -153,12 +152,12 @@ paths:
                 to:
                   type: [string, "null"]
                   format: date
-                  description: Letzter Tag, Standard ist `from`
+                  description: Last day, defaults to `from`
                 date:
                   type: string
                   format: date
                   deprecated: true
-                  description: Alter Name für `from` bei einem einzelnen Tag
+                  description: Old name for `from` for a single day
                 shiftId:
                   type: [integer, "null"]
                 reason:
@@ -169,10 +168,10 @@ paths:
                 message:
                   type: string
                   maxLength: 160
-                  description: Optionaler Zusatztext im Team-Push
+                  description: Optional extra text in the team push
       responses:
         "200":
-          description: Gemeldet
+          description: Reported
           content:
             application/json:
               schema:
@@ -185,7 +184,7 @@ paths:
                   absence:
                     $ref: "#/components/schemas/Absence"
                     deprecated: true
-                    description: Erster Tag, für ältere Clients
+                    description: First day, for older clients
                   skipped:
                     type: array
                     items:
@@ -201,7 +200,7 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
         "409":
-          description: Für alle Tage ist schon ein Ausfall eingetragen
+          description: All days already have an absence
           content:
             application/json:
               schema:
@@ -209,7 +208,7 @@ paths:
 
   /api/member/absences/{id}:
     delete:
-      summary: Eigenen Ausfall zurückziehen
+      summary: Withdraw an own absence
       parameters:
         - name: id
           in: path
@@ -219,10 +218,10 @@ paths:
         - name: range
           in: query
           description: |
-            `1` zieht den ganzen Zeitraum zurück, sonst nur diesen Tag. Zurückziehen geht nur für
-            Tage ab heute: Hat der Zeitraum schon begonnen, werden heute und die folgenden Tage
-            zurückgezogen, der Ausfall endet also gestern. Liegt der Tag oder der ganze Zeitraum in
-            der Vergangenheit, kommt 400 „Vergangene Ausfälle lassen sich nicht zurückziehen“.
+            `1` withdraws the whole period, otherwise only this day. Only days from today on can
+            be withdrawn: if the period has already started, today and the following days are
+            withdrawn, so the absence ends yesterday. If the day or the whole period lies in the
+            past, the response is 400 „Vergangene Ausfälle lassen sich nicht zurückziehen“.
           schema:
             type: string
             enum: ["1"]
@@ -236,8 +235,8 @@ paths:
 
   /api/absences:
     get:
-      summary: Ausfälle einer Woche
-      description: Grund und Notiz sind nur für Planer enthalten.
+      summary: Absences of a week
+      description: Reason and note are only included for planners.
       parameters:
         - name: year
           in: query
@@ -259,8 +258,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/Absence"
     post:
-      summary: Ausfall für eine Person eintragen (Planer)
-      description: Zeitraum höchstens 56 Tage, für Admins bis 366 Tage.
+      summary: Record an absence for a person (planner)
+      description: Period of at most 56 days, up to 366 days for admins.
       requestBody:
         required: true
         content:
@@ -292,13 +291,13 @@ paths:
                   maxLength: 160
       responses:
         "200":
-          description: Eingetragen
+          description: Recorded
         "401":
           $ref: "#/components/responses/Error"
 
   /api/absences/{id}:
     delete:
-      summary: Ausfall löschen (Planer)
+      summary: Delete an absence (planner)
       parameters:
         - name: id
           in: path
@@ -308,9 +307,9 @@ paths:
         - name: range
           in: query
           description: |
-            `1` löscht den ganzen Zeitraum. Hat er schon begonnen, werden nur heute und die
-            folgenden Tage gelöscht, der Ausfall endet also gestern. Liegt er komplett in der
-            Vergangenheit, wird er ganz gelöscht (Korrektur durch die Planung).
+            `1` deletes the whole period. If it has already started, only today and the
+            following days are deleted, so the absence ends yesterday. If it lies entirely in the
+            past, it is deleted completely (a correction by the planners).
           schema:
             type: string
             enum: ["1"]
@@ -320,7 +319,7 @@ paths:
 
   /api/member-invites:
     post:
-      summary: Persönlichen QR-Code für eine Person erzeugen (Planer)
+      summary: Create a personal QR code for a person (planner)
       requestBody:
         required: true
         content:
@@ -333,7 +332,7 @@ paths:
                   type: integer
       responses:
         "200":
-          description: Code, Ablaufzeit (Unix-Millisekunden) und Pfad für den QR-Link
+          description: Code, expiry time (Unix milliseconds) and path for the QR link
           content:
             application/json:
               schema:
@@ -349,7 +348,7 @@ paths:
 
   /api/member-sessions:
     get:
-      summary: Eingerichtete App-Geräte (Planer)
+      summary: App devices that have been set up (planner)
       parameters:
         - name: staffId
           in: query
@@ -380,7 +379,7 @@ paths:
 
   /api/member-sessions/{id}:
     delete:
-      summary: App-Gerät sperren (Planer), entfernt auch dessen Push-Anmeldung
+      summary: Revoke an app device (planner), also removes its push registration
       parameters:
         - name: id
           in: path
@@ -393,7 +392,7 @@ paths:
 
   /api/viewer/login:
     post:
-      summary: Mit Zugangscode anmelden
+      summary: Sign in with the access code
       security: []
       requestBody:
         required: true
@@ -405,13 +404,13 @@ paths:
               properties:
                 code:
                   type: string
-                  description: Groß-/Kleinschreibung und Leerzeichen am Rand egal
+                  description: Case and leading or trailing spaces are ignored
                 client:
                   type: string
                   enum: [app]
       responses:
         "200":
-          description: Angemeldet. `token` ist null, wenn die Instanz keinen Code verlangt.
+          description: Signed in. `token` is null if the instance requires no code.
           content:
             application/json:
               schema:
@@ -424,11 +423,11 @@ paths:
                     type: [string, "null"]
                   expiresAt:
                     type: [integer, "null"]
-                    description: Unix-Zeit in Millisekunden. Wird bei Nutzung verlängert.
+                    description: Unix time in milliseconds. Extended with use.
         "401":
           $ref: "#/components/responses/Error"
         "429":
-          description: Zu viele Fehlversuche, 15 Minuten warten
+          description: Too many failed attempts, wait 15 minutes
           content:
             application/json:
               schema:
@@ -436,14 +435,14 @@ paths:
 
   /api/viewer/logout:
     post:
-      summary: Token beenden (z. B. wenn die Instanz aus der App entfernt wird)
+      summary: End the token (for example when the instance is removed from the app)
       responses:
         "200":
           $ref: "#/components/responses/Success"
 
   /api/viewer/status:
     get:
-      summary: Zugriff prüfen
+      summary: Check access
       responses:
         "200":
           description: OK
@@ -459,11 +458,11 @@ paths:
                     type: boolean
                   pushPublicKey:
                     type: [string, "null"]
-                    description: Nur für Web Push im Browser, die App braucht ihn nicht
+                    description: Only for web push in the browser, the app does not need it
 
   /api/shiftplan:
     get:
-      summary: Wochenplan
+      summary: Weekly plan
       parameters:
         - name: year
           in: query
@@ -471,14 +470,14 @@ paths:
             type: integer
         - name: week
           in: query
-          description: ISO-Kalenderwoche
+          description: ISO calendar week
           schema:
             type: integer
             minimum: 1
             maximum: 53
       responses:
         "200":
-          description: Plan der Woche. `week.week_id` ist 0, wenn die Woche noch nie geplant wurde.
+          description: Plan of the week. `week.week_id` is 0 if the week has never been planned.
           content:
             application/json:
               schema:
@@ -488,11 +487,11 @@ paths:
 
   /api/shiftplan/day-change:
     post:
-      summary: Person für einen Tag in eine Schicht nehmen oder herausnehmen (Planer)
+      summary: Add a person to a shift for one day or take them out (planner)
       description: |
-        Der Wochenplan bleibt die Grundlage. Weicht ein Tag davon ab, wird das als Tagesänderung
-        gespeichert; wer wieder dem Wochenplan entspricht, verliert die Änderung. Kurzfristige
-        Änderungen lösen wie Wochenänderungen einen gebündelten Push aus.
+        The weekly plan remains the basis. If a day differs from it, the difference is stored as
+        a day change; a person who matches the weekly plan again loses the change. Short-term
+        changes trigger a batched push, just like changes to the week.
       requestBody:
         required: true
         content:
@@ -512,7 +511,7 @@ paths:
                   type: boolean
       responses:
         "200":
-          description: "`changed` ist false, wenn der Tag schon so aussah"
+          description: "`changed` is false if the day already looked like that"
           content:
             application/json:
               schema:
@@ -527,7 +526,7 @@ paths:
 
   /api/staff:
     get:
-      summary: Mitarbeitende (für „Ich bin …“)
+      summary: Employees (for „Ich bin …“, I am …)
       responses:
         "200":
           description: OK
@@ -542,7 +541,7 @@ paths:
 
   /api/holidays/public:
     get:
-      summary: Feiertage (öffentlich)
+      summary: Public holidays (public endpoint)
       security: []
       parameters:
         - name: year
@@ -581,7 +580,7 @@ paths:
 
   /api/holidays/school:
     get:
-      summary: Schulferien (öffentlich)
+      summary: School holidays (public endpoint)
       security: []
       parameters:
         - name: year
@@ -596,8 +595,8 @@ paths:
       responses:
         "200":
           description: |
-            `grouped` fasst die Ferien pro Zeitraum zusammen (mit allen Bundesländern),
-            `holidays` hat einen Eintrag je Bundesland.
+            `grouped` combines the holidays per period (with all states),
+            `holidays` has one entry per state.
           content:
             application/json:
               schema:
@@ -640,17 +639,17 @@ paths:
 
   /api/push/devices:
     post:
-      summary: Gerät für Push registrieren oder aktualisieren
+      summary: Register or update a device for push
       description: |
-        Mehrfach aufrufbar, z. B. wenn sich das FCM-Token oder „Ich bin …“ ändert.
-        Bei `scope: mine` bekommt das Gerät nur Pushes zu Schichten von `staffId`.
+        Can be called repeatedly, for example when the FCM token or „Ich bin …“ (I am …) changes.
+        With `scope: mine` the device only gets pushes about shifts of `staffId`.
 
-        Mit persönlichem Token gehört das Gerät immer dieser Person, `staffId` wird ignoriert.
-        Mit Team-Token (oder ohne Zugangscode) dient `staffId` nur dem Filter `scope: mine`
-        und dem Ausblenden eigener Ausfallmeldungen. Persönliche Nachrichten (Anfragen, Zu- und
-        Absagen) bekommen nur Geräte, die mit persönlichem Token registriert sind.
+        With a personal token the device always belongs to that person, and `staffId` is ignored.
+        With a team token (or without an access code), `staffId` only serves the `scope: mine`
+        filter and hides the person's own absence notices. Personal messages (requests,
+        acceptances and rejections) only go to devices registered with a personal token.
 
-        Pro Person bleiben die zehn zuletzt registrierten Geräte, ältere fallen weg.
+        Each person keeps the ten most recently registered devices, older ones are dropped.
       requestBody:
         required: true
         content:
@@ -664,7 +663,7 @@ paths:
                   enum: [ios, android]
                 token:
                   type: string
-                  description: FCM-Registrierungstoken
+                  description: FCM registration token
                 staffId:
                   type: [integer, "null"]
                 scope:
@@ -681,7 +680,7 @@ paths:
         "429":
           $ref: "#/components/responses/Error"
     delete:
-      summary: Gerät abmelden
+      summary: Unregister a device
       requestBody:
         required: true
         content:
@@ -713,7 +712,7 @@ components:
               success:
                 type: boolean
     Error:
-      description: Fehler mit deutscher Meldung in `statusMessage`
+      description: Error with a German message in `statusMessage`
       content:
         application/json:
           schema:
@@ -734,13 +733,13 @@ components:
       properties:
         instanceId:
           type: string
-          description: Feste, zufällige ID der Instanz. Steht auch in jedem Push an die App.
+          description: Fixed random ID of the instance. Also included in every push to the app.
         name:
           type: string
-          description: Anzeigename, im Web unter Einstellungen → Team-Zugang pflegbar
+          description: Display name, editable in the web app under Einstellungen → Team-Zugang (Settings → Team access)
         version:
           type: string
-          description: Shiftplan-Version der Instanz
+          description: Shiftplan version of the instance
         apiVersion:
           type: integer
           const: 1
@@ -749,8 +748,8 @@ components:
         nextWeekFromSaturday:
           type: boolean
           description: >-
-            true: ab Samstag die nächste Woche als aktuelle Woche zeigen. false bei Teams mit
-            Wochenendschichten. Fehlt das Feld (ältere Instanz), wie true behandeln.
+            true: from Saturday on, show the next week as the current week. false for teams with
+            weekend shifts. If the field is missing (older instance), treat it as true.
 
     StaffRef:
       type: object
@@ -779,24 +778,25 @@ components:
         shift_id:
           type: [integer, "null"]
           description: |
-            Schicht, in der die Person fehlt; `null` heißt ganzer Tag. Arbeitet die Person die
-            beim Eintragen übernommene Schicht laut Plan nicht mehr, kommt `null`.
+            Shift in which the person is absent; `null` means the whole day. If the plan no longer
+            has the person in the shift that was taken over when the absence was recorded, the
+            value is `null`.
         shift_name:
           type: [string, "null"]
         reason:
           $ref: "#/components/schemas/AbsenceReason"
-          description: Nur für Planer; nach 90 Tagen gelöscht
+          description: Planners only, deleted after 90 days
         batch_id:
           type: [string, "null"]
-          description: Gemeinsam für alle Tage eines Zeitraums
+          description: Shared by all days of a period
         range_from:
           type: string
           format: date
-          description: Erster noch aktiver Tag des Zeitraums
+          description: First day of the period that is still active
         range_to:
           type: string
           format: date
-          description: Letzter noch aktiver Tag des Zeitraums
+          description: Last day of the period that is still active
         source:
           type: string
           enum: [web, app]
@@ -880,7 +880,7 @@ components:
                       $ref: "#/components/schemas/Staff"
         day_changes:
           type: array
-          description: Tagesweise Abweichungen vom Wochenplan
+          description: Per-day deviations from the weekly plan
           items:
             $ref: "#/components/schemas/DayChange"
 
