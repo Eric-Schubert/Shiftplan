@@ -1,8 +1,18 @@
 import type { ContactMessage } from "~/types/contact";
 import { getContactMailDefaults } from "~/server/config/contact-mail-config";
 
+const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
 export function isEmailAddress(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return EMAIL_PATTERN.test(value);
+}
+
+/** The reply-to address in "a@b.de" or "Name <a@b.de>"; null for a phone number or anything else. */
+export function getReplyAddress(replyTo: string): string | null {
+  const value = replyTo.trim();
+  if (isEmailAddress(value)) return value;
+  const bracketed = /<([^<>]+)>$/.exec(value)?.[1]?.trim();
+  return bracketed && isEmailAddress(bracketed) ? bracketed : null;
 }
 
 function formatMessageDate(value: string): string {
