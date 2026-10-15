@@ -32,6 +32,8 @@ export type ShiftChange = {
 export type PendingChange = {
   year: number;
   week: number;
+  /** YYYY-MM-DD for a change of a single day. */
+  date?: string;
   shiftName: string;
   shiftOrder: number;
   staffId: number;

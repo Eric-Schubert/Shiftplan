@@ -43,6 +43,7 @@ export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const pending = pendingChanges.get(key) || {
     year: change.year,
     week: change.week,
+    date: change.date,
     // A day change reads „Früh Di. 13.10.“ so it groups apart from the whole week.
     shiftName: change.date ? `${shift.name} ${formatNoticeDay(change.date)}` : shift.name,
     shiftOrder: shift.sort_order,

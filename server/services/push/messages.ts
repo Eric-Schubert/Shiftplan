@@ -2,12 +2,19 @@ import type { NativeMessage } from "~/server/services/push-relay.service";
 import type { PendingChange, PushPayload, StoredDevice } from "~/server/services/push/types";
 
 const MAX_CHANGE_LINES = 4;
+const TEAM_TITLE = "Schichtplan geändert";
+const OWN_TITLE = "Deine Schicht hat sich geändert";
+// The relay takes 30 calls a minute and one text per call. Beyond this many different
+// "only mine" texts, those devices get one text per set of weeks instead.
+const MAX_PERSONAL_TEXTS = 8;
 
+// Whole-week changes first, then day changes by date, each in shift order.
 function sortChanges(changes: PendingChange[]): PendingChange[] {
   return [...changes].sort(
     (a, b) =>
       a.year - b.year ||
       a.week - b.week ||
+      (a.date ?? "").localeCompare(b.date ?? "") ||
       a.shiftOrder - b.shiftOrder ||
       a.shiftName.localeCompare(b.shiftName, "de")
   );
@@ -43,7 +50,7 @@ export function buildChangePayload(changes: PendingChange[]): PushPayload | null
 
   const first = effective[0]!;
   return {
-    title: "Schichtplan geändert",
+    title: TEAM_TITLE,
     body: visible.join("\n"),
     url: `/?year=${first.year}&week=${first.week}`,
   };
@@ -61,6 +68,37 @@ function summarizeShifts(changes: PendingChange[]): string {
   return [...weeks.values()].map((entry) => `KW ${entry.week}: ${entry.shifts.join(", ")}`).join(" · ");
 }
 
+/** "Änderungen in KW 41 · KW 42", for when per-shift texts would be too many. */
+function summarizeWeeks(changes: PendingChange[]): string {
+  const weeks = new Set(sortChanges(changes).map((change) => `KW ${change.week}`));
+  return `Änderungen in ${[...weeks].join(" · ")}`;
+}
+
+type Recipient = { token: string; changes: PendingChange[] };
+
+/** One relay message per distinct text, linking to the first week it names. */
+function groupByText(
+  title: string,
+  recipients: Recipient[],
+  summarize: (changes: PendingChange[]) => string,
+  instanceId: string
+): NativeMessage[] {
+  const messages = new Map<string, NativeMessage>();
+  for (const { token, changes } of recipients) {
+    const body = summarize(changes);
+    const first = sortChanges(changes)[0]!;
+    const message: NativeMessage = messages.get(body) || {
+      title,
+      body,
+      data: { instanceId, url: `/?year=${first.year}&week=${first.week}`, year: String(first.year), week: String(first.week) },
+      tokens: [],
+    };
+    message.tokens.push(token);
+    messages.set(body, message);
+  }
+  return [...messages.values()];
+}
+
 /**
  * App pushes go through Google/Apple without end-to-end encryption, so they only
  * name weeks and shifts. Devices with "only mine" hear about their own shifts.
@@ -73,38 +111,15 @@ export function buildNativeMessages(
   const effective = changes.filter((change) => change.delta !== 0);
   if (effective.length === 0 || devices.length === 0) return [];
 
-  const dataFor = (relevant: PendingChange[]) => {
-    const first = sortChanges(relevant)[0]!;
-    return {
-      instanceId,
-      url: `/?year=${first.year}&week=${first.week}`,
-      year: String(first.year),
-      week: String(first.week),
-    };
-  };
+  const team = devices
+    .filter((device) => device.scope === "all")
+    .map((device) => ({ token: device.token, changes: effective }));
+  const personal = devices
+    .filter((device) => device.scope === "mine")
+    .map((device) => ({ token: device.token, changes: effective.filter((change) => change.staffId === device.staff_id) }))
+    .filter((recipient) => recipient.changes.length > 0);
 
-  const messages = new Map<string, NativeMessage>();
-  const add = (title: string, relevant: PendingChange[], token: string) => {
-    const body = summarizeShifts(relevant);
-    const key = `${title}|${body}`;
-    const message: NativeMessage = messages.get(key) || {
-      title,
-      body,
-      data: dataFor(relevant),
-      tokens: [],
-    };
-    message.tokens.push(token);
-    messages.set(key, message);
-  };
-
-  for (const device of devices) {
-    if (device.scope === "all") {
-      add("Schichtplan geändert", effective, device.token);
-      continue;
-    }
-    const own = effective.filter((change) => change.staffId === device.staff_id);
-    if (own.length > 0) add("Deine Schicht hat sich geändert", own, device.token);
-  }
-
-  return [...messages.values()];
+  let own = groupByText(OWN_TITLE, personal, summarizeShifts, instanceId);
+  if (own.length > MAX_PERSONAL_TEXTS) own = groupByText(OWN_TITLE, personal, summarizeWeeks, instanceId);
+  return [...groupByText(TEAM_TITLE, team, summarizeShifts, instanceId), ...own];
 }
