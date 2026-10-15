@@ -19,15 +19,12 @@ export function getCsrfTokenFromRequest(event: any): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
-let warnedAboutUntrustedProxy = false;
+const warned = new Set<string>();
 
-/** Behind a proxy without trusted headers every client shares the proxy's address and its limits. */
-function warnAboutUntrustedProxy(event: any, socketIP: string): void {
-  if (warnedAboutUntrustedProxy || socketIP === "unknown" || !getHeader(event, "x-forwarded-for")) return;
-  warnedAboutUntrustedProxy = true;
-  console.warn(
-    "[auth] Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit."
-  );
+function warnOnce(key: string, message: string): void {
+  if (warned.has(key)) return;
+  warned.add(key);
+  console.warn(`[auth] ${message}`);
 }
 
 export function getClientIP(event: any): string {
@@ -35,14 +32,26 @@ export function getClientIP(event: any): string {
   const trust = getAuthConfig().trustProxyHeaders;
 
   if (!trust) {
-    warnAboutUntrustedProxy(event, socketIP);
+    // Behind a proxy every client then shares the proxy's address and its limits.
+    if (socketIP !== "unknown" && getHeader(event, "x-forwarded-for")) {
+      warnOnce(
+        "untrusted",
+        "Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit."
+      );
+    }
     return socketIP;
   }
 
   // Only Cloudflare overwrites this header. Any other proxy passes on what the client sent.
-  if (trust === "cloudflare") {
-    const cfIP = getHeader(event, "cf-connecting-ip")?.trim();
-    if (cfIP) return cfIP;
+  const cfIP = getHeader(event, "cf-connecting-ip")?.trim();
+  if (trust === "cloudflare" && cfIP) return cfIP;
+  if (cfIP) {
+    // Behind Cloudflare the rightmost entry is the Cloudflare edge, shared by many visitors.
+    warnOnce(
+      "cloudflare",
+      "CF-Connecting-IP arrived while SHIFTPLAN_TRUST_PROXY_HEADERS is true. Behind Cloudflare, set it to cloudflare, " +
+        "or all visitors of one Cloudflare location share one sign-in limit."
+    );
   }
 
   // The proxy in front appends the address it saw. Everything left of it came from the client.

@@ -37,6 +37,22 @@ describe("client address", () => {
     expect(await clientIP("cloudflare", { "x-forwarded-for": "198.51.100.20, 162.158.1.1" })).toBe("162.158.1.1");
   });
 
+  it("warns once when Cloudflare sends its header but only true is set", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("SHIFTPLAN_TRUST_PROXY_HEADERS", "true");
+    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
+    vi.resetModules();
+    const { getClientIP } = await import("~/server/lib/session/request");
+    const event = { headers: SPOOFED, node: { req: { socket: { remoteAddress: "203.0.113.5" } } } };
+
+    getClientIP(event);
+    getClientIP(event);
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]![0]).toMatch(/set it to cloudflare/);
+    warn.mockRestore();
+  });
+
   it("groups IPv6 clients by their /64 network", () => {
     expect(networkOf("2001:db8:1:2:aaaa::1")).toBe("2001:db8:1:2::/64");
     expect(networkOf("2001:DB8:1:2:ffff:1:2:3")).toBe("2001:db8:1:2::/64");
