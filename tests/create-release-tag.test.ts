@@ -27,8 +27,8 @@ function commit(name: string) {
 
 // Runs the script as the release job does: detached at the commit CI tested.
 function release(name: string) {
-  git(["checkout", "-q", "--detach", commits[name]]);
-  const env = { ...process.env, ...GIT_ENV, RELEASE_TYPE: "fix", RELEASE_BREAKING: "false" };
+  git(["checkout", "-q", "--detach", commits[name]!]);
+  const env: NodeJS.ProcessEnv = { ...process.env, ...GIT_ENV, RELEASE_TYPE: "fix", RELEASE_BREAKING: "false" };
   delete env.GITHUB_OUTPUT;
   const stdout = execFileSync("node", ["scripts/create-release-tag.js"], { cwd: repo, encoding: "utf-8", env });
   return Object.fromEntries(
