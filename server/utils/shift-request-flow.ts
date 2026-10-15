@@ -6,6 +6,7 @@ import { weekOfDate } from "~/server/utils/iso-week";
 
 export { describeRequest } from "~/server/lib/shift-requests/notify";
 export { decideRequest } from "~/server/lib/shift-requests/decide";
+export { confirmUndo, declineUndo, requestUndo } from "~/server/lib/shift-requests/undo";
 
 export async function createTakeover(input: {
   staffId: number;
@@ -102,8 +103,26 @@ export async function declineRequest(request: ShiftRequest, staffId: number, sta
   return updated;
 }
 
-export function cancelRequest(request: ShiftRequest, staffId: number): ShiftRequest {
-  if (request.requester_staff_id !== staffId) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+/** The requester withdraws an unfinished request, or the helper takes back a yes that waits for approval. */
+export async function cancelRequest(request: ShiftRequest, member: { staffId: number; staffName: string }): Promise<ShiftRequest> {
+  if (request.status === "pending_approval" && request.partner_staff_id === member.staffId) {
+    const takeover = request.kind === "takeover";
+    // A takeover goes back to the team, a swap was meant for this one person only.
+    const updated = ShiftRequestService.setStatus(
+      request.request_id,
+      takeover ? "open" : "declined",
+      takeover ? { partnerStaffId: null } : {}
+    );
+    await notifyStaff(
+      [request.requester_staff_id],
+      "Zusage zurückgezogen",
+      takeover
+        ? `${member.staffName} übernimmt ${describeRequest(request)} doch nicht. Die Übernahme ist wieder offen.`
+        : `${member.staffName} möchte ${describeRequest(request)} doch nicht tauschen.`
+    );
+    return updated;
+  }
+  if (request.requester_staff_id !== member.staffId) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
   if (request.status !== "open" && request.status !== "pending_approval") {
     throw createError({ statusCode: 409, statusMessage: "Die Anfrage ist schon abgeschlossen" });
   }

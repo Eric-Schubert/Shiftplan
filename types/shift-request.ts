@@ -23,6 +23,8 @@ export interface ShiftRequest {
   created_at: string;
   decided_at: string | null;
   decided_by: string | null;
+  /** Who asked to undo the finished request; the other person confirms or declines. */
+  undo_requested_by: number | null;
 }
 
 export const REQUEST_STATUS_LABELS: Record<ShiftRequestStatus, string> = {

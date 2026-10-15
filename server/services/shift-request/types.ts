@@ -24,6 +24,8 @@ export type ShiftRequest = {
   created_at: string;
   decided_at: string | null;
   decided_by: string | null;
+  /** Who asked to undo the finished request; the other person confirms or declines. */
+  undo_requested_by: number | null;
 };
 
 /** One applied day change and the state before it, so a planner can undo the request. */

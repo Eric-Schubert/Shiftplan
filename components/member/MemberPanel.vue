@@ -19,7 +19,15 @@ const error = ref("");
 
 const requests = computed(() => data.value?.requests ?? []);
 
-async function act(request: ShiftRequest, action: "accept" | "decline" | "cancel") {
+const NOTICES: Record<string, string> = {
+  cancel: "Zurückgezogen.",
+  decline: "Tausch abgelehnt.",
+  request_undo: "Storno angefragt. Die andere Person muss noch bestätigen.",
+  confirm_undo: "Storno bestätigt, der Plan ist wieder wie vorher.",
+  decline_undo: "Storno ist vom Tisch, es bleibt wie es ist.",
+};
+
+async function act(request: ShiftRequest, action: string) {
   busy.value = request.request_id;
   error.value = "";
   notice.value = "";
@@ -29,13 +37,10 @@ async function act(request: ShiftRequest, action: "accept" | "decline" | "cancel
       body: { action },
     });
     notice.value =
-      action === "cancel"
-        ? "Anfrage zurückgezogen."
-        : action === "decline"
-          ? "Tausch abgelehnt."
-          : result.request.status === "pending_approval"
-            ? "Zugesagt. Die Planung muss noch freigeben."
-            : "Erledigt, der Plan ist angepasst.";
+      NOTICES[action] ??
+      (result.request.status === "pending_approval"
+        ? "Zugesagt. Die Planung muss noch freigeben."
+        : "Erledigt, der Plan ist angepasst.");
     await refresh();
     emit("updated");
   } catch (cause: any) {

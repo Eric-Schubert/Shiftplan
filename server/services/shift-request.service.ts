@@ -7,6 +7,7 @@ import {
   listForMember,
   listForPlanner,
   setStatus,
+  setUndoRequest,
 } from "~/server/services/shift-request/queries";
 import { checkAccept, isPresent, swapChanges, takeoverChanges } from "~/server/services/shift-request/rules";
 
@@ -50,6 +51,7 @@ export const ShiftRequestService = {
   takeoverChanges,
   checkAccept,
   setStatus,
+  setUndoRequest,
   appliedChanges,
   cancelForAbsence,
   isPresent,

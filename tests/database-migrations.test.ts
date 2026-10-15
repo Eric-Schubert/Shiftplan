@@ -19,6 +19,7 @@ describe("database migrations", () => {
       "006_main_absence_ranges_day_changes",
       "007_main_shift_requests",
       "008_main_staff_short_code",
+      "009_main_request_undo",
     ]);
     expect(second.applied).toHaveLength(0);
     expect(columnNames(db, "absences")).toEqual(

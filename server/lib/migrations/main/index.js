@@ -6,6 +6,7 @@ import absencesSchema from "./005-absences-schema.js";
 import absenceRangesDayChanges from "./006-absence-ranges-day-changes.js";
 import shiftRequests from "./007-shift-requests.js";
 import staffShortCode from "./008-staff-short-code.js";
+import requestUndo from "./009-request-undo.js";
 
 // Order matters: migrations run top to bottom and are recorded by id.
 export const MAIN_MIGRATIONS = [
@@ -17,4 +18,5 @@ export const MAIN_MIGRATIONS = [
   absenceRangesDayChanges,
   shiftRequests,
   staffShortCode,
+  requestUndo,
 ];

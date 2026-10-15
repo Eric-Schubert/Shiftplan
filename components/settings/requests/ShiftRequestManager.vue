@@ -21,6 +21,13 @@ function summary(request: ShiftRequest): string {
   return `${request.requester_name} ↔ ${request.partner_name ?? "?"} tauschen alle Schichten`;
 }
 
+function statusLine(request: ShiftRequest): string {
+  if (request.status === "done" && request.undo_requested_by !== null) return "Durchgeführt · Storno angefragt";
+  const label = REQUEST_STATUS_LABELS[request.status];
+  const byStaff = request.status === "reverted" && request.undo_requested_by !== null ? " per Storno" : "";
+  return request.decided_by ? `${label} · ${request.decided_by}${byStaff}` : label;
+}
+
 async function load() {
   loading.value = true;
   try {
@@ -88,7 +95,7 @@ onMounted(load);
             <div class="min-w-0 flex-1 text-sm">
               <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(request) }} · {{ summary(request) }}</p>
               <p class="text-xs text-[var(--text-3)]">
-                {{ REQUEST_STATUS_LABELS[request.status] }}<template v-if="request.decided_by"> · {{ request.decided_by }}</template>
+                {{ statusLine(request) }}
               </p>
             </div>
             <PrimeButton
