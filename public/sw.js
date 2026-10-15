@@ -25,9 +25,54 @@ self.addEventListener("push", (event) => {
   );
 });
 
+function postJson(path, body) {
+  return fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+async function serverKey() {
+  const status = await (await fetch("/api/viewer/status")).json();
+  if (!status.pushPublicKey) throw new Error("Kein Zugriff auf den Schichtplan");
+  const raw = atob(status.pushPublicKey.replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (char) => char.charCodeAt(0));
+}
+
+// The browser renewed or dropped the subscription, e.g. after rotating its keys: subscribe
+// again and tell the server, or pushes stop until the app is opened the next time.
+async function renewSubscription(oldSubscription, newSubscription) {
+  const subscription =
+    newSubscription ||
+    (await self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: oldSubscription?.options?.applicationServerKey || (await serverKey()),
+    }));
+  await postJson("/api/push/subscribe", subscription.toJSON());
+  if (oldSubscription && oldSubscription.endpoint !== subscription.endpoint) {
+    await postJson("/api/push/unsubscribe", { endpoint: oldSubscription.endpoint });
+  }
+}
+
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(renewSubscription(event.oldSubscription, event.newSubscription));
+});
+
+// Only pages of this site: a push never sends the browser somewhere else.
+function ownUrl(value) {
+  const home = new URL("/", self.location.origin).href;
+  try {
+    const url = new URL(value || "/", self.location.origin);
+    return url.origin === self.location.origin ? url.href : home;
+  } catch {
+    return home;
+  }
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const target = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  const target = ownUrl(event.notification.data?.url);
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
