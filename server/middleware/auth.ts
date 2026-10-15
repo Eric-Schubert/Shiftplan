@@ -3,6 +3,7 @@ import {
   getSessionToken,
   validateCsrfToken,
   getCsrfTokenFromRequest,
+  refreshSessionCookies,
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 import { TeamAccessService } from "~/server/services/team-access.service";
@@ -27,6 +28,10 @@ const BUILTIN_READ_PREFIXES = ["/api/absences"];
 
 // Facts for /datenschutz. Open in code, so instances with their own backend.config.json keep them public.
 const LEGAL_PREFIX = "/api/legal/";
+
+// Signing out needs no session and no CSRF token, so a stale tab can always end its session.
+// The strict session cookie never comes along on cross-site posts anyway.
+const LOGOUT_ROUTE = "/api/auth/logout";
 
 
 /**
@@ -60,7 +65,7 @@ export default defineEventHandler((event) => {
   }
 
 
-  if (getAuthConfig().routes.public.includes(path)) {
+  if (getAuthConfig().routes.public.includes(path) || path === LOGOUT_ROUTE) {
     return;
   }
 
@@ -120,5 +125,5 @@ export default defineEventHandler((event) => {
     }
   }
 
-
+  refreshSessionCookies(event);
 });
