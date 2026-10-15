@@ -1,25 +1,49 @@
 import { cellRef } from "./cell-ref";
-import { DOC_REL_NS, MAIN_NS } from "./package-xml";
-import type { XlsxCellValue, XlsxSheet } from "./types";
+import { CELL_STYLE_IDS, DOC_REL_NS, MAIN_NS } from "./package-xml";
+import type { XlsxCell, XlsxCellValue, XlsxListValidation, XlsxSheetInput } from "./types";
 import { escapeXml } from "./xml";
 
-export function worksheetXml(sheet: XlsxSheet): string {
+/** `selected` marks the sheet Excel opens on; without it Excel may pick another tab. */
+export function worksheetXml(sheet: XlsxSheetInput, selected = false): string {
   const rowCount = sheet.rows.length;
   const colCount = Math.max(1, ...sheet.rows.map((row) => row.length));
   const dimension = `A1:${cellRef(rowCount || 1, colCount)}`;
   const headerRows = new Set(sheet.headerRows || []);
   const cols = columnWidthsXml(sheet.columnWidths, colCount);
   const rows = sheet.rows
-    .map((row, rowIndex) => rowXml(row, rowIndex + 1, headerRows.has(rowIndex + 1)))
+    .map((row, rowIndex) =>
+      rowXml(row, rowIndex + 1, headerRows.has(rowIndex + 1), sheet.rowHeights?.[rowIndex + 1])
+    )
     .filter(Boolean)
     .join("");
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="${MAIN_NS}" xmlns:r="${DOC_REL_NS}">
   <dimension ref="${dimension}"/>
+  ${sheetViewsXml(sheet.freeze, selected)}
   ${cols}
   <sheetData>${rows}</sheetData>
+  ${listValidationsXml(sheet.listValidations)}
 </worksheet>`;
+}
+
+function sheetViewsXml(freeze: XlsxSheetInput["freeze"], selected: boolean): string {
+  const view = `<sheetView${selected ? ' tabSelected="1"' : ""} workbookViewId="0"`;
+  if (!freeze || (freeze.rows <= 0 && freeze.cols <= 0)) {
+    return `<sheetViews>${view}/></sheetViews>`;
+  }
+
+  const topLeft = cellRef(freeze.rows + 1, freeze.cols + 1);
+  const activePane =
+    freeze.rows > 0 && freeze.cols > 0 ? "bottomRight" : freeze.rows > 0 ? "bottomLeft" : "topRight";
+  const split = [
+    freeze.cols > 0 ? `xSplit="${freeze.cols}"` : "",
+    freeze.rows > 0 ? `ySplit="${freeze.rows}"` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return `<sheetViews>${view}><pane ${split} topLeftCell="${topLeft}" activePane="${activePane}" state="frozen"/><selection pane="${activePane}" activeCell="${topLeft}" sqref="${topLeft}"/></sheetView></sheetViews>`;
 }
 
 function columnWidthsXml(widths: number[] | undefined, colCount: number): string {
@@ -37,20 +61,47 @@ function columnWidthsXml(widths: number[] | undefined, colCount: number): string
   return cols ? `<cols>${cols}</cols>` : "";
 }
 
-function rowXml(row: XlsxCellValue[], rowNumber: number, isHeader: boolean): string {
-  const cells = row
-    .map((value, index) => cellXml(value, rowNumber, index + 1, isHeader))
-    .filter(Boolean)
+/** Warning instead of a hard stop, so a cell can still hold two shifts like "Früh, Spät". */
+function listValidationsXml(validations: XlsxListValidation[] | undefined): string {
+  if (!validations || validations.length === 0) return "";
+
+  const items = validations
+    .map((validation) => {
+      const prompt = validation.prompt
+        ? ` showInputMessage="1" prompt="${escapeXml(validation.prompt.slice(0, 255))}"`
+        : "";
+      const warning = validation.warning
+        ? ` showErrorMessage="1" errorStyle="warning" error="${escapeXml(validation.warning.slice(0, 255))}"`
+        : "";
+
+      return `<dataValidation type="list" allowBlank="1"${prompt}${warning} sqref="${validation.range}"><formula1>${escapeXml(validation.source)}</formula1></dataValidation>`;
+    })
     .join("");
 
-  return cells ? `<row r="${rowNumber}">${cells}</row>` : "";
+  return `<dataValidations count="${validations.length}">${items}</dataValidations>`;
 }
 
-function cellXml(value: XlsxCellValue, rowNumber: number, colNumber: number, isHeader: boolean): string {
-  if (value === null || value === undefined || value === "") return "";
+function rowXml(row: XlsxCell[], rowNumber: number, isHeader: boolean, height?: number): string {
+  const cells = row
+    .map((cell, index) => cellXml(cell, rowNumber, index + 1, isHeader))
+    .filter(Boolean)
+    .join("");
+  const heightAttrs = height ? ` ht="${height}" customHeight="1"` : "";
 
+  return cells ? `<row r="${rowNumber}"${heightAttrs}>${cells}</row>` : "";
+}
+
+function cellXml(cell: XlsxCell, rowNumber: number, colNumber: number, isHeader: boolean): string {
+  const styled = typeof cell === "object" && cell !== null;
+  const value: XlsxCellValue = styled ? cell.value : cell;
+  const styleId = styled ? CELL_STYLE_IDS[cell.style] : isHeader ? CELL_STYLE_IDS.header : 0;
   const ref = cellRef(rowNumber, colNumber);
-  const style = isHeader ? ' s="1"' : "";
+  const style = styleId ? ` s="${styleId}"` : "";
+
+  // Styled empty cells are kept: the yellow input cells must show even when blank.
+  if (value === null || value === undefined || value === "") {
+    return styled ? `<c r="${ref}"${style}/>` : "";
+  }
 
   if (typeof value === "number" && Number.isFinite(value)) {
     return `<c r="${ref}"${style}><v>${value}</v></c>`;
@@ -61,6 +112,6 @@ function cellXml(value: XlsxCellValue, rowNumber: number, colNumber: number, isH
   }
 
   const text = String(value);
-  const space = text.trim() !== text ? ' xml:space="preserve"' : "";
+  const space = text.trim() !== text || text.includes("\n") ? ' xml:space="preserve"' : "";
   return `<c r="${ref}" t="inlineStr"${style}><is><t${space}>${escapeXml(text)}</t></is></c>`;
 }

@@ -27,27 +27,27 @@ export function resolveByName<T extends Staff | Shift>(
   lookup: Map<string, T[]>,
   name: string,
   label: string,
-  rowNumber: number
+  location: string
 ): T {
   const normalized = normalizeName(name);
 
   if (!normalized) {
-    badRequest(`${label} in Zeile ${rowNumber} fehlt`);
+    badRequest(`${label} in ${location} fehlt`);
   }
 
   const matches = lookup.get(normalized) || [];
 
   if (matches.length === 0) {
-    badRequest(`${label} '${name}' in Zeile ${rowNumber} ist unbekannt oder inaktiv`);
+    badRequest(`${label} '${name}' in ${location} ist unbekannt oder inaktiv`);
   }
 
   if (matches.length > 1) {
-    badRequest(`${label} '${name}' in Zeile ${rowNumber} ist mehrfach vorhanden`);
+    badRequest(`${label} '${name}' in ${location} ist mehrfach vorhanden`);
   }
 
   const match = matches[0];
   if (!match) {
-    badRequest(`${label} '${name}' in Zeile ${rowNumber} ist unbekannt oder inaktiv`);
+    badRequest(`${label} '${name}' in ${location} ist unbekannt oder inaktiv`);
   }
 
   return match;
@@ -74,5 +74,5 @@ export function resolveShift(options: {
   }
 
   const shiftName = toText(options.shiftNameValue);
-  return resolveByName(options.shiftsByName, shiftName, "Schicht", options.rowNumber);
+  return resolveByName(options.shiftsByName, shiftName, "Schicht", `Zeile ${options.rowNumber}`);
 }

@@ -38,13 +38,12 @@ Planners can sign in to the app with `client: "app"` and get a Bearer token vali
 Planners and admins can maintain rotation patterns with an Excel file:
 
 1. Download the Excel template in settings.
-2. Read the instructions in the first sheet.
-3. Check the start year, start week, and cycle length.
-4. Fill or adjust the template weeks.
-5. Import the file again.
-6. Generate the shift plan from the new pattern.
+2. In the sheet "Rotation", every active staff member has a row and every week of the cycle has a column. The column header shows the next calendar weeks it applies to.
+3. Pick the shift for each person and week from the dropdown, or leave the cell empty for a free week. Two shifts in one week go comma-separated into the same cell.
+4. Import the file again. The app checks it first and shows what will be replaced.
+5. Roll out the new pattern to the week plans.
 
-Internal IDs are not exposed for editing in the template. The visible fields are designed so the file can be edited without technical knowledge.
+The sheet "Anleitung" explains the cycle with a real example. Files in the earlier layout (one row per pattern week and shift, names comma-separated) can still be imported. Internal IDs are not exposed in the template.
 
 ## Version History
 

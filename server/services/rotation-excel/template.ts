@@ -1,92 +1,142 @@
 import { Buffer } from "node:buffer";
-import { createXlsx, type XlsxCellValue } from "~/server/utils/xlsx";
+import { createXlsx, type XlsxCell } from "~/server/utils/xlsx";
 import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
+import { calculatePatternWeek } from "~/server/services/rotation/weeks";
+import {
+  currentIsoWeek,
+  formatCalendarWeeks,
+  upcomingCalendarWeeks,
+} from "~/server/services/rotation-excel/calendar";
+import { shiftDropdown } from "~/server/services/rotation-excel/dropdown";
 import { createInstructionRows } from "~/server/services/rotation-excel/instructions";
 
+const SHIFTS_SHEET = "Schichten";
+const CALENDAR_WEEKS_SHOWN = 3;
+/** Title, hint, three config rows, a spacer row, then the header with "Woche 1", "Woche 2", ... */
+const HEADER_ROW = 7;
+
+/** One row per active staff member, one column per pattern week, the shift name in each cell. */
 export function createRotationTemplate(): Buffer {
   const pattern = RotationService.getFullPattern();
+  const { config } = pattern;
   const staff = StaffService.getActive();
   const shifts = ShiftService.getActive();
-
-  const rotationRows: XlsxCellValue[][] = [
-    ["Rotation bearbeiten"],
-    [
-      "Ändere oben den Startpunkt und unten nur die Mitarbeiter-Namen. Schichtnamen müssen so bleiben wie im Blatt 'Schichten'.",
-    ],
-    ["Startjahr", pattern.config.start_year, "Jahr, in dem Musterwoche 1 beginnt."],
-    ["Startwoche", pattern.config.start_week, "Kalenderwoche, in der Musterwoche 1 gilt."],
-    [
-      "Zykluslänge",
-      pattern.config.cycle_length,
-      "Anzahl der Musterwochen. Danach startet die Rotation wieder bei Musterwoche 1.",
-    ],
-    [],
-    [
-      "Wichtig",
-      "Eine leere Mitarbeiter-Zelle bedeutet: Diese Schicht ist in dieser Musterwoche nicht besetzt.",
-    ],
-    [],
-    ["Musterwoche", "Schicht", "Mitarbeiter (Komma getrennt)"],
-  ];
+  const calendarWeeks = upcomingCalendarWeeks(config, CALENDAR_WEEKS_SHOWN);
+  const thisWeek = currentIsoWeek();
+  const current = { week: thisWeek, patternWeek: calculatePatternWeek(thisWeek.year, thisWeek.week) };
+  const weeks = pattern.weeks.map((week) => week.pattern_week);
+  const shiftsByCell = new Map<string, string[]>();
 
   for (const week of pattern.weeks) {
     for (const assignment of week.assignments) {
-      rotationRows.push([
-        week.pattern_week,
-        assignment.shift.name,
-        assignment.staff.map((entry) => entry.name).join(", "),
-      ]);
+      for (const member of assignment.staff) {
+        const key = `${week.pattern_week}:${member.staff_id}`;
+        shiftsByCell.set(key, [...(shiftsByCell.get(key) || []), assignment.shift.name]);
+      }
     }
   }
 
-  const staffRows: XlsxCellValue[][] = [
-    ["Name", "Teilzeit", "So muss der Name in Rotation stehen"],
-    ...staff.map((entry) => [
-      entry.name,
-      entry.is_parttime ? "Ja" : "Nein",
-      entry.name,
-    ]),
+  const cellValue = (week: number, staffId: number) =>
+    (shiftsByCell.get(`${week}:${staffId}`) || []).join(", ");
+
+  const staffRows: XlsxCell[][] = staff.map((entry) => [
+    { value: entry.name, style: "label" },
+    ...weeks.map((week): XlsxCell => ({ value: cellValue(week, entry.staff_id), style: "input" })),
+  ]);
+
+  const rotationRows: XlsxCell[][] = [
+    [{ value: "Rotation: Wer arbeitet in welcher Woche welche Schicht?", style: "title" }],
+    [
+      {
+        value:
+          "Gelbe Zellen ausfüllen: Zelle anklicken und über den kleinen Pfeil die Schicht wählen. Leer lassen = frei. Mehr dazu im Blatt „Anleitung“.",
+        style: "hint",
+      },
+    ],
+    [
+      { value: "Startjahr", style: "label" },
+      config.start_year,
+      { value: "Jahr, in dem Woche 1 zum ersten Mal gilt", style: "hint" },
+    ],
+    [
+      { value: "Startwoche", style: "label" },
+      config.start_week,
+      { value: "Kalenderwoche, in der Woche 1 zum ersten Mal gilt", style: "hint" },
+    ],
+    [
+      { value: "Zykluslänge", style: "label" },
+      config.cycle_length,
+      { value: "Nach so vielen Wochen beginnt der Plan wieder bei Woche 1", style: "hint" },
+    ],
+    [
+      {
+        value:
+          staff.length === 0 || shifts.length === 0
+            ? "Noch nicht alles angelegt: erst Mitarbeitende und Schichten in der App anlegen, dann die Vorlage neu herunterladen."
+            : `Gerade (KW ${thisWeek.week}/${thisWeek.year}) läuft Woche ${current.patternWeek}.`,
+        style: "hint",
+      },
+    ],
+    [
+      { value: "Mitarbeiter", style: "headerWrap" },
+      ...weeks.map(
+        (week): XlsxCell => ({
+          value: `Woche ${week}\n(${formatCalendarWeeks(calendarWeeks[week - 1] || [])})`,
+          style: "headerWrap",
+        })
+      ),
+    ],
+    ...staffRows,
   ];
 
-  const shiftRows: XlsxCellValue[][] = [
-    ["Schicht", "Zeit", "Mindestbesetzung", "So muss die Schicht in Rotation stehen"],
-    ...shifts.map((entry) => [
-      entry.name,
-      `${entry.start_time} - ${entry.end_time}`,
-      entry.min_staff,
-      entry.name,
-    ]),
-  ];
+  const example = staff
+    .map((entry) => ({ name: entry.name, values: weeks.map((week) => cellValue(week, entry.staff_id)) }))
+    .find((entry) => entry.values.some(Boolean));
 
-  const instructionRows = createInstructionRows(pattern.config, shifts, staff);
+  const shiftRows: XlsxCell[][] = [
+    ["Schicht", "Zeit", "Mindestbesetzung"],
+    ...shifts.map((entry) => [entry.name, `${entry.start_time} - ${entry.end_time}`, entry.min_staff]),
+  ];
 
   return createXlsx({
+    // The instructions come first, so a first-time user reads them before filling anything in.
     sheets: [
       {
         name: "Anleitung",
-        rows: instructionRows,
-        headerRows: [1, 5, 13, 22, 30, 37],
-        columnWidths: [24, 90],
+        rows: createInstructionRows({
+          config,
+          staffCount: staff.length,
+          calendarWeeks,
+          current,
+          example: example || {
+            name: staff[0]?.name || "Anna Beispiel",
+            values: [shifts[0]?.name || "Früh", shifts[1]?.name || ""],
+          },
+          shiftNames: shifts.map((entry) => entry.name),
+        }),
+        columnWidths: [22, 100],
       },
       {
         name: "Rotation",
         rows: rotationRows,
-        headerRows: [1, 9],
-        columnWidths: [16, 28, 70],
+        columnWidths: [28, ...weeks.map(() => 20)],
+        rowHeights: { [HEADER_ROW]: 34 },
+        freeze: { rows: HEADER_ROW, cols: 1 },
+        listValidations: shiftDropdown({
+          headerRow: HEADER_ROW,
+          staffCount: staff.length,
+          weekCount: weeks.length,
+          shiftNames: shifts.map((entry) => entry.name),
+          shiftsSheet: SHIFTS_SHEET,
+        }),
       },
       {
-        name: "Mitarbeiter",
-        rows: staffRows,
-        headerRows: [1],
-        columnWidths: [34, 12, 42],
-      },
-      {
-        name: "Schichten",
+        name: SHIFTS_SHEET,
         rows: shiftRows,
         headerRows: [1],
-        columnWidths: [28, 18, 18, 42],
+        columnWidths: [28, 18, 18],
       },
     ],
   });

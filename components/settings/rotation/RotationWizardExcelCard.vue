@@ -37,9 +37,13 @@ watch(
       <strong>Weiter</strong>.
     </p>
     <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
-      <li>1. Vorlage herunterladen, sie enthält das aktuelle Muster und alle Mitarbeitenden.</li>
-      <li>2. In Excel ausfüllen und speichern.</li>
-      <li>3. Hochladen. Du siehst vor dem Ersetzen, was übernommen wird.</li>
+      <li>
+        1. Vorher alles anlegen: Mitarbeitende und Schichten in den Einstellungen, Startwoche und
+        Zykluslänge hier oben. Die Vorlage enthält nur, was beim Herunterladen schon da ist.
+      </li>
+      <li>2. Vorlage herunterladen, sie enthält das aktuelle Muster.</li>
+      <li>3. In Excel bei jeder Person pro Woche die Schicht auswählen und speichern.</li>
+      <li>4. Hochladen. Du siehst vor dem Ersetzen, was übernommen wird.</li>
     </ol>
     <div class="mt-4 flex flex-wrap gap-2">
       <PrimeButton

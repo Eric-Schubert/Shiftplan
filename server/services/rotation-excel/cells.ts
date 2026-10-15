@@ -1,3 +1,4 @@
+import { createError } from "h3";
 import type { XlsxCellValue } from "~/server/utils/xlsx";
 
 export function badRequest(message: string): never {
@@ -52,9 +53,12 @@ export function integerInRange(value: XlsxCellValue, label: string, min: number,
   return number;
 }
 
-export function splitStaffNames(value: XlsxCellValue): string[] {
+/** Splits "Anna, Ben" or "Früh; Spät" into names; "frei" and "-" count as empty. */
+export function splitList(value: XlsxCellValue): string[] {
   return toText(value)
     .split(/[,;\n\r]+/)
     .map((name) => name.trim())
-    .filter(Boolean);
+    .filter((name) => name !== "" && !FREE_MARKERS.has(normalizeName(name)));
 }
+
+const FREE_MARKERS = new Set(["frei", "-", "–"]);
