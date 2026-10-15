@@ -1,7 +1,7 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
-import { hasValidKeys } from "~/server/services/push/keys";
+import { isUndeliverable, markDelivered } from "~/server/services/push/undeliverable";
 import { getVapidDetails } from "~/server/services/push/vapid";
 import type { PushPayload, SendCounts, StoredSubscription } from "~/server/services/push/types";
 
@@ -49,19 +49,19 @@ export async function sendWebPush(
     );
 
     results.forEach((result, resultIndex) => {
+      const subscription = batch[resultIndex]!;
       if (result.status === "fulfilled") {
         sent += 1;
+        markDelivered(subscription);
         return;
       }
 
       failed += 1;
-      const subscription = batch[resultIndex]!;
-      const statusCode = (result.reason as { statusCode?: number })?.statusCode;
-      // Gone at the push service, or stored before keys were checked and never deliverable.
-      if (statusCode === 404 || statusCode === 410 || !hasValidKeys(subscription.p256dh, subscription.auth)) {
+      if (isUndeliverable(result.reason, subscription)) {
         expired.push(subscription.subscription_id);
       } else {
-        console.error("[push] Versand fehlgeschlagen:", statusCode || result.reason);
+        const reason = result.reason as { statusCode?: number; code?: string };
+        console.error("[push] Versand fehlgeschlagen:", reason?.statusCode || reason?.code || result.reason);
       }
     });
   }

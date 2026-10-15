@@ -51,6 +51,39 @@ describe("push subscription keys", () => {
     expect(left).toEqual([{ endpoint: FCM_ENDPOINT }]);
   });
 
+  it("drops subscriptions the push service rejects or whose host does not exist", async () => {
+    const endpoints = ["400", "403", "413", "500", "ok"].map((name) => `https://fcm.googleapis.com/fcm/send/${name}`);
+    const unknownHost = "https://x123.notify.windows.com/w/fake";
+    for (const endpoint of [...endpoints, unknownHost]) {
+      expect((await client.request("POST", "/api/push/subscribe", { body: { endpoint, keys: KEYS } })).status).toBe(200);
+    }
+    sendNotification.mockImplementation(async (subscription: { endpoint: string }) => {
+      if (subscription.endpoint === unknownHost) throw Object.assign(new Error("getaddrinfo ENOTFOUND"), { code: "ENOTFOUND" });
+      const status = Number(subscription.endpoint.split("/").at(-1));
+      if (status) throw Object.assign(new Error("push service"), { statusCode: status });
+      return { statusCode: 201 };
+    });
+
+    await client.push.PushService.sendWebPush({ title: "Test", body: "Test", url: "/" });
+    const left = (client.adminDb.prepare("SELECT endpoint FROM push_subscriptions ORDER BY endpoint").all() as Array<{ endpoint: string }>)
+      .map((row) => row.endpoint.split("/").at(-1));
+
+    expect(left).toEqual(["413", "500", "ok"]);
+  });
+
+  it("gives an unreachable push service three sends before dropping the subscription", async () => {
+    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    sendNotification.mockRejectedValue(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" }));
+    const counts: number[] = [];
+
+    for (let send = 0; send < 3; send += 1) {
+      await client.push.PushService.sendWebPush({ title: "Test", body: "Test", url: "/" });
+      counts.push(client.push.PushService.countSubscriptions());
+    }
+
+    expect(counts).toEqual([1, 1, 0]);
+  });
+
   it("keeps subscriptions with valid keys after a temporary failure", async () => {
     await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
     sendNotification.mockRejectedValue(new Error("socket hang up"));

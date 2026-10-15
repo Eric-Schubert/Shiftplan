@@ -32,6 +32,7 @@ describe("team access and push e2e", () => {
       "http://fcm.googleapis.com/fcm/send/x",
       "https://192.168.178.130/internal",
       "https://evil.example/web.push.apple.com",
+      "https://x.push.apple.com/no-such-host",
     ]) {
       const response = await client.request("POST", "/api/push/subscribe", {
         body: { endpoint, keys: KEYS },

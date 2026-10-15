@@ -11,7 +11,8 @@ const ALLOWED_PUSH_HOSTS = [
   "updates.push.services.mozilla.com",
   "web.push.apple.com",
 ];
-const ALLOWED_PUSH_HOST_SUFFIXES = [".push.apple.com", ".notify.windows.com"];
+// Apple's Web Push always uses web.push.apple.com; only Windows needs per-region hosts.
+const ALLOWED_PUSH_HOST_SUFFIXES = [".notify.windows.com"];
 
 function isAllowedEndpoint(endpoint: string): boolean {
   let url: URL;

@@ -410,7 +410,7 @@ Danach `docker compose up -d`. Die App funktioniert weiter, zeigt Änderungen ab
 |---|---|---|
 | eingehend | 443 auf den Reverse Proxy | Browser und App |
 | ausgehend | `push.shiftplan.info:443` | App-Pushes |
-| ausgehend | Push-Dienste der Browser, z. B. `fcm.googleapis.com`, `*.push.apple.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com` | Web Push |
+| ausgehend | Push-Dienste der Browser, z. B. `fcm.googleapis.com`, `web.push.apple.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com` | Web Push |
 | ausgehend | `openholidaysapi.org:443` | Feiertage und Schulferien |
 
 ## Datenschutz und Impressum
