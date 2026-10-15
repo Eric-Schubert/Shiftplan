@@ -114,6 +114,10 @@ NUXT_PUBLIC_PRIVACY_HOSTER=
 # Kontakt für Web Push (VAPID). Standard: mailto: mit der Impressums-E-Mail.
 SHIFTPLAN_PUSH_SUBJECT=
 
+# Öffentliche Adresse der Instanz, die sie dem Push-Relay nennt, z. B. https://plan.example.de.
+# Leer: die Adresse, über die zuletzt der Plan geändert wurde.
+SHIFTPLAN_PUBLIC_URL=
+
 # Relay für App-Pushes: nicht setzen = https://push.shiftplan.info.
 # "off" (oder ein leerer Wert) schaltet App-Pushes ab, siehe Abschnitt Push-Nachrichten.
 # SHIFTPLAN_PUSH_RELAY_URL=off
@@ -370,7 +374,7 @@ Ein eigenes Relay ist mit der offiziellen App nicht möglich, weil die Geräte-T
 ### Was dabei passiert
 
 1. Nach dem Einrichten stehen Benachrichtigungen in der App auf „Alle“. Die App meldet ihr Geräte-Token an deine Instanz. Es liegt nur in deiner Datenbank. Das Token selbst holt die App bei jedem Start von Firebase bzw. APNs, auch ohne eingerichtetes Team; dafür ist ES Software als Anbieter der App verantwortlich.
-2. Beim ersten Push registriert sich deine Instanz automatisch beim Relay. Sie schickt dabei den Namen aus „Name in der App“ und ihre HTTPS-Adresse. Das Relay antwortet mit einer Instanz-ID und einem Secret, die Instanz speichert beides in ihrer Admin-Datenbank.
+2. Beim ersten Push registriert sich deine Instanz automatisch beim Relay. Sie schickt dabei den Namen aus „Name in der App“ und ihre HTTPS-Adresse (`SHIFTPLAN_PUBLIC_URL`, sonst die Adresse, über die zuletzt der Plan geändert wurde). Das Relay antwortet mit einer Instanz-ID und einem Secret, die Instanz speichert beides in ihrer Admin-Datenbank.
 3. Für jeden Push schickt die Instanz Titel, Text, die Geräte-Tokens und einen Link in die App (Kalenderwoche) an das Relay. Das Relay gibt sie an Firebase weiter und meldet ungültige Tokens zurück. Die Instanz löscht diese Geräte dann.
 
 Das Relay speichert:
@@ -471,6 +475,7 @@ Backups außerhalb des Servers aufbewahren. Sie enthalten personenbezogene Daten
 | `SHIFTPLAN_TRUST_PROXY_HEADERS` | Client-IP aus `X-Forwarded-For` übernehmen | `false` |
 | `SHIFTPLAN_PUSH_RELAY_URL` | Relay für App-Pushes, `off` oder ein leerer Wert schaltet sie ab | nicht gesetzt: `https://push.shiftplan.info` |
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID-Kontakt für Web Push | `mailto:` + Impressums-E-Mail |
+| `SHIFTPLAN_PUBLIC_URL` | Öffentliche HTTPS-Adresse für Push-Relay und VAPID-Kontakt | Adresse der letzten Planänderung |
 | `SHIFTPLAN_BACKEND_CONFIG_PATH` | anderer Pfad für `backend.config.json` | `/app/config/backend.config.json` |
 | `TZ` | Zeitzone | `UTC` |
 | `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher. Pflicht: Name, Straße, PLZ, Ort und E-Mail, bei GmbH, UG usw. auch Vertretungsberechtigte und Register. Fehlt Name, Anschrift oder E-Mail, zeigt `/impressum` eine Warnung | leer |
