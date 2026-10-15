@@ -37,7 +37,8 @@ function isSameOriginRequest(event: any): boolean {
   const origin = getHeader(event, "origin");
   if (!origin) return false;
   try {
-    return new URL(origin).host === getRequestHost(event, { xForwardedHost: getAuthConfig().trustProxyHeaders });
+    const xForwardedHost = Boolean(getAuthConfig().trustProxyHeaders);
+    return new URL(origin).host === getRequestHost(event, { xForwardedHost });
   } catch {
     return false;
   }

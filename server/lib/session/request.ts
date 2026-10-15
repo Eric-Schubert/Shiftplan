@@ -1,4 +1,5 @@
 import { getAuthConfig } from "~/server/config/auth-config";
+import { networkOf } from "~/server/lib/session/network";
 
 export function getSessionToken(event: any): string | undefined {
   const authHeader = getHeader(event, "authorization");
@@ -18,24 +19,41 @@ export function getCsrfTokenFromRequest(event: any): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
+let warnedAboutUntrustedProxy = false;
+
+/** Behind a proxy without trusted headers every client shares the proxy's address and its limits. */
+function warnAboutUntrustedProxy(event: any, socketIP: string): void {
+  if (warnedAboutUntrustedProxy || socketIP === "unknown" || !getHeader(event, "x-forwarded-for")) return;
+  warnedAboutUntrustedProxy = true;
+  console.warn(
+    "[auth] Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit."
+  );
+}
+
 export function getClientIP(event: any): string {
   const socketIP = event.node?.req?.socket?.remoteAddress || "unknown";
+  const trust = getAuthConfig().trustProxyHeaders;
 
-  if (!getAuthConfig().trustProxyHeaders) {
+  if (!trust) {
+    warnAboutUntrustedProxy(event, socketIP);
     return socketIP;
   }
 
-  const cfIP = getHeader(event, "cf-connecting-ip");
-  if (cfIP) return cfIP;
-
-  const xForwardedFor = getHeader(event, "x-forwarded-for");
-  if (xForwardedFor) {
-    const forwardedIp = xForwardedFor.split(",")[0]?.trim();
-    if (forwardedIp) return forwardedIp;
+  // Only Cloudflare overwrites this header. Any other proxy passes on what the client sent.
+  if (trust === "cloudflare") {
+    const cfIP = getHeader(event, "cf-connecting-ip")?.trim();
+    if (cfIP) return cfIP;
   }
 
-  const xRealIP = getHeader(event, "x-real-ip");
-  if (xRealIP) return xRealIP;
+  // The proxy in front appends the address it saw. Everything left of it came from the client.
+  const forwarded = getHeader(event, "x-forwarded-for")
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return forwarded?.at(-1) || socketIP;
+}
 
-  return socketIP;
+/** Rate-limit key of the client: its address, or its /64 network for IPv6. */
+export function getClientNetwork(event: any): string {
+  return networkOf(getClientIP(event));
 }

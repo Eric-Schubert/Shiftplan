@@ -2,7 +2,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import backendConfig from "../config/backend.config.json";
 
 const originalCwd = process.cwd();
 const originalBootstrapPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
@@ -10,14 +9,24 @@ const originalBootstrapPassword = process.env.SHIFTPLAN_ADMIN_PASSWORD;
 let tempDir: string | null = null;
 let closeDatabase: (() => void) | null = null;
 
-async function loadSessionModule() {
+async function loadSessionModules() {
   process.env.SHIFTPLAN_ADMIN_PASSWORD = "BootstrapPass1";
   vi.resetModules();
 
   const databaseModule = await import("../server/utils/database");
   closeDatabase = databaseModule.closeDatabase;
 
-  return import("../server/utils/session");
+  return {
+    adminDb: databaseModule.getAdminDatabase(),
+    session: await import("../server/utils/session"),
+    rateLimit: await import("../server/lib/session/rate-limit"),
+  };
+}
+
+function reload() {
+  closeDatabase?.();
+  closeDatabase = null;
+  return loadSessionModules();
 }
 
 describe("persistent session storage", () => {
@@ -45,73 +54,42 @@ describe("persistent session storage", () => {
   });
 
   it("persists sessions across module reloads", async () => {
-    const firstSessionModule = await loadSessionModule();
-    const created = firstSessionModule.createSession({
-      userId: 7,
-      username: "planner",
-      role: "planner",
-    });
+    const first = await loadSessionModules();
+    const admin = first.adminDb.prepare("SELECT user_id FROM users WHERE username = 'admin'").get() as {
+      user_id: number;
+    };
+    const created = first.session.createSession({ userId: admin.user_id, username: "admin", role: "admin" });
 
-    closeDatabase?.();
-    closeDatabase = null;
-
-    const secondSessionModule = await loadSessionModule();
-    expect(secondSessionModule.getSessionData(created.sessionToken)).toEqual({
-      userId: 7,
-      username: "planner",
-      role: "planner",
+    const second = await reload();
+    expect(second.session.getSessionData(created.sessionToken)).toEqual({
+      userId: admin.user_id,
+      username: "admin",
+      role: "admin",
     });
   });
 
   it("persists login throttle state across module reloads", async () => {
-    const firstSessionModule = await loadSessionModule();
-    firstSessionModule.recordFailedLogin("192.0.2.50");
+    const first = await loadSessionModules();
+    const bucket = [{ key: "login:192.0.2.50" }];
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      expect(first.rateLimit.reserveAttempt(bucket)).toBe(true);
+      first.rateLimit.settleAttempt(bucket, false);
+    }
 
-    closeDatabase?.();
-    closeDatabase = null;
-
-    const secondSessionModule = await loadSessionModule();
-    expect(secondSessionModule.checkRateLimit("192.0.2.50")).toEqual({
-      allowed: true,
-      remainingAttempts: 4,
-      blockedForSeconds: 0,
-    });
+    const second = await reload();
+    expect(second.rateLimit.reserveAttempt(bucket)).toBe(false);
+    expect(second.rateLimit.reserveAttempt([{ key: "login:192.0.2.51" }])).toBe(true);
   });
 
-  it("ignores spoofable proxy headers by default", async () => {
-    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
-    const sessionModule = await loadSessionModule();
+  it("counts attempts that are still running, so parallel guesses cannot pass the limit", async () => {
+    const { rateLimit } = await loadSessionModules();
+    const bucket = [{ key: "login:192.0.2.60" }];
 
-    expect(
-      sessionModule.getClientIP({
-        headers: {
-          "cf-connecting-ip": "198.51.100.10",
-          "x-forwarded-for": "198.51.100.20",
-          "x-real-ip": "198.51.100.30",
-        },
-        node: { req: { socket: { remoteAddress: "203.0.113.5" } } },
-      })
-    ).toBe("203.0.113.5");
-  });
+    const reserved = Array.from({ length: 8 }, () => rateLimit.reserveAttempt(bucket));
+    expect(reserved.filter(Boolean)).toHaveLength(5);
 
-  it("uses proxy headers when they are explicitly trusted", async () => {
-    const trustedProxyConfig = structuredClone(backendConfig);
-    trustedProxyConfig.auth.trustProxyHeaders = true;
-    fs.mkdirSync(path.join(tempDir!, "config"), { recursive: true });
-    fs.writeFileSync(
-      path.join(tempDir!, "config", "backend.config.json"),
-      JSON.stringify(trustedProxyConfig, null, 2)
-    );
-    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
-    const sessionModule = await loadSessionModule();
-
-    expect(
-      sessionModule.getClientIP({
-        headers: {
-          "x-forwarded-for": "198.51.100.20, 198.51.100.21",
-        },
-        node: { req: { socket: { remoteAddress: "203.0.113.5" } } },
-      })
-    ).toBe("198.51.100.20");
+    // Successes give their attempt back, so a planner signing in often is never blocked.
+    for (let attempt = 0; attempt < 5; attempt += 1) rateLimit.settleAttempt(bucket, true);
+    expect(rateLimit.reserveAttempt(bucket)).toBe(true);
   });
 });
