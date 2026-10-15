@@ -6,7 +6,7 @@ The tables below are generated from `server/api/`, `server/middleware/auth.ts`, 
 
 | Access | Meaning |
 |--------|---------|
-| Public | Anyone. Member routes without a guard authenticate the request themselves, for example with Kürzel and PIN. |
+| Public | Anyone. Member routes without a guard authenticate the request themselves, for example with short code and PIN. |
 | Team | Anyone with the link, or with the team access code if one is set |
 | Member | A signed-in employee (personal app access) |
 | Login | Any signed-in planner or admin |
@@ -139,7 +139,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/member/absences` | Member | No | - | `reason`, `shiftId` | Create or update member data |
 | `DELETE` | `/api/member/absences/:id` | Member | No | - | - | Delete one member record |
-| `POST` | `/api/member/login` | Public | No | - | `deviceName`, `pin`, `shortCode` | Sign in with Kürzel and PIN |
+| `POST` | `/api/member/login` | Public | No | - | `deviceName`, `pin`, `shortCode` | Sign in with short code and PIN |
 | `POST` | `/api/member/logout` | Public | No | - | - | Sign out the employee, or end the app's team-code token |
 | `GET` | `/api/member/me` | Member | No | - | - | Read the signed-in employee |
 | `PUT` | `/api/member/pin` | Member | No | - | `currentPin`, `pin` | Set or change the own PIN |

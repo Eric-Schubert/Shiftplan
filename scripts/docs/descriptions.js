@@ -16,7 +16,7 @@ const EXACT_DESCRIPTIONS = {
   "GET /api/shiftplan/year-summary": "Read yearly planning coverage",
   "GET /api/holidays/public": "Read public holidays",
   "GET /api/holidays/school": "Read school holidays",
-  "POST /api/member/login": "Sign in with Kürzel and PIN",
+  "POST /api/member/login": "Sign in with short code and PIN",
   "POST /api/member/redeem": "Redeem a personal QR code",
   "PUT /api/member/pin": "Set or change the own PIN",
   "GET /api/member/me": "Read the signed-in employee",
