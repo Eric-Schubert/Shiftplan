@@ -33,8 +33,10 @@ const sorted = computed(() => {
     });
 });
 
+// Staff can withdraw their own absences only while days are still ahead.
 function canRemove(absence: Absence): boolean {
-  return props.canEdit || (props.myStaffId != null && absence.staff_id === props.myStaffId);
+  if (props.canEdit) return true;
+  return props.myStaffId != null && absence.staff_id === props.myStaffId && absence.range_to >= todayISO();
 }
 
 function isRange(absence: Absence): boolean {

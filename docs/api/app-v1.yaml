@@ -218,14 +218,18 @@ paths:
         - name: range
           in: query
           description: |
-            `1` zieht den ganzen Zeitraum zurück, sonst nur diesen Tag. Hat der Zeitraum schon
-            begonnen, endet er heute: nur die Tage ab heute werden zurückgezogen, frühere bleiben.
+            `1` zieht den ganzen Zeitraum zurück, sonst nur diesen Tag. Zurückziehen geht nur für
+            Tage ab heute: Hat der Zeitraum schon begonnen, werden heute und die folgenden Tage
+            zurückgezogen, der Ausfall endet also gestern. Liegt der Tag oder der ganze Zeitraum in
+            der Vergangenheit, kommt 400 „Vergangene Ausfälle lassen sich nicht zurückziehen“.
           schema:
             type: string
             enum: ["1"]
       responses:
         "200":
           $ref: "#/components/responses/Success"
+        "400":
+          $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/Error"
 
@@ -303,8 +307,9 @@ paths:
         - name: range
           in: query
           description: |
-            `1` löscht den ganzen Zeitraum. Hat er schon begonnen, endet er heute: nur die Tage
-            ab heute werden gelöscht, frühere bleiben.
+            `1` löscht den ganzen Zeitraum. Hat er schon begonnen, werden nur heute und die
+            folgenden Tage gelöscht, der Ausfall endet also gestern. Liegt er komplett in der
+            Vergangenheit, wird er ganz gelöscht (Korrektur durch die Planung).
           schema:
             type: string
             enum: ["1"]

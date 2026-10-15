@@ -13,7 +13,7 @@ export default defineEventHandler((event) => {
   const cancelled = cancelAbsence(
     absence,
     { userId: user.userId, username: user.username, source: requestSource(event) },
-    getQuery(event).range === "1"
+    { wholeRange: getQuery(event).range === "1" }
   );
   return { success: true, cancelled };
 });

@@ -14,7 +14,7 @@ export default defineEventHandler((event) => {
   const cancelled = cancelAbsence(
     absence,
     { userId: 0, username: member.staffName, source: memberSource(event) },
-    getQuery(event).range === "1"
+    { wholeRange: getQuery(event).range === "1", upcomingOnly: true }
   );
   return { success: true, cancelled };
 });

@@ -66,6 +66,23 @@ describe("absences and the plan", () => {
     expect(audit).toEqual([{ reason: "Mi. 07.10. – Fr. 09.10." }]);
   });
 
+  it("lets staff withdraw only days still ahead, while planners may correct the past", async () => {
+    const anna = await member(ANNA, "anna:tok");
+    const day = (await report(anna, { date: "2026-10-06", notifyTeam: false })).json!.absences[0].absence_id;
+    const range = (await report(anna, { from: THURSDAY, to: FRIDAY, notifyTeam: false })).json!.absences[0].absence_id;
+    vi.setSystemTime(new Date("2026-10-10T08:00:00Z"));
+
+    const pastDay = await client.request<any>("DELETE", `/api/member/absences/${day}`, { headers: bearer(anna) });
+    const pastRange = await client.request<any>("DELETE", `/api/member/absences/${range}?range=1`, { headers: bearer(anna) });
+    const planner = await client.loginAs("planner", "planner1234");
+    const corrected = await client.request<any>("DELETE", `/api/absences/${day}`, { jar: planner, csrf: true });
+
+    expect([pastDay.status, pastDay.json!.statusMessage]).toEqual([400, "Vergangene Ausfälle lassen sich nicht zurückziehen"]);
+    expect(pastRange.status).toBe(400);
+    expect(corrected.json!.cancelled).toBe(1);
+    expect((await week41()).json!.map((absence) => absence.absence_date)).toEqual([THURSDAY, FRIDAY]);
+  });
+
   it("asks who takes over only when a takeover request was opened", async () => {
     const anna = await member(ANNA, "anna:tok");
     await member(MAX, "max:tok");
