@@ -47,7 +47,7 @@ useSeoMeta({
 </template>
 
 <style scoped>
-/* Fließtext eines Rechtstexts: größer und luftiger als die App-Oberfläche, eine Spalte. */
+/* Body text of a legal page: larger and airier than the app UI, one column. */
 .privacy {
   scroll-padding-top: 5rem;
 }

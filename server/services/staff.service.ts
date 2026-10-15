@@ -11,7 +11,7 @@ function takenShortCodes(exceptId?: number): Set<string> {
   return new Set(rows.map((row) => row.short_code));
 }
 
-/** Validates a Kürzel typed by a planner; throws on bad format or when someone else has it. */
+/** Validates a short code typed by a planner; throws on bad format or when someone else has it. */
 function checkShortCode(value: string, exceptId?: number): string {
   const code = normalizeShortCode(value);
   if (!isValidShortCode(code)) {

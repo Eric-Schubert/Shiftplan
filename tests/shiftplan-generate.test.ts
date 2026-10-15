@@ -63,7 +63,7 @@ function staffInWeek(year: number, week: number): string[] {
 describe("Rollout from the rotation pattern", () => {
   beforeEach(async () => {
     await loadModules();
-    // KW 2 is already planned by hand with Anna; the pattern would put Ben there.
+    // Week 2 is already planned by hand with Anna; the pattern would put Ben there.
     const week = ShiftplanService.getOrCreateWeek(2026, 2);
     ShiftplanService.assignStaff(1, 1, week.week_id);
     db.prepare(

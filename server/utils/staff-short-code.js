@@ -4,7 +4,7 @@ export const SHORT_CODE_MAX_LENGTH = 8;
 
 const UMLAUTS = { Ä: "AE", Ö: "OE", Ü: "UE", ß: "SS" };
 
-/** Upper case letters and digits only, so "mm", " M-M " and "MM" are the same Kürzel. */
+/** Upper case letters and digits only, so "mm", " M-M " and "MM" are the same short code. */
 export function normalizeShortCode(value) {
   if (typeof value !== "string") return "";
   return value
@@ -20,8 +20,8 @@ export function isValidShortCode(value) {
 }
 
 /**
- * A name that already is a Kürzel ("AL", "KMS") stays as it is; otherwise the initials of first
- * and last name. A number is added when the Kürzel is taken.
+ * A name that already is a short code ("AL", "KMS") stays as it is; otherwise the initials of first
+ * and last name. A number is added when the short code is taken.
  */
 export function suggestShortCode(name, taken) {
   const whole = normalizeShortCode(name);
@@ -41,7 +41,7 @@ export function suggestShortCode(name, taken) {
   }
 }
 
-/** Gives every staff member without a Kürzel one, e.g. people added by a seed after the migration. */
+/** Gives every staff member without a short code one, e.g. people added by a seed after the migration. */
 export function assignMissingShortCodes(database) {
   const missing = database.prepare("SELECT staff_id, name FROM staff WHERE short_code IS NULL ORDER BY staff_id").all();
   if (missing.length === 0) return 0;

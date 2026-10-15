@@ -20,7 +20,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** KW 41 is over by now, and staff report absences from today on. */
+/** Week 41 is over by now, and staff report absences from today on. */
 function onMonday() {
   vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
 }
@@ -101,7 +101,7 @@ describe("absences", () => {
 
     expect(report.status).toBe(200);
     expect(report.json!.absences).toHaveLength(7);
-    // Only KW 41 is planned: those days carry the shift, the rest stays without one.
+    // Only week 41 is planned: those days carry the shift, the rest stays without one.
     expect(report.json!.absences.map((absence) => absence.shift_id)).toEqual([EARLY, EARLY, EARLY, EARLY, null, null, null]);
     expect(new Set(report.json!.absences.map((absence) => absence.batch_id)).size).toBe(1);
     expect(sends).toHaveLength(1);

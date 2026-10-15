@@ -4,7 +4,7 @@ import { migrateMainDatabase } from "~/server/utils/database-migrations.js";
 import { assignMissingShortCodes } from "~/server/utils/staff-short-code.js";
 
 describe("database migrations", () => {
-  it("gives existing staff a unique Kürzel from their initials", () => {
+  it("gives existing staff a unique short code from their initials", () => {
     const db = new Database(":memory:");
     migrateMainDatabase(db);
     db.exec("DROP INDEX idx_staff_short_code");
@@ -23,7 +23,7 @@ describe("database migrations", () => {
     db.close();
   });
 
-  it("fills in Kürzel for staff added after the migration", () => {
+  it("fills in short codes for staff added after the migration", () => {
     const db = new Database(":memory:");
     migrateMainDatabase(db);
     db.prepare("INSERT INTO staff (name, short_code) VALUES ('Max Muster', 'MM')").run();

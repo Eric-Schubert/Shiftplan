@@ -5,10 +5,10 @@ import type { RotationConfig } from "~/types/rotation";
 type InstructionInput = {
   config: Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">;
   staffCount: number;
-  /** Upcoming calendar weeks per pattern week, index 0 = Woche 1. */
+  /** Upcoming calendar weeks per pattern week, index 0 = pattern week 1. */
   calendarWeeks: IsoWeek[][];
   current: { week: IsoWeek; patternWeek: number };
-  /** A person and their cell values for Woche 1, 2, ... ("" = frei). */
+  /** A person and their cell values for pattern week 1, 2, ... ("" = free). */
   example: { name: string; values: string[] };
   shiftNames: string[];
 };
@@ -28,21 +28,21 @@ function exampleText({ config, calendarWeeks, example }: InstructionInput): stri
   const { name, values } = example;
   const shown = (value: string | undefined) => (value ? `„${value}“` : "nichts (frei)");
   const worked = (value: string | undefined) => value || "frei";
-  // Woche 2 right after the next Woche 1, so the example reads forward in time.
+  // Pattern week 2 right after the next pattern week 1, so the example reads forward in time.
   const order = (entry: IsoWeek) => entry.year * 100 + entry.week;
   const first = calendarWeeks[0]?.[0];
-  const firstKw = first?.week;
-  const secondKw = calendarWeeks[1]?.find((entry) => first && order(entry) > order(first))?.week;
-  const repeatKw = calendarWeeks[0]?.[1]?.week;
+  const firstWeek = first?.week;
+  const secondWeek = calendarWeeks[1]?.find((entry) => first && order(entry) > order(first))?.week;
+  const repeatWeek = calendarWeeks[0]?.[1]?.week;
 
-  if (config.cycle_length === 1 || secondKw === undefined) {
+  if (config.cycle_length === 1 || secondWeek === undefined) {
     return `Steht bei ${name} unter Woche 1 ${shown(values[0])}, dann gilt das jede Woche: ${name} hat immer ${worked(values[0])}.`;
   }
 
   return (
     `Steht bei ${name} unter Woche 1 ${shown(values[0])} und unter Woche 2 ${shown(values[1])}, ` +
-    `dann hat ${name} in KW ${firstKw} ${worked(values[0])} und in KW ${secondKw} ${worked(values[1])}. ` +
-    `Nach Woche ${config.cycle_length} geht es wieder mit Woche 1 los, also ab KW ${repeatKw} wieder ${worked(values[0])}.`
+    `dann hat ${name} in KW ${firstWeek} ${worked(values[0])} und in KW ${secondWeek} ${worked(values[1])}. ` +
+    `Nach Woche ${config.cycle_length} geht es wieder mit Woche 1 los, also ab KW ${repeatWeek} wieder ${worked(values[0])}.`
   );
 }
 

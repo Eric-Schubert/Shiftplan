@@ -1,4 +1,4 @@
-<!-- Dienste, die die Shiftplan-App (iOS und Android) anspricht. Teil des Abschnitts "dienste". -->
+<!-- Services the Shiftplan app (iOS and Android) talks to. Part of the "dienste" (services) section. -->
 <script setup lang="ts">
 const props = defineProps<{
   /** False when this instance sends nothing to the app (SHIFTPLAN_PUSH_RELAY_URL=off). */

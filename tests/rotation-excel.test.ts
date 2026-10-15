@@ -6,7 +6,7 @@ describe("Rotation Excel template", () => {
   useRotationExcelModules();
 
   beforeEach(() => {
-    // KW 42/2026; with start KW 1/2026 and two weeks this is pattern week 2.
+    // Week 42/2026; with start week 1/2026 and two weeks this is pattern week 2.
     vi.useFakeTimers({ now: new Date(2026, 9, 15), toFake: ["Date"] });
   });
 
