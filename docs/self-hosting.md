@@ -358,7 +358,7 @@ Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende können
 
 ### Wann Pushes kommen
 
-- Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung löst keine Pushes aus.
+- Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung und Korrekturen vergangener Tage lösen keine Pushes aus.
 - Ausfallmeldungen an das Team, z. B. „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“. Den Grund enthält eine Nachricht nie. Die Person, die fehlt, bekommt die Nachricht nicht selbst.
 - Übernahme- und Tauschanfragen sowie deren Zu- und Absagen, mit Name und optionaler Nachricht.
 - Freie Nachrichten der Planung über „Team benachrichtigen“.
