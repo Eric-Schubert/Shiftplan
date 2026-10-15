@@ -5,6 +5,7 @@ import { createTakeover } from "~/server/utils/shift-request-flow";
 import { PushService } from "~/server/services/push.service";
 import { buildAbsenceNotice, formatNoticeDay } from "~/server/utils/absence-notice";
 import { weekOfDate } from "~/server/utils/iso-week";
+import { planningToday } from "~/server/utils/planning-date";
 
 type Actor = { userId: number; username: string; source: "web" | "app" };
 
@@ -71,7 +72,7 @@ export async function reportAbsence(input: {
   logPerWeek(absences, "absence", input.actor);
 
   if (input.seekTakeover) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = planningToday();
     for (const absence of absences) {
       if (absence.shift_id === null || absence.absence_date < today) continue;
       try {
