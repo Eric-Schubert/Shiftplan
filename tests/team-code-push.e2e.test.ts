@@ -49,7 +49,8 @@ describe("a new team access code", () => {
     expect((await device("anna:APA91b", bearer(anna.token))).status).toBe(200);
     expect((await device("team:APA91b")).status).toBe(200);
     await annaBrowser();
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: TEAM_BROWSER, keys: KEYS } });
+    const team = await client.request("POST", "/api/push/subscribe", { body: { endpoint: TEAM_BROWSER, keys: KEYS } });
+    expect(team.status).toBe(200);
 
     const admin = await client.loginAs("admin", "admin1234");
     const code = await newCode(admin);
