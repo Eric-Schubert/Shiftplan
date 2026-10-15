@@ -30,8 +30,9 @@ info:
     - `year`, `week`: nur bei Planänderungen
     Automatische Änderungs-Pushes nennen nur Kalenderwochen und Schichten, keine Namen.
 
-    Ein neuer Zugangscode macht alle Tokens ungültig und löscht alle registrierten Geräte.
-    Dann liefern geschützte Endpunkte 401 und die App fragt den Code neu ab.
+    Ein neuer Zugangscode macht alle Team-Tokens (`POST /api/viewer/login`) ungültig und löscht
+    die damit registrierten Geräte. Dann liefern geschützte Endpunkte 401 und die App fragt den
+    Code neu ab. Persönliche Tokens und ihre Geräte bleiben gültig.
 
     `apiVersion` steigt nur bei inkompatiblen Änderungen. Neue Felder können jederzeit
     dazukommen und sind von der App zu ignorieren.

@@ -37,8 +37,8 @@ async function load() {
 
 function requestChange(action: PendingAction) {
   error.value = "";
-  // The first code changes nothing for existing devices, so no confirmation needed.
-  if (!access.value?.code && action !== "remove") {
+  // The first code only drops pushes enabled without a personal sign-in; with none there is nothing to confirm.
+  if (!access.value?.code && action !== "remove" && !access.value?.subscriberCount) {
     void applyChange(action);
     return;
   }
@@ -121,6 +121,7 @@ onMounted(load);
     <TeamAccessConfirmDialog
       v-model:visible="confirmVisible"
       :removing="pendingAction === 'remove'"
+      :first-code="!access?.code"
       :saving="saving"
       @confirm="applyChange(pendingAction!)"
     />
