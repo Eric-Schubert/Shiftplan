@@ -44,7 +44,7 @@ export function requestWithCookies(handler: PlainHandler, defaultHeaders: Record
     if (options.jar && options.jar.size > 0) {
       headers.cookie = [...options.jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
     }
-    if (options.body !== undefined) headers["content-type"] = "application/json";
+    if (options.body !== undefined) headers["content-type"] ??= "application/json";
     if (options.csrf && options.jar?.get(csrfCookieName)) {
       headers["x-csrf-token"] = options.jar.get(csrfCookieName)!;
     }

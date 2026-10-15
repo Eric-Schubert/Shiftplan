@@ -5,41 +5,32 @@ import {
   VIEWER_COOKIE_NAME,
   VIEWER_SESSION_DAYS,
 } from "~/server/services/team-access.service";
-import {
-  checkRateLimit,
-  getClientIP,
-  recordFailedLogin,
-  resetRateLimit,
-} from "~/server/utils/session";
+import { getClientNetwork, limitAttempt } from "~/server/utils/session";
+import { readJsonBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ code?: unknown; client?: unknown }>(event);
+  const body = await readJsonBody<{ code: unknown; client: unknown }>(event);
   const isApp = body?.client === "app";
 
   if (!TeamAccessService.isCodeRequired()) {
     return isApp ? { success: true, token: null, expiresAt: null } : { success: true };
   }
 
-  // Own bucket, so mistyped team codes in a shared office network never lock out planners.
-  const rateLimitKey = `viewer:${getClientIP(event)}`;
-  if (!checkRateLimit(rateLimitKey).allowed) {
-    throw createError({
-      statusCode: 429,
-      statusMessage: "Zu viele Versuche. Bitte warten.",
-    });
-  }
-
   const code = typeof body?.code === "string" ? body.code : "";
 
-  if (!code || code.length > ACCESS_CODE_MAX_LENGTH || !TeamAccessService.verifyCode(code)) {
-    recordFailedLogin(rateLimitKey);
+  // Own bucket, so mistyped team codes in a shared office network never lock out planners.
+  // A success clears it: the code is far too long to guess, but colleagues behind one NAT share it.
+  const bucket = { key: `viewer:${getClientNetwork(event)}`, resetOnSuccess: true };
+  const valid = await limitAttempt([bucket], () =>
+    code && code.length <= ACCESS_CODE_MAX_LENGTH && TeamAccessService.verifyCode(code) ? true : null
+  );
+  if (!valid) {
     throw createError({
       statusCode: 401,
       statusMessage: "Zugangscode ist falsch",
     });
   }
 
-  resetRateLimit(rateLimitKey);
   const session = TeamAccessService.createViewerSession();
 
   // The app keeps the token in secure storage and sends it as Bearer header.

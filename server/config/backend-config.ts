@@ -16,7 +16,7 @@ export function getBackendConfig(): BackendConfig {
 
 // Deployment-specific switches that should not require a full config file copy.
 function applyEnvOverrides(config: BackendConfig): BackendConfig {
-  const trustProxyHeaders = parseBooleanEnv("SHIFTPLAN_TRUST_PROXY_HEADERS");
+  const trustProxyHeaders = parseTrustProxyEnv("SHIFTPLAN_TRUST_PROXY_HEADERS");
   if (trustProxyHeaders !== undefined) {
     config.auth.trustProxyHeaders = trustProxyHeaders;
   }
@@ -24,13 +24,14 @@ function applyEnvOverrides(config: BackendConfig): BackendConfig {
   return config;
 }
 
-function parseBooleanEnv(name: string): boolean | undefined {
+function parseTrustProxyEnv(name: string): boolean | "cloudflare" | undefined {
   const value = process.env[name]?.trim().toLowerCase();
   if (!value) return undefined;
   if (value === "true" || value === "1") return true;
   if (value === "false" || value === "0") return false;
+  if (value === "cloudflare") return "cloudflare";
 
-  throw new Error(`${name} muss true oder false sein`);
+  throw new Error(`${name} muss true, false oder cloudflare sein`);
 }
 
 export function resetBackendConfigForTests(): void {

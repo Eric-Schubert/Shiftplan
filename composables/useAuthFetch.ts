@@ -1,7 +1,17 @@
 import backendConfig from "../config/backend.config.json";
+import { isAuthFailure } from "~/stores/auth/session";
 
 export function useAuthFetch() {
   const authStore = useAuthStore();
+  const router = useRouter();
+
+  /** A refused request may mean the session ended. Then the planner gets the login, not dead controls. */
+  async function onAuthFailure(): Promise<void> {
+    const stillSignedIn = await authStore.checkSession({ quiet: true });
+    if (!stillSignedIn && router.currentRoute.value.path !== "/settings") {
+      await router.push("/settings");
+    }
+  }
 
   async function authFetch<T = any>(
     url: string,
@@ -18,10 +28,15 @@ export function useAuthFetch() {
       headers["x-csrf-token"] = authStore.csrfToken;
     }
 
-    return (await $fetch<T>(url, {
-      ...options,
-      headers,
-    })) as T;
+    try {
+      return (await $fetch<T>(url, {
+        ...options,
+        headers,
+      })) as T;
+    } catch (error) {
+      if (isAuthFailure(error) && authStore.isAuthenticated) await onAuthFailure();
+      throw error;
+    }
   }
 
   return { authFetch };

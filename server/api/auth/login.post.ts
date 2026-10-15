@@ -1,37 +1,17 @@
 import { getAdminDatabase } from "~/server/utils/database";
-import {
-  createSession,
-  checkRateLimit,
-  recordFailedLogin,
-  resetRateLimit,
-  getClientIP,
-} from "~/server/utils/session";
+import { createSession, getClientNetwork, limitAttempt, setSessionCookies } from "~/server/utils/session";
+import { checkPassword } from "~/server/lib/session/password";
+import { readJsonBody } from "~/server/utils/json-body";
 import type { SessionUser, UserWithHash } from "~/types/auth";
-import {
-  getAuthConfig,
-  getMaxPasswordLength,
-  getSessionCookieMaxAgeSeconds,
-  getUserValidationConfig,
-} from "~/server/config/auth-config";
-import bcrypt from "bcryptjs";
+import { getMaxPasswordLength, getUserValidationConfig } from "~/server/config/auth-config";
+
+// An account may see more failures than one network, so one stranger alone cannot lock it.
+const ACCOUNT_ATTEMPTS_FACTOR = 3;
 
 export default defineEventHandler(async (event) => {
-  const ip = getClientIP(event);
+  const body = await readJsonBody<{ username: unknown; password: unknown; client: unknown }>(event);
 
-
-  const rateLimit = checkRateLimit(ip);
-
-  if (!rateLimit.allowed) {
-    throw createError({
-      statusCode: 429,
-      statusMessage: `Zu viele Anmeldeversuche. Bitte warten.`,
-    });
-  }
-
-
-  const body = await readBody<{ username: string; password: string; client?: unknown }>(event);
-
-  if (!body.username || typeof body.username !== "string") {
+  if (!body?.username || typeof body.username !== "string") {
     throw createError({
       statusCode: 400,
       statusMessage: "Benutzername erforderlich",
@@ -46,6 +26,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const username = body.username.trim();
+  const password = body.password;
   const userConfig = getUserValidationConfig();
   if (username.length < userConfig.usernameMinLength || username.length > userConfig.usernameMaxLength) {
     throw createError({
@@ -54,45 +35,43 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-
-  if (body.password.length > getMaxPasswordLength()) {
+  if (password.length > getMaxPasswordLength()) {
     throw createError({
       statusCode: 400,
       statusMessage: "Passwort zu lang",
     });
   }
 
+  // One bucket per network and a wider one per account, so guessing from many addresses
+  // still hits a limit. A success clears only the account it proved.
+  const buckets = [
+    { key: `login:${getClientNetwork(event)}` },
+    { key: `login-user:${username}`, factor: ACCOUNT_ATTEMPTS_FACTOR, resetOnSuccess: true },
+  ];
+  const user = await limitAttempt(
+    buckets,
+    async () => {
+      const row = getAdminDatabase()
+        .prepare(
+          "SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ? AND active = 1"
+        )
+        .get(username) as UserWithHash | undefined;
+      return (await checkPassword(password, row?.password_hash)) ? row! : null;
+    },
+    "Zu viele Anmeldeversuche. Bitte warten."
+  );
 
-  const db = getAdminDatabase();
-  const user = db
-    .prepare(
-      "SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ? AND active = 1"
-    )
-    .get(username) as UserWithHash | undefined;
-
-  const isValid = user
-    ? await bcrypt.compare(body.password, user.password_hash)
-    : false;
-
-  if (!isValid) {
-
-    recordFailedLogin(ip);
-
-
+  if (!user) {
     throw createError({
       statusCode: 401,
       statusMessage: "Anmeldung fehlgeschlagen",
     });
   }
 
-
-  resetRateLimit(ip);
-
-
   const sessionUser: SessionUser = {
-    userId: user!.user_id,
-    username: user!.username,
-    role: user!.role,
+    userId: user.user_id,
+    username: user.username,
+    role: user.role,
   };
   // The app keeps a Bearer token instead of cookies, so it needs no CSRF token either.
   if (body.client === "app") {
@@ -101,27 +80,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { sessionToken, csrfToken } = createSession(sessionUser);
-  const cookieConfig = getAuthConfig().session.cookies;
-  const cookieMaxAge = getSessionCookieMaxAgeSeconds();
-
-
-  setCookie(event, cookieConfig.sessionName, sessionToken, {
-    httpOnly: true,
-    secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
-    sameSite: cookieConfig.sameSite,
-    maxAge: cookieMaxAge,
-    path: cookieConfig.path,
-  });
-
-
-  setCookie(event, cookieConfig.csrfName, csrfToken, {
-    httpOnly: false,
-    secure: cookieConfig.secureInProduction && process.env.NODE_ENV === "production",
-    sameSite: cookieConfig.sameSite,
-    maxAge: cookieMaxAge,
-    path: cookieConfig.path,
-  });
-
+  setSessionCookies(event, sessionToken, csrfToken);
 
   return {
     success: true,

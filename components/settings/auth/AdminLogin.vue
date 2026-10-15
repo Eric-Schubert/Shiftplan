@@ -56,31 +56,21 @@ async function handleLogin() {
         </p>
       </div>
 
-      <div
-        v-if="hasDemoLogin"
-        class="mb-5 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4 text-sm"
+      <p
+        v-if="authStore.sessionExpired"
+        class="mb-5 rounded-xl border border-[var(--border-soft)] bg-[var(--warning-soft)] p-3 text-sm text-[var(--warning-ink)]"
+        role="status"
       >
-        <p class="font-semibold text-[var(--text-1)]">Demo-Zugang</p>
-        <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[var(--text-2)]">
-          <dt>Benutzer</dt>
-          <dd class="font-mono text-[var(--text-1)]">{{ demoLogin.username }}</dd>
-          <dt>Passwort</dt>
-          <dd class="font-mono text-[var(--text-1)]">{{ demoLogin.password }}</dd>
-        </dl>
-        <p class="mt-2 text-xs leading-5 text-[var(--text-2)]">
-          Die Demo wird regelmäßig zurückgesetzt.
-        </p>
-        <PrimeButton
-          type="button"
-          label="Zugangsdaten übernehmen"
-          icon="pi pi-sign-in"
-          size="small"
-          outlined
-          class="mt-3 w-full"
-          :disabled="loading"
-          @click="fillDemoLogin"
-        />
-      </div>
+        Deine Sitzung ist abgelaufen. Bitte melde dich neu an.
+      </p>
+
+      <DemoLoginHint
+        v-if="hasDemoLogin"
+        :username="demoLogin.username"
+        :password="demoLogin.password"
+        :disabled="loading"
+        @fill="fillDemoLogin"
+      />
 
       <form class="space-y-4" @submit.prevent="handleLogin">
         <div class="space-y-1.5">
@@ -95,6 +85,9 @@ async function handleLogin() {
             class="w-full"
             :disabled="loading"
             autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
           />
         </div>
 

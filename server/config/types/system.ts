@@ -19,7 +19,8 @@ export type AuthSettings = {
   };
   passwordHashCost: number;
   bootstrapPasswordHashCost: number;
-  trustProxyHeaders: boolean;
+  /** true: rightmost X-Forwarded-For; "cloudflare": CF-Connecting-IP (origin reachable only via Cloudflare). */
+  trustProxyHeaders: boolean | "cloudflare";
   users: {
     usernameMinLength: number;
     usernameMaxLength: number;

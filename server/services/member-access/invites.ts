@@ -42,10 +42,16 @@ export function createInvite(staffId: number, createdBy: string): { code: string
 
   const now = Date.now();
   const db = getAdminDatabase();
-  db.prepare("DELETE FROM member_invites WHERE expires_at <= ? OR used_at IS NOT NULL").run(now);
-  db.prepare(
-    "INSERT INTO member_invites (staff_id, code_hash, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)"
-  ).run(staffId, sha256(code), createdBy, now, now + INVITE_VALID_MS);
+  // A new code replaces the person's open ones, so reissuing a leaked or mis-sent QR code closes it.
+  db.transaction(() => {
+    db.prepare("DELETE FROM member_invites WHERE expires_at <= ? OR used_at IS NOT NULL OR staff_id = ?").run(
+      now,
+      staffId
+    );
+    db.prepare(
+      "INSERT INTO member_invites (staff_id, code_hash, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)"
+    ).run(staffId, sha256(code), createdBy, now, now + INVITE_VALID_MS);
+  })();
 
   return { code, expiresAt: now + INVITE_VALID_MS };
 }

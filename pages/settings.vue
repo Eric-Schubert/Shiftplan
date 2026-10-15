@@ -4,10 +4,6 @@ const authStore = useAuthStore();
 const activeTab = ref(authStore.isAdmin ? "0" : "2");
 const showChangePasswordDialog = ref(false);
 
-function extendSession() {
-  authStore.extendSession();
-}
-
 watch(
   () => authStore.user?.role,
   () => {
@@ -57,7 +53,7 @@ watch(
       </div>
     </div>
 
-    <div v-else class="planner-shell" @click="extendSession" @keydown="extendSession">
+    <div v-else class="planner-shell">
       <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div class="space-y-1.5">
           <h2 class="planner-headline text-[var(--text-1)]">Einstellungen</h2>
