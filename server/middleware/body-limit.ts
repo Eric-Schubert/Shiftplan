@@ -13,12 +13,20 @@ export function getBodyLimit(path: string): number {
     : MAX_BODY_BYTES;
 }
 
-function tooLarge() {
-  return createError({ statusCode: 413, statusMessage: "Die Anfrage ist zu groß" });
+// The Excel import shows this message as is, so it keeps the wording of the handler's own check.
+function tooLarge(path: string) {
+  const excelMegabytes = Math.floor(getRotationValidationConfig().excelImportMaxBytes / 1024 / 1024);
+  return createError({
+    statusCode: 413,
+    statusMessage:
+      path === EXCEL_IMPORT_PATH
+        ? `Die Excel-Datei darf maximal ${excelMegabytes} MB groß sein`
+        : "Die Anfrage ist zu groß",
+  });
 }
 
 /** Buffers a chunked body up to the limit. Beyond it the rest is discarded, never kept. */
-function readLimited(event: H3Event, limit: number): Promise<Buffer<ArrayBuffer>> {
+function readLimited(event: H3Event, limit: number, path: string): Promise<Buffer<ArrayBuffer>> {
   const request = event.node.req;
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -31,7 +39,7 @@ function readLimited(event: H3Event, limit: number): Promise<Buffer<ArrayBuffer>
       }
       request.off("data", onData);
       request.resume();
-      reject(tooLarge());
+      reject(tooLarge(path));
     };
     request.on("data", onData);
     // Buffer.concat always copies into a fresh, unshared ArrayBuffer.
@@ -49,9 +57,9 @@ export default defineEventHandler(async (event) => {
   if (!path.startsWith("/api/") || !PAYLOAD_METHODS.has(getMethod(event))) return;
 
   const limit = getBodyLimit(path);
-  if (Number.parseInt(getHeader(event, "content-length") || "", 10) > limit) throw tooLarge();
+  if (Number.parseInt(getHeader(event, "content-length") || "", 10) > limit) throw tooLarge(path);
   if (!/\bchunked\b/i.test(getHeader(event, "transfer-encoding") || "")) return;
 
   // h3's body readers use this buffer instead of the already consumed stream.
-  event._requestBody = await readLimited(event, limit);
+  event._requestBody = await readLimited(event, limit, path);
 });

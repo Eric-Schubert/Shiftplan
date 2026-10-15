@@ -81,5 +81,7 @@ describe("request body limit", () => {
     expect(limits.excel).toBeGreaterThan(2 * 1024 * 1024);
     expect(JSON.parse(fits.body)).toEqual({ bytes: limits.excel });
     expect([tooBig.status, elsewhere.status]).toEqual([413, 413]);
+    expect(JSON.parse(tooBig.body).statusMessage).toBe("Die Excel-Datei darf maximal 2 MB groß sein");
+    expect(JSON.parse(elsewhere.body).statusMessage).toBe("Die Anfrage ist zu groß");
   });
 });
