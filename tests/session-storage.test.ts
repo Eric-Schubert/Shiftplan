@@ -68,6 +68,16 @@ describe("persistent session storage", () => {
     });
   });
 
+  it("ends sessions of accounts that are gone or deactivated", async () => {
+    const { adminDb, session } = await loadSessionModules();
+    const ghost = session.createSession({ userId: 999, username: "ghost", role: "admin" });
+    const admin = session.createSession({ userId: 1, username: "admin", role: "admin" });
+    adminDb.prepare("UPDATE users SET active = 0 WHERE user_id = 1").run();
+
+    expect(session.getSessionData(ghost.sessionToken)).toBeNull();
+    expect(session.getSessionData(admin.sessionToken)).toBeNull();
+  });
+
   it("persists login throttle state across module reloads", async () => {
     const first = await loadSessionModules();
     const bucket = [{ key: "login:192.0.2.50" }];

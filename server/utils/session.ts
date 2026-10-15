@@ -11,6 +11,7 @@ import {
 } from "~/server/lib/session/records";
 
 export type { SessionClient } from "~/server/lib/session/records";
+export { deleteUserSessions } from "~/server/lib/session/records";
 export { limitAttempt, type AttemptBucket } from "~/server/lib/session/rate-limit";
 export {
   getClientIP,
