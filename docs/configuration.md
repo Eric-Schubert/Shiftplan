@@ -35,6 +35,8 @@ SHIFTPLAN_ADMIN_PASSWORD=SecurePassword1
 
 The setup creates the initial `admin` user. Change this password after the first login. Predictable defaults such as `admin/admin` are not generated. If an existing database still contains an unchanged default admin, startup is blocked until `SHIFTPLAN_ADMIN_PASSWORD` is set and `node setup.js` is run again.
 
+Usernames are case-sensitive: `Planer` and `planer` are two different accounts.
+
 ## Proxy Headers
 
 Proxy headers are ignored by default so clients cannot spoof their IP address to bypass rate limits. Sign-in limits count failures per client network (IPv4 address or IPv6 /64) and, more generously, per account or Kürzel, so guessing from many addresses still hits a limit while one stranger alone cannot lock a colleague out.
@@ -48,8 +50,6 @@ Proxy headers are ignored by default so clients cannot spoof their IP address to
 | `cloudflare` | `CF-Connecting-IP`, otherwise like `true` | the origin accepts traffic from Cloudflare only (firewall or Traefik/nginx allow list) |
 
 Behind a proxy with `false`, every client shares the proxy's address and therefore one set of sign-in limits: five wrong passwords from anyone block planner sign-in for everyone for 15 minutes. The app logs a warning once when it sees `X-Forwarded-For` in this mode. Never use `cloudflare` on an origin that is also reachable without Cloudflare: anyone could then send their own `CF-Connecting-IP`.
-
-Usernames are case-sensitive. `Planer` and `planer` are two different accounts.
 
 ## Environment In Docker
 
