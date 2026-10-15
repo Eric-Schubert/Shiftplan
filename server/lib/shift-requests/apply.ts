@@ -1,5 +1,6 @@
 import { ShiftRequestService, type AppliedChange, type ShiftRequest } from "~/server/services/shift-request.service";
-import { conflict } from "~/server/services/shift-request/common";
+import { DayChangeService } from "~/server/services/day-change.service";
+import { conflict, today } from "~/server/services/shift-request/common";
 import { getDatabase } from "~/server/utils/database";
 import { applyDayChange, type DayChangeActor } from "~/server/utils/day-change-flow";
 
@@ -26,8 +27,9 @@ export function applyRequest(request: ShiftRequest, actor: DayChangeActor, origi
   const applied: AppliedChange[] = [];
   for (const change of planned) {
     const before = ShiftRequestService.isPresent(change.staffId, change.shiftId, change.date);
+    const inPlan = DayChangeService.isInWeeklyPlan(change.staffId, change.shiftId, change.date);
     if (applyDayChange({ ...change, actor, note, requestId: request.request_id, origin })) {
-      applied.push({ ...change, before });
+      applied.push({ ...change, before, inPlan });
     }
   }
   return applied;
@@ -37,18 +39,26 @@ function exists(table: "staff" | "shifts", column: "staff_id" | "shift_id", id: 
   return Boolean(getDatabase().prepare(`SELECT 1 FROM ${table} WHERE ${column} = ?`).get(id));
 }
 
+/** The cell no longer looks like the request left it: someone else changed the day or the weekly plan behind it. */
+function moved(change: AppliedChange): boolean {
+  if (ShiftRequestService.isPresent(change.staffId, change.shiftId, change.date) !== change.present) return true;
+  if (change.inPlan === undefined) return false;
+  return DayChangeService.isInWeeklyPlan(change.staffId, change.shiftId, change.date) !== change.inPlan;
+}
+
 /**
- * The recorded changes that can be put back. Shifts or people deleted since are skipped; if anything
- * else no longer looks like the request left it (a later request, a planner edit), nothing is undone.
+ * The recorded changes that can be put back: only days from today on, without shifts or people
+ * deleted since. If anything else moved on (a later request, a planner edit), nothing is undone.
  */
 export function revertableChanges(request: ShiftRequest, movedMessage: string): AppliedChange[] {
-  const changes = ShiftRequestService.appliedChanges(request.request_id).filter(
+  const recorded = ShiftRequestService.appliedChanges(request.request_id);
+  const first = today();
+  const upcoming = recorded.filter((change) => change.date >= first);
+  if (recorded.length > 0 && upcoming.length === 0) conflict("Die Tage der Anfrage liegen schon in der Vergangenheit");
+  const changes = upcoming.filter(
     (change) => exists("staff", "staff_id", change.staffId) && exists("shifts", "shift_id", change.shiftId)
   );
-  const moved = changes.some(
-    (change) => ShiftRequestService.isPresent(change.staffId, change.shiftId, change.date) !== change.present
-  );
-  if (moved) conflict(movedMessage);
+  if (changes.some(moved)) conflict(movedMessage);
   return changes;
 }
 

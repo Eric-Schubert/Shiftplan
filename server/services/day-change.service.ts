@@ -40,6 +40,8 @@ function isInWeeklyPlan(staffId: number, shiftId: number, date: string): boolean
  * default; a change only records where a single day differs from it.
  */
 export const DayChangeService = {
+  isInWeeklyPlan,
+
   listForWeek(year: number, week: number): DayChange[] {
     const dates = datesOfISOWeek(year, week);
     return getDatabase()

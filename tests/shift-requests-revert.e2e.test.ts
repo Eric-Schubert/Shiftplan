@@ -119,4 +119,19 @@ describe("undo after the plan moved on", () => {
       undo_requested_by: null,
     });
   });
+
+  it("refuses when the weekly plan behind a changed day was edited since", async () => {
+    const anna = await member(ANNA, "anna:tok");
+    const max = await member(MAX, "max:tok");
+    const id = await takeover(anna, max);
+    // The planner moves Max from Spät to a new night shift for the whole week.
+    client.mainDb.prepare("INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Nacht', 1, '22:00', '06:00', '#8b5cf6', 1, 3)").run();
+    client.mainDb.prepare("UPDATE shift_assignments SET shift_id = 3 WHERE staff_id = ?").run(MAX);
+
+    const reverted = await revert(id);
+
+    expect(reverted.status).toBe(409);
+    expect(await staffOn(LATE, THURSDAY)).toEqual([]);
+    expect(await staffOn(EARLY, THURSDAY)).toEqual([MAX]);
+  });
 });

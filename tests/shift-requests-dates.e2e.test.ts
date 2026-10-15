@@ -86,4 +86,24 @@ describe("dates of requests", () => {
 
     expect(list.json!.requests.map((request: any) => request.request_id).sort()).toEqual([1, 3]);
   });
+
+  it("lets the planner revert only days from today on", async () => {
+    const anna = await member(ANNA, "anna:tok");
+    const max = await member(MAX, "max:tok");
+    const swap = (await create(anna, { kind: "swap", partnerStaffId: MAX, from: THURSDAY, to: FRIDAY })).json!.request.request_id;
+    const takeover = (await create(max, { kind: "takeover", date: "2026-10-06" })).json!.request.request_id;
+    await act(max, swap, "accept");
+    await act(anna, takeover, "accept");
+    vi.setSystemTime(new Date(`${FRIDAY}T08:00:00Z`));
+    const admin = await client.loginAs("admin", "admin1234");
+    const revert = (id: number) => client.request<any>("POST", `/api/requests/${id}`, { jar: admin, csrf: true, body: { action: "revert" } });
+
+    const partly = await revert(swap);
+    const over = await revert(takeover);
+
+    expect(partly.json!.request.status).toBe("reverted");
+    expect(await staffOn(EARLY, THURSDAY)).toEqual([MAX]);
+    expect(await staffOn(EARLY, FRIDAY)).toEqual([ANNA]);
+    expect([over.status, over.json!.statusMessage]).toEqual([409, "Die Tage der Anfrage liegen schon in der Vergangenheit"]);
+  });
 });

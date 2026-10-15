@@ -4,7 +4,7 @@ import { requestDays } from "~/server/services/shift-request/days";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 import { formatNoticeDay } from "~/server/utils/absence-notice";
 
-export type PlannedChange = Omit<AppliedChange, "before">;
+export type PlannedChange = Omit<AppliedChange, "before" | "inPlan">;
 
 /** Day changes that swap all shifts of two people in a range. Shared shifts stay as they are. */
 export function swapChanges(staffA: number, staffB: number, dates: string[]): PlannedChange[] {
