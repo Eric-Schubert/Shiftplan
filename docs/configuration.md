@@ -39,7 +39,7 @@ Usernames are case-sensitive: `Planer` and `planer` are two different accounts.
 
 ## Proxy Headers
 
-Proxy headers are ignored by default so clients cannot spoof their IP address to bypass rate limits. Sign-in limits count failures per client network (IPv4 address or IPv6 /64) and, more generously, per account or Kürzel, so guessing from many addresses still hits a limit while one stranger alone cannot lock a colleague out.
+Proxy headers are ignored by default so clients cannot spoof their IP address to bypass rate limits. Sign-in limits count failures per client network (IPv4 address or IPv6 /64) and, more generously, per account or short code, so guessing from many addresses still hits a limit while one stranger alone cannot lock a colleague out.
 
 `auth.trustProxyHeaders` (or the environment variable `SHIFTPLAN_TRUST_PROXY_HEADERS`, which overrides it without copying the config file) accepts three values:
 
