@@ -54,8 +54,10 @@ jobs:
           steps.release_rules.outputs.deploy == 'true' &&
           github.event.workflow_run.event == 'push' &&
           github.event.workflow_run.head_branch == 'master'
+        # Auto Version & Release starts together with this job once CI passed, so allow
+        # up to five minutes for the tag.
         run: |
-          for attempt in {1..24}; do
+          for attempt in {1..60}; do
             git fetch --tags --force
             TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
             if [[ -n "$TAG" ]]; then
@@ -63,7 +65,7 @@ jobs:
               exit 0
             fi
 
-            echo "Waiting for auto-version tag ($attempt/24)..."
+            echo "Waiting for auto-version tag ($attempt/60)..."
             sleep 5
           done
 
@@ -82,7 +84,7 @@ jobs:
           else
             VERSION="0.0.0"
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Resolved version: $VERSION"
 
       - name: Generate changelog from git tags

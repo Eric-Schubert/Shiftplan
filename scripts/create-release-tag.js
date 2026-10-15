@@ -94,6 +94,16 @@ function writeOutputs(outputs) {
   }
 }
 
+// A re-run of CI on master triggers the release again. Without a new_tag output
+// the workflow skips the release steps.
+const headTag = git(["tag", "--points-at", "HEAD", "--list", "v*"])
+  .split(/\r?\n/)
+  .find((tag) => parseTag(tag.trim()));
+if (headTag) {
+  console.log(`HEAD is already released as ${headTag.trim()}.`);
+  process.exit(0);
+}
+
 const previous = getLatestTag();
 const releaseType = getReleaseType();
 const nextVersion = bumpVersion(previous.version, releaseType).join(".");
