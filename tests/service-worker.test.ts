@@ -13,13 +13,13 @@ function subscription(endpoint: string) {
 }
 
 /** Runs public/sw.js against a minimal service worker scope and returns its listeners. */
-function loadWorker() {
+function loadWorker(subscribeStatus = 200) {
   const handlers = new Map<string, Handler>();
-  const fetch = vi.fn(async (path: string, _init?: RequestInit) =>
-    path === "/api/viewer/status"
-      ? new Response(JSON.stringify({ pushPublicKey: SERVER_KEY }))
-      : new Response(JSON.stringify({ success: true }))
-  );
+  const fetch = vi.fn(async (path: string, _init?: RequestInit) => {
+    if (path === "/api/viewer/status") return new Response(JSON.stringify({ pushPublicKey: SERVER_KEY }));
+    const status = path === "/api/push/subscribe" ? subscribeStatus : 200;
+    return new Response(JSON.stringify({ success: status === 200 }), { status });
+  });
   const self = {
     location: { origin: ORIGIN },
     addEventListener: (type: string, handler: Handler) => handlers.set(type, handler),
@@ -58,14 +58,33 @@ describe("service worker", () => {
     ]);
   });
 
-  it("subscribes again with the server key when the browser dropped the subscription", async () => {
+  it("subscribes again with the current server key when the browser dropped the subscription", async () => {
     await worker.dispatch("pushsubscriptionchange", { oldSubscription: null, newSubscription: null });
-
-    expect(worker.self.registration.pushManager.subscribe).toHaveBeenCalledWith({
-      userVisibleOnly: true,
-      applicationServerKey: Uint8Array.from([4, 1, 2, 3]),
+    await worker.dispatch("pushsubscriptionchange", {
+      oldSubscription: subscription("https://fcm.googleapis.com/new"),
+      newSubscription: null,
     });
-    expect(worker.posted()).toEqual([["/api/push/subscribe", { endpoint: "https://fcm.googleapis.com/new" }]]);
+
+    expect(worker.self.registration.pushManager.subscribe.mock.calls).toEqual([
+      [{ userVisibleOnly: true, applicationServerKey: Uint8Array.from([4, 1, 2, 3]) }],
+      [{ userVisibleOnly: true, applicationServerKey: Uint8Array.from([4, 1, 2, 3]) }],
+    ]);
+    expect(worker.posted()).toEqual([
+      ["/api/push/subscribe", { endpoint: "https://fcm.googleapis.com/new" }],
+      ["/api/push/subscribe", { endpoint: "https://fcm.googleapis.com/new" }],
+    ]);
+  });
+
+  it("keeps the old subscription when the server does not take the new one", async () => {
+    const rejecting = loadWorker(429);
+
+    const renewal = rejecting.dispatch("pushsubscriptionchange", {
+      oldSubscription: subscription("https://fcm.googleapis.com/old"),
+      newSubscription: subscription("https://fcm.googleapis.com/renewed"),
+    });
+
+    await expect(renewal).rejects.toThrow("429");
+    expect(rejecting.posted().map(([path]) => path)).toEqual(["/api/push/subscribe"]);
   });
 
   it("opens only pages of its own site from a notification", async () => {

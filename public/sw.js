@@ -42,14 +42,14 @@ async function serverKey() {
 
 // The browser renewed or dropped the subscription, e.g. after rotating its keys: subscribe
 // again and tell the server, or pushes stop until the app is opened the next time.
+// The current server key wins over the old one, which may predate a new VAPID key.
 async function renewSubscription(oldSubscription, newSubscription) {
   const subscription =
     newSubscription ||
-    (await self.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: oldSubscription?.options?.applicationServerKey || (await serverKey()),
-    }));
-  await postJson("/api/push/subscribe", subscription.toJSON());
+    (await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: await serverKey() }));
+  const saved = await postJson("/api/push/subscribe", subscription.toJSON());
+  // Without a saved replacement the old registration stays; the next page load tries again.
+  if (!saved.ok) throw new Error(`Push-Abo nicht gespeichert (${saved.status})`);
   if (oldSubscription && oldSubscription.endpoint !== subscription.endpoint) {
     await postJson("/api/push/unsubscribe", { endpoint: oldSubscription.endpoint });
   }
