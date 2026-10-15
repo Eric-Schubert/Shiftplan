@@ -19,7 +19,9 @@ export default defineEventHandler(async (event) => {
   const code = typeof body?.code === "string" ? body.code : "";
 
   // Own bucket, so mistyped team codes in a shared office network never lock out planners.
-  const valid = await limitAttempt([{ key: `viewer:${getClientNetwork(event)}` }], () =>
+  // A success clears it: the code is far too long to guess, but colleagues behind one NAT share it.
+  const bucket = { key: `viewer:${getClientNetwork(event)}`, resetOnSuccess: true };
+  const valid = await limitAttempt([bucket], () =>
     code && code.length <= ACCESS_CODE_MAX_LENGTH && TeamAccessService.verifyCode(code) ? true : null
   );
   if (!valid) {

@@ -68,6 +68,16 @@ describe("planner sign-in limits", () => {
     expect(compare).toHaveBeenCalledTimes(2);
   });
 
+  it("lets colleagues behind one network clear a few team code typos", async () => {
+    client.adminDb.prepare("INSERT INTO settings (key, value) VALUES ('viewer_access_code', 'TEAMCODE42')").run();
+    const teamLogin = (code: string) => client.request("POST", "/api/viewer/login", { body: { code } });
+
+    expect(await statuses(4, () => teamLogin("TYPO"))).toEqual([401, 401, 401, 401]);
+    expect((await teamLogin("teamcode42")).status).toBe(200);
+    expect(await statuses(2, () => teamLogin("TYPO"))).toEqual([401, 401]);
+    expect((await teamLogin("teamcode42")).status).toBe(200);
+  });
+
   it("accepts sign-ins only as JSON, so a form on another site cannot sign a browser in", async () => {
     const paths = ["/api/auth/login", "/api/member/login", "/api/member/redeem", "/api/viewer/login"];
     const textPosts = await Promise.all(
