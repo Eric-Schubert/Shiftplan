@@ -1,9 +1,9 @@
 import { getAdminDatabase } from "~/server/utils/database";
+import { hasValidKeys } from "~/server/services/push/keys";
 import type { PushSubscriptionInput } from "~/server/services/push/types";
 
 const MAX_SUBSCRIPTIONS = 2000;
 const MAX_ENDPOINT_LENGTH = 1024;
-const MAX_KEY_LENGTH = 256;
 
 // Only real push services, so subscriptions cannot make the server call arbitrary URLs.
 const ALLOWED_PUSH_HOSTS = [
@@ -29,15 +29,6 @@ function isAllowedEndpoint(endpoint: string): boolean {
   );
 }
 
-function isValidKey(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length > 0 &&
-    value.length <= MAX_KEY_LENGTH &&
-    /^[A-Za-z0-9_-]+=*$/.test(value)
-  );
-}
-
 export function countSubscriptions(): number {
   const row = getAdminDatabase()
     .prepare("SELECT COUNT(*) AS count FROM push_subscriptions")
@@ -60,7 +51,7 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
   ) {
     throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
   }
-  if (!isValidKey(subscription?.keys?.p256dh) || !isValidKey(subscription?.keys?.auth)) {
+  if (!hasValidKeys(subscription?.keys?.p256dh, subscription?.keys?.auth)) {
     throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
   }
 
