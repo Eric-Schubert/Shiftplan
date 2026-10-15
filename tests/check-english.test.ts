@@ -18,6 +18,11 @@ describe("English check rules", () => {
     expect(isGermanProse("// Don't touch die Werte, it's der Plan")).toBe(true);
   });
 
+  it("counts transliterated stopwords and each stopword once", () => {
+    expect(isGermanProse("// Limit fuer Uploads ueber HTTP")).toBe(true);
+    expect(isGermanProse("// Rows that die early die quietly")).toBe(false);
+  });
+
   it("flags German identifier stems except public wire values", () => {
     expect(isGermanIdentifier("firstKw")).toBe(true);
     expect(isGermanIdentifier("fruehschicht")).toBe(true);
@@ -52,9 +57,15 @@ describe("English check scanner", () => {
     expect(kinds("a.ts", source)).toEqual(["5:identifier", "5:comment"]);
   });
 
+  it("rates a block comment as a whole and reports its first line", () => {
+    const source = ["const a = 1;", "/**", " * Die Zeilen", " * und so weiter", " */"].join("\n");
+
+    expect(kinds("a.ts", source)).toEqual(["2:comment"]);
+  });
+
   it("checks script, style and markup comments in Vue files", () => {
     const source = [
-      "<!-- Dienste, die die App anspricht -->",
+      "<!-- Dienste, die der App helfen -->",
       '<script setup lang="ts">',
       "const kuerzel = ref('');",
       "</script>",
@@ -81,16 +92,21 @@ describe("English check scanner", () => {
       "});",
       'console.warn("[absence] Übernahme-Anfrage nicht angelegt:", error.message);',
       "console.error(`[push] ${label}: ${count} Einträge`);",
+      'console.error("[push] Versand fehlgeschlagen:", reason);',
+      'console.log("[setup] database ready");',
     ].join("\n");
+    const logs = ["4:log message", "5:log message", "6:log message"];
 
-    expect(kinds("tests/a.test.ts", source)).toEqual(["1:test title", "4:log message", "5:log message"]);
-    expect(kinds("server/a.ts", source)).toEqual(["4:log message", "5:log message"]);
+    expect(kinds("tests/a.test.ts", source)).toEqual(["1:test title", ...logs]);
+    expect(kinds("server/a.ts", source)).toEqual(logs);
   });
 
-  it("only checks source files outside public/, type declarations and the app API spec", () => {
-    const german = "// Die Datei ist nicht englisch\n";
+  it("checks every source and YAML file, also in public/ and docs/", () => {
+    const german = "# Die Datei ist nicht englisch\n// Die Datei ist nicht englisch\n";
     const files = ["a.ts", "public/sw.js", "types/a.d.ts", "docs/api/app-v1.yaml", "README.md", "b.mjs"];
 
-    expect(findGermanInFiles(files, () => german).map(({ file }: { file: string }) => file)).toEqual(["a.ts", "b.mjs"]);
+    expect(findGermanInFiles(files, () => german).map(({ file }: { file: string }) => file)).toEqual(
+      files.filter((file) => file !== "README.md")
+    );
   });
 });

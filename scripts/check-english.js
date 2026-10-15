@@ -5,14 +5,16 @@ import { tokenize } from "./english/tokenize.js";
 
 // Code, comments, test titles and log messages are English. UI text lives in strings and is not checked.
 const CHECKED = /\.(vue|ts|js|mjs|cjs|sh|ya?ml)$/;
-const IGNORED = [/^public\//, /\.d\.ts$/, /^docs\/api\/app-v1\.yaml$/];
 const TEST_FILE = /^tests\/|\.test\.ts$/;
 
 const STOPWORDS = new Set([
   "der", "die", "das", "den", "dem", "und", "wird", "werden", "nicht", "für", "mit", "wenn", "ist", "sind",
   "ein", "eine", "einen", "oder", "auch", "bei", "nur", "noch", "dass", "kein", "keine", "über", "ohne",
   "zum", "zur", "vom", "wir", "muss", "soll", "kann", "sonst", "alle", "weil", "damit", "hier", "schon",
+  "fuer", "ueber",
 ]);
+// Operators read console output, so a single one of these words already makes a log message German.
+const LOG_WORDS = /\b(?:fehlgeschlagen|konnte|nicht|ungültig|ungueltig|fehler|unbekannt\w*)\b/i;
 const GERMAN_STEMS =
   /kuerzel|kürzel|woche|schicht|mitarbeit|urlaub|einladung|zugang|anfrage|tausch|feiertag|ferien|frueh|spaet|loesch|datenschutz|impressum|^kw|kw$/i;
 // Public wire values that stay German: query parameters (?einladung, ?zugang, ?anfragen) and absence reasons.
@@ -26,8 +28,13 @@ export function isGermanProse(text) {
   const prose = text.replace(QUOTED, "");
   if (/[äöüß]/i.test(prose)) return true;
   const words = prose.match(/\p{L}+/gu) ?? [];
-  // Ignore all-caps words such as the MIT license name.
-  return words.filter((word) => word !== word.toUpperCase() && STOPWORDS.has(word.toLowerCase())).length >= 2;
+  // Count distinct stopwords, so English "die ... die" stays fine. Ignore all-caps words such as MIT.
+  const stopwords = words.filter((word) => word !== word.toUpperCase() && STOPWORDS.has(word.toLowerCase()));
+  return new Set(stopwords.map((word) => word.toLowerCase())).size >= 2;
+}
+
+function isGermanLog(text) {
+  return isGermanProse(text) || LOG_WORDS.test(text.replace(QUOTED, ""));
 }
 
 export function isGermanIdentifier(name) {
@@ -52,7 +59,7 @@ function scanScript(source, firstLine, isTest, report) {
     if (kind === "punct" && text === ")" && logDepth > 0) logDepth -= 1;
     if (kind === "comment") report.comment(text, line);
     else if (kind === "word" && isGermanIdentifier(text)) report.add(line, "identifier", text);
-    else if (kind === "string" && logDepth > 0 && isGermanProse(text.slice(1, -1))) report.add(line, "log message", text);
+    else if (kind === "string" && logDepth > 0 && isGermanLog(text.slice(1, -1))) report.add(line, "log message", text);
     else if (isTest && kind === "string" && FULL_STRING.test(text) && isTestTitle(tokens, index)) {
       if (isGermanProse(text.slice(1, -1))) report.add(line, "test title", text);
     }
@@ -97,10 +104,10 @@ export function findGerman(file, source) {
   const findings = [];
   const report = {
     add: (line, kind, text) => findings.push({ line, kind, text }),
-    comment: (text, line) =>
-      text.split("\n").forEach((part, index) => {
-        if (isGermanProse(part)) findings.push({ line: line + index, kind: "comment", text: part.trim() });
-      }),
+    // A block comment counts as a whole and is reported at its first line.
+    comment: (text, line) => {
+      if (isGermanProse(text)) findings.push({ line, kind: "comment", text: text.replace(/\s+/g, " ").trim().slice(0, 120) });
+    },
   };
   if (/\.(sh|ya?ml)$/.test(file)) hashComments(source, report);
   else if (file.endsWith(".vue")) scanVue(source, report);
@@ -110,7 +117,7 @@ export function findGerman(file, source) {
 
 export function findGermanInFiles(files, readFile = (file) => fs.readFileSync(file, "utf-8")) {
   return files
-    .filter((file) => CHECKED.test(file) && !IGNORED.some((pattern) => pattern.test(file)))
+    .filter((file) => CHECKED.test(file))
     .flatMap((file) => findGerman(file, readFile(file)).map((finding) => ({ file, ...finding })));
 }
 
