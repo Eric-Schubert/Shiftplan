@@ -6,7 +6,8 @@ import type { AppliedChange, ShiftRequest, ShiftRequestStatus } from "~/server/s
 const SELECT_REQUEST = `
   SELECT r.request_id, r.kind, r.status, r.requester_staff_id, rq.name AS requester_name,
          r.partner_staff_id, pt.name AS partner_name, r.shift_id, sh.name AS shift_name,
-         r.date_from, r.date_to, r.message, r.created_at, r.decided_at, r.decided_by
+         r.date_from, r.date_to, r.message, r.created_at, r.decided_at, r.decided_by,
+         r.undo_requested_by
   FROM shift_requests r
   JOIN staff rq ON rq.staff_id = r.requester_staff_id
   LEFT JOIN staff pt ON pt.staff_id = r.partner_staff_id
@@ -45,7 +46,7 @@ export function listForPlanner(): ShiftRequest[] {
 export function setStatus(
   requestId: number,
   status: ShiftRequestStatus,
-  fields: { partnerStaffId?: number; decidedBy?: string; applied?: AppliedChange[] } = {}
+  fields: { partnerStaffId?: number | null; decidedBy?: string; applied?: AppliedChange[] } = {}
 ): ShiftRequest {
   const sets = ["status = ?", "decided_at = datetime('now')"];
   const values: unknown[] = [status];
@@ -64,6 +65,12 @@ export function setStatus(
   getDatabase()
     .prepare(`UPDATE shift_requests SET ${sets.join(", ")} WHERE request_id = ?`)
     .run(...values, requestId);
+  return getById(requestId)!;
+}
+
+/** Marks who asked to undo a finished request, or clears the ask. */
+export function setUndoRequest(requestId: number, staffId: number | null): ShiftRequest {
+  getDatabase().prepare("UPDATE shift_requests SET undo_requested_by = ? WHERE request_id = ?").run(staffId, requestId);
   return getById(requestId)!;
 }
 
