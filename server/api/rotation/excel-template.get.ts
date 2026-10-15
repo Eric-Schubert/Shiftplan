@@ -11,7 +11,7 @@ export default defineEventHandler((event) => {
   setHeader(
     event,
     "Content-Disposition",
-    'attachment; filename="schichtplan-rotation-template.xlsx"'
+    'attachment; filename="shiftplan-rotation-template.xlsx"'
   );
 
   return template;
