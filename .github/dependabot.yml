@@ -38,6 +38,10 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    # Node majors move by hand together with .nvmrc and package.json engines.
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
     groups:
       docker:
         patterns:
