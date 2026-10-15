@@ -113,6 +113,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, test, typecheck]
     if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' && needs.typecheck.result == 'success' }}
+    env:
+      # Read by scripts/docker-smoke-test.sh, so build and test use the same name.
+      IMAGE_NAME: shiftplan:smoke
 
     steps:
       - name: Checkout repository
@@ -123,10 +126,12 @@ jobs:
 
       - name: Build Docker image
         uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: .
           load: true
-          tags: schichtplaner:smoke
+          tags: ${{ env.IMAGE_NAME }}
           build-args: |
             APP_VERSION=smoke
           cache-from: type=gha
