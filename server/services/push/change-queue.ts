@@ -71,16 +71,21 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
   const payload = buildChangePayload(changes);
   if (!payload) return null;
 
-  try {
-    const web = await sendWebPush(payload);
-    const native = await sendNative(
-      buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())
-    );
-    return { sent: web.sent + native.sent, failed: web.failed + native.failed };
-  } catch (error) {
-    console.error("[push] Änderungs-Push fehlgeschlagen:", error);
-    return null;
+  // Browsers and apps go out independently: one channel failing does not cost the other.
+  const results = await Promise.allSettled([
+    sendWebPush(payload),
+    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())))(),
+  ]);
+  const counts: SendCounts = { sent: 0, failed: 0 };
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error("[push] Änderungs-Push fehlgeschlagen:", result.reason);
+      continue;
+    }
+    counts.sent += result.value.sent;
+    counts.failed += result.value.failed;
   }
+  return counts;
 }
 
 export function hasPendingChanges(): boolean {

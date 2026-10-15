@@ -7,6 +7,8 @@ import type { PushPayload, SendCounts, StoredSubscription } from "~/server/servi
 
 const SEND_BATCH_SIZE = 50;
 const PUSH_TTL_SECONDS = 12 * 60 * 60;
+// web-push has no default timeout; a stalled push service would hold the request forever.
+const SEND_TIMEOUT_MS = 10_000;
 
 /** All browsers, only those of some people (`staffIds`) or all but one person's. */
 export async function sendWebPush(
@@ -41,7 +43,7 @@ export async function sendWebPush(
             keys: { p256dh: subscription.p256dh, auth: subscription.auth },
           },
           body,
-          { vapidDetails, TTL: PUSH_TTL_SECONDS, urgency: "high" }
+          { vapidDetails, TTL: PUSH_TTL_SECONDS, urgency: "high", timeout: SEND_TIMEOUT_MS }
         )
       )
     );
