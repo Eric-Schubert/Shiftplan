@@ -44,6 +44,18 @@ describe("plan change texts", () => {
     ]);
   });
 
+  it("shortens app texts to what the relay accepts", async () => {
+    const { buildNativeMessages } = await messages();
+    const changes = Array.from({ length: 30 }, (_, index) =>
+      change({ date: `2026-10-${String(index + 1).padStart(2, "0")}`, shiftName: `Frühschicht Tag ${index + 1}` })
+    );
+
+    const [message] = buildNativeMessages(changes, [{ token: "team", staff_id: null, scope: "all", personal: 0 }], "instance");
+
+    expect(message!.body).toHaveLength(480);
+    expect(message!.body.endsWith("…")).toBe(true);
+  });
+
   it("keeps the number of relay calls bounded when many people have their own changes", async () => {
     const { buildNativeMessages } = await messages();
     const people = (count: number) => Array.from({ length: count }, (_, index) => index + 1);

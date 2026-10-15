@@ -7,6 +7,8 @@ const OWN_TITLE = "Deine Schicht hat sich geändert";
 // The relay takes 30 calls a minute and one text per call. Beyond this many different
 // "only mine" texts, those devices get one text per set of weeks instead.
 const MAX_PERSONAL_TEXTS = 8;
+// The relay rejects texts over 500 characters, which would cost every device of that text its push.
+const MAX_APP_BODY_LENGTH = 480;
 
 // Whole-week changes first, then day changes by date, each in shift order.
 function sortChanges(changes: PendingChange[]): PendingChange[] {
@@ -76,6 +78,10 @@ function summarizeWeeks(changes: PendingChange[]): string {
 
 type Recipient = { token: string; changes: PendingChange[] };
 
+function fitAppBody(text: string): string {
+  return text.length > MAX_APP_BODY_LENGTH ? `${text.slice(0, MAX_APP_BODY_LENGTH - 1)}…` : text;
+}
+
 /** One relay message per distinct text, linking to the first week it names. */
 function groupByText(
   title: string,
@@ -85,7 +91,7 @@ function groupByText(
 ): NativeMessage[] {
   const messages = new Map<string, NativeMessage>();
   for (const { token, changes } of recipients) {
-    const body = summarize(changes);
+    const body = fitAppBody(summarize(changes));
     const first = sortChanges(changes)[0]!;
     const message: NativeMessage = messages.get(body) || {
       title,
