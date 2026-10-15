@@ -16,6 +16,7 @@ const { authFetch } = useAuthFetch();
 
 const createError = ref("");
 const createErrorId = "create-user-error";
+const formId = "create-user-form";
 const creating = ref(false);
 const form = ref<UserCreatePayload>(createEmptyForm());
 
@@ -70,7 +71,7 @@ async function createUser() {
     header="Neuer Benutzer"
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
-    <div class="space-y-4">
+    <form :id="formId" class="space-y-4" @submit.prevent="createUser">
       <div>
         <label for="create-username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Benutzername
@@ -82,7 +83,13 @@ async function createUser() {
           placeholder="z.B. schichtleitung"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
         />
+        <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+          Groß- und Kleinschreibung zählt bei der Anmeldung.
+        </small>
       </div>
 
       <div>
@@ -118,11 +125,18 @@ async function createUser() {
       <small v-if="createError" :id="createErrorId" class="block text-red-600 dark:text-red-400" role="alert">
         {{ createError }}
       </small>
-    </div>
+    </form>
 
     <template #footer>
       <PrimeButton label="Abbrechen" severity="secondary" text @click="dialogVisible = false" />
-      <PrimeButton label="Erstellen" icon="pi pi-check" class="min-h-11" :loading="creating" @click="createUser" />
+      <PrimeButton
+        type="submit"
+        :form="formId"
+        label="Erstellen"
+        icon="pi pi-check"
+        class="min-h-11"
+        :loading="creating"
+      />
     </template>
   </PrimeDialog>
 </template>
