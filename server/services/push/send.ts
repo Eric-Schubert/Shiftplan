@@ -63,13 +63,14 @@ export async function sendTeamNotice(
 
 /**
  * Message to specific people, e.g. the partner of a swap request: their app devices and
- * browsers signed in as them. Team-wide browsers are not reached.
+ * browsers signed in as them. Team devices are not reached, not even when someone picked
+ * that person in team mode, because anyone with the team code can pick anyone.
  */
 export async function sendToStaff(staffIds: number[], payload: PushPayload & { kind?: string }): Promise<SendCounts> {
   const wanted = new Set(staffIds);
   const web = await sendWebPush(payload, { staffIds });
   const tokens = listDevices()
-    .filter((device) => device.staff_id !== null && wanted.has(device.staff_id))
+    .filter((device) => device.personal === 1 && device.staff_id !== null && wanted.has(device.staff_id))
     .map((device) => device.token);
   if (tokens.length === 0) return web;
   const native = await sendNative([

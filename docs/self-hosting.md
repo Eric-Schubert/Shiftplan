@@ -359,7 +359,7 @@ Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende können
 - Übernahme- und Tauschanfragen sowie deren Zu- und Absagen, mit Name und optionaler Nachricht.
 - Freie Nachrichten der Planung über „Team benachrichtigen“.
 
-In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“.
+In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“. Persönliche Nachrichten zu Anfragen bekommt die App nur mit persönlichem Zugang (QR-Code der Planung). Die Auswahl „Ich bin …“ mit dem Team-Code reicht dafür nicht, weil damit jede Person jeden Namen wählen kann.
 
 ### Warum App-Pushes über ein Relay laufen
 
