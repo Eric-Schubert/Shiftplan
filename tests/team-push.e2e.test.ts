@@ -13,6 +13,11 @@ import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 vi.mock("web-push", () => webPushMock);
 stubPushRelay();
 
+async function subscribe(endpoint: string) {
+  const response = await client.request("POST", "/api/push/subscribe", { body: { endpoint, keys: KEYS } });
+  expect(response.status).toBe(200);
+}
+
 describe("team access and push e2e", () => {
   beforeEach(async () => {
     sendNotification.mockReset();
@@ -38,8 +43,8 @@ describe("team access and push e2e", () => {
 
   it("only lets admins manage the code and planners send team messages", async () => {
     const planner = await client.loginAs("planner", "planner1234");
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: APPLE_ENDPOINT, keys: KEYS } });
+    await subscribe(FCM_ENDPOINT);
+    await subscribe(APPLE_ENDPOINT);
     sendNotification.mockImplementation(async (subscription: { endpoint: string }) => {
       if (subscription.endpoint === APPLE_ENDPOINT) throw Object.assign(new Error("gone"), { statusCode: 410 });
       return { statusCode: 201 };
@@ -74,22 +79,27 @@ describe("team access and push e2e", () => {
 
   it("bundles changes in the current week into one push and ignores later weeks", async () => {
     const planner = await client.loginAs("planner", "planner1234");
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    await subscribe(FCM_ENDPOINT);
     const { year, week } = currentWeek();
-    const post = (route: string, staffId: number, targetWeek = week) =>
-      client.request("POST", route, {
+    // Three weeks ahead is always a real ISO week, also around the turn of the year.
+    const later = client.push.getNotifiableWeeks(new Date(Date.now() + 21 * 24 * 60 * 60 * 1000))[0]!;
+    const post = async (route: string, staffId: number, target = { year, week }) => {
+      const response = await client.request("POST", route, {
         jar: planner,
         csrf: true,
-        body: { staff_id: staffId, shift_id: 1, year, week: targetWeek },
+        body: { staff_id: staffId, shift_id: 1, ...target },
       });
+      expect(response.status).toBe(200);
+    };
 
     await post("/api/shiftplan/assign", 1);
     await client.push.PushService.flushPendingChanges();
     sendNotification.mockClear();
 
+    await post("/api/shiftplan/assign", 1, later);
+    expect(client.push.PushService.hasPendingChanges()).toBe(false);
     await post("/api/shiftplan/unassign", 1);
     await post("/api/shiftplan/assign", 2);
-    await post("/api/shiftplan/assign", 1, week >= 50 ? 1 : week + 5);
     const result = await client.push.PushService.flushPendingChanges();
 
     expect(result).toEqual({ sent: 1, failed: 0 });
@@ -103,12 +113,13 @@ describe("team access and push e2e", () => {
 
   it("does not push changes that cancel each other out", async () => {
     const planner = await client.loginAs("planner", "planner1234");
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    await subscribe(FCM_ENDPOINT);
     const { year, week } = currentWeek();
     const body = { staff_id: 1, shift_id: 1, year, week };
 
-    await client.request("POST", "/api/shiftplan/assign", { jar: planner, csrf: true, body });
-    await client.request("POST", "/api/shiftplan/unassign", { jar: planner, csrf: true, body });
+    const assign = await client.request("POST", "/api/shiftplan/assign", { jar: planner, csrf: true, body });
+    const unassign = await client.request("POST", "/api/shiftplan/unassign", { jar: planner, csrf: true, body });
+    expect([assign.status, unassign.status]).toEqual([200, 200]);
 
     expect(await client.push.PushService.flushPendingChanges()).toBeNull();
     expect(sendNotification).not.toHaveBeenCalled();
