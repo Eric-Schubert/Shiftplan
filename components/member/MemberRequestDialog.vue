@@ -35,6 +35,9 @@ const partnerId = ref<number | null>(null);
 const from = ref(today);
 const to = ref(today);
 const message = ref("");
+// Teams without weekend shifts swap Monday to Friday only; the server leaves Saturday and Sunday out.
+const appStore = useAppStore();
+const swapsWeekend = computed(() => appStore.nextWeekFromSaturday && weekendShare(from.value, to.value) !== "none");
 const saving = ref(false);
 const error = ref("");
 
@@ -110,7 +113,9 @@ async function save() {
           />
         </div>
         <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="request" :min="today" />
-        <p class="text-xs text-[var(--text-3)]">Höchstens 8 Wochen am Stück.</p>
+        <p class="text-xs text-[var(--text-3)]">
+          Höchstens 8 Wochen am Stück.<template v-if="swapsWeekend"> Samstag und Sonntag werden nicht getauscht.</template>
+        </p>
       </template>
 
       <PrimeInputText v-model="message" maxlength="160" placeholder="Nachricht (optional)" class="w-full" />
