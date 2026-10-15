@@ -12,7 +12,7 @@ export default {
     const bootstrapPassword = readBootstrapAdminPassword(options);
     if (!bootstrapPassword) {
       throw new Error(
-        `Unsichere Standard-Anmeldedaten erkannt. Setze ${BOOTSTRAP_ADMIN_PASSWORD_ENV} auf ein starkes Passwort und fuehre setup.js erneut aus, um den Admin zu rotieren.`
+        `Insecure default credentials found. Set ${BOOTSTRAP_ADMIN_PASSWORD_ENV} to a strong password and run setup.js again to rotate the admin password.`
       );
     }
 

@@ -71,7 +71,7 @@ export function getContactMailConfig(): ContactMailConfig | null {
     .map(([name]) => name);
 
   if (missingFields.length > 0) {
-    throw new Error(`Kontakt-Mail ist unvollständig konfiguriert: ${missingFields.join(", ")}`);
+    throw new Error(`Contact mail is not fully configured, missing: ${missingFields.join(", ")}`);
   }
 
   return config;

@@ -14,7 +14,7 @@ export default {
     const passwordHash = requireBootstrapPasswordHash(
       database,
       options,
-      "Kein Admin-Benutzer vorhanden."
+      "No admin user exists."
     );
 
     database
