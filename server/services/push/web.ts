@@ -61,7 +61,7 @@ export async function sendWebPush(
         expired.push(subscription.subscription_id);
       } else {
         const reason = result.reason as { statusCode?: number; code?: string };
-        console.error("[push] Versand fehlgeschlagen:", reason?.statusCode || reason?.code || result.reason);
+        console.error("[push] Sending failed:", reason?.statusCode || reason?.code || result.reason);
       }
     });
   }

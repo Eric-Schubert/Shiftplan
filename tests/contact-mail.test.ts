@@ -92,7 +92,7 @@ describe("ContactMailService", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const sendMailCall = fetchMock.mock.calls.at(1);
     if (!sendMailCall) {
-      throw new Error("Microsoft Graph sendMail request wurde nicht ausgeführt");
+      throw new Error("Microsoft Graph sendMail request was not made");
     }
 
     expect(String(sendMailCall[0])).toContain(

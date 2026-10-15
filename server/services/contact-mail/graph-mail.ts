@@ -55,7 +55,7 @@ export async function sendGraphMail(config: ContactMailConfig, message: ContactM
 
   if (!response.ok) {
     throw new Error(
-      `Microsoft Graph sendMail ist fehlgeschlagen (${response.status}): ${await readResponseText(
+      `Microsoft Graph sendMail failed (${response.status}): ${await readResponseText(
         response
       )}`
     );

@@ -43,7 +43,7 @@ export function getContactMailConfig(): ContactMailConfig | null {
   if (!provider && !hasGraphConfig) return null;
 
   if (provider && provider !== "graph") {
-    throw new Error(`Unbekannter Kontakt-Mail-Provider: ${provider}`);
+    throw new Error(`Unknown contact mail provider: ${provider}`);
   }
 
   const config: ContactMailConfig = {

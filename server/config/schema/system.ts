@@ -72,7 +72,7 @@ export function validateAuth(value: unknown, errors: MutableErrorList): void {
   const methods = stringArrayAt(routes.csrfMethods, "auth.routes.csrfMethods", errors);
   for (const method of methods) {
     if (!HTTP_METHODS.has(method.toUpperCase())) {
-      errors.push(`auth.routes.csrfMethods enthaelt eine unbekannte HTTP-Methode: ${method}`);
+      errors.push(`auth.routes.csrfMethods contains an unknown HTTP method: ${method}`);
     }
   }
 }
