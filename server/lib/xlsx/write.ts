@@ -8,11 +8,11 @@ import {
   workbookRelsXml,
   workbookXml,
 } from "./package-xml";
-import type { XlsxSheet, XlsxWorkbook } from "./types";
+import type { XlsxSheetInput, XlsxWorkbookInput } from "./types";
 import { worksheetXml } from "./worksheet-xml";
 import { createZip, type ZipEntry } from "./zip-write";
 
-export function createXlsx(workbook: XlsxWorkbook): Buffer {
+export function createXlsx(workbook: XlsxWorkbookInput): Buffer {
   if (workbook.sheets.length === 0) {
     throw new Error("Workbook needs at least one sheet");
   }
@@ -52,7 +52,7 @@ export function createXlsx(workbook: XlsxWorkbook): Buffer {
   for (const [index, sheet] of sheets.entries()) {
     entries.push({
       path: `xl/worksheets/sheet${index + 1}.xml`,
-      data: xmlBuffer(worksheetXml(sheet)),
+      data: xmlBuffer(worksheetXml(sheet, index === 0)),
     });
   }
 
@@ -63,7 +63,7 @@ function xmlBuffer(xml: string): Buffer {
   return Buffer.from(xml, "utf-8");
 }
 
-function makeUniqueSheetNames(sheets: XlsxSheet[]): XlsxSheet[] {
+function makeUniqueSheetNames(sheets: XlsxSheetInput[]): XlsxSheetInput[] {
   const used = new Set<string>();
 
   return sheets.map((sheet, index) => {

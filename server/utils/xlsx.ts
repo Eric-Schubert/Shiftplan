@@ -1,4 +1,12 @@
-export type { XlsxCellValue, XlsxSheet, XlsxWorkbook } from "~/server/lib/xlsx/types";
+export type {
+  XlsxCell,
+  XlsxCellStyle,
+  XlsxCellValue,
+  XlsxSheet,
+  XlsxSheetInput,
+  XlsxWorkbook,
+  XlsxWorkbookInput,
+} from "~/server/lib/xlsx/types";
 export { createXlsx } from "~/server/lib/xlsx/write";
 export { parseXlsx } from "~/server/lib/xlsx/read";
 

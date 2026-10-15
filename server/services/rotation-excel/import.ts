@@ -4,21 +4,16 @@ import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
 import type { RotationConfig } from "~/types/rotation";
+import { badRequest, normalizeName } from "~/server/services/rotation-excel/cells";
+import { makeNameLookup } from "~/server/services/rotation-excel/lookup";
 import {
-  badRequest,
-  normalizeName,
-  splitStaffNames,
-  toInteger,
-  toText,
-} from "~/server/services/rotation-excel/cells";
-import { makeNameLookup, resolveByName, resolveShift } from "~/server/services/rotation-excel/lookup";
-import { findHeaderColumns, parseConfig } from "~/server/services/rotation-excel/sheet";
-
-type RotationExcelEntry = {
-  pattern_week: number;
-  staff_id: number;
-  shift_id: number;
-};
+  readGridRows,
+  readListRows,
+  type Lookups,
+  type ReadContext,
+  type RotationExcelEntry,
+} from "~/server/services/rotation-excel/rows";
+import { findGridColumns, findHeaderColumns, parseConfig } from "~/server/services/rotation-excel/sheet";
 
 export type RotationExcelImportResult = {
   success: true;
@@ -42,60 +37,31 @@ export function importRotationTemplate(
     badRequest("Die Excel-Datei enthält kein Arbeitsblatt");
   }
 
-  const config = parseConfig(rotationSheet.rows);
-  const columns = findHeaderColumns(rotationSheet.rows);
-  const activeStaff = StaffService.getActive();
+  const rows = rotationSheet.rows;
+  const grid = findGridColumns(rows);
+  const list = grid ? null : findHeaderColumns(rows);
+  const config = parseConfig(rows, grid?.headerRow ?? list!.headerRow);
   const activeShifts = ShiftService.getActive();
-  const staffByName = makeNameLookup(activeStaff, "Mitarbeiter");
-  const shiftsByName = makeNameLookup(activeShifts, "Schicht");
-  const shiftsById = new Map(activeShifts.map((shift) => [shift.shift_id, shift]));
+  const lookups: Lookups = {
+    staffByName: makeNameLookup(StaffService.getActive(), "Mitarbeiter"),
+    shiftsByName: makeNameLookup(activeShifts, "Schicht"),
+    shiftsById: new Map(activeShifts.map((shift) => [shift.shift_id, shift])),
+  };
   const entries: RotationExcelEntry[] = [];
   const seenAssignments = new Set<string>();
-  let importedRows = 0;
+  const context: ReadContext = {
+    rows,
+    config,
+    lookups,
+    add(entry) {
+      const key = `${entry.pattern_week}:${entry.staff_id}:${entry.shift_id}`;
+      if (seenAssignments.has(key)) return;
+      seenAssignments.add(key);
+      entries.push(entry);
+    },
+  };
 
-  for (let rowIndex = columns.headerRow + 1; rowIndex < rotationSheet.rows.length; rowIndex++) {
-    const row = rotationSheet.rows[rowIndex] || [];
-    const rowNumber = rowIndex + 1;
-    const hasContent = [
-      row[columns.patternWeek],
-      columns.shiftId !== undefined ? row[columns.shiftId] : undefined,
-      row[columns.shiftName],
-      row[columns.staffNames],
-    ].some((value) => toText(value) !== "");
-
-    if (!hasContent) continue;
-
-    importedRows++;
-
-    const patternWeek = toInteger(row[columns.patternWeek], `Musterwoche in Zeile ${rowNumber}`);
-    if (patternWeek < 1 || patternWeek > config.cycle_length) {
-      badRequest(
-        `Musterwoche in Zeile ${rowNumber} muss zwischen 1 und ${config.cycle_length} liegen`
-      );
-    }
-
-    const shift = resolveShift({
-      rowNumber,
-      shiftIdValue: columns.shiftId !== undefined ? row[columns.shiftId] : undefined,
-      shiftNameValue: row[columns.shiftName],
-      shiftsById,
-      shiftsByName,
-    });
-
-    for (const staffName of splitStaffNames(row[columns.staffNames])) {
-      const staff = resolveByName(staffByName, staffName, "Mitarbeiter", rowNumber);
-      const key = `${patternWeek}:${staff.staff_id}:${shift.shift_id}`;
-
-      if (!seenAssignments.has(key)) {
-        seenAssignments.add(key);
-        entries.push({
-          pattern_week: patternWeek,
-          staff_id: staff.staff_id,
-          shift_id: shift.shift_id,
-        });
-      }
-    }
-  }
+  const importedRows = grid ? readGridRows(context, grid) : readListRows(context, list!);
 
   if (importedRows === 0) {
     badRequest("Im Blatt 'Rotation' wurden keine Datenzeilen gefunden");

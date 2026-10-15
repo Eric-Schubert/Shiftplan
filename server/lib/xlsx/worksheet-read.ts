@@ -5,15 +5,16 @@ import { decodeXml, parseAttrs, parseTextRuns } from "./xml";
 
 export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue[][] {
   const rows: XlsxCellValue[][] = [];
-  const rowRegex = /<row\b([^>]*)>([\s\S]*?)<\/row>/g;
+  // Excel writes empty but formatted rows and cells self-closing, e.g. <c r="B8" s="5"/>.
+  const rowRegex = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
   let rowMatch: RegExpExecArray | null;
   let fallbackRow = 1;
   let parsedRows = 0;
 
   while ((rowMatch = rowRegex.exec(xml)) !== null) {
     const rowAttrsXml = rowMatch[1];
-    const rowXml = rowMatch[2];
-    if (rowAttrsXml === undefined || rowXml === undefined) continue;
+    const rowXml = rowMatch[2] ?? "";
+    if (rowAttrsXml === undefined) continue;
 
     const rowAttrs = parseAttrs(rowAttrsXml);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
@@ -28,13 +29,13 @@ export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCe
 
     const row: XlsxCellValue[] = [];
     let fallbackCol = 1;
-    const cellRegex = /<c\b([^>]*)>([\s\S]*?)<\/c>/g;
+    const cellRegex = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
     let cellMatch: RegExpExecArray | null;
 
     while ((cellMatch = cellRegex.exec(rowXml)) !== null) {
       const cellAttrsXml = cellMatch[1];
-      const cellXml = cellMatch[2];
-      if (cellAttrsXml === undefined || cellXml === undefined) continue;
+      const cellXml = cellMatch[2] ?? "";
+      if (cellAttrsXml === undefined) continue;
 
       const cellAttrs = parseAttrs(cellAttrsXml);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;

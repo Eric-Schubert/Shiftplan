@@ -1,3 +1,4 @@
+import type { XlsxCellStyle } from "./types";
 import { escapeXml } from "./xml";
 
 export const MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -40,6 +41,7 @@ export function workbookXml(sheetNames: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="${MAIN_NS}" xmlns:r="${DOC_REL_NS}">
   <workbookPr date1904="false"/>
+  <bookViews><workbookView activeTab="0"/></bookViews>
   <sheets>${sheets}</sheets>
 </workbook>`;
 }
@@ -74,25 +76,47 @@ export function appPropsXml(): string {
 </Properties>`;
 }
 
+/** Index into cellXfs in stylesXml(); keep both in the same order. */
+export const CELL_STYLE_IDS: Record<XlsxCellStyle, number> = {
+  header: 1,
+  headerWrap: 2,
+  title: 3,
+  hint: 4,
+  input: 5,
+  label: 6,
+};
+
+const CELL_STYLE_COUNT = 7;
+
 export function stylesXml(): string {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="${MAIN_NS}">
-  <fonts count="2">
+  <fonts count="5">
     <font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>
     <font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="14"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>
+    <font><i/><sz val="11"/><color rgb="FF6B7280"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font>
   </fonts>
-  <fills count="3">
+  <fills count="4">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
     <fill><patternFill patternType="solid"><fgColor rgb="FF2563EB"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFF4C2"/><bgColor indexed="64"/></patternFill></fill>
   </fills>
-  <borders count="1">
+  <borders count="2">
     <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border><left style="thin"><color rgb="FFD1D5DB"/></left><right style="thin"><color rgb="FFD1D5DB"/></right><top style="thin"><color rgb="FFD1D5DB"/></top><bottom style="thin"><color rgb="FFD1D5DB"/></bottom><diagonal/></border>
   </borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-  <cellXfs count="2">
+  <cellXfs count="${CELL_STYLE_COUNT}">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
     <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"/>
+    <xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
   <dxfs count="0"/>

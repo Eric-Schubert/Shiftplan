@@ -38,7 +38,7 @@ watch(
     </p>
     <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
       <li>1. Vorlage herunterladen, sie enthält das aktuelle Muster und alle Mitarbeitenden.</li>
-      <li>2. In Excel ausfüllen und speichern.</li>
+      <li>2. In Excel bei jeder Person pro Woche die Schicht auswählen und speichern.</li>
       <li>3. Hochladen. Du siehst vor dem Ersetzen, was übernommen wird.</li>
     </ol>
     <div class="mt-4 flex flex-wrap gap-2">
