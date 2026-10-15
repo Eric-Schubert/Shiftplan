@@ -51,21 +51,22 @@ describe("sign-in with Kürzel and PIN", () => {
     expect(blocked.status).toBe(429);
   });
 
-  it("rejects short PINs and needs the current PIN to change it", async () => {
+  it("rejects short or trivial PINs and needs the current PIN to change it", async () => {
     const browser = await browserWithInvite(ANNA);
-    const tooShort = await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "1234" } });
-    await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "482913" } });
-    const noCurrent = await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "777777" } });
-    const changed = await client.request("PUT", "/api/member/pin", {
-      jar: browser,
-      headers: SAME_ORIGIN,
-      body: { pin: "777777", currentPin: "482913" },
-    });
+    const setPin = (body: Record<string, string>) =>
+      client.request<any>("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body });
+    const tooShort = await setPin({ pin: "1234" });
+    const trivial = await Promise.all(["000000", "123456", "987654", "121212", "123123"].map((pin) => setPin({ pin })));
+    await setPin({ pin: "482913" });
+    const noCurrent = await setPin({ pin: "730591" });
+    const changed = await setPin({ pin: "730591", currentPin: "482913" });
 
     expect(tooShort.status).toBe(400);
+    expect(trivial.map((response) => response.status)).toEqual([400, 400, 400, 400, 400]);
+    expect(trivial[0]!.json.statusMessage).toBe("Diese PIN ist zu leicht zu erraten");
     expect(noCurrent.status).toBe(403);
     expect(changed.status).toBe(200);
-    expect((await pinLogin("AW", "777777")).status).toBe(200);
+    expect((await pinLogin("AW", "730591")).status).toBe(200);
   });
 
   it("lets planners see who has a PIN and reset it", async () => {
