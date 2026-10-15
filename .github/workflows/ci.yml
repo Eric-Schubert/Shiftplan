@@ -71,6 +71,9 @@ jobs:
       - name: Check file length
         run: npm run lint:length
 
+      - name: Check English
+        run: npm run lint:english
+
       - name: Check generated docs
         run: |
           npm run docs
