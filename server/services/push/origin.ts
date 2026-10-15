@@ -29,8 +29,17 @@ export function rememberOrigin(origin: string): void {
   if (url && isPublicHost(url.hostname)) lastOrigin = url.origin;
 }
 
+let warnedAboutConfig = false;
+
 /** Public address of this instance for the VAPID subject and the relay. */
 export function getHttpsOrigin(): string | null {
   const configured = process.env.SHIFTPLAN_PUBLIC_URL?.trim();
-  return (configured && toOrigin(configured)?.origin) || lastOrigin;
+  if (!configured) return lastOrigin;
+  const url = toOrigin(configured);
+  if (url) return url.origin;
+  if (!warnedAboutConfig) {
+    warnedAboutConfig = true;
+    console.warn(`[push] SHIFTPLAN_PUBLIC_URL ist keine https-Adresse und wird ignoriert: ${configured}`);
+  }
+  return lastOrigin;
 }

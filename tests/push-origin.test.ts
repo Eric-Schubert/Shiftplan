@@ -34,6 +34,19 @@ describe("public origin for push", () => {
 
     expect(getHttpsOrigin()).toBe("https://plan.example.de");
   });
+
+  it("warns once about a configured URL that is not https", async () => {
+    process.env.SHIFTPLAN_PUBLIC_URL = "http://plan.example.de";
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { getHttpsOrigin, rememberOrigin } = await loadOrigin();
+    rememberOrigin("https://plan.example.de");
+
+    const results = [getHttpsOrigin(), getHttpsOrigin()];
+
+    expect(results).toEqual(["https://plan.example.de", "https://plan.example.de"]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
 });
 
 describe("relay registration", () => {
