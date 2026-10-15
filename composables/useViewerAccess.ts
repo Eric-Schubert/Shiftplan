@@ -1,3 +1,5 @@
+import { watch, type Ref } from "vue";
+
 export type ViewerStatus = {
   codeRequired: boolean;
   hasAccess: boolean;
@@ -19,4 +21,14 @@ export function useViewerAccess() {
   }
 
   return { status, load, login };
+}
+
+/**
+ * Runs `onGranted` once the access code gate opens. The gate unmounts in that very moment,
+ * before it could emit anything, so the page has to follow the state instead.
+ */
+export function watchAccessGranted(needsAccessCode: Ref<boolean>, onGranted: () => unknown): void {
+  watch(needsAccessCode, (needed, neededBefore) => {
+    if (neededBefore && !needed) void onGranted();
+  });
 }

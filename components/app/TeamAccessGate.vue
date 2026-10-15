@@ -3,10 +3,6 @@ const props = defineProps<{
   initialError?: string;
 }>();
 
-const emit = defineEmits<{
-  (e: "granted"): void;
-}>();
-
 const { login } = useViewerAccess();
 const showMemberLogin = useState<boolean>("member-login-open", () => false);
 const code = ref("");
@@ -23,8 +19,8 @@ async function submit() {
   loading.value = true;
   error.value = "";
   try {
+    // The page notices the granted access itself; this gate is gone by then.
     await login(code.value);
-    emit("granted");
   } catch (cause: any) {
     error.value = cause?.data?.statusMessage || "Zugangscode ist falsch";
   } finally {
