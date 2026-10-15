@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
+import { cellKey, pruneSaved } from "~/utils/day-change-cells";
 
 // Planner grid: who works this shift on which day of the week, on top of the weekly plan.
 const props = defineProps<{
@@ -28,6 +29,15 @@ const extraRows = ref<Array<{ staff_id: number; name: string }>>([]);
 const addStaffId = ref<number | null>(null);
 const busyCell = ref("");
 const error = ref("");
+// What was saved stays visible until the refreshed day changes show it.
+const saved = ref<Record<string, boolean>>({});
+watch(
+  () => props.dayChanges,
+  (changes) => {
+    const assigned = new Set(props.shift.assigned_staff.map((staff) => staff.staff_id));
+    saved.value = pruneSaved(saved.value, assigned, changes);
+  }
+);
 
 const rows = computed(() => {
   const list = props.shift.assigned_staff.map((staff) => ({ staff_id: staff.staff_id, name: staff.name }));
@@ -51,13 +61,14 @@ const addOptions = computed(() => {
 });
 
 async function toggle(staffId: number, date: string, present: boolean) {
-  busyCell.value = `${staffId}-${date}`;
+  busyCell.value = cellKey(staffId, date);
   error.value = "";
   try {
     await authFetch("/api/shiftplan/day-change", {
       method: "POST",
       body: { staff_id: staffId, shift_id: props.shift.shift_id, date, present },
     });
+    saved.value = { ...saved.value, [cellKey(staffId, date)]: present };
     emit("updated");
   } catch (cause: any) {
     error.value = cause?.data?.statusMessage || "Änderung konnte nicht gespeichert werden";
@@ -86,7 +97,7 @@ watch(addStaffId, (staffId) => {
         Tippe auf einen Tag, um jemanden nur an diesem Tag ein- oder auszutragen. Der Wochenplan bleibt die Grundlage.
       </p>
 
-      <DayChangeGrid :shift="shift" :days="days" :rows="rows" :day-changes="dayChanges" :busy-cell="busyCell" @toggle="toggle">
+      <DayChangeGrid :shift="shift" :days="days" :rows="rows" :day-changes="dayChanges" :busy-cell="busyCell" :saved="saved" @toggle="toggle">
         <div class="flex flex-wrap items-center gap-2">
           <PrimeSelect
             v-model="addStaffId"
