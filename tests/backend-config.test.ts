@@ -33,7 +33,13 @@ describe("backend config", () => {
       expect(getBackendConfig().auth.trustProxyHeaders).toBe(true);
     });
 
-    it("rejects values other than true or false", () => {
+    it("accepts cloudflare for origins that only Cloudflare can reach", () => {
+      vi.stubEnv("SHIFTPLAN_TRUST_PROXY_HEADERS", "Cloudflare");
+      resetBackendConfigForTests();
+      expect(getBackendConfig().auth.trustProxyHeaders).toBe("cloudflare");
+    });
+
+    it("rejects values other than true, false or cloudflare", () => {
       vi.stubEnv("SHIFTPLAN_TRUST_PROXY_HEADERS", "yes");
       resetBackendConfigForTests();
       expect(() => getBackendConfig()).toThrow(/SHIFTPLAN_TRUST_PROXY_HEADERS/);

@@ -34,7 +34,8 @@ describe("push relay e2e", () => {
 
   it("keeps web pushes working when the relay is down", async () => {
     await registerDevices();
-    await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    const subscribe = await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+    expect(subscribe.status).toBe(200);
     relayResponses.push(() => json(503, { error: "down" }));
 
     await changeShift("assign", 1);
@@ -49,6 +50,7 @@ describe("push relay e2e", () => {
     try {
       await registerDevices();
       await changeShift("assign", 1);
+      expect(client.push.PushService.hasPendingChanges()).toBe(true);
       await client.push.PushService.flushPendingChanges();
       expect(calls).toEqual([]);
     } finally {

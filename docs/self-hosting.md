@@ -79,8 +79,9 @@ Vollständiges Beispiel. Leere Werte sind optional.
 # Nach dem ersten Login in der App ändern.
 SHIFTPLAN_ADMIN_PASSWORD=BitteLangesZufallsPasswort2026
 
-# Hinter einem Reverse Proxy: echte Client-IP aus X-Forwarded-For verwenden
-# (wichtig für Rate-Limits beim Login). Nur setzen, wenn der Proxy den Header überschreibt.
+# Hinter einem Reverse Proxy: echte Client-IP für die Login-Sperren verwenden.
+# true = letzter Eintrag in X-Forwarded-For (vom Proxy angehängt).
+# cloudflare = CF-Connecting-IP, nur wenn der Server ausschließlich Cloudflare annimmt.
 SHIFTPLAN_TRUST_PROXY_HEADERS=true
 
 # Zeitzone für Kalenderwochen und Push-Bündelung
@@ -114,6 +115,10 @@ NUXT_PUBLIC_PRIVACY_HOSTER=
 # Kontakt für Web Push (VAPID). Standard: mailto: mit der Impressums-E-Mail.
 SHIFTPLAN_PUSH_SUBJECT=
 
+# Öffentliche Adresse der Instanz, die sie dem Push-Relay nennt, z. B. https://plan.example.de.
+# Leer: die Adresse, über die zuletzt der Plan geändert wurde.
+SHIFTPLAN_PUBLIC_URL=
+
 # Relay für App-Pushes: nicht setzen = https://push.shiftplan.info.
 # "off" (oder ein leerer Wert) schaltet App-Pushes ab, siehe Abschnitt Push-Nachrichten.
 # SHIFTPLAN_PUSH_RELAY_URL=off
@@ -131,7 +136,7 @@ CONTACT_MAIL_SUBJECT_PREFIX=[Shiftplan]
 CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
 ```
 
-`SHIFTPLAN_TRUST_PROXY_HEADERS=true` nur mit Reverse Proxy setzen. Ohne Proxy könnten Clients ihre IP fälschen und Login-Sperren umgehen.
+`SHIFTPLAN_TRUST_PROXY_HEADERS=true` nur mit Reverse Proxy setzen. Ohne Proxy könnten Clients ihre IP fälschen und Login-Sperren umgehen. Läuft die Instanz hinter Cloudflare, `cloudflare` setzen, aber nur, wenn die Firewall 80/443 ausschließlich für Cloudflare-Netze öffnet. Sonst könnte jeder einen eigenen `CF-Connecting-IP`-Header schicken.
 
 Nie auf einer echten Instanz setzen: `NUXT_PUBLIC_DEMO_LOGIN_USERNAME`, `NUXT_PUBLIC_DEMO_LOGIN_PASSWORD`, `SHIFTPLAN_DEMO_MEMBER_CODE`. Die sind nur für öffentliche Demos gedacht.
 
@@ -311,7 +316,7 @@ Erwartet: `HTTP/2 200`. Zusätzlich im Browser prüfen, dass kein Zertifikatsfeh
 3. Schichten mit Zeiten und Mindestbesetzung, Mitarbeitende und ein Rotationsmuster anlegen. Vorhandene Pläne lassen sich per Excel übernehmen.
 4. **Einstellungen → Team-Zugang → Name in der App:** einen Namen setzen, z. B. „Pflegeteam Nord“. Den sehen Mitarbeitende in der App, und er erscheint beim Push-Relay als Name der Instanz.
 5. Optional unter **Team-Zugang** einen Zugangscode setzen. Ohne Code kann jeder mit dem Link den Plan im Browser lesen. Mit Code braucht der Browser einmal den Code oder QR-Code. Für die App ist das egal, sie nutzt persönliche Zugänge.
-6. Für Planerinnen und Planer ohne Admin-Rechte eigene Benutzer mit der Rolle „Planer“ anlegen.
+6. Für Planerinnen und Planer ohne Admin-Rechte eigene Benutzer mit der Rolle „Planer“ anlegen. Beim Benutzernamen zählt die Groß- und Kleinschreibung.
 
 **Wichtig für die App:** Alle QR-Codes enthalten die Adresse, unter der die Einstellungen gerade im Browser offen sind. Codes deshalb immer über die öffentliche Adresse `https://plan.example.de` erzeugen, nie über `http://localhost:3000` oder eine LAN-IP. Sonst landet im QR-Code eine Adresse, die das Handy nicht erreicht.
 
@@ -354,12 +359,12 @@ Shiftplan kennt zwei Wege. Beide schickt dieselbe Instanz, Mitarbeitende können
 
 ### Wann Pushes kommen
 
-- Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung löst keine Pushes aus.
+- Planänderungen in der aktuellen und der nächsten Kalenderwoche, gebündelt (eine Nachricht pro Minute Bearbeitung). Langfristige Planung und Korrekturen vergangener Tage lösen keine Pushes aus.
 - Ausfallmeldungen an das Team, z. B. „Anna Weber fällt Do. 08.10. aus – Frühschicht offen“. Den Grund enthält eine Nachricht nie. Die Person, die fehlt, bekommt die Nachricht nicht selbst.
 - Übernahme- und Tauschanfragen sowie deren Zu- und Absagen, mit Name und optionaler Nachricht.
 - Freie Nachrichten der Planung über „Team benachrichtigen“.
 
-In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“.
+In der App wählt jede Person zwischen „Alle“ Schichten und „Nur meine“. Persönliche Nachrichten zu Anfragen gehen nur an persönliche Zugänge (QR-Code oder Kürzel und PIN). Geräte, die nur mit dem Team-Code angemeldet sind (ältere App-Versionen, eigene Clients), bekommen sie nicht.
 
 ### Warum App-Pushes über ein Relay laufen
 
@@ -370,7 +375,7 @@ Ein eigenes Relay ist mit der offiziellen App nicht möglich, weil die Geräte-T
 ### Was dabei passiert
 
 1. Nach dem Einrichten stehen Benachrichtigungen in der App auf „Alle“. Die App meldet ihr Geräte-Token an deine Instanz. Es liegt nur in deiner Datenbank. Das Token selbst holt die App bei jedem Start von Firebase bzw. APNs, auch ohne eingerichtetes Team; dafür ist ES Software als Anbieter der App verantwortlich.
-2. Beim ersten Push registriert sich deine Instanz automatisch beim Relay. Sie schickt dabei den Namen aus „Name in der App“ und ihre HTTPS-Adresse. Das Relay antwortet mit einer Instanz-ID und einem Secret, die Instanz speichert beides in ihrer Admin-Datenbank.
+2. Beim ersten Push registriert sich deine Instanz automatisch beim Relay. Sie schickt dabei den Namen aus „Name in der App“ und ihre HTTPS-Adresse (`SHIFTPLAN_PUBLIC_URL`, sonst die Adresse, über die zuletzt der Plan geändert wurde). Das Relay antwortet mit einer Instanz-ID und einem Secret, die Instanz speichert beides in ihrer Admin-Datenbank.
 3. Für jeden Push schickt die Instanz Titel, Text, die Geräte-Tokens und einen Link in die App (Kalenderwoche) an das Relay. Das Relay gibt sie an Firebase weiter und meldet ungültige Tokens zurück. Die Instanz löscht diese Geräte dann.
 
 Das Relay speichert:
@@ -406,7 +411,7 @@ Danach `docker compose up -d`. Die App funktioniert weiter, zeigt Änderungen ab
 |---|---|---|
 | eingehend | 443 auf den Reverse Proxy | Browser und App |
 | ausgehend | `push.shiftplan.info:443` | App-Pushes |
-| ausgehend | Push-Dienste der Browser, z. B. `fcm.googleapis.com`, `*.push.apple.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com` | Web Push |
+| ausgehend | Push-Dienste der Browser, z. B. `fcm.googleapis.com`, `web.push.apple.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com` | Web Push |
 | ausgehend | `openholidaysapi.org:443` | Feiertage und Schulferien |
 
 ## Datenschutz und Impressum
@@ -468,9 +473,10 @@ Backups außerhalb des Servers aufbewahren. Sie enthalten personenbezogene Daten
 | Variable | Zweck | Standard |
 |---|---|---|
 | `SHIFTPLAN_ADMIN_PASSWORD` | Start-Passwort für `admin`, nur beim ersten Start | – (Pflicht beim ersten Start) |
-| `SHIFTPLAN_TRUST_PROXY_HEADERS` | Client-IP aus `X-Forwarded-For` übernehmen | `false` |
+| `SHIFTPLAN_TRUST_PROXY_HEADERS` | Client-IP vom Proxy übernehmen: `true` (letzter Eintrag in `X-Forwarded-For`) oder `cloudflare` (`CF-Connecting-IP`) | `false` |
 | `SHIFTPLAN_PUSH_RELAY_URL` | Relay für App-Pushes, `off` oder ein leerer Wert schaltet sie ab | nicht gesetzt: `https://push.shiftplan.info` |
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID-Kontakt für Web Push | `mailto:` + Impressums-E-Mail |
+| `SHIFTPLAN_PUBLIC_URL` | Öffentliche HTTPS-Adresse für Push-Relay und VAPID-Kontakt | Adresse der letzten Planänderung |
 | `SHIFTPLAN_BACKEND_CONFIG_PATH` | anderer Pfad für `backend.config.json` | `/app/config/backend.config.json` |
 | `TZ` | Zeitzone | `UTC` |
 | `NUXT_PUBLIC_IMPRINT_*` | Impressum und Verantwortlicher. Pflicht: Name, Straße, PLZ, Ort und E-Mail, bei GmbH, UG usw. auch Vertretungsberechtigte und Register. Fehlt Name, Anschrift oder E-Mail, zeigt `/impressum` eine Warnung | leer |
@@ -510,7 +516,7 @@ Ein QR-Code gilt 7 Tage und nur einmal. Unter App-Zugänge einen neuen erzeugen.
 Web Push braucht HTTPS. Auf dem iPhone muss die Seite über Teilen → Zum Home-Bildschirm installiert sein (iOS 16.4 oder neuer), die Glocke dann in der installierten Web-App antippen.
 
 **Login wird nach wenigen Versuchen gesperrt, obwohl nur eine Person sich vertippt.**
-Ohne `SHIFTPLAN_TRUST_PROXY_HEADERS=true` sieht die Instanz hinter einem Proxy alle Anfragen von der IP des Proxys. Variable setzen und neu starten.
+Ohne `SHIFTPLAN_TRUST_PROXY_HEADERS` sieht die Instanz hinter einem Proxy alle Anfragen von der IP des Proxys, und fünf Fehlversuche von irgendwem sperren die Anmeldung für alle. Das Log zeigt dann einmal `SHIFTPLAN_TRUST_PROXY_HEADERS is off`. Variable auf `true` (bzw. `cloudflare` hinter Cloudflare) setzen und neu starten. Hinter Cloudflare mit `true` landen alle Besucher desselben Cloudflare-Standorts im selben Topf.
 
 **Container startet nicht, Log zeigt `SQLITE_CANTOPEN` oder `permission denied`.**
 `sudo chown -R 1000:1000 /opt/stacks/shiftplan/db`

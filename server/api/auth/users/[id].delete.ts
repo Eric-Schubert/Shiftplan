@@ -1,5 +1,6 @@
 import { getAdminDatabase } from "~/server/utils/database";
 import { requireAdmin } from "~/server/utils/auth";
+import { deleteUserSessions } from "~/server/utils/session";
 
 export default defineEventHandler((event) => {
   const currentUser = requireAdmin(event);
@@ -48,7 +49,11 @@ export default defineEventHandler((event) => {
     }
   }
 
-  db.prepare("DELETE FROM users WHERE user_id = ?").run(id);
+  // The account's sessions go with it, so a removed planner or admin is signed out everywhere.
+  db.transaction(() => {
+    db.prepare("DELETE FROM users WHERE user_id = ?").run(id);
+    deleteUserSessions(id);
+  })();
 
   return { success: true };
 });

@@ -1,8 +1,8 @@
 import type { ContactMessage } from "~/types/contact";
 import { getContactMailDefaults } from "~/server/config/contact-mail-config";
-import type { ContactMailConfig } from "~/server/services/contact-mail/config";
+import { GRAPH_REQUEST_TIMEOUT_MS, type ContactMailConfig } from "~/server/services/contact-mail/config";
 import { getGraphAccessToken } from "~/server/services/contact-mail/graph-token";
-import { buildMailText, buildSubject, isEmailAddress } from "~/server/services/contact-mail/message";
+import { buildMailText, buildSubject, getReplyAddress } from "~/server/services/contact-mail/message";
 
 async function readResponseText(response: Response): Promise<string> {
   return (await response.text().catch(() => "")).slice(
@@ -13,7 +13,7 @@ async function readResponseText(response: Response): Promise<string> {
 
 export async function sendGraphMail(config: ContactMailConfig, message: ContactMessage): Promise<void> {
   const accessToken = await getGraphAccessToken(config);
-  const replyAddress = isEmailAddress(message.reply_to) ? message.reply_to : null;
+  const replyAddress = getReplyAddress(message.reply_to);
   const payload = {
     message: {
       subject: buildSubject(message, config.subjectPrefix),
@@ -49,6 +49,7 @@ export async function sendGraphMail(config: ContactMailConfig, message: ContactM
         "content-type": "application/json",
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
     }
   );
 

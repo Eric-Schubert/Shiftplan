@@ -1,4 +1,5 @@
 import { getAuthConfig } from "~/server/config/auth-config";
+import { networkOf } from "~/server/lib/session/network";
 
 export function getSessionToken(event: any): string | undefined {
   const authHeader = getHeader(event, "authorization");
@@ -18,24 +19,50 @@ export function getCsrfTokenFromRequest(event: any): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
+const warned = new Set<string>();
+
+function warnOnce(key: string, message: string): void {
+  if (warned.has(key)) return;
+  warned.add(key);
+  console.warn(`[auth] ${message}`);
+}
+
 export function getClientIP(event: any): string {
   const socketIP = event.node?.req?.socket?.remoteAddress || "unknown";
+  const trust = getAuthConfig().trustProxyHeaders;
 
-  if (!getAuthConfig().trustProxyHeaders) {
+  if (!trust) {
+    // Behind a proxy every client then shares the proxy's address and its limits.
+    if (socketIP !== "unknown" && getHeader(event, "x-forwarded-for")) {
+      warnOnce(
+        "untrusted",
+        "Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit."
+      );
+    }
     return socketIP;
   }
 
-  const cfIP = getHeader(event, "cf-connecting-ip");
-  if (cfIP) return cfIP;
-
-  const xForwardedFor = getHeader(event, "x-forwarded-for");
-  if (xForwardedFor) {
-    const forwardedIp = xForwardedFor.split(",")[0]?.trim();
-    if (forwardedIp) return forwardedIp;
+  // Only Cloudflare overwrites this header. Any other proxy passes on what the client sent.
+  const cfIP = getHeader(event, "cf-connecting-ip")?.trim();
+  if (trust === "cloudflare" && cfIP) return cfIP;
+  if (cfIP) {
+    // Behind Cloudflare the rightmost entry is the Cloudflare edge, shared by many visitors.
+    warnOnce(
+      "cloudflare",
+      "CF-Connecting-IP arrived while SHIFTPLAN_TRUST_PROXY_HEADERS is true. Behind Cloudflare, set it to cloudflare, " +
+        "or all visitors of one Cloudflare location share one sign-in limit."
+    );
   }
 
-  const xRealIP = getHeader(event, "x-real-ip");
-  if (xRealIP) return xRealIP;
+  // The proxy in front appends the address it saw. Everything left of it came from the client.
+  const forwarded = getHeader(event, "x-forwarded-for")
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return forwarded?.at(-1) || socketIP;
+}
 
-  return socketIP;
+/** Rate-limit key of the client: its address, or its /64 network for IPv6. */
+export function getClientNetwork(event: any): string {
+  return networkOf(getClientIP(event));
 }

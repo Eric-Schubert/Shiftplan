@@ -6,6 +6,7 @@ const route = useRoute();
 const runtimeConfig = useRuntimeConfig();
 const showChangelogDialog = useState<boolean>("showChangelogDialog", () => false);
 const { status: viewerStatus } = useViewerAccess();
+const { ensureLoaded: loadMember } = useMember();
 const { state: pushState, dialogOpen: pushDialogOpen, detect: detectPush } = usePushNotifications();
 const showPushButton = computed(() => viewerStatus.value?.hasAccess !== false);
 
@@ -35,11 +36,18 @@ watch(
 onMounted(() => {
   appStore.initDarkMode();
   void detectPush();
+  // The header shows the personal sign-in on every page, not only on the plan.
+  void loadMember();
 });
+
+// Any click or key press counts as activity and keeps a planner session alive.
+function onActivity() {
+  authStore.extendSession();
+}
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" @click="onActivity" @keydown="onActivity">
     <a href="#main" class="app-skip-link">Zum Inhalt springen</a>
     <header class="app-header sticky top-0 z-50">
       <div class="mx-auto flex h-14 max-w-[80rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">

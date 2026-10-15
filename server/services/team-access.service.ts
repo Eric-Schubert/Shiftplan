@@ -59,8 +59,10 @@ export const TeamAccessService = {
   },
 
   /**
-   * Setting a new code signs out every employee device and drops their push
-   * subscriptions and app devices, so former staff stop receiving the plan.
+   * Setting a new code signs out every device that only had the team code and drops the
+   * push subscriptions and app devices registered without a personal sign-in, so former
+   * staff stop receiving the plan. Personal sign-ins and their pushes stay; removing a
+   * person ends those on its own.
    */
   setAccessCode(code: string | null): void {
     const db = getAdminDatabase();
@@ -76,8 +78,8 @@ export const TeamAccessService = {
         "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
       ).run(ACCESS_CODE_SETTING, normalized);
       db.prepare("DELETE FROM viewer_sessions").run();
-      db.prepare("DELETE FROM push_subscriptions").run();
-      db.prepare("DELETE FROM push_devices").run();
+      db.prepare("DELETE FROM push_subscriptions WHERE member_session IS NULL").run();
+      db.prepare("DELETE FROM push_devices WHERE member_session IS NULL").run();
     })();
   },
 

@@ -25,6 +25,11 @@ export function useMember() {
     return member.value;
   }
 
+  /** Loads the member once per page load, for pages that did not load it themselves. */
+  async function ensureLoaded(): Promise<MemberProfile | null> {
+    return loaded.value ? member.value : load();
+  }
+
   async function login(shortCode: string, pin: string): Promise<MemberProfile> {
     const response = await $fetch<{ staff: MemberProfile }>("/api/member/login", {
       method: "POST",
@@ -53,7 +58,7 @@ export function useMember() {
     member.value = null;
   }
 
-  return { member, loaded, load, login, redeem, setPin, logout };
+  return { member, loaded, load, ensureLoaded, login, redeem, setPin, logout };
 }
 
 /** "Firefox auf macOS", shown in the planner's device list. */

@@ -1,18 +1,8 @@
-import { destroySession, getSessionToken } from "~/server/utils/session";
-import { getAuthConfig } from "~/server/config/auth-config";
+import { clearSessionCookies, destroySession, getSessionToken } from "~/server/utils/session";
 
+// Needs no CSRF token (see the auth middleware), so a stale tab can always sign out.
 export default defineEventHandler((event) => {
-  const token = getSessionToken(event);
-
-
-  destroySession(token);
-
-
-  const cookieConfig = getAuthConfig().session.cookies;
-  deleteCookie(event, cookieConfig.sessionName, { path: cookieConfig.path });
-
-
-  deleteCookie(event, cookieConfig.csrfName, { path: cookieConfig.path });
-
+  destroySession(getSessionToken(event));
+  clearSessionCookies(event);
   return { success: true };
 });

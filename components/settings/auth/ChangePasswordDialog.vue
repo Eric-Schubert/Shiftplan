@@ -12,6 +12,7 @@ const error = ref("");
 const success = ref(false);
 const loading = ref(false);
 const passwordErrorId = "change-password-error";
+const formId = "change-password-form";
 
 function clearFields() {
   currentPassword.value = "";
@@ -65,7 +66,7 @@ function onHide() {
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     @hide="onHide"
   >
-    <div class="space-y-4">
+    <form :id="formId" class="space-y-4" @submit.prevent="changePassword">
       <div
         v-if="success"
         class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
@@ -108,16 +109,17 @@ function onHide() {
           {{ error }}
         </small>
       </template>
-    </div>
+    </form>
 
     <template #footer>
       <PrimeButton label="Abbrechen" text @click="visible = false" />
       <PrimeButton
         v-if="!success"
+        type="submit"
+        :form="formId"
         label="Passwort ändern"
         class="min-h-11"
         :loading="loading"
-        @click="changePassword"
       />
     </template>
   </PrimeDialog>

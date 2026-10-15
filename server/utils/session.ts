@@ -11,8 +11,15 @@ import {
 } from "~/server/lib/session/records";
 
 export type { SessionClient } from "~/server/lib/session/records";
-export { checkRateLimit, recordFailedLogin, resetRateLimit } from "~/server/lib/session/rate-limit";
-export { getClientIP, getCsrfTokenFromRequest, getSessionToken } from "~/server/lib/session/request";
+export { deleteUserSessions } from "~/server/lib/session/records";
+export { limitAttempt, type AttemptBucket } from "~/server/lib/session/rate-limit";
+export {
+  getClientIP,
+  getClientNetwork,
+  getCsrfTokenFromRequest,
+  getSessionToken,
+} from "~/server/lib/session/request";
+export { clearSessionCookies, refreshSessionCookies, setSessionCookies } from "~/server/lib/session/cookies";
 
 export function createSession(
   user: SessionUser,

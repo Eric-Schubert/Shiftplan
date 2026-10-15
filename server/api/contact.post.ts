@@ -1,7 +1,7 @@
 import { ContactService } from "~/server/services/contact.service";
 import { ContactMailService } from "~/server/services/contact-mail.service";
 import { getClientIP } from "~/server/utils/session";
-import { sanitizeString, validateString } from "~/server/utils/validation";
+import { validateString } from "~/server/utils/validation";
 import { getContactFormConfig, getContactRateLimitConfig } from "~/server/config/contact-config";
 
 type ContactRequestBody = {
@@ -49,11 +49,6 @@ function assertRateLimit(ip: string): void {
   record.count += 1;
 }
 
-function cleanText(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  return sanitizeString(value);
-}
-
 export default defineEventHandler(async (event) => {
   const body = (await readBody<ContactRequestBody>(event).catch(() => ({}))) as ContactRequestBody;
 
@@ -65,34 +60,27 @@ export default defineEventHandler(async (event) => {
   assertRateLimit(ip);
   const formConfig = getContactFormConfig();
 
-  const name = cleanText(
-    validateString(body.name, "Name", {
-      required: true,
-      minLength: formConfig.name.minLength,
-      maxLength: formConfig.name.maxLength,
-    })
-  )!;
-  const replyTo = cleanText(
-    validateString(body.replyTo, "Rückkontakt", {
-      required: true,
-      minLength: formConfig.replyTo.minLength,
-      maxLength: formConfig.replyTo.maxLength,
-    })
-  )!;
-  const subject = cleanText(
-    validateString(body.subject, "Betreff", {
-      required: false,
-      minLength: formConfig.subject.minLength,
-      maxLength: formConfig.subject.maxLength,
-    })
-  );
-  const message = cleanText(
-    validateString(body.message, "Nachricht", {
-      required: true,
-      minLength: formConfig.message.minLength,
-      maxLength: formConfig.message.maxLength,
-    })
-  )!;
+  // Stored as typed (trimmed): the admin view escapes on render and the mail is plain text.
+  const name = validateString(body.name, "Name", {
+    required: true,
+    minLength: formConfig.name.minLength,
+    maxLength: formConfig.name.maxLength,
+  })!;
+  const replyTo = validateString(body.replyTo, "Rückkontakt", {
+    required: true,
+    minLength: formConfig.replyTo.minLength,
+    maxLength: formConfig.replyTo.maxLength,
+  })!;
+  const subject = validateString(body.subject, "Betreff", {
+    required: false,
+    minLength: formConfig.subject.minLength,
+    maxLength: formConfig.subject.maxLength,
+  });
+  const message = validateString(body.message, "Nachricht", {
+    required: true,
+    minLength: formConfig.message.minLength,
+    maxLength: formConfig.message.maxLength,
+  })!;
 
   const savedMessage = ContactService.createMessage({
     name,

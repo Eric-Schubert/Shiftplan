@@ -53,9 +53,10 @@ export async function registerDevices() {
 export async function changeShift(route: "assign" | "unassign", staffId: number) {
   const { year, week } = currentWeek();
   const planner = await client.loginAs("planner", "planner1234");
-  await client.request("POST", `/api/shiftplan/${route}`, {
+  const response = await client.request("POST", `/api/shiftplan/${route}`, {
     jar: planner,
     csrf: true,
     body: { staff_id: staffId, shift_id: 1, year, week },
   });
+  expect(response.status).toBe(200);
 }

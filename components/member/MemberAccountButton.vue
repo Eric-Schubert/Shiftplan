@@ -2,6 +2,7 @@
 // Header entry for the personal sign-in: "Anmelden" or the signed-in person with PIN and sign-out.
 const { member, setPin, logout } = useMember();
 const { load: loadViewerStatus } = useViewerAccess();
+const { detect: syncPush } = usePushNotifications();
 
 const showLogin = useState<boolean>("member-login-open", () => false);
 const showAccount = ref(false);
@@ -46,6 +47,8 @@ async function signOut() {
     await logout();
     showAccount.value = false;
     await loadViewerStatus();
+    // Signing out removed this browser's push subscription; with team access it returns as a team one.
+    await syncPush();
     await refreshNuxtData();
   } finally {
     busy.value = false;
@@ -54,6 +57,8 @@ async function signOut() {
 
 async function onSignedIn() {
   await loadViewerStatus();
+  // Binds an existing subscription to the person, so their own messages arrive here as well.
+  await syncPush();
   await refreshNuxtData();
 }
 </script>

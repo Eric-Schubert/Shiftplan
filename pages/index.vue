@@ -15,6 +15,7 @@ await Promise.all([
 ]);
 const needsAccessCode = computed(() => viewerStatus.value?.hasAccess === false);
 const accessError = ref("");
+watchAccessGranted(needsAccessCode, onAccessGranted);
 
 const {
   data: shiftplan,
@@ -46,8 +47,10 @@ async function refreshWeek() {
 
 async function onMemberSignedIn() {
   inviteCode.value = null;
+  const wasGated = needsAccessCode.value;
   await loadViewerStatus();
-  await onAccessGranted();
+  // When the sign-in opened the gate, watchAccessGranted already loads the week.
+  if (!wasGated) await onAccessGranted();
 }
 
 async function onAccessGranted() {
@@ -60,7 +63,6 @@ async function redeemAccessCode(code: string) {
   if (!needsAccessCode.value) return;
   try {
     await viewerLogin(code);
-    await onAccessGranted();
   } catch {
     accessError.value = "Der Zugangscode aus dem Link ist nicht mehr gültig.";
   }
@@ -95,7 +97,6 @@ async function generateFromPattern() {
       v-if="needsAccessCode"
       :key="accessError"
       :initial-error="accessError"
-      @granted="onAccessGranted"
     />
 
     <PlannerWeekShell

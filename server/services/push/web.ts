@@ -1,11 +1,14 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
+import { isUndeliverable, markDelivered } from "~/server/services/push/undeliverable";
 import { getVapidDetails } from "~/server/services/push/vapid";
 import type { PushPayload, SendCounts, StoredSubscription } from "~/server/services/push/types";
 
 const SEND_BATCH_SIZE = 50;
 const PUSH_TTL_SECONDS = 12 * 60 * 60;
+// web-push has no default timeout; a stalled push service would hold the request forever.
+const SEND_TIMEOUT_MS = 10_000;
 
 /** All browsers, only those of some people (`staffIds`) or all but one person's. */
 export async function sendWebPush(
@@ -40,23 +43,25 @@ export async function sendWebPush(
             keys: { p256dh: subscription.p256dh, auth: subscription.auth },
           },
           body,
-          { vapidDetails, TTL: PUSH_TTL_SECONDS, urgency: "high" }
+          { vapidDetails, TTL: PUSH_TTL_SECONDS, urgency: "high", timeout: SEND_TIMEOUT_MS }
         )
       )
     );
 
     results.forEach((result, resultIndex) => {
+      const subscription = batch[resultIndex]!;
       if (result.status === "fulfilled") {
         sent += 1;
+        markDelivered(subscription);
         return;
       }
 
       failed += 1;
-      const statusCode = (result.reason as { statusCode?: number })?.statusCode;
-      if (statusCode === 404 || statusCode === 410) {
-        expired.push(batch[resultIndex]!.subscription_id);
+      if (isUndeliverable(result.reason, subscription)) {
+        expired.push(subscription.subscription_id);
       } else {
-        console.error("[push] Versand fehlgeschlagen:", statusCode || result.reason);
+        const reason = result.reason as { statusCode?: number; code?: string };
+        console.error("[push] Versand fehlgeschlagen:", reason?.statusCode || reason?.code || result.reason);
       }
     });
   }

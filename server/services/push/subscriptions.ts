@@ -1,9 +1,9 @@
 import { getAdminDatabase } from "~/server/utils/database";
+import { hasValidKeys } from "~/server/services/push/keys";
 import type { PushSubscriptionInput } from "~/server/services/push/types";
 
 const MAX_SUBSCRIPTIONS = 2000;
 const MAX_ENDPOINT_LENGTH = 1024;
-const MAX_KEY_LENGTH = 256;
 
 // Only real push services, so subscriptions cannot make the server call arbitrary URLs.
 const ALLOWED_PUSH_HOSTS = [
@@ -11,7 +11,8 @@ const ALLOWED_PUSH_HOSTS = [
   "updates.push.services.mozilla.com",
   "web.push.apple.com",
 ];
-const ALLOWED_PUSH_HOST_SUFFIXES = [".push.apple.com", ".notify.windows.com"];
+// Apple's Web Push always uses web.push.apple.com; only Windows needs per-region hosts.
+const ALLOWED_PUSH_HOST_SUFFIXES = [".notify.windows.com"];
 
 function isAllowedEndpoint(endpoint: string): boolean {
   let url: URL;
@@ -26,15 +27,6 @@ function isAllowedEndpoint(endpoint: string): boolean {
   return (
     ALLOWED_PUSH_HOSTS.includes(host) ||
     ALLOWED_PUSH_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix))
-  );
-}
-
-function isValidKey(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length > 0 &&
-    value.length <= MAX_KEY_LENGTH &&
-    /^[A-Za-z0-9_-]+=*$/.test(value)
   );
 }
 
@@ -60,7 +52,7 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
   ) {
     throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
   }
-  if (!isValidKey(subscription?.keys?.p256dh) || !isValidKey(subscription?.keys?.auth)) {
+  if (!hasValidKeys(subscription?.keys?.p256dh, subscription?.keys?.auth)) {
     throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
   }
 
