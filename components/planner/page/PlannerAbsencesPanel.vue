@@ -17,6 +17,7 @@ const emit = defineEmits<{
 const { authFetch } = useAuthFetch();
 const showDialog = ref(false);
 const removing = ref<number | null>(null);
+const toRemove = ref<Absence | null>(null);
 const error = ref("");
 
 // Days entered as one range show up as a single row.
@@ -55,6 +56,7 @@ async function remove(absence: Absence) {
     error.value = cause?.data?.statusMessage || "Ausfall konnte nicht gelöscht werden";
   } finally {
     removing.value = null;
+    toRemove.value = null;
   }
 }
 </script>
@@ -99,7 +101,7 @@ async function remove(absence: Absence) {
           class="inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-3)] transition-colors hover:bg-[var(--danger-soft)] hover:text-[var(--danger-ink)] disabled:opacity-50"
           :aria-label="isRange(absence) ? `Zeitraum von ${absence.staff_name} löschen` : `Ausfall von ${absence.staff_name} löschen`"
           :disabled="removing === absence.absence_id"
-          @click="remove(absence)"
+          @click="toRemove = absence"
         >
           <i class="pi pi-times text-[0.7rem]" aria-hidden="true"></i>
         </button>
@@ -107,6 +109,8 @@ async function remove(absence: Absence) {
     </ul>
 
     <small v-if="error" class="mt-2 block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
+
+    <AbsenceRemoveDialog v-model:absence="toRemove" :removing="removing !== null" @confirm="remove" />
 
     <LazyAbsenceDialog
       v-if="showDialog"
