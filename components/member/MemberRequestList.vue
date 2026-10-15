@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { REQUEST_STATUS_LABELS, type ShiftRequest } from "~/types/shift-request";
+import { ownRequestAction, type RequestAction } from "~/utils/request-actions";
 import { formatRequestPeriod } from "~/utils/request-period";
-
-type RequestAction = "accept" | "decline" | "cancel" | "request_undo" | "confirm_undo" | "decline_undo";
 
 // Open takeovers from the team, swaps and undo asks addressed to the member and the member's own requests.
 const props = defineProps<{ requests: ShiftRequest[]; memberId: number; busy: number | null }>();
@@ -40,16 +39,8 @@ function detail(request: ShiftRequest): string {
   return parts.join(" · ");
 }
 
-// One action per own request: withdraw it, ask for undo (until the day before, the server checks the rest) or drop the ask.
 function ownAction(request: ShiftRequest): { label: string; action: RequestAction } | null {
-  const me = props.memberId;
-  const open = request.status === "open" || request.status === "pending_approval";
-  if (request.requester_staff_id === me && open) return { label: "Zurückziehen", action: "cancel" };
-  if (request.partner_staff_id === me && request.status === "pending_approval") return { label: "Zusage zurückziehen", action: "cancel" };
-  if (request.status !== "done" || request.partner_staff_id === null) return null;
-  if (request.undo_requested_by === me) return { label: "Storno zurückziehen", action: "decline_undo" };
-  const future = request.date_from > new Date().toISOString().slice(0, 10);
-  return request.undo_requested_by === null && future ? { label: "Stornieren", action: "request_undo" } : null;
+  return ownRequestAction(request, props.memberId);
 }
 </script>
 
