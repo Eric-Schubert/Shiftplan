@@ -9,7 +9,7 @@ The instance only listens on `127.0.0.1:3000`. To be reachable from outside, it 
 - it sets `X-Forwarded-For` and `X-Forwarded-Proto`
 - it redirects HTTP to HTTPS
 
-Behind any of these proxies, keep `SHIFTPLAN_TRUST_PROXY_HEADERS=true` from the [`.env` template](install-docker-compose.md#2-create-env), so sign-in lockouts see the real client address.
+Behind any of these proxies, keep `SHIFTPLAN_TRUST_PROXY_HEADERS=true` from the [`.env` template](install-docker-compose.md#2-create-env) (or `cloudflare` if Cloudflare proxies the domain and the firewall only admits Cloudflare, see [Proxy Headers](../configuration.md#proxy-headers)), so sign-in lockouts see the real client address.
 
 ## Caddy (simplest)
 

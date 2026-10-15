@@ -14,7 +14,7 @@ info:
     3. `POST /api/member/redeem` redeems the code and returns a token bound to this person.
        The app stores it securely and sends it with every request as
        `Authorization: Bearer <token>`.
-    4. Read the plan, absences and holidays, report own absences, register the push device.
+    4. Read the plan, absences and holidays, report your own absences, register the push device.
 
     Planners sign in with `POST /api/auth/login` and `client: app` and also receive a bearer
     token (14 days, extended with use). Requests with a bearer token need no CSRF token.
@@ -126,7 +126,7 @@ paths:
 
   /api/member/absences:
     post:
-      summary: Report an own absence (one day or a period)
+      summary: Report your own absence (one day or a period)
       description: |
         One entry per day from `from` to `to` (at most 56 days), also for days that are not
         planned yet. `from` must not be before today (time zone of the instance), otherwise
@@ -157,7 +157,7 @@ paths:
                   type: string
                   format: date
                   deprecated: true
-                  description: Old name for `from` for a single day
+                  description: Legacy name for `from` for a single day
                 shiftId:
                   type: [integer, "null"]
                 reason:
@@ -208,7 +208,7 @@ paths:
 
   /api/member/absences/{id}:
     delete:
-      summary: Withdraw an own absence
+      summary: Withdraw your own absence
       parameters:
         - name: id
           in: path
@@ -779,7 +779,7 @@ components:
           type: [integer, "null"]
           description: |
             Shift in which the person is absent; `null` means the whole day. If the plan no longer
-            has the person in the shift that was taken over when the absence was recorded, the
+            has the person in the shift copied from the plan when the absence was recorded, the
             value is `null`.
         shift_name:
           type: [string, "null"]

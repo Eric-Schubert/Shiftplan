@@ -82,3 +82,5 @@ Without `SHIFTPLAN_TRUST_PROXY_HEADERS`, an instance behind a proxy sees all req
 `sudo chown -R 1000:1000 /opt/stacks/shiftplan/db`
 
 **Questions and bugs:** [GitHub Issues](https://github.com/Eric-Schubert/Shiftplan/issues) or support@es-software.eu.
+
+Next: [Environment variables](environment-variables.md).

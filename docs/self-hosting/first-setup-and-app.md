@@ -7,7 +7,7 @@ Part of the [self-hosting guide](README.md).
 1. Open `https://plan.example.de`, tap the gear icon and sign in with `admin` and the initial password.
 2. Change the password right away (**Einstellungen → Passwort ändern**, Settings → Change password).
 3. Create shifts with times and minimum staffing, employees and a rotation pattern. Existing plans can be imported from Excel.
-4. **Einstellungen → Team-Zugang → Name in der App** (Settings → Team access → Name in the app): set a name, for example "Pflegeteam Nord". Employees see it in the app, and the push relay shows it as the name of the instance.
+4. **Einstellungen → Team-Zugang → Name in der App** (Settings → Team access → Name in the app): set a name, for example "Pflegeteam Nord". Employees see it in the app, and the push relay uses it as the instance name.
 5. Optionally set an access code under **Team-Zugang**. Without a code, anyone with the link can read the plan in the browser. With a code, a browser needs the code or the QR code once. This makes no difference for the app, which uses personal access.
 6. For planners without admin rights, create separate users with the role "Planer" (planner). Usernames are case-sensitive.
 
