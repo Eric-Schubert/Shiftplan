@@ -47,3 +47,9 @@ export function weekOfDate(date: string): { year: number; week: number } {
   const parsed = parseISODate(date)!;
   return toISOWeek(parsed.year, parsed.month, parsed.day);
 }
+
+/** Saturday or Sunday, for a YYYY-MM-DD date. */
+export function isWeekendDate(date: string): boolean {
+  const day = new Date(`${date}T00:00:00Z`).getUTCDay();
+  return day === 0 || day === 6;
+}

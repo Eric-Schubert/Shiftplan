@@ -63,26 +63,28 @@ describe("takeover requests", () => {
     });
     const id = created.json!.request.request_id;
 
-    const own = await client.request("POST", `/api/member/requests/${id}`, { headers: bearer(anna), body: { action: "accept" } });
+    const own = await client.request<any>("POST", `/api/member/requests/${id}`, { headers: bearer(anna), body: { action: "accept" } });
     await client.request("POST", "/api/member/absences", {
       headers: bearer(max),
       body: { date: THURSDAY, reason: "urlaub", notifyTeam: false },
     });
-    const absent = await client.request("POST", `/api/member/requests/${id}`, { headers: bearer(max), body: { action: "accept" } });
-    const past = await client.request("POST", "/api/member/requests", {
+    const absent = await client.request<any>("POST", `/api/member/requests/${id}`, { headers: bearer(max), body: { action: "accept" } });
+    // Wednesday: Anna worked Früh on Tuesday, so only the date check can refuse it.
+    vi.setSystemTime(new Date("2026-10-07T08:00:00Z"));
+    const past = await client.request<any>("POST", "/api/member/requests", {
       headers: bearer(anna),
-      body: { kind: "takeover", date: "2026-10-02" },
+      body: { kind: "takeover", date: "2026-10-06" },
     });
-    const twice = await client.request("POST", "/api/member/requests", {
+    const twice = await client.request<any>("POST", "/api/member/requests", {
       headers: bearer(anna),
       body: { kind: "takeover", date: THURSDAY },
     });
 
     expect(created.status).toBe(200);
-    expect(own.status).toBe(400);
-    expect(absent.status).toBe(400);
-    expect(past.status).toBe(400);
-    expect(twice.status).toBe(409);
+    expect([own.status, own.json!.statusMessage]).toEqual([400, "Die eigene Schicht kannst du nicht übernehmen"]);
+    expect([absent.status, absent.json!.statusMessage]).toEqual([400, "An dem Tag hast du selbst einen Ausfall eingetragen"]);
+    expect([past.status, past.json!.statusMessage]).toEqual([400, "Der Tag liegt in der Vergangenheit"]);
+    expect([twice.status, twice.json!.statusMessage]).toEqual([409, "Für diese Schicht läuft schon eine Anfrage"]);
   });
 
   it("closes open takeovers when the absence is withdrawn", async () => {

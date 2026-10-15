@@ -1,4 +1,5 @@
 import { getDatabase } from "~/server/utils/database";
+import { planningToday } from "~/server/utils/planning-date";
 
 export function badRequest(message: string): never {
   throw createError({ statusCode: 400, statusMessage: message });
@@ -9,7 +10,7 @@ export function conflict(message: string): never {
 }
 
 export function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return planningToday();
 }
 
 export function isAbsent(staffId: number, date: string): boolean {

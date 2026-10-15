@@ -6,7 +6,8 @@ import { buildChangePayload, buildNativeMessages } from "~/server/services/push/
 import { rememberOrigin } from "~/server/services/push/origin";
 import { sendNative } from "~/server/services/push/send";
 import { sendWebPush } from "~/server/services/push/web";
-import { getNotifiableWeeks, getPlanningToday } from "~/server/services/push/weeks";
+import { getNotifiableWeeks } from "~/server/services/push/weeks";
+import { planningToday } from "~/server/utils/planning-date";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
 
 // Changes are bundled so a planner editing several slots sends one push.
@@ -26,7 +27,7 @@ export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const isNotifiable = getNotifiableWeeks().some(
     (week) => week.year === change.year && week.week === change.week
   );
-  if (!isNotifiable || (change.date && change.date < getPlanningToday())) return;
+  if (!isNotifiable || (change.date && change.date < planningToday())) return;
 
   const db = getDatabase();
   const shift = db

@@ -1,7 +1,11 @@
 import { getDatabase } from "~/server/utils/database";
 import { today } from "~/server/services/shift-request/common";
 import { purgeOldMessages } from "~/server/services/shift-request/purge";
-import type { AppliedChange, ShiftRequest, ShiftRequestStatus } from "~/server/services/shift-request/types";
+import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
+
+// Finished requests stay in the planner list this long after the decision, or until their last day.
+const RECENT_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const SELECT_REQUEST = `
   SELECT r.request_id, r.kind, r.status, r.requester_staff_id, rq.name AS requester_name,
@@ -21,6 +25,7 @@ export function getById(requestId: number): ShiftRequest | undefined {
 /** What a staff member sees: open takeovers of the team plus everything they are part of. */
 export function listForMember(staffId: number): ShiftRequest[] {
   purgeOldMessages();
+  clearStaleUndoAsks();
   return getDatabase()
     .prepare(
       `${SELECT_REQUEST}
@@ -32,46 +37,28 @@ export function listForMember(staffId: number): ShiftRequest[] {
     .all(today(), staffId, staffId) as ShiftRequest[];
 }
 
-export function listForPlanner(): ShiftRequest[] {
+/** Everything not over yet, plus what was decided recently. Expired open requests can no longer be taken up. */
+export function listForPlanner(now = Date.now()): ShiftRequest[] {
   purgeOldMessages();
+  clearStaleUndoAsks();
+  const recent = new Date(now - RECENT_DAYS * DAY_MS).toISOString().replace("T", " ").slice(0, 19);
   return getDatabase()
     .prepare(
       `${SELECT_REQUEST}
-        WHERE r.status IN ('open', 'pending_approval') OR r.created_at >= datetime('now', '-30 days')
+        WHERE r.date_to >= ?
+           OR (r.status NOT IN ('open', 'pending_approval') AND COALESCE(r.decided_at, r.created_at) >= ?)
         ORDER BY CASE r.status WHEN 'pending_approval' THEN 0 WHEN 'open' THEN 1 ELSE 2 END, r.date_from DESC`
     )
-    .all() as ShiftRequest[];
+    .all(today(), recent) as ShiftRequest[];
 }
 
-export function setStatus(
-  requestId: number,
-  status: ShiftRequestStatus,
-  fields: { partnerStaffId?: number | null; decidedBy?: string; applied?: AppliedChange[] } = {}
-): ShiftRequest {
-  const sets = ["status = ?", "decided_at = datetime('now')"];
-  const values: unknown[] = [status];
-  if (fields.partnerStaffId !== undefined) {
-    sets.push("partner_staff_id = ?");
-    values.push(fields.partnerStaffId);
-  }
-  if (fields.decidedBy !== undefined) {
-    sets.push("decided_by = ?");
-    values.push(fields.decidedBy);
-  }
-  if (fields.applied !== undefined) {
-    sets.push("applied_changes = ?");
-    values.push(JSON.stringify(fields.applied));
-  }
+/** An undo can only be confirmed until the day before, so later asks are dropped. */
+function clearStaleUndoAsks(): void {
   getDatabase()
-    .prepare(`UPDATE shift_requests SET ${sets.join(", ")} WHERE request_id = ?`)
-    .run(...values, requestId);
-  return getById(requestId)!;
-}
-
-/** Marks who asked to undo a finished request, or clears the ask. */
-export function setUndoRequest(requestId: number, staffId: number | null): ShiftRequest {
-  getDatabase().prepare("UPDATE shift_requests SET undo_requested_by = ? WHERE request_id = ?").run(staffId, requestId);
-  return getById(requestId)!;
+    .prepare(
+      "UPDATE shift_requests SET undo_requested_by = NULL WHERE status = 'done' AND undo_requested_by IS NOT NULL AND date_from <= ?"
+    )
+    .run(today());
 }
 
 export function appliedChanges(requestId: number): AppliedChange[] {
@@ -79,25 +66,4 @@ export function appliedChanges(requestId: number): AppliedChange[] {
     | { applied_changes: string | null }
     | undefined;
   return row?.applied_changes ? (JSON.parse(row.applied_changes) as AppliedChange[]) : [];
-}
-
-/** Open takeovers that belonged to a withdrawn absence. */
-export function cancelForAbsence(absenceIds: number[]): number {
-  if (absenceIds.length === 0) return 0;
-  return getDatabase()
-    .prepare(
-      `UPDATE shift_requests SET status = 'cancelled', decided_at = datetime('now')
-        WHERE status IN ('open', 'pending_approval') AND absence_id IN (${absenceIds.map(() => "?").join(",")})`
-    )
-    .run(...absenceIds).changes;
-}
-
-/** Open requests of a deactivated person: nobody can take them up any more. */
-export function cancelForStaff(staffId: number): number {
-  return getDatabase()
-    .prepare(
-      `UPDATE shift_requests SET status = 'cancelled', decided_at = datetime('now')
-        WHERE status IN ('open', 'pending_approval') AND (requester_staff_id = ? OR partner_staff_id = ?)`
-    )
-    .run(staffId, staffId).changes;
 }

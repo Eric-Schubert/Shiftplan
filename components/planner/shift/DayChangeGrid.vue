@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import { formatAbsenceDay } from "~/types/absence";
+import { isCellPresent } from "~/utils/day-change-cells";
 
 // Staff × weekday grid of one shift and its legend; the default slot renders between them.
 const props = defineProps<{
@@ -9,6 +10,8 @@ const props = defineProps<{
   rows: Array<{ staff_id: number; name: string }>;
   dayChanges: ShiftDayChange[];
   busyCell: string;
+  /** Cells saved since the last refresh, by staff and date. */
+  saved: Record<string, boolean>;
 }>();
 const emit = defineEmits<{ (e: "toggle", staffId: number, date: string, present: boolean): void }>();
 
@@ -19,8 +22,7 @@ function change(staffId: number, date: string): ShiftDayChange | undefined {
 }
 
 function isPresent(staffId: number, date: string): boolean {
-  const entry = change(staffId, date);
-  return entry ? entry.kind === "add" : assigned.value.has(staffId);
+  return isCellPresent(staffId, date, assigned.value, props.dayChanges, props.saved);
 }
 </script>
 

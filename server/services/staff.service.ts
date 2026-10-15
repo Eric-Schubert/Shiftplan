@@ -1,7 +1,7 @@
 import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
 import { removeStaffAccess } from "~/server/services/member-access/cleanup";
-import { cancelForStaff } from "~/server/services/shift-request/queries";
+import { cancelForStaff } from "~/server/services/shift-request/updates";
 import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/utils/staff-short-code.js";
 
 function takenShortCodes(exceptId?: number): Set<string> {

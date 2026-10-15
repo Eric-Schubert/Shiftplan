@@ -1,12 +1,13 @@
-import { applyRequest } from "~/server/lib/shift-requests/apply";
 import { REQUESTS_URL, describeRequest, notify, notifyStaff } from "~/server/lib/shift-requests/notify";
 import { PushService } from "~/server/services/push.service";
 import { ShiftRequestService, type ShiftRequest } from "~/server/services/shift-request.service";
 import { weekOfDate } from "~/server/utils/iso-week";
 
 export { describeRequest } from "~/server/lib/shift-requests/notify";
+export { acceptRequest } from "~/server/lib/shift-requests/accept";
 export { decideRequest } from "~/server/lib/shift-requests/decide";
 export { confirmUndo, declineUndo, requestUndo } from "~/server/lib/shift-requests/undo";
+export { cancelRequest, declineRequest } from "~/server/lib/shift-requests/withdraw";
 
 export async function createTakeover(input: {
   staffId: number;
@@ -53,78 +54,4 @@ export async function createSwap(input: {
     `${request.requester_name} möchte ${describeRequest(request)} die Schichten mit dir tauschen.${extra}`
   );
   return request;
-}
-
-/** A colleague accepts. Without planner approval the plan changes right away. */
-export async function acceptRequest(
-  request: ShiftRequest,
-  member: { staffId: number; staffName: string; source?: "web" | "app" },
-  origin?: string
-): Promise<ShiftRequest> {
-  ShiftRequestService.checkAccept(request, member.staffId);
-  const accepted = { ...request, partner_staff_id: member.staffId, partner_name: member.staffName };
-  const isTakeover = request.kind === "takeover";
-
-  if (ShiftRequestService.requiresApproval()) {
-    const updated = ShiftRequestService.setStatus(request.request_id, "pending_approval", {
-      partnerStaffId: member.staffId,
-    });
-    await notifyStaff(
-      [request.requester_staff_id],
-      isTakeover ? "Übernahme zugesagt" : "Tausch zugesagt",
-      `${member.staffName} hat zugesagt (${describeRequest(request)}). Die Planung muss noch freigeben.`
-    );
-    return updated;
-  }
-
-  const applied = applyRequest(accepted, { userId: 0, username: member.staffName, source: member.source ?? "app" }, origin);
-  const updated = ShiftRequestService.setStatus(request.request_id, "done", { partnerStaffId: member.staffId, applied });
-  await notifyStaff(
-    [request.requester_staff_id],
-    isTakeover ? "Schicht übernommen" : "Tausch steht",
-    isTakeover
-      ? `${member.staffName} übernimmt ${describeRequest(request)}.`
-      : `${member.staffName} hat dem Tausch zugestimmt (${describeRequest(request)}).`
-  );
-  return updated;
-}
-
-export async function declineRequest(request: ShiftRequest, staffId: number, staffName: string): Promise<ShiftRequest> {
-  if (request.kind !== "swap" || request.partner_staff_id !== staffId) {
-    throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
-  }
-  if (request.status !== "open") throw createError({ statusCode: 409, statusMessage: "Die Anfrage ist nicht mehr offen" });
-  const updated = ShiftRequestService.setStatus(request.request_id, "declined");
-  await notifyStaff(
-    [request.requester_staff_id],
-    "Tausch abgelehnt",
-    `${staffName} kann ${describeRequest(request)} nicht tauschen.`
-  );
-  return updated;
-}
-
-/** The requester withdraws an unfinished request, or the helper takes back a yes that waits for approval. */
-export async function cancelRequest(request: ShiftRequest, member: { staffId: number; staffName: string }): Promise<ShiftRequest> {
-  if (request.status === "pending_approval" && request.partner_staff_id === member.staffId) {
-    const takeover = request.kind === "takeover";
-    // A takeover goes back to the team, a swap was meant for this one person only.
-    const updated = ShiftRequestService.setStatus(
-      request.request_id,
-      takeover ? "open" : "declined",
-      takeover ? { partnerStaffId: null } : {}
-    );
-    await notifyStaff(
-      [request.requester_staff_id],
-      "Zusage zurückgezogen",
-      takeover
-        ? `${member.staffName} übernimmt ${describeRequest(request)} doch nicht. Die Übernahme ist wieder offen.`
-        : `${member.staffName} möchte ${describeRequest(request)} doch nicht tauschen.`
-    );
-    return updated;
-  }
-  if (request.requester_staff_id !== member.staffId) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
-  if (request.status !== "open" && request.status !== "pending_approval") {
-    throw createError({ statusCode: 409, statusMessage: "Die Anfrage ist schon abgeschlossen" });
-  }
-  return ShiftRequestService.setStatus(request.request_id, "cancelled");
 }

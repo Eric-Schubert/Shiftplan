@@ -6,10 +6,14 @@ import { sendNotification } from "./web-push-mock";
 const ROUTES: Route[] = [
   ["post", "/api/auth/login", "server/api/auth/login.post"],
   ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
+  ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
+  ["delete", "/api/shift/:id", "server/api/shift/[id].delete"],
   ["post", "/api/push/devices", "server/api/push/devices.post"],
   ["post", "/api/member/redeem", "server/api/member/redeem.post"],
   ["post", "/api/member/absences", "server/api/member/absences/index.post"],
   ["delete", "/api/member/absences/:id", "server/api/member/absences/[id].delete"],
+  ["get", "/api/absences", "server/api/absences/index.get"],
+  ["delete", "/api/absences/:id", "server/api/absences/[id].delete"],
   ["get", "/api/member/requests", "server/api/member/requests/index.get"],
   ["post", "/api/member/requests", "server/api/member/requests/index.post"],
   ["post", "/api/member/requests/:id", "server/api/member/requests/[id].post"],
@@ -22,6 +26,8 @@ const ROUTES: Route[] = [
 
 export const ANNA = 1;
 export const MAX = 2;
+/** Works no shift unless a test gives them one. */
+export const PAUL = 3;
 export const EARLY = 1;
 export const LATE = 2;
 // KW 41/2026: Monday 05.10. to Sunday 11.10. The clock is set to Monday.
@@ -63,6 +69,17 @@ export async function staffOn(shiftId: number, date: string): Promise<number[]> 
   return [...ids].sort();
 }
 
+/** A member acts on a request: accept, decline, cancel or one of the undo steps. */
+export function act(token: string, id: number, action: string) {
+  return client.request<any>("POST", `/api/member/requests/${id}`, { headers: bearer(token), body: { action } });
+}
+
+export async function requireApproval() {
+  const admin = await client.loginAs("admin", "admin1234");
+  await client.request("POST", "/api/requests/settings", { jar: admin, csrf: true, body: { requiresApproval: true } });
+  return admin;
+}
+
 export function sends() {
   return relayCalls.filter((call) => call.url.endsWith("/v1/send"));
 }
@@ -78,6 +95,7 @@ export function useShiftRequestClient() {
     client = await createApiClient(ROUTES, (db) => {
       db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES ('Anna Weber', 1, 0)").run();
       db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES ('Max Mustermann', 1, 0)").run();
+      db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES ('Paul Klein', 1, 0)").run();
       db.prepare(
         "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Früh', 1, '06:00', '14:00', '#22c55e', 1, 1)"
       ).run();
