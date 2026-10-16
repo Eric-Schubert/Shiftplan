@@ -11,6 +11,8 @@ export const SHORT_NAME_KEYS: Record<string, MessageKey> = {
   Neujahr: "holidays.short.newYear",
   "Tag der Arbeit": "holidays.short.labourDay",
   "Tag der Deutschen Einheit": "holidays.short.germanUnity",
+  "1. Weihnachtsfeiertag": "holidays.short.christmasDay",
+  "2. Weihnachtsfeiertag": "holidays.short.boxingDay",
   "1. Weihnachtstag": "holidays.short.christmasDay",
   "2. Weihnachtstag": "holidays.short.boxingDay",
   "Erster Weihnachtstag": "holidays.short.christmasDay",
