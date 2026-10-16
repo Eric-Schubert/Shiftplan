@@ -1,13 +1,16 @@
 import type { SchoolHolidayPeriod } from "~/types/holiday";
+import { t } from "~/i18n/server";
 import {
   getHolidayApiUrl,
   getHolidayCacheDurationMs,
   getHolidayConfig,
   getHolidaySubdivisionName,
   getSchoolHolidayLookupRange,
+  normalizeHolidaySubdivisionCode,
   toHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
-import { fetchOpenHolidays, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { fetchOpenHolidays, pickName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { instanceLocale } from "~/server/utils/locale";
 import { isoWeekRange } from "~/shared/utils/week";
 
 interface OpenSchoolHolidayResponse {
@@ -32,7 +35,7 @@ const schoolHolidayCache = new Map<string, { data: SchoolHoliday[]; timestamp: n
 async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Promise<SchoolHoliday[]> {
   const config = getHolidayConfig();
   const fullStateCode = toHolidaySubdivisionCode(stateCode);
-  const shortCode = stateCode.replace("DE-", "").toUpperCase();
+  const shortCode = normalizeHolidaySubdivisionCode(stateCode);
   const { validFrom, validTo } = getSchoolHolidayLookupRange(year);
 
   const url = getHolidayApiUrl("SchoolHolidays", {
@@ -45,7 +48,7 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
   const data = await fetchOpenHolidays<OpenSchoolHolidayResponse>(url);
 
   return data.map((holiday) => ({
-    name: pickGermanName(holiday.name, "Schulferien"),
+    name: pickName(holiday.name, config.languageIsoCode, t(instanceLocale(), "holidays.school")),
     start: holiday.startDate,
     end: holiday.endDate,
     state: shortCode,
@@ -55,7 +58,8 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
 
 async function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
   const normalizedStates = [...states].sort();
-  const cacheKey = `${year}-${normalizedStates.join(",")}`;
+  const { countryIsoCode, languageIsoCode } = getHolidayConfig();
+  const cacheKey = [year, countryIsoCode, languageIsoCode, normalizedStates.join(",")].join("|");
   const cached = schoolHolidayCache.get(cacheKey);
 
   if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {

@@ -7,6 +7,8 @@ export default {
   school: "Schulferien",
   both: "Kalenderlage",
   thisWeek: "Diese Woche",
+  // A holiday the API sent without any name.
+  unnamed: "Unbekannt",
   // Short names for the narrow week grid, see utils/holiday.ts.
   short: {
     newYear: "Neujahr",

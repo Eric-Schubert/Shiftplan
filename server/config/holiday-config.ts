@@ -1,5 +1,6 @@
 import type { H3Event } from "h3";
 import { getBackendConfig } from "./backend-config";
+import { subdivisionShortCode } from "~/server/lib/holidays/open-holidays";
 import { apiError } from "~/server/utils/api-error";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
@@ -12,8 +13,9 @@ export function getHolidayCacheDurationMs(): number {
   return getHolidayConfig().cacheHours * MS_PER_HOUR;
 }
 
+/** "SN" for "DE-SN" or "SN" when the instance's country is DE. */
 export function normalizeHolidaySubdivisionCode(value: string): string {
-  return value.replace(/^DE-/i, "").trim().toUpperCase();
+  return subdivisionShortCode(value, getHolidayConfig().countryIsoCode);
 }
 
 export function toHolidaySubdivisionCode(value: string): string {
