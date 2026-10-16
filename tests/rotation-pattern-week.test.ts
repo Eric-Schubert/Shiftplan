@@ -29,17 +29,14 @@ describe("Rotation Operations", () => {
     });
 
     it("should never return pattern week > cycle length", () => {
-      const cycleLength = 4;
+      const calculatePatternWeek = patternWeekFrom(2025, 10, 4);
 
-      function calculatePatternWeek(weeksFromStart: number): number {
-        const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
-        return patternIndex + 1;
-      }
-
-      for (let i = -100; i <= 100; i++) {
-        const result = calculatePatternWeek(i);
-        expect(result).toBeGreaterThanOrEqual(1);
-        expect(result).toBeLessThanOrEqual(cycleLength);
+      for (const year of [2023, 2024, 2025, 2026, 2027]) {
+        for (let week = 1; week <= 52; week++) {
+          const result = calculatePatternWeek(year, week);
+          expect(result).toBeGreaterThanOrEqual(1);
+          expect(result).toBeLessThanOrEqual(4);
+        }
       }
     });
 

@@ -1,73 +1,71 @@
-import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import { setupTestDatabase, cleanupTestDatabase, getTestDatabase, insertTestData } from "./setup";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Week } from "~/types/shiftplan";
+import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { StaffService } from "~/server/services/staff.service";
+import { closeDatabase } from "./helpers/memory-database";
+import { seedTeam, type Team } from "./helpers/service-team";
 
-const INSERT_WEEK = "INSERT INTO weeks (year, week_number) VALUES (?, ?)";
-const INSERT_ASSIGNMENT = "INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)";
+vi.mock("~/server/utils/database", () => import("./helpers/memory-database"));
 
-describe("Shiftplan Operations", () => {
-  beforeEach(() => {
-    setupTestDatabase();
-    insertTestData(getTestDatabase());
+let team: Team;
+let week: Week;
+
+function assigned(shiftId: number) {
+  const shift = ShiftplanService.getWeeklyPlan(2025, 1).shifts.find((entry) => entry.shift_id === shiftId)!;
+  return shift.assigned_staff.map((staff) => staff.staff_id);
+}
+
+beforeEach(() => {
+  closeDatabase();
+  team = seedTeam();
+  week = ShiftplanService.getOrCreateWeek(2025, 1);
+});
+
+describe("shift assignments", () => {
+  it("assigns a person to a shift in a week", () => {
+    expect(ShiftplanService.assignStaff(team.max, team.early, week.week_id)).toBe(true);
+
+    expect(ShiftplanService.hasAssignment(team.max, team.early, week.week_id)).toBe(true);
+    expect(assigned(team.early)).toEqual([team.max]);
   });
 
-  afterAll(() => {
-    cleanupTestDatabase();
+  it("keeps one assignment per person, shift and week", () => {
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
+
+    expect(assigned(team.early)).toEqual([team.max]);
   });
 
-  describe("Shift Assignments", () => {
-    it("should assign staff to shift in week", () => {
-      const db = getTestDatabase();
+  it("lets the same person work two shifts", () => {
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
+    ShiftplanService.assignStaff(team.max, team.late, week.week_id);
 
-      const { lastInsertRowid: weekId } = db.prepare(INSERT_WEEK).run(2025, 1);
-      const result = db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
+    expect(assigned(team.early)).toEqual([team.max]);
+    expect(assigned(team.late)).toEqual([team.max]);
+  });
 
-      expect(result.changes).toBe(1);
-    });
+  it("lists all assignments of the week and none of another week", () => {
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
+    ShiftplanService.assignStaff(team.erika, team.early, week.week_id);
+    ShiftplanService.assignStaff(team.hans, team.late, week.week_id);
 
-    it("should prevent duplicate assignments in same week", () => {
-      const db = getTestDatabase();
+    expect(assigned(team.early).sort()).toEqual([team.max, team.erika].sort());
+    expect(assigned(team.late)).toEqual([team.hans]);
+    expect(ShiftplanService.getWeeklyPlan(2025, 2).shifts.flatMap((shift) => shift.assigned_staff)).toEqual([]);
+  });
 
-      const { lastInsertRowid: weekId } = db.prepare(INSERT_WEEK).run(2025, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
+  it("unassigns a person and reports when there was nothing to remove", () => {
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
 
-      expect(() => {
-        db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
-      }).toThrow();
-    });
+    expect(ShiftplanService.unassignStaff(team.max, team.early, week.week_id)).toBe(true);
+    expect(ShiftplanService.unassignStaff(team.max, team.early, week.week_id)).toBe(false);
+    expect(ShiftplanService.hasAssignment(team.max, team.early, week.week_id)).toBe(false);
+  });
 
-    it("should allow same staff in different shifts", () => {
-      const db = getTestDatabase();
+  it("drops the assignments of a person who is deleted", () => {
+    ShiftplanService.assignStaff(team.hans, team.late, week.week_id);
 
-      const { lastInsertRowid: weekId } = db.prepare(INSERT_WEEK).run(2025, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
-      const result = db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 2);
-
-      expect(result.changes).toBe(1);
-    });
-
-    it("should get all assignments for a week", () => {
-      const db = getTestDatabase();
-
-      const { lastInsertRowid: weekId } = db.prepare(INSERT_WEEK).run(2025, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 2, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 3, 2);
-
-      const assignments = db.prepare("SELECT * FROM shift_assignments WHERE week_id = ?").all(weekId);
-
-      expect(assignments).toHaveLength(3);
-    });
-
-    it("should unassign staff from shift", () => {
-      const db = getTestDatabase();
-
-      const { lastInsertRowid: weekId } = db.prepare(INSERT_WEEK).run(2025, 1);
-      db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
-      db.prepare("DELETE FROM shift_assignments WHERE week_id = ? AND staff_id = ? AND shift_id = ?").run(weekId, 1, 1);
-
-      const assignment = db.prepare("SELECT * FROM shift_assignments WHERE week_id = ? AND staff_id = ? AND shift_id = ?").get(weekId, 1, 1);
-
-      expect(assignment).toBeUndefined();
-    });
+    expect(StaffService.delete(team.hans)).toBe(true);
+    expect(assigned(team.late)).toEqual([]);
   });
 });

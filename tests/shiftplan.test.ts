@@ -1,78 +1,56 @@
-import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import { setupTestDatabase, cleanupTestDatabase, getTestDatabase, insertTestData } from "./setup";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { closeDatabase } from "./helpers/memory-database";
+import { seedTeam, type Team } from "./helpers/service-team";
 
-describe("Shiftplan Operations", () => {
-  beforeEach(() => {
-    setupTestDatabase();
-    insertTestData(getTestDatabase());
+vi.mock("~/server/utils/database", () => import("./helpers/memory-database"));
+
+let team: Team;
+
+function staffNames(year: number, week: number) {
+  return ShiftplanService.getWeeklyPlan(year, week).shifts.map((shift) => ({
+    shift: shift.name,
+    staff: shift.assigned_staff.map((staff) => staff.name),
+  }));
+}
+
+beforeEach(() => {
+  closeDatabase();
+  team = seedTeam();
+});
+
+describe("weeks", () => {
+  it("creates a week once and finds it again", () => {
+    const created = ShiftplanService.getOrCreateWeek(2025, 1);
+    const again = ShiftplanService.getOrCreateWeek(2025, 1);
+
+    expect(created).toMatchObject({ year: 2025, week_number: 1 });
+    expect(again.week_id).toBe(created.week_id);
+    expect(ShiftplanService.getWeek(2025, 1)).toEqual(again);
+    expect(ShiftplanService.getWeek(2025, 2)).toBeNull();
   });
 
-  afterAll(() => {
-    cleanupTestDatabase();
+  it("reads an unplanned week without creating it", () => {
+    const plan = ShiftplanService.getWeeklyPlanReadOnly(2025, 5);
+
+    expect(plan.week).toEqual({ week_id: 0, year: 2025, week_number: 5 });
+    expect(plan.shifts.every((shift) => shift.assigned_staff.length === 0)).toBe(true);
+    expect(ShiftplanService.getWeek(2025, 5)).toBeNull();
   });
+});
 
-  describe("Week Management", () => {
-    it("should create a new week", () => {
-      const db = getTestDatabase();
+describe("weekly plan", () => {
+  it("lists every active shift in order with the names of its staff", () => {
+    const week = ShiftplanService.getOrCreateWeek(2025, 1);
+    ShiftplanService.assignStaff(team.max, team.early, week.week_id);
 
-      const result = db.prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)").run(2025, 1);
+    const plan = ShiftplanService.getWeeklyPlan(2025, 1);
 
-      expect(result.changes).toBe(1);
-    });
-
-    it("should prevent duplicate weeks", () => {
-      const db = getTestDatabase();
-
-      db.prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)").run(2025, 1);
-
-      expect(() => {
-        db.prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)").run(2025, 1);
-      }).toThrow();
-    });
-
-    it("should get or create week", () => {
-      const db = getTestDatabase();
-
-      db.prepare("INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)").run(2025, 5);
-
-      const week = db.prepare("SELECT * FROM weeks WHERE year = ? AND week_number = ?").get(2025, 5) as any;
-
-      expect(week).toBeDefined();
-      expect(week.year).toBe(2025);
-      expect(week.week_number).toBe(5);
-    });
-  });
-
-  describe("Weekly Plan Query", () => {
-    it("should get complete weekly plan with staff names", () => {
-      const db = getTestDatabase();
-
-      const { lastInsertRowid: weekId } = db.prepare("INSERT INTO weeks (year, week_number) VALUES (?, ?)").run(2025, 1);
-
-      db.prepare("INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)").run(weekId, 1, 1);
-
-      const plan = db
-        .prepare(
-          `
-          SELECT
-            s.shift_id,
-            s.name as shift_name,
-            st.staff_id,
-            st.name as staff_name
-          FROM shifts s
-          LEFT JOIN shift_assignments sa ON s.shift_id = sa.shift_id AND sa.week_id = ?
-          LEFT JOIN staff st ON sa.staff_id = st.staff_id
-          WHERE s.active = 1
-          ORDER BY s.sort_order
-        `
-        )
-        .all(weekId) as any[];
-
-      expect(plan.length).toBeGreaterThan(0);
-
-      const earlyShift = plan.find((p) => p.shift_name === "Frühschicht");
-      expect(earlyShift).toBeDefined();
-      expect(earlyShift.staff_name).toBe("Max Mustermann");
-    });
+    expect(plan.week.week_id).toBe(week.week_id);
+    expect(plan.pattern_week).toBeGreaterThanOrEqual(1);
+    expect(staffNames(2025, 1)).toEqual([
+      { shift: "Frühschicht", staff: ["Max Mustermann"] },
+      { shift: "Spätschicht", staff: [] },
+    ]);
   });
 });
