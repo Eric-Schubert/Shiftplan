@@ -1,8 +1,9 @@
-import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "~/i18n/config";
+import { DEFAULT_LOCALE, type AppLocale } from "~/i18n/config";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access.service";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 import { apiError } from "~/server/utils/api-error";
+import { localeFromTag } from "~/server/utils/locale";
 import type { MessageKey } from "~/server/lib/i18n/translate";
 
 // Team devices without a personal sign-in share this cap; personal ones are capped per person.
@@ -89,7 +90,7 @@ export function registerDevice(
     throw invalid("errors.push.invalidScope");
   }
   const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
-  const locale = isAppLocale(device.locale) ? device.locale : requestLocale;
+  const locale = localeFromTag(device.locale) ?? requestLocale;
 
   // Only active people: a deactivated person's app must not come back in their name.
   let staffId: number | null = member?.staffId ?? null;

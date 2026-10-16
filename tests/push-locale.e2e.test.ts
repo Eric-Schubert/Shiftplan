@@ -56,7 +56,7 @@ describe("push locale per recipient", () => {
   });
 
   it("takes a supported language from the app and ignores anything else", async () => {
-    for (const locale of ["de", "fr", "de-DE", 42, null, undefined]) {
+    for (const locale of ["de", "fr", "de-DE", "de_DE", 42, null, undefined]) {
       client.adminDb.prepare("UPDATE push_devices SET locale = 'xx'").run();
       const response = await client.request("POST", "/api/push/devices", {
         body: { platform: "ios", token: "token-app:1", locale },
@@ -66,6 +66,17 @@ describe("push locale per recipient", () => {
       expect(response.status).toBe(200);
       expect(storedLocale("push_devices", "token", "token-app:1")).toBe("de");
     }
+  });
+
+  it("prefers the app's language, also as de-DE or de_DE, over the request's", () => {
+    const register = (locale: unknown) => {
+      // "xx" stands in for a second request language, so the stored value shows which one won.
+      client.push.PushService.registerDevice({ platform: "ios", token: "token-tag:1", locale }, undefined, "xx" as "de");
+      return storedLocale("push_devices", "token", "token-tag:1");
+    };
+
+    expect(["de", "de-DE", "de_DE", " DE_at "].map(register)).toEqual(["de", "de", "de", "de"]);
+    expect(["fr", "fr_FR", "", 42].map(register)).toEqual(["xx", "xx", "xx", "xx"]);
   });
 
   it("groups recipients by stored language; unknown values read German", () => {

@@ -685,8 +685,9 @@ paths:
                 locale:
                   type: string
                   description: |
-                    Language of the pushes for this device, as a language code (`de`). Unsupported
-                    values are ignored, not rejected.
+                    Language of the pushes for this device, as a language code (`de`). Region suffixes
+                    are dropped, so `de-DE` and `de_DE` count as `de`. Unsupported values are ignored,
+                    not rejected.
                   example: de
       responses:
         "200":
