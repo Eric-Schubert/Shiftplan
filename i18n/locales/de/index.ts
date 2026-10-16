@@ -3,6 +3,7 @@ import app from "./app";
 import audit from "./audit";
 import changelog from "./changelog";
 import common from "./common";
+import contact from "./contact";
 import errors from "./errors";
 import excel from "./excel";
 import excelTemplate from "./excel-template";
@@ -31,8 +32,9 @@ const de = {
   absence,
   planner,
   holidays,
-  audit,
   mail,
+  contact,
+  audit,
 };
 
 export default de;
