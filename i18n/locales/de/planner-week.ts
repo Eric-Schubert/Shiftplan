@@ -42,6 +42,13 @@ export default {
     notPlanned: "Noch nicht geplant.",
     failed: "Konnte nicht geladen werden.",
   },
+  // Asked before filling a week that differs from its pattern week; single-day changes are kept.
+  fill: {
+    header: "Woche aus dem Muster füllen?",
+    text: "Diese Woche weicht vom Rotationsmuster ab. Das Füllen ersetzt ihre eine Zuweisung durch Muster {week}. Einzelne Tagesänderungen bleiben. | Diese Woche weicht vom Rotationsmuster ab. Das Füllen ersetzt alle {count} Zuweisungen durch Muster {week}. Einzelne Tagesänderungen bleiben.",
+    confirm: "Ersetzen",
+    failed: "Die Woche konnte nicht aus dem Muster gefüllt werden",
+  },
   bulk: { header: "Mehrere Wochen generieren" },
   notify: {
     nobody: "Noch hat niemand Benachrichtigungen aktiviert.",

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { WeeklyShiftplanWithPattern } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
-import { planShowsWeek } from "~/utils/plan-week";
+import { assignmentsReplacedByFill, planShowsWeek } from "~/utils/plan-week";
 import { requestErrorStatus } from "~/utils/request-error";
 
 const appStore = useAppStore();
+const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
+const { notify } = useErrorNotices();
 const { status: viewerStatus, load: loadViewerStatus, login: viewerLogin } = useViewerAccess();
 const { detect: detectPush } = usePushNotifications();
 const { inviteCode } = usePlannerDeepLinks(redeemAccessCode);
@@ -42,11 +44,13 @@ const { data: absences, refresh: refreshAbsences } = await useFetch<Absence[]>("
   default: () => [],
 });
 const generating = ref(false);
+const confirmFill = ref(false);
 const { weekPreviewSentinel, showWeekPreview } = useWeekPreviewReveal();
 // Counts saved changes, so the preview of the next weeks reloads with the plan.
 const planRevision = ref(0);
 // The skeleton only covers a week whose plan is not there yet, not a reload after a change.
 const showSkeleton = computed(() => pending.value && !planShowsWeek(shiftplan.value, appStore.selectedYear, appStore.selectedWeek));
+const replacedByFill = computed(() => assignmentsReplacedByFill(shiftplan.value, dataStore.rotationPattern));
 
 async function refreshWeek() {
   await Promise.all([refresh(), refreshAbsences()]);
@@ -81,14 +85,21 @@ async function redeemAccessCode(code: string) {
   }
 }
 
+function requestFill() {
+  if (replacedByFill.value > 0) confirmFill.value = true;
+  else void generateFromPattern();
+}
+
 async function generateFromPattern() {
   generating.value = true;
   try {
     await authFetch("/api/shiftplan/generate", { method: "POST", body: { year: appStore.selectedYear, week: appStore.selectedWeek } });
-    await refreshWeek();
-  } finally {
-    generating.value = false;
+  } catch (error) {
+    notify(error, "planner.week.fill.failed");
   }
+  confirmFill.value = false;
+  await refreshWeek();
+  generating.value = false;
 }
 </script>
 
@@ -106,7 +117,7 @@ async function generateFromPattern() {
       :member="member"
       :generating="generating"
       @updated="refreshWeek"
-      @generate="generateFromPattern"
+      @generate="requestFill"
       @generated="refreshWeek"
     >
       <div ref="weekPreviewSentinel">
@@ -114,5 +125,13 @@ async function generateFromPattern() {
       </div>
     </PlannerWeekShell>
 
+    <LazyPlannerFillConfirmDialog
+      v-if="confirmFill"
+      v-model:visible="confirmFill"
+      :count="replacedByFill"
+      :pattern-week="shiftplan?.pattern_week"
+      :generating="generating"
+      @confirm="generateFromPattern"
+    />
   </div>
 </template>
