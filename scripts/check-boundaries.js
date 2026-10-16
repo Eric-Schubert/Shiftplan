@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 import { findCycles } from "./boundaries/cycles.js";
 import { findImports, resolveImport } from "./boundaries/imports.js";
+import { repoFiles } from "./repo-files.js";
 import { tokenize } from "./english/tokenize.js";
 
 // Import rules between app, shared and server code. Only explicit imports are checked:
@@ -94,7 +94,7 @@ export function findViolations(files, readFile = (file) => fs.readFileSync(file,
 
 function main() {
   const report = process.argv.includes("--report");
-  const files = execFileSync("git", ["ls-files"], { encoding: "utf-8" }).split("\n").filter(Boolean);
+  const files = repoFiles();
   const violations = findViolations(files);
 
   if (violations.length === 0) {

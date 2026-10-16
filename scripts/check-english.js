@@ -1,7 +1,7 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
 import { tokenize } from "./english/tokenize.js";
+import { repoFiles } from "./repo-files.js";
 
 // Code, comments, test titles and log messages are English. UI text lives in strings and is not checked.
 const CHECKED = /\.(vue|ts|js|mjs|cjs|sh|ya?ml)$/;
@@ -122,7 +122,7 @@ export function findGermanInFiles(files, readFile = (file) => fs.readFileSync(fi
 }
 
 function main() {
-  const files = execFileSync("git", ["ls-files"], { encoding: "utf-8" }).split("\n").filter(Boolean);
+  const files = repoFiles();
   const findings = findGermanInFiles(files);
 
   if (findings.length === 0) {
