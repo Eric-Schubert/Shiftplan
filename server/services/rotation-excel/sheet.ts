@@ -1,13 +1,8 @@
 import type { XlsxCellValue } from "~/server/utils/xlsx";
 import { getRotationValidationConfig, getValidationConfig } from "~/server/config/domain-config";
 import type { RotationConfig } from "~/types/rotation";
-import {
-  badRequest,
-  integerInRange,
-  normalizeHeader,
-  readCell,
-  toText,
-} from "~/server/services/rotation-excel/cells";
+import { badRequest, integerInRange, normalizeLabel, readCell, toText } from "~/server/services/rotation-excel/cells";
+import { LABELS, patternWeekOf } from "~/server/services/rotation-excel/labels";
 import { messageRef } from "~/server/utils/api-error";
 
 export type HeaderColumns = {
@@ -18,16 +13,10 @@ export type HeaderColumns = {
   staffNames: number;
 };
 
-const CONFIG_LABELS = {
-  start_year: ["startjahr"],
-  start_week: ["startwoche"],
-  cycle_length: ["zykluslänge", "zykluslaenge"],
-};
-
 /** Finds the value next to a label like "Startjahr" in column A, above the table header. */
 function readConfigValue(rows: XlsxCellValue[][], headerRow: number, labels: string[]): XlsxCellValue {
   for (let rowIndex = 0; rowIndex < headerRow; rowIndex++) {
-    const label = normalizeHeader(toText(readCell(rows, rowIndex, 0)));
+    const label = normalizeLabel(toText(readCell(rows, rowIndex, 0)));
     if (labels.includes(label)) return readCell(rows, rowIndex, 1);
   }
 
@@ -43,19 +32,19 @@ export function parseConfig(
 
   return {
     start_year: integerInRange(
-      readConfigValue(rows, headerRow, CONFIG_LABELS.start_year),
+      readConfigValue(rows, headerRow, LABELS.startYear),
       messageRef("excel.labels.startYear"),
       validation.year.min,
       validation.year.max
     ),
     start_week: integerInRange(
-      readConfigValue(rows, headerRow, CONFIG_LABELS.start_week),
+      readConfigValue(rows, headerRow, LABELS.startWeek),
       messageRef("excel.labels.startWeek"),
       validation.week.min,
       validation.week.max
     ),
     cycle_length: integerInRange(
-      readConfigValue(rows, headerRow, CONFIG_LABELS.cycle_length),
+      readConfigValue(rows, headerRow, LABELS.cycleLength),
       messageRef("excel.labels.cycleLength"),
       rotation.cycleLengthMin,
       rotation.cycleLengthMax
@@ -87,13 +76,13 @@ export type GridColumns = {
 /** The current template: one row per person, one "Woche N" column per pattern week. */
 export function findGridColumns(rows: XlsxCellValue[][]): GridColumns | null {
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const headers = (rows[rowIndex] || []).map((value) => normalizeHeader(toText(value)));
-    const staffName = headers.findIndex((header) => header === "mitarbeiter");
+    const headers = (rows[rowIndex] || []).map((value) => normalizeLabel(toText(value)));
+    const staffName = headers.findIndex((header) => LABELS.staff.includes(header));
     const weeks = new Map<number, number>();
 
     headers.forEach((header, colIndex) => {
-      const match = header.match(/^woche (\d+)$/);
-      if (match) weeks.set(colIndex, Number(match[1]));
+      const week = patternWeekOf(header);
+      if (week !== null) weeks.set(colIndex, week);
     });
 
     if (staffName !== -1 && weeks.size > 0) {
@@ -107,13 +96,13 @@ export function findGridColumns(rows: XlsxCellValue[][]): GridColumns | null {
 /** The earlier template: one row per pattern week and shift with comma-separated names. */
 export function findHeaderColumns(rows: XlsxCellValue[][]): HeaderColumns {
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const headers = (rows[rowIndex] || []).map((value) => normalizeHeader(toText(value)));
-    const patternWeek = findHeader(headers, ["musterwoche"]);
-    const shiftName = findHeader(headers, ["schicht"]);
-    const staffNames = findHeader(headers, ["mitarbeiter"]);
+    const headers = (rows[rowIndex] || []).map((value) => normalizeLabel(toText(value)));
+    const patternWeek = findHeader(headers, LABELS.patternWeek);
+    const shiftName = findHeader(headers, LABELS.shift);
+    const staffNames = findHeader(headers, LABELS.staff);
 
     if (patternWeek !== -1 && shiftName !== -1 && staffNames !== -1) {
-      const shiftId = findHeader(headers, ["schicht id"]);
+      const shiftId = findHeader(headers, LABELS.shiftId);
 
       return {
         headerRow: rowIndex,

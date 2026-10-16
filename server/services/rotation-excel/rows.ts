@@ -2,7 +2,8 @@ import type { XlsxCellValue } from "~/server/utils/xlsx";
 import type { RotationConfig } from "~/types/rotation";
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
-import { badRequest, splitList, toInteger, toText } from "~/server/services/rotation-excel/cells";
+import { badRequest, normalizeName, toInteger, toText } from "~/server/services/rotation-excel/cells";
+import { FREE_MARKERS } from "~/server/services/rotation-excel/labels";
 import { resolveByName, resolveShift } from "~/server/services/rotation-excel/lookup";
 import { messageRef } from "~/server/utils/api-error";
 import type { GridColumns, HeaderColumns } from "~/server/services/rotation-excel/sheet";
@@ -27,6 +28,14 @@ export type ReadContext = {
   lookups: Lookups;
   add: (entry: RotationExcelEntry) => void;
 };
+
+/** Splits "Anna, Ben" or "Früh; Spät" into names; "-" and the free label of every locale ("frei") count as empty. */
+function splitList(value: XlsxCellValue): string[] {
+  return toText(value)
+    .split(/[,;\n\r]+/)
+    .map((name) => name.trim())
+    .filter((name) => name !== "" && !FREE_MARKERS.has(normalizeName(name)));
+}
 
 /** One row per person, the shift for each pattern week in its "Woche N" column. */
 export function readGridRows({ rows, config, lookups, add }: ReadContext, grid: GridColumns): number {

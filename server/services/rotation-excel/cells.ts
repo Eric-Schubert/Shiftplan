@@ -24,6 +24,11 @@ export function normalizeHeader(value: string): string {
     .trim();
 }
 
+/** A header or label to compare with the catalog: as normalizeHeader, umlauts written „ae“, „oe“, „ue“. */
+export function normalizeLabel(value: string): string {
+  return normalizeHeader(value).replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss");
+}
+
 export function readCell(rows: XlsxCellValue[][], rowIndex: number, colIndex: number): XlsxCellValue {
   return rows[rowIndex]?.[colIndex];
 }
@@ -50,13 +55,3 @@ export function integerInRange(value: XlsxCellValue, label: MessageRef, min: num
 
   return number;
 }
-
-/** Splits "Anna, Ben" or "Früh; Spät" into names; "frei" and "-" count as empty. */
-export function splitList(value: XlsxCellValue): string[] {
-  return toText(value)
-    .split(/[,;\n\r]+/)
-    .map((name) => name.trim())
-    .filter((name) => name !== "" && !FREE_MARKERS.has(normalizeName(name)));
-}
-
-const FREE_MARKERS = new Set(["frei", "-", "–"]);

@@ -5,6 +5,7 @@ import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
 import type { RotationConfig } from "~/types/rotation";
 import { badRequest, normalizeName } from "~/server/services/rotation-excel/cells";
+import { ROTATION_SHEET_NAMES } from "~/server/services/rotation-excel/labels";
 import { makeNameLookup } from "~/server/services/rotation-excel/lookup";
 import {
   readGridRows,
@@ -30,7 +31,7 @@ export function importRotationTemplate(
 ): RotationExcelImportResult {
   const workbook = parseXlsx(fileData);
   const rotationSheet =
-    workbook.sheets.find((sheet) => normalizeName(sheet.name) === "rotation") ||
+    workbook.sheets.find((sheet) => ROTATION_SHEET_NAMES.includes(normalizeName(sheet.name))) ||
     workbook.sheets[0];
 
   if (!rotationSheet) {
@@ -43,8 +44,8 @@ export function importRotationTemplate(
   const config = parseConfig(rows, grid?.headerRow ?? list!.headerRow);
   const activeShifts = ShiftService.getActive();
   const lookups: Lookups = {
-    staffByName: makeNameLookup(StaffService.getActive(), "Mitarbeiter"),
-    shiftsByName: makeNameLookup(activeShifts, "Schicht"),
+    staffByName: makeNameLookup(StaffService.getActive(), "staff"),
+    shiftsByName: makeNameLookup(activeShifts, "shifts"),
     shiftsById: new Map(activeShifts.map((shift) => [shift.shift_id, shift])),
   };
   const entries: RotationExcelEntry[] = [];
