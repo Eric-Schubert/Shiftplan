@@ -2,7 +2,7 @@ import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
 import { removeStaffAccess } from "~/server/services/member-access.service";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
-import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/utils/staff-short-code.js";
+import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/lib/migrations/staff-short-code.js";
 
 function takenShortCodes(exceptId?: number): Set<string> {
   const rows = getDatabase()
