@@ -28,9 +28,6 @@ const GENERATED_CODE_LENGTH = 8;
 export const ACCESS_CODE_MIN_LENGTH = 6;
 export const ACCESS_CODE_MAX_LENGTH = 64;
 
-// Read-only plan data that the access code protects. Holidays and icons stay public.
-const PROTECTED_READ_PREFIXES = ["/api/staff", "/api/shift", "/api/shiftplan", "/api/rotation"];
-
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
 }
@@ -105,12 +102,6 @@ export const TeamAccessService = {
     return (
       this.validateViewerSession(getBearerToken(event)) ||
       this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME))
-    );
-  },
-
-  isProtectedReadRoute(path: string): boolean {
-    return PROTECTED_READ_PREFIXES.some(
-      (prefix) => path === prefix || path.startsWith(prefix + "/")
     );
   },
 };

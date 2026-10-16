@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   CONFIG,
   generateApiDocs,
@@ -33,9 +33,28 @@ describe("docs generator", () => {
     expect(apiDocs).toContain("| `POST` | `/api/member/login` | Public | No |");
     expect(apiDocs).toContain("| `GET` | `/api/member/me` | Member | No |");
     expect(apiDocs).toContain("| `POST` | `/api/auth/users` | Admin | Yes |");
+    expect(apiDocs).toContain("| `POST` | `/api/auth/change-password` | Login | Yes |");
     expect(apiDocs).toContain("| `POST` | `/api/auth/logout` | Public | No |");
     expect(apiDocs).toContain("| `GET` | `/api/holidays/public` | Public | No |");
     expect(apiDocs).toContain("| `PUT` | `/api/requests/settings` | Admin | Yes |");
+  });
+
+  it("reads access from server/config/route-policy.ts", async () => {
+    vi.resetModules();
+    vi.doMock("~/server/config/route-policy", async (importOriginal) => {
+      const original = await importOriginal<typeof import("~/server/config/route-policy")>();
+      return { ...original, ROUTE_POLICY: { ...original.ROUTE_POLICY, csrfMethods: ["POST"] } };
+    });
+
+    try {
+      const { generateApiDocs: generateWithPolicy } = await import("../scripts/docs-generator.js");
+      const apiDocs = generateWithPolicy();
+      expect(apiDocs).toContain("| `POST` | `/api/staff` | Admin | Yes |");
+      expect(apiDocs).toContain("| `DELETE` | `/api/staff/:id` | Admin | No |");
+    } finally {
+      vi.doUnmock("~/server/config/route-policy");
+      vi.resetModules();
+    }
   });
 
   it("generates workflow documentation", () => {

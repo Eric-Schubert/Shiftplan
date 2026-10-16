@@ -6,7 +6,6 @@ import { ROOT } from "./docs/files.js";
 import { generateWorkflowDocs } from "./docs/workflows.js";
 
 export { generateApiDocs, getApiEndpoints } from "./docs/api.js";
-export { loadRouteRules } from "./docs/routes.js";
 export { generateWorkflowDocs } from "./docs/workflows.js";
 
 export const CONFIG = {

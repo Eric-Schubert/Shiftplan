@@ -2,7 +2,7 @@
 
 The endpoints the Shiftplan app uses are specified in [api/app-v1.yaml](api/app-v1.yaml) (OpenAPI).
 
-The tables below are generated from `server/api/`, `server/middleware/auth.ts`, and `config/backend.config.json` by `npm run docs`.
+The tables below are generated from `server/api/` and the route policy in `server/config/route-policy.ts` by `npm run docs`.
 
 | Access | Meaning |
 |--------|---------|

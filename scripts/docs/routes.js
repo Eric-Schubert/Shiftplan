@@ -1,5 +1,6 @@
 import path from "path";
-import { ROOT, readText } from "./files.js";
+import { ROUTE_POLICY, classifyRoute } from "../../server/config/route-policy.ts";
+import { ROOT } from "./files.js";
 
 export function routeFromApiFile(filePath) {
   const relative = path.relative(path.join(ROOT, "server", "api"), path.join(ROOT, filePath));
@@ -23,59 +24,26 @@ export function routeFromApiFile(filePath) {
   };
 }
 
-function readStringArray(source, name) {
-  const match = source.match(new RegExp(`const ${name} = \\[([\\s\\S]*?)\\];`));
-  if (!match) return [];
-  return [...match[1].matchAll(/"([^"]+)"/g)].map((item) => item[1]);
-}
+const ACCESS_BY_CLASS = {
+  public: "Public",
+  publicRead: "Public",
+  // Unguarded member handlers authenticate the request themselves, for example with short code and PIN.
+  member: "Public",
+  team: "Team",
+  teamRead: "Team",
+  session: "Login",
+};
 
-function readStringConst(source, name) {
-  return source.match(new RegExp(`const ${name} = "([^"]+)"`))?.[1] ?? null;
-}
-
-// Mirrors the order in server/middleware/auth.ts, which decides who reaches a handler.
-export function loadRouteRules() {
-  const middleware = readText("server", "middleware", "auth.ts");
-  const teamAccess = readText("server", "services", "team-access.service.ts");
-  const { routes } = JSON.parse(readText("config", "backend.config.json")).auth;
-
-  return {
-    public: [...routes.public, readStringConst(middleware, "LOGOUT_ROUTE")],
-    publicGetPrefixes: routes.publicGetPrefixes,
-    teamRoutes: readStringArray(middleware, "TEAM_ROUTES"),
-    memberPrefix: readStringConst(middleware, "MEMBER_PREFIX"),
-    legalPrefix: readStringConst(middleware, "LEGAL_PREFIX"),
-    builtinReadPrefixes: readStringArray(middleware, "BUILTIN_READ_PREFIXES"),
-    protectedReadPrefixes: readStringArray(teamAccess, "PROTECTED_READ_PREFIXES"),
-  };
-}
-
-function matchesPrefix(route, prefixes) {
-  return prefixes.some((prefix) => route === prefix || route.startsWith(`${prefix}/`));
-}
-
-export function getAccess(endpoint, content, rules) {
+// Handler guards narrow access further than the route policy in server/config/route-policy.ts.
+export function getAccess(endpoint, content) {
   if (content.includes("requireAdmin(") || content.includes('role !== "admin"')) return "Admin";
   if (content.includes("requirePlanner(")) return "Planner";
   if (content.includes("requireMember(")) return "Member";
-
-  const { method, route } = endpoint;
-  if (rules.public.includes(route)) return "Public";
-  if (method === "GET" && rules.legalPrefix && route.startsWith(rules.legalPrefix)) return "Public";
-  if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "Public";
-  if (rules.teamRoutes.includes(route)) return "Team";
-  if (method === "GET" && matchesPrefix(route, rules.builtinReadPrefixes)) return "Team";
-  if (method === "GET" && matchesPrefix(route, rules.publicGetPrefixes)) {
-    return matchesPrefix(route, rules.protectedReadPrefixes) ? "Team" : "Public";
-  }
-  return "Login";
+  return ACCESS_BY_CLASS[classifyRoute(endpoint.method, endpoint.route)];
 }
 
 // CSRF applies only where the middleware checks the planner session.
-export function getCsrfRequirement(endpoint, rules) {
+export function getCsrfRequirement(endpoint) {
   const { method, route } = endpoint;
-  if (!["POST", "PATCH", "PUT", "DELETE"].includes(method)) return "No";
-  if (rules.public.includes(route) || rules.teamRoutes.includes(route)) return "No";
-  if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "No";
-  return "Yes";
+  return classifyRoute(method, route) === "session" && ROUTE_POLICY.csrfMethods.includes(method) ? "Yes" : "No";
 }
