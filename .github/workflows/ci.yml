@@ -84,6 +84,10 @@ jobs:
         if: needs.changes.outputs.code != 'false'
         run: npm run lint:boundaries
 
+      - name: Check formatting
+        if: needs.changes.outputs.code != 'false'
+        run: npm run lint:format
+
       - name: Check generated docs
         run: |
           npm run docs
