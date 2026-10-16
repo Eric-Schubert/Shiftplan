@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { XlsxError } from "./error";
 import { MAX_ZIP_ENTRY_COUNT } from "./limits";
 import { readLocalEntry, validateZipEntry, type ParsedZipEntry } from "./zip-entry";
 
@@ -10,12 +11,12 @@ export function readZip(buffer: Buffer): Map<string, Buffer> {
   let totalUncompressedSize = 0;
 
   if (entryCount > MAX_ZIP_ENTRY_COUNT) {
-    throw new Error("Die Excel-Datei enthält zu viele ZIP-Einträge");
+    throw new XlsxError("excel.file.tooManyEntries");
   }
 
   for (let i = 0; i < entryCount; i++) {
     if (buffer.readUInt32LE(centralOffset) !== 0x02014b50) {
-      throw new Error("Ungültige Excel-Datei: ZIP-Zentralverzeichnis defekt");
+      throw new XlsxError("excel.file.centralDirectory");
     }
 
     const entry = readCentralEntry(buffer, centralOffset);
@@ -36,14 +37,14 @@ function readCentralEntry(buffer: Buffer, offset: number): ParsedZipEntry {
   const flags = buffer.readUInt16LE(offset + 8);
 
   if (flags % 2 === 1) {
-    throw new Error("Passwortgeschützte Excel-Dateien können nicht importiert werden");
+    throw new XlsxError("excel.file.encrypted");
   }
 
   const compressedSize = buffer.readUInt32LE(offset + 20);
   const uncompressedSize = buffer.readUInt32LE(offset + 24);
 
   if (compressedSize === 0xffffffff || uncompressedSize === 0xffffffff) {
-    throw new Error("ZIP64 Excel-Dateien werden nicht unterstützt");
+    throw new XlsxError("excel.file.zip64");
   }
 
   return {
@@ -63,5 +64,5 @@ function findEndOfCentralDirectory(buffer: Buffer): number {
     }
   }
 
-  throw new Error("Keine gültige Excel-Datei: ZIP-Ende nicht gefunden");
+  throw new XlsxError("excel.file.notZip");
 }

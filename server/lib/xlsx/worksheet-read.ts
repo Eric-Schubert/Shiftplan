@@ -1,4 +1,5 @@
 import { columnNumberFromCellRef } from "./cell-ref";
+import { XlsxError } from "./error";
 import { MAX_WORKSHEET_COLUMNS, MAX_WORKSHEET_ROWS } from "./limits";
 import type { XlsxCellValue } from "./types";
 import { decodeXml, parseAttrs, parseTextRuns } from "./xml";
@@ -19,12 +20,12 @@ export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCe
     const rowAttrs = parseAttrs(rowAttrsXml);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
     if (!Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > MAX_WORKSHEET_ROWS) {
-      throw new Error(`Die Excel-Datei enthält zu viele Zeilen in einem Arbeitsblatt`);
+      throw new XlsxError("excel.file.tooManyRows");
     }
 
     parsedRows++;
     if (parsedRows > MAX_WORKSHEET_ROWS) {
-      throw new Error("Die Excel-Datei enthält zu viele Zeilen in einem Arbeitsblatt");
+      throw new XlsxError("excel.file.tooManyRows");
     }
 
     const row: XlsxCellValue[] = [];
@@ -40,7 +41,7 @@ export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCe
       const cellAttrs = parseAttrs(cellAttrsXml);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;
       if (!Number.isInteger(colNumber) || colNumber < 1 || colNumber > MAX_WORKSHEET_COLUMNS) {
-        throw new Error("Die Excel-Datei enthält zu viele Spalten in einem Arbeitsblatt");
+        throw new XlsxError("excel.file.tooManyColumns");
       }
       row[colNumber - 1] = parseCellValue(cellXml, cellAttrs.t, sharedStrings);
       fallbackCol = colNumber + 1;

@@ -3,6 +3,7 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { deleteSessions, purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import { sha256, staffName } from "~/server/services/member-access/common";
 import { getMemberToken } from "~/server/services/member-access/token";
+import { apiError } from "~/server/utils/api-error";
 
 const LAST_SEEN_INTERVAL_MS = 60 * 60 * 1000;
 
@@ -63,7 +64,7 @@ export function getMember(event: any): Member | null {
 export function requireMember(event: any): Member {
   const member = getMember(event);
   if (!member) {
-    throw createError({ statusCode: 401, statusMessage: "Nicht angemeldet oder Zugang gesperrt" });
+    throw apiError(event, 401, "errors.member.notSignedIn");
   }
   return member;
 }

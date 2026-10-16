@@ -1,13 +1,12 @@
 import { getDatabase } from "~/server/utils/database";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { datesBetween, parseISODate } from "~/shared/utils/iso-date";
-import { instanceLocaleTag } from "~/server/utils/locale";
-import { formatDay } from "~/shared/utils/format/day";
 import { activeStaffName, badRequest, conflict, today } from "~/server/services/shift-request/common";
 import { isOffDay, requestDays } from "~/server/services/shift-request/days";
 import { getById } from "~/server/services/shift-request/queries";
 import { absentInChanges, swapChanges } from "~/server/services/shift-request/rules";
 import { SWAP_MAX_DAYS, type ShiftRequest } from "~/server/services/shift-request/types";
+import { dateParam } from "~/server/utils/api-error";
 
 export function createTakeover(input: {
   staffId: number;
@@ -17,14 +16,14 @@ export function createTakeover(input: {
   absenceId?: number | null;
   createdBy: string;
 }): ShiftRequest {
-  if (!parseISODate(input.date)) badRequest("Ungültiges Datum");
-  if (input.date < today()) badRequest("Der Tag liegt in der Vergangenheit");
-  if (isOffDay(input.date)) badRequest("Am Wochenende arbeitet dein Team nicht");
+  if (!parseISODate(input.date)) badRequest("errors.common.invalidDate");
+  if (input.date < today()) badRequest("errors.requests.dayPassed");
+  if (isOffDay(input.date)) badRequest("errors.requests.weekendOff");
   const shifts = DayChangeService.shiftsOnDate(input.staffId, input.date);
-  if (shifts.length === 0) badRequest("An diesem Tag hast du keine Schicht");
+  if (shifts.length === 0) badRequest("errors.requests.noShiftThatDay");
   const shiftId = input.shiftId ?? (shifts.length === 1 ? shifts[0]!.shift_id : null);
-  if (shiftId === null) badRequest("Bitte die Schicht wählen");
-  if (!shifts.some((shift) => shift.shift_id === shiftId)) badRequest("Diese Schicht hast du an dem Tag nicht");
+  if (shiftId === null) badRequest("errors.requests.chooseShift");
+  if (!shifts.some((shift) => shift.shift_id === shiftId)) badRequest("errors.requests.notYourShift");
 
   const db = getDatabase();
   const existing = db
@@ -34,7 +33,7 @@ export function createTakeover(input: {
           AND status IN ('open', 'pending_approval')`
     )
     .get(input.staffId, shiftId, input.date);
-  if (existing) conflict("Für diese Schicht läuft schon eine Anfrage");
+  if (existing) conflict("errors.requests.duplicate");
 
   const result = db
     .prepare(
@@ -67,20 +66,20 @@ export function createSwap(input: {
   message?: string | null;
   createdBy: string;
 }): ShiftRequest {
-  if (input.partnerStaffId === input.staffId) badRequest("Tauschen geht nur mit jemand anderem");
+  if (input.partnerStaffId === input.staffId) badRequest("errors.requests.swapWithSelf");
   const partnerName = activeStaffName(input.partnerStaffId);
-  if (!partnerName) badRequest("Unbekannte Kollegin oder unbekannter Kollege");
-  if (!datesBetween(input.from, input.to, SWAP_MAX_DAYS)) badRequest(`Ungültiger Zeitraum (höchstens ${SWAP_MAX_DAYS / 7} Wochen)`);
-  if (input.from < today()) badRequest("Der Zeitraum liegt in der Vergangenheit");
+  if (!partnerName) badRequest("errors.requests.unknownPartner");
+  if (!datesBetween(input.from, input.to, SWAP_MAX_DAYS)) badRequest("errors.requests.invalidRange", { weeks: SWAP_MAX_DAYS / 7 });
+  if (input.from < today()) badRequest("errors.requests.rangePassed");
   const changes = swapChanges(input.staffId, input.partnerStaffId, requestDays(input.from, input.to));
-  if (changes.length === 0) badRequest("Im Zeitraum gibt es nichts zu tauschen");
+  if (changes.length === 0) badRequest("errors.requests.nothingToSwap");
   const absent = absentInChanges(changes);
   if (absent) {
-    const name = absent.staffId === input.partnerStaffId ? partnerName : activeStaffName(input.staffId);
-    badRequest(`${name} hat am ${formatDay(instanceLocaleTag(), absent.date)} einen Ausfall eingetragen`);
+    const name = absent.staffId === input.partnerStaffId ? partnerName : (activeStaffName(input.staffId) ?? "");
+    badRequest("errors.requests.absent", { name, day: dateParam(absent.date) });
   }
   if (overlappingSwap(input.staffId, input.partnerStaffId, input.from, input.to)) {
-    conflict("Für diesen Zeitraum läuft schon eine Tauschanfrage mit dieser Person");
+    conflict("errors.requests.duplicateSwap");
   }
 
   const result = getDatabase()

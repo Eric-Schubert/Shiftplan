@@ -5,8 +5,6 @@ import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { applyRequest, revertRequest, withCurrent } from "./apply";
 import { describeRequest, notifyStaff } from "./notify";
 
-const PLAN_MOVED = "Der Plan hat sich seitdem geändert, z. B. durch eine spätere Anfrage. Bitte die Tage direkt im Plan anpassen.";
-
 /** Planner decisions on requests waiting for approval, and undo of finished ones. */
 export async function decideRequest(
   request: ShiftRequest,
@@ -21,8 +19,8 @@ export async function decideRequest(
 
   if (action === "revert") {
     const updated = withCurrent(request, (current) => {
-      if (current.status !== "done") conflict("Nur durchgeführte Anfragen lassen sich zurücknehmen");
-      revertRequest(current, planner, PLAN_MOVED, origin);
+      if (current.status !== "done") conflict("errors.requests.revertOnlyDone");
+      revertRequest(current, planner, "errors.requests.planMovedPlanner", origin);
       // An open undo ask is answered by the planner's revert.
       return ShiftRequestService.setStatus(current.request_id, "reverted", { expected: "done", decidedBy, undoRequestedBy: null });
     });
@@ -35,7 +33,7 @@ export async function decideRequest(
   }
 
   const updated = withCurrent(request, (current) => {
-    if (current.status !== "pending_approval") conflict("Die Anfrage wartet nicht auf eine Freigabe");
+    if (current.status !== "pending_approval") conflict("errors.requests.notAwaitingApproval");
     if (action === "reject") {
       return ShiftRequestService.setStatus(current.request_id, "rejected", { expected: "pending_approval", decidedBy });
     }

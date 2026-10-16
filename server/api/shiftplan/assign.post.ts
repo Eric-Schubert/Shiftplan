@@ -4,6 +4,7 @@ import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
@@ -13,15 +14,15 @@ export default defineEventHandler(async (event) => {
 
   const staff_id = validateId(body.staff_id, "staff_id");
   const shift_id = validateId(body.shift_id, "shift_id");
-  const year = validateYear(body.year, "Jahr", { required: true })!;
-  const week = validateWeek(body.week, "Woche", { required: true })!;
+  const year = validateYear(body.year, "year", { required: true })!;
+  const week = validateWeek(body.week, "week", { required: true })!;
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
   const wasAssigned = ShiftplanService.hasAssignment(staff_id, shift_id, weekData.week_id);
   const success = ShiftplanService.assignStaff(staff_id, shift_id, weekData.week_id);
 
   if (!success) {
-    throw createError({ statusCode: 500, statusMessage: "Zuweisung fehlgeschlagen" });
+    throw apiError(event, 500, "errors.common.assignFailed");
   }
 
   if (!wasAssigned) {

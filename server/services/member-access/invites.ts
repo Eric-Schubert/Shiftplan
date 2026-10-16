@@ -3,6 +3,7 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { sha256, staffName } from "~/server/services/member-access/common";
 import { createSession, type Member } from "~/server/services/member-access/sessions";
 import { INVITE_VALID_DAYS } from "~/shared/utils/retention";
+import { apiError } from "~/server/utils/api-error";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 10;
@@ -32,7 +33,7 @@ function demoStaffId(code: string): number | null {
 
 export function createInvite(staffId: number, createdBy: string): { code: string; expiresAt: number } {
   if (!staffName(staffId)) {
-    throw createError({ statusCode: 404, statusMessage: "Mitarbeiter nicht gefunden oder inaktiv" });
+    throw apiError(null, 404, "errors.member.staffNotFound");
   }
 
   let code = "";

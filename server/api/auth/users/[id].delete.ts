@@ -1,6 +1,7 @@
 import { getAdminDatabase } from "~/server/utils/database";
 import { requireAdmin } from "~/server/utils/auth";
 import { deleteUserSessions } from "~/server/utils/session";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler((event) => {
   const currentUser = requireAdmin(event);
@@ -8,18 +9,12 @@ export default defineEventHandler((event) => {
   const id = Number(getRouterParam(event, "id"));
 
   if (!id || isNaN(id)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Ungültige User-ID",
-    });
+    throw apiError(event, 400, "errors.auth.invalidUserId");
   }
 
 
   if (id === currentUser.userId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Du kannst dich nicht selbst löschen",
-    });
+    throw apiError(event, 400, "errors.auth.cannotDeleteSelf");
   }
 
   const db = getAdminDatabase();
@@ -30,10 +25,7 @@ export default defineEventHandler((event) => {
     .get(id) as { role: string } | undefined;
 
   if (!user) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Benutzer nicht gefunden",
-    });
+    throw apiError(event, 404, "errors.auth.userNotFound");
   }
 
   if (user.role === "admin") {
@@ -42,10 +34,7 @@ export default defineEventHandler((event) => {
       .get() as { count: number };
 
     if (adminCount.count <= 1) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "Der letzte Admin kann nicht gelöscht werden",
-      });
+      throw apiError(event, 400, "errors.auth.lastAdmin");
     }
   }
 

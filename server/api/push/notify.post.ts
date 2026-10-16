@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   requirePlanner(event);
 
   const body = await readBody(event);
-  const message = validateString(body?.message, "Nachricht", {
+  const message = validateString(body?.message, "message", {
     required: true,
     maxLength: PUSH_MESSAGE_MAX_LENGTH,
   })!;

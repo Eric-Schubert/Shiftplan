@@ -4,6 +4,7 @@ import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
 import { badRequest, splitList, toInteger, toText } from "~/server/services/rotation-excel/cells";
 import { resolveByName, resolveShift } from "~/server/services/rotation-excel/lookup";
+import { messageRef } from "~/server/utils/api-error";
 import type { GridColumns, HeaderColumns } from "~/server/services/rotation-excel/sheet";
 
 export type RotationExcelEntry = {
@@ -18,6 +19,8 @@ export type Lookups = {
   shiftsById: Map<number, Shift>;
 };
 
+const STAFF = messageRef("excel.labels.staff");
+
 export type ReadContext = {
   rows: XlsxCellValue[][];
   config: Omit<RotationConfig, "config_id">;
@@ -31,21 +34,17 @@ export function readGridRows({ rows, config, lookups, add }: ReadContext, grid: 
 
   for (const week of grid.weeks.values()) {
     if (week < 1 || week > config.cycle_length) {
-      badRequest(
-        `Die Spalte „Woche ${week}“ passt nicht zur Zykluslänge ${config.cycle_length}. Zykluslänge erhöhen oder die Spalte löschen.`
-      );
+      badRequest("excel.weekColumnBeyondCycle", { week, cycle: config.cycle_length });
     }
     if (seenWeeks.has(week)) {
-      badRequest(`Die Spalte „Woche ${week}“ gibt es doppelt`);
+      badRequest("excel.weekColumnTwice", { week });
     }
     seenWeeks.add(week);
   }
 
   for (let week = 1; week <= config.cycle_length; week++) {
     if (!seenWeeks.has(week)) {
-      badRequest(
-        `Die Spalte „Woche ${week}“ fehlt. Bei Zykluslänge ${config.cycle_length} braucht es die Spalten Woche 1 bis Woche ${config.cycle_length}.`
-      );
+      badRequest("excel.weekColumnMissing", { week, cycle: config.cycle_length });
     }
   }
 
@@ -58,22 +57,18 @@ export function readGridRows({ rows, config, lookups, add }: ReadContext, grid: 
 
     if (!name) {
       if ([...grid.weeks.keys()].some((col) => toText(row[col]) !== "")) {
-        badRequest(`In Zeile ${rowNumber} fehlt der Name in der Spalte „Mitarbeiter“`);
+        badRequest("excel.staffNameMissing", { row: rowNumber });
       }
       continue;
     }
 
     importedRows++;
-    const staff = resolveByName(lookups.staffByName, name, "Mitarbeiter", `Zeile ${rowNumber}`);
+    const staff = resolveByName(lookups.staffByName, name, STAFF, messageRef("excel.locations.row", { row: rowNumber }));
 
     for (const [col, week] of grid.weeks) {
       for (const shiftName of splitList(row[col])) {
-        const shift = resolveByName(
-          lookups.shiftsByName,
-          shiftName,
-          "Schicht",
-          `Zeile ${rowNumber}, Woche ${week}`
-        );
+        const location = messageRef("excel.locations.rowWeek", { row: rowNumber, week });
+        const shift = resolveByName(lookups.shiftsByName, shiftName, messageRef("excel.labels.shift"), location);
         add({ pattern_week: week, staff_id: staff.staff_id, shift_id: shift.shift_id });
       }
     }
@@ -100,11 +95,10 @@ export function readListRows({ rows, config, lookups, add }: ReadContext, column
 
     importedRows++;
 
-    const patternWeek = toInteger(row[columns.patternWeek], `Musterwoche in Zeile ${rowNumber}`);
+    const patternWeekLabel = messageRef("excel.labels.patternWeekInRow", { row: rowNumber });
+    const patternWeek = toInteger(row[columns.patternWeek], patternWeekLabel);
     if (patternWeek < 1 || patternWeek > config.cycle_length) {
-      badRequest(
-        `Musterwoche in Zeile ${rowNumber} muss zwischen 1 und ${config.cycle_length} liegen`
-      );
+      badRequest("excel.between", { label: patternWeekLabel, min: 1, max: config.cycle_length });
     }
 
     const shift = resolveShift({
@@ -116,7 +110,7 @@ export function readListRows({ rows, config, lookups, add }: ReadContext, column
     });
 
     for (const staffName of splitList(row[columns.staffNames])) {
-      const staff = resolveByName(lookups.staffByName, staffName, "Mitarbeiter", `Zeile ${rowNumber}`);
+      const staff = resolveByName(lookups.staffByName, staffName, STAFF, messageRef("excel.locations.row", { row: rowNumber }));
       add({ pattern_week: patternWeek, staff_id: staff.staff_id, shift_id: shift.shift_id });
     }
   }

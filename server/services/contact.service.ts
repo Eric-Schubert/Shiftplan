@@ -3,6 +3,7 @@ import { getAdminDatabase } from "~/server/utils/database";
 import { getContactListConfig, getContactStorageConfig } from "~/server/config/contact-config";
 import { purgeOldContactMessages } from "~/server/services/contact/purge";
 import type { ContactMessage, ContactMessagesResponse } from "~/types/contact";
+import { apiError } from "~/server/utils/api-error";
 
 type ContactCreateInput = {
   name: string;
@@ -99,10 +100,7 @@ export class ContactService {
       .get(contactId) as ContactMessage | undefined;
 
     if (!message) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: "Kontaktanfrage nicht gefunden",
-      });
+      throw apiError(null, 404, "errors.contact.notFound");
     }
 
     return message;

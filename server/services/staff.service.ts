@@ -3,6 +3,7 @@ import { getDatabase } from "~/server/utils/database";
 import { removeStaffAccess } from "~/server/services/member-access.service";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
 import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/lib/migrations/staff-short-code.js";
+import { apiError } from "~/server/utils/api-error";
 
 function takenShortCodes(exceptId?: number): Set<string> {
   const rows = getDatabase()
@@ -15,10 +16,10 @@ function takenShortCodes(exceptId?: number): Set<string> {
 function checkShortCode(value: string, exceptId?: number): string {
   const code = normalizeShortCode(value);
   if (!isValidShortCode(code)) {
-    throw createError({ statusCode: 400, statusMessage: "Kürzel: 2 bis 8 Buchstaben oder Ziffern" });
+    throw apiError(null, 400, "errors.staff.shortCodeFormat");
   }
   if (takenShortCodes(exceptId).has(code)) {
-    throw createError({ statusCode: 409, statusMessage: `Das Kürzel ${code} ist schon vergeben` });
+    throw apiError(null, 409, "errors.staff.shortCodeTaken", { code });
   }
   return code;
 }

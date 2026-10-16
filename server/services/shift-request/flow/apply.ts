@@ -3,6 +3,8 @@ import { conflict, today } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 import { getDatabase } from "~/server/utils/database";
+import { apiError } from "~/server/utils/api-error";
+import type { MessageKey } from "~/server/lib/i18n/translate";
 
 /**
  * Runs a decision on the request as it is stored right now, inside one transaction: never on a copy
@@ -11,7 +13,7 @@ import { getDatabase } from "~/server/utils/database";
 export function withCurrent<T>(request: ShiftRequest, change: (current: ShiftRequest) => T): T {
   return getDatabase().transaction(() => {
     const current = ShiftRequestService.getById(request.request_id);
-    if (!current) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+    if (!current) throw apiError(null, 404, "errors.requests.notFound");
     return change(current);
   })();
 }
@@ -50,11 +52,11 @@ function moved(change: AppliedChange): boolean {
  * The recorded changes that can be put back: only days from today on, without shifts or people
  * deleted since. If anything else moved on (a later request, a planner edit), nothing is undone.
  */
-export function revertableChanges(request: ShiftRequest, movedMessage: string): AppliedChange[] {
+export function revertableChanges(request: ShiftRequest, movedMessage: MessageKey): AppliedChange[] {
   const recorded = ShiftRequestService.appliedChanges(request.request_id);
   const first = today();
   const upcoming = recorded.filter((change) => change.date >= first);
-  if (recorded.length > 0 && upcoming.length === 0) conflict("Die Tage der Anfrage liegen schon in der Vergangenheit");
+  if (recorded.length > 0 && upcoming.length === 0) conflict("errors.requests.daysPassed");
   const changes = upcoming.filter(
     (change) => exists("staff", "staff_id", change.staffId) && exists("shifts", "shift_id", change.shiftId)
   );
@@ -63,7 +65,7 @@ export function revertableChanges(request: ShiftRequest, movedMessage: string): 
 }
 
 /** Puts every recorded day change of a finished request back to its earlier state. */
-export function revertRequest(request: ShiftRequest, actor: DayChangeActor, movedMessage: string, origin?: string): void {
+export function revertRequest(request: ShiftRequest, actor: DayChangeActor, movedMessage: MessageKey, origin?: string): void {
   for (const change of revertableChanges(request, movedMessage).reverse()) {
     applyDayChange({
       staffId: change.staffId,

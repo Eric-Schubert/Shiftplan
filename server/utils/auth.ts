@@ -1,5 +1,6 @@
 import { getSessionToken, getSessionData } from "~/server/utils/session";
 import type { UserRole, SessionUser } from "~/types/auth";
+import { apiError } from "~/server/utils/api-error";
 
 export function getSessionUser(event: any): SessionUser | null {
   const token = getSessionToken(event);
@@ -10,17 +11,11 @@ function requireRole(event: any, allowedRoles: UserRole[]): SessionUser {
   const user = getSessionUser(event);
 
   if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Nicht autorisiert - Bitte einloggen",
-    });
+    throw apiError(event, 401, "errors.auth.loginRequired");
   }
 
   if (!allowedRoles.includes(user.role)) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: "Keine Berechtigung für diese Aktion",
-    });
+    throw apiError(event, 403, "errors.auth.forbidden");
   }
 
   return user;

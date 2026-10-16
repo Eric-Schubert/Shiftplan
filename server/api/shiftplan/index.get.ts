@@ -5,8 +5,8 @@ import { isoWeekOfDate } from "~/shared/utils/week";
 
 export default defineEventHandler((event) => {
   const query = getQuery(event);
-  const year = validateYear(query.year, "Jahr") || new Date().getFullYear();
-  const week = validateWeek(query.week, "Woche") || isoWeekOfDate(new Date()).week;
+  const year = validateYear(query.year, "year") || new Date().getFullYear();
+  const week = validateWeek(query.week, "week") || isoWeekOfDate(new Date()).week;
   return {
     ...ShiftplanService.getWeeklyPlanReadOnly(year, week),
     day_changes: DayChangeService.listForWeek(year, week),

@@ -9,25 +9,26 @@ import {
   validateBoolean,
 } from "~/server/utils/validation";
 import { getShiftValidationConfig } from "~/server/config/domain-config";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const id = validateId(getRouterParam(event, "id"), "ID");
+  const id = validateId(getRouterParam(event, "id"), "recordId");
   const body = await readBody(event);
   const shiftConfig = getShiftValidationConfig();
 
 
-  const name = validateName(body.name, "Name", { maxLength: 100 });
-  const active = validateBoolean(body.active, "Aktiv");
-  const start_time = validateTime(body.start_time, "Startzeit");
-  const end_time = validateTime(body.end_time, "Endzeit");
-  const color = validateColor(body.color, "Farbe");
-  const min_staff = validateInteger(body.min_staff, "Min. Mitarbeiter", {
+  const name = validateName(body.name, "name", { maxLength: 100 });
+  const active = validateBoolean(body.active, "active");
+  const start_time = validateTime(body.start_time, "startTime");
+  const end_time = validateTime(body.end_time, "endTime");
+  const color = validateColor(body.color, "color");
+  const min_staff = validateInteger(body.min_staff, "minStaff", {
     min: shiftConfig.minStaff.min,
     max: shiftConfig.minStaff.max,
   });
-  const sort_order = validateInteger(body.sort_order, "Sortierung", {
+  const sort_order = validateInteger(body.sort_order, "sortOrder", {
     min: shiftConfig.sortOrder.min,
     max: shiftConfig.sortOrder.max,
   });
@@ -43,7 +44,7 @@ export default defineEventHandler(async (event) => {
   });
 
   if (!updated) {
-    throw createError({ statusCode: 404, statusMessage: "Nicht gefunden" });
+    throw apiError(event, 404, "errors.common.notFound");
   }
 
   return updated;

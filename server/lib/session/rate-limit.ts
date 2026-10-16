@@ -1,5 +1,8 @@
+import type { H3Event } from "h3";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getLoginRateLimitConfig } from "~/server/config/auth-config";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError } from "~/server/utils/api-error";
 
 /**
  * One counter of sign-in attempts. `factor` widens the configured limit for a counter that
@@ -88,12 +91,13 @@ export function settleAttempt(buckets: AttemptBucket[], succeeded: boolean): voi
  * `null` from the check counts as a failed attempt.
  */
 export async function limitAttempt<T>(
+  event: H3Event,
   buckets: AttemptBucket[],
   check: () => T | null | Promise<T | null>,
-  message = "Zu viele Versuche. Bitte warten."
+  message: MessageKey = "errors.common.tooManyAttempts"
 ): Promise<T | null> {
   if (!reserveAttempt(buckets)) {
-    throw createError({ statusCode: 429, statusMessage: message });
+    throw apiError(event, 429, message);
   }
   let result: T | null = null;
   try {

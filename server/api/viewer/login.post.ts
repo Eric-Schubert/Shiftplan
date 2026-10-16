@@ -7,6 +7,7 @@ import {
 } from "~/server/services/team-access.service";
 import { getClientNetwork, limitAttempt } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const body = await readJsonBody<{ code: unknown; client: unknown }>(event);
@@ -21,14 +22,11 @@ export default defineEventHandler(async (event) => {
   // Own bucket, so mistyped team codes in a shared office network never lock out planners.
   // A success clears it: the code is far too long to guess, but colleagues behind one NAT share it.
   const bucket = { key: `viewer:${getClientNetwork(event)}`, resetOnSuccess: true };
-  const valid = await limitAttempt([bucket], () =>
+  const valid = await limitAttempt(event, [bucket], () =>
     code && code.length <= ACCESS_CODE_MAX_LENGTH && TeamAccessService.verifyCode(code) ? true : null
   );
   if (!valid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Zugangscode ist falsch",
-    });
+    throw apiError(event, 401, "errors.team.codeWrong");
   }
 
   const session = TeamAccessService.createViewerSession();

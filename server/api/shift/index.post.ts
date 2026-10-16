@@ -16,15 +16,15 @@ export default defineEventHandler(async (event) => {
   const shiftDefaults = getShiftDefaults();
 
 
-  const name = validateName(body.name, "Name", { required: true, maxLength: 100 });
-  const start_time = validateTime(body.start_time, "Startzeit", { required: true });
-  const end_time = validateTime(body.end_time, "Endzeit", { required: true });
-  const color = validateColor(body.color, "Farbe");
-  const min_staff = validateInteger(body.min_staff, "Min. Mitarbeiter", {
+  const name = validateName(body.name, "name", { required: true, maxLength: 100 });
+  const start_time = validateTime(body.start_time, "startTime", { required: true });
+  const end_time = validateTime(body.end_time, "endTime", { required: true });
+  const color = validateColor(body.color, "color");
+  const min_staff = validateInteger(body.min_staff, "minStaff", {
     min: shiftConfig.minStaff.min,
     max: shiftConfig.minStaff.max,
   });
-  const sort_order = validateInteger(body.sort_order, "Sortierung", {
+  const sort_order = validateInteger(body.sort_order, "sortOrder", {
     min: shiftConfig.sortOrder.min,
     max: shiftConfig.sortOrder.max,
   });

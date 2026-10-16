@@ -8,6 +8,8 @@ import {
   ABSENCE_REASONS,
   type AbsenceReason,
 } from "~/server/services/absence/model";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError, type ErrorParams } from "~/server/utils/api-error";
 
 export type CreateInput = {
   staffId: number;
@@ -28,8 +30,8 @@ export type CreateInput = {
   notBefore?: string;
 };
 
-function badRequest(message: string): never {
-  throw createError({ statusCode: 400, statusMessage: message });
+function badRequest(key: MessageKey, params?: ErrorParams): never {
+  throw apiError(null, 400, key, params);
 }
 
 /**
@@ -40,24 +42,24 @@ export function insertAbsences(input: CreateInput): { ids: number[]; skipped: st
   const maxDays = input.maxDays ?? ABSENCE_MAX_DAYS;
   const range = datesBetween(input.from, input.to || input.from, maxDays);
   if (!range) {
-    badRequest(`Ungültiger Zeitraum (höchstens ${maxDays === ABSENCE_MAX_DAYS ? "8 Wochen" : "1 Jahr"})`);
+    badRequest(maxDays === ABSENCE_MAX_DAYS ? "errors.absences.rangeTooLongWeeks" : "errors.absences.rangeTooLongYear");
   }
-  if (input.notBefore && range[0]! < input.notBefore) badRequest("Ausfälle lassen sich nur ab heute melden");
+  if (input.notBefore && range[0]! < input.notBefore) badRequest("errors.absences.onlyFromToday");
   const dates = input.weekdaysOnly ? range.filter((date) => !isWeekendDate(date)) : range;
-  if (dates.length === 0) badRequest("Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig");
-  if (!ABSENCE_REASONS.includes(input.reason)) badRequest("Ungültiger Grund");
+  if (dates.length === 0) badRequest("errors.absences.weekendOff");
+  if (!ABSENCE_REASONS.includes(input.reason)) badRequest("errors.absences.invalidReason");
   const note = input.note?.trim() || null;
   if (note && note.length > ABSENCE_NOTE_MAX_LENGTH) {
-    badRequest(`Notiz darf maximal ${ABSENCE_NOTE_MAX_LENGTH} Zeichen haben`);
+    badRequest("errors.absences.noteTooLong", { max: ABSENCE_NOTE_MAX_LENGTH });
   }
 
   const db = getDatabase();
   if (!db.prepare("SELECT staff_id FROM staff WHERE staff_id = ?").get(input.staffId)) {
-    badRequest("Unbekannter Mitarbeiter");
+    badRequest("errors.common.unknownStaff");
   }
   const explicitShift = dates.length === 1 ? (input.shiftId ?? null) : null;
   if (explicitShift !== null && !db.prepare("SELECT 1 FROM shifts WHERE shift_id = ?").get(explicitShift)) {
-    badRequest("Unbekannte Schicht");
+    badRequest("errors.common.unknownShift");
   }
 
   const batchId = dates.length > 1 ? randomBytes(8).toString("hex") : null;
@@ -87,10 +89,7 @@ export function insertAbsences(input: CreateInput): { ids: number[]; skipped: st
   })();
 
   if (ids.length === 0) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: dates.length === 1 ? "Für diesen Tag ist bereits ein Ausfall eingetragen" : "Für diesen Zeitraum sind bereits Ausfälle eingetragen",
-    });
+    throw apiError(null, 409, dates.length === 1 ? "errors.absences.dayTaken" : "errors.absences.rangeTaken");
   }
   return { ids, skipped };
 }

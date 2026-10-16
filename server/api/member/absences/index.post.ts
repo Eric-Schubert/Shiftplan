@@ -8,17 +8,18 @@ import {
 } from "~/server/services/absence.service";
 import { planningToday } from "~/server/utils/planning-date";
 import { validateString } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
   const body = await readBody(event);
 
   if (!ABSENCE_REASONS.includes(body?.reason)) {
-    throw createError({ statusCode: 400, statusMessage: "Ungültiger Grund" });
+    throw apiError(event, 400, "errors.absences.invalidReason");
   }
   const shiftId = body?.shiftId === undefined || body?.shiftId === null ? null : Number(body.shiftId);
   if (shiftId !== null && !Number.isInteger(shiftId)) {
-    throw createError({ statusCode: 400, statusMessage: "Ungültige Schicht" });
+    throw apiError(event, 400, "errors.absences.invalidShift");
   }
 
   const result = await reportAbsence({
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
     reason: body.reason as AbsenceReason,
     notifyTeam: body?.notifyTeam !== false,
     seekTakeover: body?.seekTakeover === true,
-    message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
+    message: validateString(body?.message, "extraText", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     // Teams that open next week on Saturday do not work weekends.
     weekdaysOnly: TeamAccessService.getNextWeekFromSaturday(),
     // Like the app and the web form: staff cannot report days that are already over.

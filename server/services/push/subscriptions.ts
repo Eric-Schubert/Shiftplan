@@ -1,6 +1,7 @@
 import { getAdminDatabase } from "~/server/utils/database";
 import { hasValidKeys } from "~/server/services/push/keys";
 import type { PushSubscriptionInput } from "~/server/services/push/types";
+import { apiError } from "~/server/utils/api-error";
 
 const MAX_SUBSCRIPTIONS = 2000;
 const MAX_ENDPOINT_LENGTH = 1024;
@@ -50,10 +51,10 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
     endpoint.length > MAX_ENDPOINT_LENGTH ||
     !isAllowedEndpoint(endpoint)
   ) {
-    throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
+    throw apiError(null, 400, "errors.push.invalidSubscription");
   }
   if (!hasValidKeys(subscription?.keys?.p256dh, subscription?.keys?.auth)) {
-    throw createError({ statusCode: 400, statusMessage: "Ungültiges Push-Abonnement" });
+    throw apiError(null, 400, "errors.push.invalidSubscription");
   }
 
   const db = getAdminDatabase();
@@ -61,7 +62,7 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
     .prepare("SELECT 1 FROM push_subscriptions WHERE endpoint = ?")
     .get(endpoint);
   if (!exists && countSubscriptions() >= MAX_SUBSCRIPTIONS) {
-    throw createError({ statusCode: 429, statusMessage: "Zu viele Push-Abonnements" });
+    throw apiError(null, 429, "errors.push.tooManySubscriptions");
   }
 
   db.prepare(

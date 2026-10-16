@@ -9,6 +9,7 @@ import { getAuthConfig } from "~/server/config/auth-config";
 import { classifyRoute } from "~/server/config/route-policy";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { getMemberToken } from "~/server/services/member-access.service";
+import { apiError } from "~/server/utils/api-error";
 
 /**
  * A browser signed in with short code and PIN authenticates with a cookie. Writes must then come
@@ -45,7 +46,7 @@ export default defineEventHandler((event) => {
 
   if (routeClass === "team" || routeClass === "member") {
     if (method !== "GET" && getMemberToken(event)?.viaCookie && !isSameOriginRequest(event)) {
-      throw createError({ statusCode: 403, statusMessage: "Ungültige Herkunft der Anfrage" });
+      throw apiError(event, 403, "errors.common.badOrigin");
     }
     return;
   }
@@ -53,10 +54,7 @@ export default defineEventHandler((event) => {
 
   if (routeClass === "teamRead") {
     if (!TeamAccessService.hasReadAccess(event)) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: "Zugangscode erforderlich",
-      });
+      throw apiError(event, 401, "errors.team.codeRequired");
     }
     return;
   }
@@ -66,10 +64,7 @@ export default defineEventHandler((event) => {
   const isValid = validateSession(token);
 
   if (!isValid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Nicht autorisiert - Bitte einloggen",
-    });
+    throw apiError(event, 401, "errors.auth.loginRequired");
   }
 
 
@@ -80,10 +75,7 @@ export default defineEventHandler((event) => {
     const csrfValid = validateCsrfToken(token, csrfToken);
 
     if (!csrfValid) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: "Ungültiger Sicherheitstoken - Bitte Seite neu laden",
-      });
+      throw apiError(event, 403, "errors.auth.csrfInvalid");
     }
   }
 

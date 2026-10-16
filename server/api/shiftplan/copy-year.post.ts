@@ -1,6 +1,7 @@
 import { getDatabase } from "~/server/utils/database";
 import { requirePlanner } from "~/server/utils/auth";
 import { validateYear, validateBoolean } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
@@ -8,15 +9,12 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
 
-  const sourceYear = validateYear(body.sourceYear, "Quelljahr", { required: true })!;
-  const targetYear = validateYear(body.targetYear, "Zieljahr", { required: true })!;
-  const overwrite = validateBoolean(body.overwrite, "Überschreiben") === 1;
+  const sourceYear = validateYear(body.sourceYear, "sourceYear", { required: true })!;
+  const targetYear = validateYear(body.targetYear, "targetYear", { required: true })!;
+  const overwrite = validateBoolean(body.overwrite, "overwrite") === 1;
 
   if (sourceYear === targetYear) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Quell- und Zieljahr dürfen nicht identisch sein",
-    });
+    throw apiError(event, 400, "errors.shiftplan.sameYears");
   }
 
   const db = getDatabase();
@@ -32,10 +30,7 @@ export default defineEventHandler(async (event) => {
     .all(sourceYear) as Array<{ week_id: number; week_number: number }>;
 
   if (sourceWeeks.length === 0) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: `Keine Schichtpläne für ${sourceYear} gefunden`,
-    });
+    throw apiError(event, 404, "errors.shiftplan.noPlans", { year: sourceYear });
   }
 
   const weeksWithAssignments = sourceWeeks.filter((w) => {
@@ -46,10 +41,7 @@ export default defineEventHandler(async (event) => {
   });
 
   if (weeksWithAssignments.length === 0) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: `Keine Zuweisungen in ${sourceYear} vorhanden`,
-    });
+    throw apiError(event, 404, "errors.shiftplan.noAssignments", { year: sourceYear });
   }
 
 

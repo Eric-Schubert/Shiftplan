@@ -2,7 +2,8 @@ import bcrypt from "bcryptjs";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { normalizeShortCode } from "~/server/lib/migrations/staff-short-code.js";
 import { createSession, type Member } from "~/server/services/member-access/sessions";
-import { PIN_LENGTH_MESSAGE, WEAK_PIN_MESSAGE, isValidPin, isWeakPin } from "~/shared/utils/limits";
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPin, isWeakPin } from "~/shared/utils/limits";
+import { apiError } from "~/server/utils/api-error";
 
 const PIN_HASH_COST = 10;
 // Compared against when there is no PIN to check, so every check costs the same time.
@@ -21,10 +22,10 @@ export function staffWithPin(): number[] {
 
 export async function setPin(staffId: number, pin: string): Promise<void> {
   if (!isValidPin(pin)) {
-    throw createError({ statusCode: 400, statusMessage: PIN_LENGTH_MESSAGE });
+    throw apiError(null, 400, "errors.member.pinLength", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH });
   }
   if (isWeakPin(pin)) {
-    throw createError({ statusCode: 400, statusMessage: WEAK_PIN_MESSAGE });
+    throw apiError(null, 400, "errors.member.pinWeak");
   }
   const pinHash = await bcrypt.hash(pin, PIN_HASH_COST);
   getAdminDatabase()

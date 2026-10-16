@@ -1,8 +1,10 @@
+import type { H3Event } from "h3";
 import { ContactService } from "~/server/services/contact.service";
 import { ContactMailService } from "~/server/services/contact-mail.service";
 import { getClientIP } from "~/server/utils/session";
 import { validateString } from "~/server/utils/validation";
 import { getContactFormConfig, getContactRateLimitConfig } from "~/server/config/contact-config";
+import { apiError } from "~/server/utils/api-error";
 
 type ContactRequestBody = {
   name?: unknown;
@@ -28,7 +30,7 @@ function cleanupRateLimits(now: number): void {
   }
 }
 
-function assertRateLimit(ip: string): void {
+function assertRateLimit(event: H3Event, ip: string): void {
   const now = Date.now();
   cleanupRateLimits(now);
   const rateLimit = getContactRateLimitConfig();
@@ -40,10 +42,7 @@ function assertRateLimit(ip: string): void {
   }
 
   if (record.count >= rateLimit.maxMessages) {
-    throw createError({
-      statusCode: 429,
-      statusMessage: "Zu viele Kontaktanfragen. Bitte später erneut versuchen.",
-    });
+    throw apiError(event, 429, "errors.contact.tooMany");
   }
 
   record.count += 1;
@@ -57,26 +56,26 @@ export default defineEventHandler(async (event) => {
   }
 
   const ip = getClientIP(event);
-  assertRateLimit(ip);
+  assertRateLimit(event, ip);
   const formConfig = getContactFormConfig();
 
   // Stored as typed (trimmed): the admin view escapes on render and the mail is plain text.
-  const name = validateString(body.name, "Name", {
+  const name = validateString(body.name, "name", {
     required: true,
     minLength: formConfig.name.minLength,
     maxLength: formConfig.name.maxLength,
   })!;
-  const replyTo = validateString(body.replyTo, "Rückkontakt", {
+  const replyTo = validateString(body.replyTo, "replyTo", {
     required: true,
     minLength: formConfig.replyTo.minLength,
     maxLength: formConfig.replyTo.maxLength,
   })!;
-  const subject = validateString(body.subject, "Betreff", {
+  const subject = validateString(body.subject, "subject", {
     required: false,
     minLength: formConfig.subject.minLength,
     maxLength: formConfig.subject.maxLength,
   });
-  const message = validateString(body.message, "Nachricht", {
+  const message = validateString(body.message, "message", {
     required: true,
     minLength: formConfig.message.minLength,
     maxLength: formConfig.message.maxLength,

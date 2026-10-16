@@ -1,6 +1,8 @@
 import { getDatabase } from "~/server/utils/database";
 import { parseISODate } from "~/shared/utils/iso-date";
 import { datesOfISOWeek, weekOfDate } from "~/shared/utils/week";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError } from "~/server/utils/api-error";
 
 export type DayChangeKind = "add" | "remove";
 
@@ -17,8 +19,8 @@ export type DayChange = {
   created_at: string;
 };
 
-function badRequest(message: string): never {
-  throw createError({ statusCode: 400, statusMessage: message });
+function badRequest(key: MessageKey): never {
+  throw apiError(null, 400, key);
 }
 
 function isInWeeklyPlan(staffId: number, shiftId: number, date: string): boolean {
@@ -100,10 +102,10 @@ export const DayChangeService = {
     /** Set when a takeover or swap request makes the change, so it can be undone. */
     requestId?: number;
   }): { kind: DayChangeKind } | null {
-    if (!parseISODate(input.date)) badRequest("Ungültiges Datum");
+    if (!parseISODate(input.date)) badRequest("errors.common.invalidDate");
     const db = getDatabase();
-    if (!db.prepare("SELECT 1 FROM staff WHERE staff_id = ?").get(input.staffId)) badRequest("Unbekannter Mitarbeiter");
-    if (!db.prepare("SELECT 1 FROM shifts WHERE shift_id = ?").get(input.shiftId)) badRequest("Unbekannte Schicht");
+    if (!db.prepare("SELECT 1 FROM staff WHERE staff_id = ?").get(input.staffId)) badRequest("errors.common.unknownStaff");
+    if (!db.prepare("SELECT 1 FROM shifts WHERE shift_id = ?").get(input.shiftId)) badRequest("errors.common.unknownShift");
 
     const existing = db
       .prepare("SELECT kind FROM shift_day_changes WHERE staff_id = ? AND shift_id = ? AND change_date = ?")

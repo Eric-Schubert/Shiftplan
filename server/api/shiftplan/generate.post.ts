@@ -13,14 +13,14 @@ export default defineEventHandler(async (event) => {
     body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
 
   if (!hasWeeksParameter) {
-    const year = validateYear(body.year, "Jahr", { required: true })!;
-    const week = validateWeek(body.week, "Woche", { required: true })!;
+    const year = validateYear(body.year, "year", { required: true })!;
+    const week = validateWeek(body.week, "week", { required: true })!;
     return ShiftplanService.generateFromPattern(year, week);
   }
 
   const { year, week, weeks } = readGenerationRange(body);
   // Older clients sent no flag and always overwrote.
-  const overwrite = validateBoolean(body.overwrite, "Überschreiben") !== 0;
+  const overwrite = validateBoolean(body.overwrite, "overwrite") !== 0;
   const result = ShiftplanService.generateMultipleWeeks(year, week, weeks, { overwrite });
 
   const last = result.weeks.at(-1);

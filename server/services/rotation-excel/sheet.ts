@@ -8,6 +8,7 @@ import {
   readCell,
   toText,
 } from "~/server/services/rotation-excel/cells";
+import { messageRef } from "~/server/utils/api-error";
 
 export type HeaderColumns = {
   headerRow: number;
@@ -43,19 +44,19 @@ export function parseConfig(
   return {
     start_year: integerInRange(
       readConfigValue(rows, headerRow, CONFIG_LABELS.start_year),
-      "Startjahr",
+      messageRef("excel.labels.startYear"),
       validation.year.min,
       validation.year.max
     ),
     start_week: integerInRange(
       readConfigValue(rows, headerRow, CONFIG_LABELS.start_week),
-      "Startwoche",
+      messageRef("excel.labels.startWeek"),
       validation.week.min,
       validation.week.max
     ),
     cycle_length: integerInRange(
       readConfigValue(rows, headerRow, CONFIG_LABELS.cycle_length),
-      "Zykluslänge",
+      messageRef("excel.labels.cycleLength"),
       rotation.cycleLengthMin,
       rotation.cycleLengthMax
     ),
@@ -124,5 +125,5 @@ export function findHeaderColumns(rows: XlsxCellValue[][]): HeaderColumns {
     }
   }
 
-  badRequest("Die Kopfzeile mit Musterwoche, Schicht und Mitarbeiter wurde nicht gefunden");
+  badRequest("excel.headerMissing");
 }

@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const rotationConfig = getRotationValidationConfig();
 
-  const pattern_week = validateInteger(body.pattern_week, "Musterwoche", {
+  const pattern_week = validateInteger(body.pattern_week, "patternWeek", {
     required: true,
     min: rotationConfig.cycleLengthMin,
     max: rotationConfig.cycleLengthMax,

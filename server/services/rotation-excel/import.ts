@@ -34,7 +34,7 @@ export function importRotationTemplate(
     workbook.sheets[0];
 
   if (!rotationSheet) {
-    badRequest("Die Excel-Datei enthält kein Arbeitsblatt");
+    badRequest("excel.noSheet");
   }
 
   const rows = rotationSheet.rows;
@@ -64,7 +64,7 @@ export function importRotationTemplate(
   const importedRows = grid ? readGridRows(context, grid) : readListRows(context, list!);
 
   if (importedRows === 0) {
-    badRequest("Im Blatt 'Rotation' wurden keine Datenzeilen gefunden");
+    badRequest("excel.noRows");
   }
 
   if (options.dryRun) {

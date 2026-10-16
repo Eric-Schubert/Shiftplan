@@ -3,8 +3,6 @@ import { conflict } from "~/server/services/shift-request/common";
 import { getById } from "~/server/services/shift-request/queries";
 import type { AppliedChange, ShiftRequest, ShiftRequestStatus } from "~/server/services/shift-request/types";
 
-const STALE = "Die Anfrage wurde inzwischen schon bearbeitet";
-
 /** Moves a request on, but only from the `expected` state, so a second click or a stale copy changes nothing. */
 export function setStatus(
   requestId: number,
@@ -33,7 +31,7 @@ export function setStatus(
   const result = getDatabase()
     .prepare(`UPDATE shift_requests SET ${sets.join(", ")} WHERE request_id = ? AND status = ?`)
     .run(...values, requestId, fields.expected);
-  if (result.changes === 0) conflict(STALE);
+  if (result.changes === 0) conflict("errors.requests.alreadyHandled");
   return getById(requestId)!;
 }
 
@@ -44,7 +42,7 @@ export function setUndoRequest(requestId: number, staffId: number | null, expect
       "UPDATE shift_requests SET undo_requested_by = ? WHERE request_id = ? AND status = 'done' AND undo_requested_by IS ?"
     )
     .run(staffId, requestId, expected);
-  if (result.changes === 0) conflict(STALE);
+  if (result.changes === 0) conflict("errors.requests.alreadyHandled");
   return getById(requestId)!;
 }
 

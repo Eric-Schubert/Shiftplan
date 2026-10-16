@@ -1,14 +1,12 @@
 import { getDatabase } from "~/server/utils/database";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler((event) => {
   const query = getQuery(event);
   const year = Number(query.year);
 
   if (!year || year < 2020 || year > 2100) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Gültiges Jahr erforderlich",
-    });
+    throw apiError(event, 400, "errors.shiftplan.yearRequired");
   }
 
   const db = getDatabase();

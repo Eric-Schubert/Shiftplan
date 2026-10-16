@@ -6,35 +6,34 @@ import { deleteUserSessions, getSessionToken, limitAttempt } from "~/server/util
 import {
   getMaxPasswordLength,
   getPasswordHashCost,
-  validateConfiguredPasswordStrength,
+  passwordPolicyError,
 } from "~/server/config/auth-config";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const currentUser = getSessionUser(event);
   if (!currentUser) {
-    throw createError({ statusCode: 401, statusMessage: "Nicht autorisiert - Bitte einloggen" });
+    throw apiError(event, 401, "errors.auth.loginRequired");
   }
   if (isDemoAccount(currentUser.username)) {
-    throw createError({ statusCode: 403, statusMessage: "In der Demo lässt sich das Passwort nicht ändern" });
+    throw apiError(event, 403, "errors.auth.demoPassword");
   }
 
   const body = await readBody<{ currentPassword: string; newPassword: string }>(event);
 
   if (!body?.currentPassword || typeof body.currentPassword !== "string") {
-    throw createError({ statusCode: 400, statusMessage: "Aktuelles Passwort erforderlich" });
+    throw apiError(event, 400, "errors.auth.currentPasswordRequired");
   }
   if (!body.newPassword || typeof body.newPassword !== "string") {
-    throw createError({ statusCode: 400, statusMessage: "Neues Passwort erforderlich" });
+    throw apiError(event, 400, "errors.auth.newPasswordRequired");
   }
 
   if (body.currentPassword.length > getMaxPasswordLength()) {
-    throw createError({ statusCode: 400, statusMessage: "Passwort zu lang" });
+    throw apiError(event, 400, "errors.auth.passwordTooLong");
   }
 
-  const strength = validateConfiguredPasswordStrength(body.newPassword);
-  if (!strength.valid) {
-    throw createError({ statusCode: 400, statusMessage: strength.message });
-  }
+  const weakPassword = passwordPolicyError(event, body.newPassword);
+  if (weakPassword) throw weakPassword;
 
   const db = getAdminDatabase();
   const user = db
@@ -42,17 +41,18 @@ export default defineEventHandler(async (event) => {
     .get(currentUser.userId) as { password_hash: string } | undefined;
 
   if (!user) {
-    throw createError({ statusCode: 401, statusMessage: "Nicht autorisiert - Bitte einloggen" });
+    throw apiError(event, 401, "errors.auth.loginRequired");
   }
 
   // A stolen session must not become an unlimited oracle for the account password.
   const currentPassword = body.currentPassword;
   const isCurrentValid = await limitAttempt(
+    event,
     [{ key: `password-change:${currentUser.userId}`, resetOnSuccess: true }],
     async () => (await bcrypt.compare(currentPassword, user.password_hash)) || null
   );
   if (!isCurrentValid) {
-    throw createError({ statusCode: 401, statusMessage: "Passwort-Änderung fehlgeschlagen" });
+    throw apiError(event, 401, "errors.auth.passwordChangeFailed");
   }
 
   const hashedNewPassword = await bcrypt.hash(body.newPassword, getPasswordHashCost());

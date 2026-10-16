@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import { inflateRawSync } from "node:zlib";
+import { XlsxError } from "./error";
 import {
   MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE,
   MAX_ZIP_EXPANSION_RATIO,
@@ -19,24 +20,24 @@ export function validateZipEntry(
   totalUncompressedSize: number
 ): number {
   if (entry.uncompressedSize > MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE) {
-    throw new Error(`ZIP-Eintrag '${name}' ist zu groß für den Excel-Import`);
+    throw new XlsxError("excel.file.entryTooLarge", { name });
   }
 
   const nextTotalSize = totalUncompressedSize + entry.uncompressedSize;
   if (nextTotalSize > MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE) {
-    throw new Error("Die entpackte Excel-Datei ist zu groß für den Import");
+    throw new XlsxError("excel.file.unpackedTooLarge");
   }
 
   if (entry.method === 8) {
     if (entry.compressedSize === 0 && entry.uncompressedSize > 0) {
-      throw new Error(`ZIP-Eintrag '${name}' ist ungültig`);
+      throw new XlsxError("excel.file.entryInvalid", { name });
     }
 
     if (
       entry.compressedSize > 0 &&
       entry.uncompressedSize / entry.compressedSize > MAX_ZIP_EXPANSION_RATIO
     ) {
-      throw new Error(`ZIP-Eintrag '${name}' expandiert zu stark für den Excel-Import`);
+      throw new XlsxError("excel.file.entryExpands", { name });
     }
   }
 
@@ -47,20 +48,20 @@ export function readLocalEntry(buffer: Buffer, entry: ParsedZipEntry): Buffer {
   const offset = entry.localHeaderOffset;
 
   if (buffer.readUInt32LE(offset) !== 0x04034b50) {
-    throw new Error("Ungültige Excel-Datei: lokaler ZIP-Header defekt");
+    throw new XlsxError("excel.file.localHeader");
   }
 
   const nameLength = buffer.readUInt16LE(offset + 26);
   const extraLength = buffer.readUInt16LE(offset + 28);
   const dataOffset = offset + 30 + nameLength + extraLength;
   if (dataOffset + entry.compressedSize > buffer.length) {
-    throw new Error("Ungültige Excel-Datei: ZIP-Daten abgeschnitten");
+    throw new XlsxError("excel.file.truncated");
   }
   const data = buffer.subarray(dataOffset, dataOffset + entry.compressedSize);
 
   if (entry.method === 0) {
     if (data.length !== entry.uncompressedSize) {
-      throw new Error("Ungültige Excel-Datei: ZIP-Größe passt nicht zum Inhalt");
+      throw new XlsxError("excel.file.sizeMismatch");
     }
     return data;
   }
@@ -72,14 +73,14 @@ export function readLocalEntry(buffer: Buffer, entry: ParsedZipEntry): Buffer {
         maxOutputLength: Math.max(1, entry.uncompressedSize),
       });
     } catch (error) {
-      throw new Error("Die Excel-Datei enthält ungültige oder zu große ZIP-Daten");
+      throw new XlsxError("excel.file.badZipData");
     }
 
     if (inflated.length !== entry.uncompressedSize) {
-      throw new Error("Ungültige Excel-Datei: ZIP-Größe passt nicht zum Inhalt");
+      throw new XlsxError("excel.file.sizeMismatch");
     }
     return inflated;
   }
 
-  throw new Error(`ZIP-Kompressionsmethode ${entry.method} wird nicht unterstützt`);
+  throw new XlsxError("excel.file.compression", { method: entry.method });
 }

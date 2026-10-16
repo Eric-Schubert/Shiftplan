@@ -3,6 +3,7 @@ import { RotationExcelService } from "~/server/services/rotation-excel.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
@@ -11,18 +12,12 @@ export default defineEventHandler(async (event) => {
   const file = parts?.find((part) => part.name === "file" && part.filename);
 
   if (!file) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Keine Excel-Datei hochgeladen",
-    });
+    throw apiError(event, 400, "excel.noFile");
   }
 
   const maxImportBytes = getRotationValidationConfig().excelImportMaxBytes;
   if (file.data.length > maxImportBytes) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `Die Excel-Datei darf maximal ${Math.floor(maxImportBytes / 1024 / 1024)} MB groß sein`,
-    });
+    throw apiError(event, 400, "excel.fileTooLarge", { mb: Math.floor(maxImportBytes / 1024 / 1024) });
   }
 
   const dryRun = parts?.find((part) => part.name === "dryRun")?.data.toString() === "1";

@@ -1,5 +1,6 @@
 import type { H3Event } from "h3";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
+import { apiError } from "~/server/utils/api-error";
 
 // JSON bodies of this API stay far below this. The Excel import gets its file limit plus form overhead.
 const MAX_BODY_BYTES = 256 * 1024;
@@ -14,15 +15,11 @@ export function getBodyLimit(path: string): number {
 }
 
 // The Excel import shows this message as is, so it keeps the wording of the handler's own check.
-function tooLarge(path: string) {
+function tooLarge(event: H3Event, path: string) {
   const excelMegabytes = Math.floor(getRotationValidationConfig().excelImportMaxBytes / 1024 / 1024);
-  return createError({
-    statusCode: 413,
-    statusMessage:
-      path === EXCEL_IMPORT_PATH
-        ? `Die Excel-Datei darf maximal ${excelMegabytes} MB groß sein`
-        : "Die Anfrage ist zu groß",
-  });
+  return path === EXCEL_IMPORT_PATH
+    ? apiError(event, 413, "excel.fileTooLarge", { mb: excelMegabytes })
+    : apiError(event, 413, "errors.common.tooLarge");
 }
 
 /** Buffers a chunked body up to the limit. Beyond it the rest is discarded, never kept. */
@@ -39,7 +36,7 @@ function readLimited(event: H3Event, limit: number, path: string): Promise<Buffe
       }
       request.off("data", onData);
       request.resume();
-      reject(tooLarge(path));
+      reject(tooLarge(event, path));
     };
     request.on("data", onData);
     // Buffer.concat always copies into a fresh, unshared ArrayBuffer.
@@ -57,7 +54,7 @@ export default defineEventHandler(async (event) => {
   if (!path.startsWith("/api/") || !PAYLOAD_METHODS.has(getMethod(event))) return;
 
   const limit = getBodyLimit(path);
-  if (Number.parseInt(getHeader(event, "content-length") || "", 10) > limit) throw tooLarge(path);
+  if (Number.parseInt(getHeader(event, "content-length") || "", 10) > limit) throw tooLarge(event, path);
   if (!/\bchunked\b/i.test(getHeader(event, "transfer-encoding") || "")) return;
 
   // h3's body readers use this buffer instead of the already consumed stream.
