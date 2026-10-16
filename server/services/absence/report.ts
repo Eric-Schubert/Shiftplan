@@ -2,8 +2,8 @@ import { logPerWeek, type Actor } from "~/server/services/absence/audit";
 import type { Absence, AbsenceReason } from "~/server/services/absence/model";
 import { buildAbsenceNotice } from "~/server/services/absence/notice";
 import { AbsenceService } from "~/server/services/absence/store";
-import { createTakeover } from "~/server/utils/shift-request-flow";
 import { PushService } from "~/server/services/push.service";
+import { createTakeover } from "~/server/services/shift-request.service";
 import { planningToday } from "~/server/utils/planning-date";
 
 /** Creates the absence days, logs them and tells the team. A failed push never undoes the absence. */

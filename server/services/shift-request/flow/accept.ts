@@ -1,4 +1,5 @@
-import { ShiftRequestService, type ShiftRequest } from "~/server/services/shift-request.service";
+import { ShiftRequestService } from "~/server/services/shift-request/store";
+import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { applyRequest, withCurrent } from "./apply";
 import { describeRequest, notifyStaff } from "./notify";
 

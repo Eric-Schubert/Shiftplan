@@ -1,13 +1,13 @@
 import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
-import { ShiftRequestService } from "~/server/services/shift-request.service";
 import {
+  ShiftRequestService,
   acceptRequest,
   cancelRequest,
   confirmUndo,
   declineRequest,
   declineUndo,
   requestUndo,
-} from "~/server/utils/shift-request-flow";
+} from "~/server/services/shift-request.service";
 import { validateId } from "~/server/utils/validation";
 
 /**

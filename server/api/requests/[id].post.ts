@@ -1,7 +1,6 @@
-import { ShiftRequestService } from "~/server/services/shift-request.service";
+import { ShiftRequestService, decideRequest } from "~/server/services/shift-request.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
-import { decideRequest } from "~/server/utils/shift-request-flow";
 import { validateId } from "~/server/utils/validation";
 
 /** Planner: approve or reject a request waiting for approval, or revert a finished one. */

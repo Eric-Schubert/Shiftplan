@@ -1,6 +1,6 @@
+import { applyDayChange } from "~/server/services/day-change.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
-import { applyDayChange } from "~/server/utils/day-change-flow";
 import { validateId } from "~/server/utils/validation";
 
 /** Puts someone into or out of a shift for a single day, on top of the weekly plan. */

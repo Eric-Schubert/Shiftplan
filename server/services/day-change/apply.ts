@@ -1,5 +1,5 @@
 import { AuditService } from "~/server/services/audit.service";
-import { DayChangeService } from "~/server/services/day-change.service";
+import { DayChangeService } from "~/server/services/day-change/store";
 import { PushService } from "~/server/services/push.service";
 import { formatNoticeDay } from "~/shared/utils/notice-day";
 import { weekOfDate } from "~/shared/utils/week";

@@ -1,6 +1,5 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
-import { REQUEST_MESSAGE_MAX_LENGTH } from "~/server/services/shift-request.service";
-import { createSwap, createTakeover } from "~/server/utils/shift-request-flow";
+import { REQUEST_MESSAGE_MAX_LENGTH, createSwap, createTakeover } from "~/server/services/shift-request.service";
 import { validateId, validateString } from "~/server/utils/validation";
 
 /** A staff member asks the team to take over a shift, or a colleague to swap a range. */
