@@ -6,6 +6,7 @@ import { formatSqlTimestamp } from "~/utils/timestamp";
 defineProps<{ message: ContactMessage; updating: boolean }>();
 const emit = defineEmits<{ (e: "mark-read"): void }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -14,10 +15,10 @@ const localeTag = useLocaleTag();
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2">
           <h4 class="truncate text-base font-semibold text-[var(--text-1)]">
-            {{ message.subject || "Kontaktanfrage" }}
+            {{ message.subject || t("validation.fields.contactMessage") }}
           </h4>
           <PrimeTag
-            :value="message.read_at ? 'Gelesen' : 'Neu'"
+            :value="message.read_at ? t('settings.contact.read') : t('settings.contact.new')"
             :severity="message.read_at ? 'secondary' : 'success'"
             class="text-xs"
           />
@@ -32,7 +33,7 @@ const localeTag = useLocaleTag();
 
       <PrimeButton
         v-if="!message.read_at"
-        label="Als gelesen markieren"
+        :label="t('settings.contact.markRead')"
         icon="pi pi-check"
         severity="secondary"
         outlined
@@ -44,11 +45,11 @@ const localeTag = useLocaleTag();
 
     <dl class="mt-4 grid gap-3 text-sm">
       <div class="grid gap-1">
-        <dt class="font-semibold text-[var(--text-1)]">Rückkontakt</dt>
+        <dt class="font-semibold text-[var(--text-1)]">{{ t("validation.fields.replyTo") }}</dt>
         <dd class="break-words text-[var(--text-2)]">{{ message.reply_to }}</dd>
       </div>
       <div class="grid gap-1">
-        <dt class="font-semibold text-[var(--text-1)]">Nachricht</dt>
+        <dt class="font-semibold text-[var(--text-1)]">{{ t("validation.fields.message") }}</dt>
         <dd class="whitespace-pre-wrap break-words leading-6 text-[var(--text-2)]">
           {{ message.message }}
         </dd>

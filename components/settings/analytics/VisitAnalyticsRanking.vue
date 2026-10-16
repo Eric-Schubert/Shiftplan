@@ -31,7 +31,7 @@ const localeTag = useLocaleTag();
             {{ item.label }}
           </p>
           <p class="text-xs text-[var(--text-3)]">
-            {{ formatNumber(localeTag, item.uniqueVisitors) }} individuelle Zugriffe
+            {{ $t("settings.analytics.uniqueVisits", { count: formatNumber(localeTag, item.uniqueVisitors) }) }}
           </p>
         </div>
         <span class="planner-chip planner-chip--muted flex-shrink-0">

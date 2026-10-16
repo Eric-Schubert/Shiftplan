@@ -4,7 +4,6 @@ export default {
   patternWeek: "Musterwoche {week}",
   cycle: "{weeks}-Wochen-Zyklus",
   assignments: "1 Zuweisung | {count} Zuweisungen",
-  weekRange: "{from} bis {to}",
   toolbar: {
     start: "· Start: {week}",
     startWizard: "Assistent starten",

@@ -38,7 +38,7 @@ const { t } = useI18n();
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           {{
-            t("settings.rotation.weekRange", {
+            t("settings.range", {
               from: weekLabel(localeTag, preview.weeks[0]?.week ?? 0),
               to: weekLabel(localeTag, preview.weeks.at(-1)?.week ?? 0),
             })

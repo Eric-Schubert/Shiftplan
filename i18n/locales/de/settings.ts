@@ -1,5 +1,8 @@
+import analytics from "./settings-analytics";
 import auth from "./settings-auth";
+import contact from "./settings-contact";
 import members from "./settings-members";
+import requests from "./settings-requests";
 import rollout from "./settings-rollout";
 import rotation from "./settings-rotation";
 import shifts from "./settings-shifts";
@@ -28,6 +31,7 @@ export default {
   list: { status: "Status", actions: "Aktionen", active: "Aktiv", inactive: "Inaktiv" },
   loading: "Wird geladen.",
   settingFailed: "Die Einstellung konnte nicht gespeichert werden",
+  range: "{from} bis {to}",
   staff,
   shifts,
   auth,
@@ -38,4 +42,7 @@ export default {
   wizard,
   rollout,
   yearCopy,
+  requests,
+  analytics,
+  contact,
 };

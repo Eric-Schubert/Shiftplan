@@ -36,7 +36,7 @@ function weekStatus(week: GenerationPreviewWeek): { label: MessageKey; tone: str
         <template v-if="lastPreviewWeek">
           ·
           {{
-            t("settings.rotation.weekRange", {
+            t("settings.range", {
               from: weekOfYearLabel(localeTag, startYear, startWeek),
               to: weekOfYearLabel(localeTag, lastPreviewWeek.year, lastPreviewWeek.week),
             })

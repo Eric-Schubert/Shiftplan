@@ -7,6 +7,7 @@ const props = defineProps<{
   daily: AnalyticsDailyMetric[];
 }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 const maxDailyPageViews = computed(() => Math.max(1, ...props.daily.map((day) => day.pageViews)));
 const latestDaily = computed(() => props.daily.slice(-14));
@@ -22,13 +23,13 @@ function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
   <section class="planner-panel !p-0 min-w-0 max-w-full overflow-hidden">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-soft)] px-4 py-3">
       <div>
-        <p class="planner-kicker">Tagesverlauf</p>
+        <p class="planner-kicker">{{ t("settings.analytics.daily.kicker") }}</p>
         <h4 class="mt-1 text-base font-semibold text-[var(--text-1)]">
-          Letzte {{ latestDaily.length }} Tage
+          {{ t("settings.analytics.daily.title", { count: latestDaily.length }) }}
         </h4>
       </div>
       <span class="planner-chip planner-chip--muted">
-        {{ formatNumber(localeTag, maxDailyPageViews) }} max.
+        {{ t("settings.analytics.daily.max", { count: formatNumber(localeTag, maxDailyPageViews) }) }}
       </span>
     </div>
 
@@ -38,7 +39,13 @@ function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
           v-for="day in latestDaily"
           :key="day.date"
           class="flex h-full flex-1 flex-col justify-end gap-2"
-          :title="`${formatDay(localeTag, day.date, 'intl')}: ${day.pageViews} Aufrufe, ${day.uniqueVisitors} individuell`"
+          :title="
+            t('settings.analytics.daily.bar', {
+              day: formatDay(localeTag, day.date, 'intl'),
+              views: day.pageViews,
+              visitors: day.uniqueVisitors,
+            })
+          "
         >
           <div class="flex min-h-0 flex-1 items-end">
             <div
