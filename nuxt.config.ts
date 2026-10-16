@@ -3,7 +3,6 @@ import path from "path";
 import { appHead } from "./config/nuxt/head";
 import { i18nConfig } from "./config/nuxt/i18n";
 import { nitroConfig } from "./config/nuxt/nitro";
-import { primevueLocale } from "./config/nuxt/primevue-locale";
 import { publicRuntimeEnv } from "./config/nuxt/runtime";
 
 function getAppVersion(): string {
@@ -87,7 +86,6 @@ export default defineNuxtConfig({
       from: primevueThemePath,
     },
     options: {
-      locale: primevueLocale,
       ripple: true,
       inputVariant: "filled",
     },
