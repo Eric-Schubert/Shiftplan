@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useSwipe } from "~/composables/useSwipe";
 import { staffingGap } from "~/composables/useRotationPatternSummary";
-import { subscribedWithKey } from "~/composables/usePushNotifications";
+import { subscribedWithKey } from "~/utils/push-subscription";
 import { entrySeparator } from "~/utils/audit-entry";
 
 type Touch = { clientX: number; clientY: number };

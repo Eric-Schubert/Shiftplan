@@ -16,6 +16,7 @@ export default {
       "Benachrichtigungen sind für diese Seite blockiert. Erlaube sie in den Einstellungen des Browsers (iPhone: Einstellungen → Mitteilungen → Schichtplan) und lade die Seite neu.",
     intro: "Du bekommst eine Nachricht, wenn sich Schichten in dieser oder der nächsten Woche ändern oder die Planung das Team direkt anschreibt.",
     active: "Auf diesem Gerät aktiv.",
+    failed: "Der Server hat die Anmeldung dieses Geräts für Benachrichtigungen nicht angenommen, deshalb kommt hier nichts an. Versuch es noch einmal.",
     disable: "Ausschalten",
     noAccess: "Kein Zugriff auf den Schichtplan",
   },
