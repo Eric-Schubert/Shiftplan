@@ -55,11 +55,12 @@ export function validateString(value: unknown, field: FieldKey, options: StringO
   return trimmed;
 }
 
+/**
+ * A name as typed: the app escapes text when it shows it, so storing "&amp;" here grew on every save.
+ * Control characters (a pasted line break or tab) become a space; they break the Excel file.
+ */
 export function sanitizeString(value: string): string {
-  return value
-    .replace(/[<>]/g, "")
-    .replace(/&(?=#|[a-zA-Z])/g, "&amp;")
-    .trim();
+  return value.replace(/[\u0000-\u001f\u007f]+/g, " ").trim();
 }
 
 export function validateName(value: unknown, field: FieldKey, options: NameOptions & { required: true }): string;

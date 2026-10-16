@@ -21,6 +21,7 @@ describe("database migrations", () => {
       "008_main_staff_short_code",
       "009_main_request_undo",
       "010_main_audit_reason_keys",
+      "011_main_unescape_names",
     ]);
     expect(second.applied).toHaveLength(0);
     expect(columnNames(db, "absences")).toEqual(expect.arrayContaining(["staff_id", "absence_date", "shift_id", "reason", "source", "cancelled_at"]));
