@@ -1,13 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { RotationService } from "../server/services/rotation.service";
+import { patternWeekFor } from "../shared/utils/rotation-math";
+import { isoWeeksBetween } from "../shared/utils/week";
 
 /** Pattern week (1-based) for a rotation that starts at the given ISO week. */
 function patternWeekFrom(startYear: number, startWeek: number, cycleLength: number) {
-  return (year: number, week: number): number => {
-    const weeksFromStart = RotationService.weeksBetween(startYear, startWeek, year, week);
-    const patternIndex = ((weeksFromStart % cycleLength) + cycleLength) % cycleLength;
-    return patternIndex + 1;
-  };
+  return (year: number, week: number): number => patternWeekFor(cycleLength, { year: startYear, week: startWeek }, year, week);
 }
 
 describe("Rotation Operations", () => {
@@ -60,7 +57,7 @@ describe("Rotation Operations", () => {
     });
 
     it("should count 53 ISO weeks across 2020 correctly", () => {
-      expect(RotationService.weeksBetween(2020, 1, 2021, 1)).toBe(53);
+      expect(isoWeeksBetween({ year: 2020, week: 1 }, { year: 2021, week: 1 })).toBe(53);
     });
   });
 });

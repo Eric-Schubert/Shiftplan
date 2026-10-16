@@ -1,7 +1,7 @@
 import { REQUESTS_URL, describeRequest, notify, notifyStaff } from "~/server/lib/shift-requests/notify";
 import { PushService } from "~/server/services/push.service";
 import { ShiftRequestService, type ShiftRequest } from "~/server/services/shift-request.service";
-import { weekOfDate } from "~/server/utils/iso-week";
+import { weekOfDate } from "~/shared/utils/week";
 
 export { describeRequest } from "~/server/lib/shift-requests/notify";
 export { acceptRequest } from "~/server/lib/shift-requests/accept";

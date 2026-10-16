@@ -1,5 +1,6 @@
 import { getDatabase } from "~/server/utils/database";
-import { datesOfISOWeek, parseISODate, weekOfDate } from "~/server/utils/iso-week";
+import { parseISODate } from "~/shared/utils/iso-date";
+import { datesOfISOWeek, weekOfDate } from "~/shared/utils/week";
 
 export type DayChangeKind = "add" | "remove";
 

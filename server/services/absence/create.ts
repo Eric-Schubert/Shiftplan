@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { getDatabase } from "~/server/utils/database";
-import { datesBetween, isWeekendDate } from "~/server/utils/iso-week";
+import { datesBetween, isWeekendDate } from "~/shared/utils/iso-date";
 import {
   ABSENCE_MAX_DAYS,
   ABSENCE_NOTE_MAX_LENGTH,

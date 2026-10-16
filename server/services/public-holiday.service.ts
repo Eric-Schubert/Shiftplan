@@ -7,7 +7,8 @@ import {
   getPublicHolidaySubdivisionCodes,
   normalizeHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
-import { fetchOpenHolidays, getWeekDateRange, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { fetchOpenHolidays, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { isoWeekRange } from "~/shared/utils/week";
 
 interface OpenHolidayResponse {
   id: string;
@@ -77,7 +78,7 @@ export const PublicHolidayService = {
     const holidays = await getHolidays(year);
     if (!week || isNaN(week)) return holidays;
 
-    const { start, end } = getWeekDateRange(year, week);
+    const { start, end } = isoWeekRange(year, week);
     const prevYear = await getHolidays(year - 1);
     const nextYear = await getHolidays(year + 1);
     const allHolidays = [...prevYear, ...holidays, ...nextYear];

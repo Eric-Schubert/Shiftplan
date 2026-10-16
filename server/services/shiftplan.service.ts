@@ -13,12 +13,7 @@ import {
   getWeeklyPlanReadOnly,
   type PlanWithPatternWeek,
 } from "~/server/services/shiftplan/weekly-plan";
-import {
-  getISOWeek,
-  getISOWeeksInYear,
-  listWeeks,
-  previewGeneration,
-} from "~/server/services/shiftplan/generation";
+import { listWeeks, previewGeneration } from "~/server/services/shiftplan/generation";
 
 // The generation workflows call siblings through `this`, so tests can swap single steps.
 export const ShiftplanService = {
@@ -89,6 +84,4 @@ export const ShiftplanService = {
   },
 
   listWeeks,
-  getISOWeeksInYear,
-  getISOWeek,
 };

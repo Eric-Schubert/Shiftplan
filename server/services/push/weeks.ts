@@ -1,4 +1,4 @@
-import { toISOWeek } from "~/server/utils/iso-week";
+import { toISOWeek } from "~/shared/utils/week";
 import { planningDate } from "~/server/utils/planning-date";
 
 /** Current and next ISO week in the planning time zone. */

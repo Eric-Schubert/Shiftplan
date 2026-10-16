@@ -1,23 +1,7 @@
 import type { GenerationPreviewWeek } from "~/types/shiftplan";
 import { getDatabase } from "~/server/utils/database";
 import { RotationService } from "~/server/services/rotation.service";
-import { datesOfISOWeek } from "~/server/utils/iso-week";
-
-export function getISOWeek(date: Date): number {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
-
-export function getISOWeeksInYear(year: number): number {
-  const d = new Date(year, 11, 31);
-  const week = getISOWeek(d);
-  return week === 1 ? 52 : week;
-}
+import { datesOfISOWeek, isoWeeksInYear } from "~/shared/utils/week";
 
 export function listWeeks(startYear: number, startWeek: number, numberOfWeeks: number): Array<{ year: number; week: number }> {
   const weeks: Array<{ year: number; week: number }> = [];
@@ -27,7 +11,7 @@ export function listWeeks(startYear: number, startWeek: number, numberOfWeeks: n
   for (let i = 0; i < numberOfWeeks; i++) {
     weeks.push({ year, week });
     week++;
-    if (week > getISOWeeksInYear(year)) {
+    if (week > isoWeeksInYear(year)) {
       year++;
       week = 1;
     }

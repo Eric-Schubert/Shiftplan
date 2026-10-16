@@ -47,6 +47,7 @@ docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SecureP
 | Pages | `pages/` |
 | Components | `components/` |
 | Stores | `stores/` |
+| Code shared by app and server | `shared/utils/` |
 | Server API | `server/api/` |
 | Services | `server/services/` |
 | Auth middleware | `server/middleware/auth.ts` |

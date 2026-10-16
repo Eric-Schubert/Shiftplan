@@ -1,13 +1,13 @@
 import type { XlsxCell } from "~/server/utils/xlsx";
-import type { IsoWeek } from "~/server/services/rotation-excel/calendar";
+import type { ISOWeek } from "~/shared/utils/week";
 import type { RotationConfig } from "~/types/rotation";
 
 type InstructionInput = {
   config: Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">;
   staffCount: number;
   /** Upcoming calendar weeks per pattern week, index 0 = pattern week 1. */
-  calendarWeeks: IsoWeek[][];
-  current: { week: IsoWeek; patternWeek: number };
+  calendarWeeks: ISOWeek[][];
+  current: { week: ISOWeek; patternWeek: number };
   /** A person and their cell values for pattern week 1, 2, ... ("" = free). */
   example: { name: string; values: string[] };
   shiftNames: string[];
@@ -29,7 +29,7 @@ function exampleText({ config, calendarWeeks, example }: InstructionInput): stri
   const shown = (value: string | undefined) => (value ? `„${value}“` : "nichts (frei)");
   const worked = (value: string | undefined) => value || "frei";
   // Pattern week 2 right after the next pattern week 1, so the example reads forward in time.
-  const order = (entry: IsoWeek) => entry.year * 100 + entry.week;
+  const order = (entry: ISOWeek) => entry.year * 100 + entry.week;
   const first = calendarWeeks[0]?.[0];
   const firstWeek = first?.week;
   const secondWeek = calendarWeeks[1]?.find((entry) => first && order(entry) > order(first))?.week;
