@@ -10,6 +10,7 @@ import staffShortCode from "./008-staff-short-code.js";
 import requestUndo from "./009-request-undo.js";
 
 // Order matters: migrations run top to bottom and are recorded by id.
+/** @type {import("../runner.js").Migration[]} */
 export const MAIN_MIGRATIONS = [
   coreSchema,
   rotationSchema,
