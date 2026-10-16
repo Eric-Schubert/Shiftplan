@@ -28,7 +28,14 @@ function checkShortCode(value: string, exceptId?: number): string {
   return code;
 }
 
+/** A person as the team sees them: no short code, which is the user name of the PIN sign-in. */
+export type PublicStaff<T extends { short_code?: string | null }> = Omit<T, "short_code">;
+
 export const StaffService = {
+  publicFields<T extends { short_code?: string | null }>({ short_code: _shortCode, ...staff }: T): PublicStaff<T> {
+    return staff;
+  },
+
   getAll(): Staff[] {
     const db = getDatabase();
     return db.prepare("SELECT * FROM staff ORDER BY name").all() as Staff[];

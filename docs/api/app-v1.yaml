@@ -929,6 +929,7 @@ components:
           enum: [web, app]
         created_by:
           type: string
+          description: Planners only
         created_at:
           type: string
 
@@ -1035,5 +1036,6 @@ components:
           enum: [web, app]
         created_by:
           type: string
+          description: Planners only
         created_at:
           type: string
