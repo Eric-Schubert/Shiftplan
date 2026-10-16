@@ -8,10 +8,16 @@ let cachedConfig: BackendConfig | null = null;
 
 export function getBackendConfig(): BackendConfig {
   if (!cachedConfig) {
-    cachedConfig = applyEnvOverrides(validateBackendConfig(readBackendConfig()));
+    cachedConfig = applyEnvOverrides(normalize(validateBackendConfig(readBackendConfig())));
   }
 
   return cachedConfig;
+}
+
+// The schema accepts "post", but the auth middleware and the client compare upper-case request methods.
+function normalize(config: BackendConfig): BackendConfig {
+  config.auth.routes.csrfMethods = config.auth.routes.csrfMethods.map((method) => method.toUpperCase());
+  return config;
 }
 
 // Deployment-specific switches that should not require a full config file copy.

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Shift, ShiftCreateDTO } from "~/types/shift";
-import backendConfig from "../../../config/backend.config.json";
 
 const props = defineProps<{
   visible: boolean;
@@ -13,8 +12,7 @@ const emit = defineEmits<{
 }>();
 
 const dataStore = useDataStore();
-
-const defaultColor = backendConfig.validation.shift.defaultColor;
+const configStore = useConfigStore();
 
 const saving = ref(false);
 const form = ref<ShiftCreateDTO>(createDefaultForm(props.nextSortOrder));
@@ -40,8 +38,8 @@ function createDefaultForm(nextSortOrder: number): ShiftCreateDTO {
     name: "",
     start_time: "08:00",
     end_time: "16:00",
-    color: defaultColor,
-    min_staff: backendConfig.validation.shift.minStaff.default,
+    color: configStore.shift.defaultColor,
+    min_staff: configStore.shift.minStaff.default,
     sort_order: nextSortOrder,
   };
 }
@@ -111,8 +109,8 @@ async function saveShift() {
         <PrimeInputNumber
           v-model="form.min_staff"
           input-id="shift-min-staff"
-          :min="1"
-          :max="10"
+          :min="configStore.shift.minStaff.min"
+          :max="configStore.shift.minStaff.max"
           show-buttons
         />
       </div>

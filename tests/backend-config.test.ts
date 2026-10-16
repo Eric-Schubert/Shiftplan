@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import backendConfig from "../config/backend.config.json";
 import { validateBackendConfig } from "~/server/config/backend-config.schema";
@@ -44,5 +47,23 @@ describe("backend config", () => {
       resetBackendConfigForTests();
       expect(() => getBackendConfig()).toThrow(/SHIFTPLAN_TRUST_PROXY_HEADERS/);
     });
+  });
+
+  it("upper-cases CSRF methods, so a mounted \"post\" still protects POST", () => {
+    const custom = structuredClone(backendConfig);
+    custom.auth.routes.csrfMethods = ["post", "Delete"];
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-config-"));
+    const configPath = path.join(dir, "backend.config.json");
+    fs.writeFileSync(configPath, JSON.stringify(custom));
+    vi.stubEnv("SHIFTPLAN_BACKEND_CONFIG_PATH", configPath);
+    resetBackendConfigForTests();
+
+    try {
+      expect(getBackendConfig().auth.routes.csrfMethods).toEqual(["POST", "DELETE"]);
+    } finally {
+      vi.unstubAllEnvs();
+      resetBackendConfigForTests();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

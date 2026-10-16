@@ -1,9 +1,10 @@
-import backendConfig from "../config/backend.config.json";
 import { isAuthFailure } from "~/stores/auth/session";
+import { useConfigStore } from "~/stores/config.store";
 
 export function useAuthFetch() {
   const authStore = useAuthStore();
   const router = useRouter();
+  const configStore = useConfigStore();
 
   /** A refused request may mean the session ended. Then the planner gets the login, not dead controls. */
   async function onAuthFailure(): Promise<void> {
@@ -18,7 +19,7 @@ export function useAuthFetch() {
     options: Parameters<typeof $fetch>[1] = {}
   ): Promise<T> {
     const method = String(options.method || "GET").toUpperCase();
-    const needsCsrf = backendConfig.auth.routes.csrfMethods.includes(method);
+    const needsCsrf = configStore.csrf.methods.includes(method);
 
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string> || {}),

@@ -1,3 +1,4 @@
+import { getClientConfig } from "~/server/config/client-config";
 import { TeamAccessService } from "~/server/services/team-access.service";
 
 // Bumped only for breaking changes to the endpoints the app uses (docs/api/app-v1.yaml).
@@ -11,5 +12,6 @@ export default defineEventHandler(() => {
     apiVersion: APP_API_VERSION,
     codeRequired: TeamAccessService.isCodeRequired(),
     nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday(),
+    ...getClientConfig(),
   };
 });
