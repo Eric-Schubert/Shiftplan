@@ -51,7 +51,8 @@ describe.each(ZONES)("shared week math matches the old copies in %s", (zone) => 
     process.env.TZ = zone;
   });
   afterAll(() => {
-    process.env.TZ = originalZone;
+    if (originalZone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalZone;
   });
 
   it("runs in the requested time zone", () => {
