@@ -85,7 +85,7 @@ describe("undo of a finished request by staff", () => {
 
   it("lets the helper withdraw an acceptance that waits for approval", async () => {
     const planner = await client.loginAs("admin", "admin1234");
-    await client.request("POST", "/api/requests/settings", { jar: planner, csrf: true, body: { requiresApproval: true } });
+    await client.request("PUT", "/api/requests/settings", { jar: planner, csrf: true, body: { requiresApproval: true } });
     const anna = await member(ANNA, "anna:tok");
     const max = await member(MAX, "max:tok");
     const created = await client.request<any>("POST", "/api/member/requests", {

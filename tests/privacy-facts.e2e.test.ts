@@ -6,6 +6,7 @@ import backendConfig from "../config/backend.config.json";
 import type { PrivacyFacts } from "~/types/privacy";
 import { DEFAULT_PRIVACY_FACTS, toPrivacyFacts } from "~/utils/legal/privacy-facts";
 import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 
 describe("privacy policy periods and cookies", () => {
   let client: ApiClient | null = null;
@@ -20,7 +21,7 @@ describe("privacy policy periods and cookies", () => {
   });
 
   async function readFacts() {
-    client = await createApiClient([["get", "/api/legal/privacy", "server/api/legal/privacy.get"]]);
+    client = await createApiClient(apiRoutes("legal/privacy.get.ts"));
     const response = await client.request<PrivacyFacts>("GET", "/api/legal/privacy");
     expect(response.status).toBe(200);
     return response.json!;

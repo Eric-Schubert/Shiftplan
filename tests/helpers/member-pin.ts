@@ -1,23 +1,24 @@
 import { afterEach, beforeEach, expect } from "vitest";
-import { createApiClient, type ApiClient, type CookieJar, type Route } from "./api-harness";
+import { createApiClient, type ApiClient, type CookieJar } from "./api-harness";
+import { apiRoutes } from "./routes";
 import { sendNotification } from "./web-push-mock";
 
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["post", "/api/staff", "server/api/staff/index.post"],
-  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
-  ["delete", "/api/staff/:id/pin", "server/api/staff/[id]/pin.delete"],
-  ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
-  ["post", "/api/member/redeem", "server/api/member/redeem.post"],
-  ["post", "/api/member/login", "server/api/member/login.post"],
-  ["put", "/api/member/pin", "server/api/member/pin.put"],
-  ["get", "/api/member/me", "server/api/member/me.get"],
-  ["post", "/api/member/logout", "server/api/member/logout.post"],
-  ["post", "/api/member/absences", "server/api/member/absences/index.post"],
-  ["post", "/api/member-invites", "server/api/member-invites/index.post"],
-  ["get", "/api/member-sessions/pins", "server/api/member-sessions/pins.get"],
-  ["get", "/api/viewer/status", "server/api/viewer/status.get"],
-];
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "staff/index.post.ts",
+  "staff/[id].patch.ts",
+  "staff/[id]/pin.delete.ts",
+  "push/subscribe.post.ts",
+  "member/redeem.post.ts",
+  "member/login.post.ts",
+  "member/pin.put.ts",
+  "member/me.get.ts",
+  "member/logout.post.ts",
+  "member/absences/index.post.ts",
+  "member-invites/index.post.ts",
+  "member-sessions/pins.get.ts",
+  "viewer/status.get.ts"
+);
 
 export const ANNA = 1;
 export const MAX = 2;

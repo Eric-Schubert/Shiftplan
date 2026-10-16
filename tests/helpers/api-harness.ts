@@ -13,6 +13,7 @@ import {
   getRequestURL,
   getRouterParam,
   readBody,
+  readMultipartFormData,
   setCookie,
   setHeader,
   toPlainHandler,
@@ -24,8 +25,10 @@ import path from "node:path";
 import { vi } from "vitest";
 import type { Database as DatabaseType } from "better-sqlite3";
 import { requestWithCookies, type ApiRequest, type CookieJar } from "./http-client";
+import { checkRoute, type Route } from "./routes";
 
 export type { CookieJar, RequestOptions } from "./http-client";
+export type { Route } from "./routes";
 export type ApiClient = {
   mainDb: DatabaseType;
   adminDb: DatabaseType;
@@ -33,9 +36,6 @@ export type ApiClient = {
   loginAs: (username: string, password: string) => Promise<CookieJar>;
   close: () => void;
 };
-
-/** [method, route, handler module relative to the project root] */
-export type Route = [string, string, string];
 
 function installH3Globals() {
   Object.assign(globalThis, {
@@ -50,6 +50,7 @@ function installH3Globals() {
     getRequestURL,
     getRouterParam,
     readBody,
+    readMultipartFormData,
     setCookie,
     setHeader,
     useRuntimeConfig: () => ({ public: { appVersion: "9.9.9" } }),
@@ -87,9 +88,17 @@ export async function createApiClient(
 
   const router = createRouter();
   for (const [method, route, modulePath] of routes) {
+    checkRoute([method, route, modulePath]);
     (router as any)[method](route, await load(modulePath));
   }
   const app = createApp();
+  // A request's `ip` option arrives as context; Node would report it as the socket address.
+  app.use(
+    defineEventHandler((event) => {
+      const address = event.context.clientAddress;
+      if (typeof address === "string") Object.defineProperty(event.node.req.socket, "remoteAddress", { value: address });
+    })
+  );
   app.use(await load("server/middleware/auth"));
   app.use(router.handler);
   const request = requestWithCookies(toPlainHandler(app), defaultHeaders);
