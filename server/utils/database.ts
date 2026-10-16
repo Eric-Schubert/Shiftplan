@@ -17,27 +17,35 @@ function logMigration(message: string): void {
   console.log(message);
 }
 
-export function getDatabase(): DatabaseType {
-  if (!db) {
-    const databasePath = getDatabasePaths().main;
-    ensureDatabaseFolder(databasePath);
-    db = new Database(databasePath);
-    applyConfiguredPragmas(db);
-    migrateMainDatabase(db, { logger: logMigration });
-    // setup.js adds its sample staff after the migrations, so they need a short code here.
-    assignMissingShortCodes(db);
+/**
+ * Opens and migrates a database. Only a fully migrated one is handed out: when a migration throws
+ * (say, on unchanged default credentials), the handle is closed and the next call tries again,
+ * instead of every later request getting a half-migrated database.
+ */
+function openDatabase(databasePath: string, migrate: (database: DatabaseType) => void): DatabaseType {
+  ensureDatabaseFolder(databasePath);
+  const database = new Database(databasePath);
+  try {
+    applyConfiguredPragmas(database);
+    migrate(database);
+    return database;
+  } catch (error) {
+    database.close();
+    throw error;
   }
+}
+
+export function getDatabase(): DatabaseType {
+  db ??= openDatabase(getDatabasePaths().main, (database) => {
+    migrateMainDatabase(database, { logger: logMigration });
+    // setup.js adds its sample staff after the migrations, so they need a short code here.
+    assignMissingShortCodes(database);
+  });
   return db;
 }
 
 export function getAdminDatabase(): DatabaseType {
-  if (!adminDb) {
-    const databasePath = getDatabasePaths().admin;
-    ensureDatabaseFolder(databasePath);
-    adminDb = new Database(databasePath);
-    applyConfiguredPragmas(adminDb);
-    migrateAdminDatabase(adminDb, { logger: logMigration });
-  }
+  adminDb ??= openDatabase(getDatabasePaths().admin, (database) => migrateAdminDatabase(database, { logger: logMigration }));
   return adminDb;
 }
 
