@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
   if (MemberAccessService.hasPin(member.staffId)) {
     const currentPin = typeof body?.currentPin === "string" ? body.currentPin.trim() : "";
     const verified = await limitAttempt(
+      event,
       [{ key: `member-pin-change:${member.staffId}`, resetOnSuccess: true }],
       async () => (await MemberAccessService.verifyPin(member.staffId, currentPin)) || null
     );

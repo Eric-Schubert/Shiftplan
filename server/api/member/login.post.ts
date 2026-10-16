@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   if (shortCode) {
     buckets.push({ key: `member-pin-code:${shortCode}`, factor: SHORT_CODE_ATTEMPTS_FACTOR, resetOnSuccess: true });
   }
-  const result = await limitAttempt(buckets, () =>
+  const result = await limitAttempt(event, buckets, () =>
     shortCode && pin ? MemberAccessService.loginWithPin(shortCode, pin, deviceName) : null
   );
   if (!result) {

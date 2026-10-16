@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const statesParam = Array.isArray(query.states)
     ? query.states.join(",")
     : query.states as string | undefined;
-  const states = resolveSchoolHolidaySubdivisionCodes(statesParam);
+  const states = resolveSchoolHolidaySubdivisionCodes(event, statesParam);
 
   if (!year || isNaN(year)) {
     throw apiError(event, 400, "errors.holidays.yearRequired");

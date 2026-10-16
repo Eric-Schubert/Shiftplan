@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   // Own bucket, like the team code, so typos never lock out planners. A success clears it:
   // the codes are far too long to guess, but colleagues behind one NAT share the bucket.
   const bucket = { key: `member:${getClientNetwork(event)}`, resetOnSuccess: true };
-  const result = await limitAttempt([bucket], () =>
+  const result = await limitAttempt(event, [bucket], () =>
     code && code.length <= 32 ? MemberAccessService.redeem(code, deviceName) : null
   );
   if (!result) {

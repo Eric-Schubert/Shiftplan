@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import { getBackendConfig } from "./backend-config";
 import { apiError } from "~/server/utils/api-error";
 
@@ -30,7 +31,7 @@ export function getPublicHolidaySubdivisionCodes(): string[] {
   return getHolidayConfig().public.subdivisionCodes.map(normalizeHolidaySubdivisionCode);
 }
 
-export function resolveSchoolHolidaySubdivisionCodes(statesParam?: string): string[] {
+export function resolveSchoolHolidaySubdivisionCodes(event: H3Event, statesParam?: string): string[] {
   const config = getHolidayConfig();
   const rawCodes = statesParam
     ? statesParam.split(",").map((entry) => entry.trim()).filter(Boolean)
@@ -41,7 +42,7 @@ export function resolveSchoolHolidaySubdivisionCodes(statesParam?: string): stri
   const unknownCode = codes.find((code) => !knownStates[code]);
 
   if (unknownCode) {
-    throw apiError(null, 400, "errors.holidays.unknownState", { code: unknownCode });
+    throw apiError(event, 400, "errors.holidays.unknownState", { code: unknownCode });
   }
 
   return codes;

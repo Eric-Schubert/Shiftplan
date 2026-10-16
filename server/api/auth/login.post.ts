@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
     { key: `login-user:${username}`, factor: ACCOUNT_ATTEMPTS_FACTOR, resetOnSuccess: true },
   ];
   const user = await limitAttempt(
+    event,
     buckets,
     async () => {
       const row = getAdminDatabase()

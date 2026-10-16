@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
   // A stolen session must not become an unlimited oracle for the account password.
   const currentPassword = body.currentPassword;
   const isCurrentValid = await limitAttempt(
+    event,
     [{ key: `password-change:${currentUser.userId}`, resetOnSuccess: true }],
     async () => (await bcrypt.compare(currentPassword, user.password_hash)) || null
   );
