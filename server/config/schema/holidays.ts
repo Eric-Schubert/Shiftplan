@@ -8,6 +8,7 @@ import {
   validateTimeZone,
   type MutableErrorList,
 } from "./fields";
+import { subdivisionShortCode } from "~/server/lib/holidays/open-holidays";
 
 export function validateHolidays(value: unknown, errors: MutableErrorList): void {
   const config = objectAt(value, "holidays", errors);
@@ -44,13 +45,10 @@ export function validateHolidays(value: unknown, errors: MutableErrorList): void
   integerAt(window.endDay, "holidays.school.lookupWindow.endDay", errors, { min: 1, max: 31 });
 
   const names = objectAt(config.subdivisionNames, "holidays.subdivisionNames", errors);
+  const country = typeof config.countryIsoCode === "string" ? config.countryIsoCode : "";
   for (const code of [...publicStates, ...schoolStates]) {
-    if (!names[normalizeSubdivisionCode(code)]) {
+    if (!names[subdivisionShortCode(code, country)]) {
       errors.push(`holidays.subdivisionNames has no name for state ${code}`);
     }
   }
-}
-
-function normalizeSubdivisionCode(value: string): string {
-  return value.replace(/^DE-/i, "").trim().toUpperCase();
 }

@@ -1,4 +1,5 @@
 import type { PublicHoliday } from "~/types/holiday";
+import { t } from "~/i18n/server";
 import {
   getHolidayApiUrl,
   getHolidayCacheDurationMs,
@@ -7,7 +8,8 @@ import {
   getPublicHolidaySubdivisionCodes,
   normalizeHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
-import { fetchOpenHolidays, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { fetchOpenHolidays, pickName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { instanceLocale } from "~/server/utils/locale";
 import { isoWeekRange } from "~/shared/utils/week";
 
 interface OpenHolidayResponse {
@@ -20,7 +22,13 @@ interface OpenHolidayResponse {
   subdivisions?: Array<{ code: string; shortName: string }>;
 }
 
-const holidayCache = new Map<number, { data: PublicHoliday[]; timestamp: number }>();
+const holidayCache = new Map<string, { data: PublicHoliday[]; timestamp: number }>();
+
+// The answer depends on the country, the name language and the configured states, not only on the year.
+function cacheKey(year: number): string {
+  const { countryIsoCode, languageIsoCode } = getHolidayConfig();
+  return [year, countryIsoCode, languageIsoCode, getPublicHolidaySubdivisionCodes().join(",")].join("|");
+}
 
 async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
   const config = getHolidayConfig();
@@ -50,7 +58,7 @@ async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
 
     holidays.push({
       date: holiday.startDate,
-      name: pickGermanName(holiday.name, "Unbekannt"),
+      name: pickName(holiday.name, config.languageIsoCode, t(instanceLocale(), "holidays.unnamed")),
       type: isNational ? "national" : config.public.regionalType,
       nationwide: isNational,
       states: isNational ? [] : states,
@@ -62,13 +70,14 @@ async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
 }
 
 async function getHolidays(year: number): Promise<PublicHoliday[]> {
-  const cached = holidayCache.get(year);
+  const key = cacheKey(year);
+  const cached = holidayCache.get(key);
   if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {
     return cached.data;
   }
 
   const holidays = await fetchHolidaysFromAPI(year);
-  holidayCache.set(year, { data: holidays, timestamp: Date.now() });
+  holidayCache.set(key, { data: holidays, timestamp: Date.now() });
   return holidays;
 }
 

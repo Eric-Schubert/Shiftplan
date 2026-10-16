@@ -1,3 +1,4 @@
+import type { MessageRef } from "~/i18n/types";
 import type { ClientConfig } from "~/types/instance";
 
 export type ContactForm = {
@@ -8,12 +9,13 @@ export type ContactForm = {
   company: string;
 };
 
-export type ContactValidation = {
-  name?: string;
-  replyTo?: string;
-  subject?: string;
-  message?: string;
-};
+type ContactField = "name" | "replyTo" | "subject" | "message";
+
+/** The problem of each invalid field, as a message for the caller to translate. */
+export type ContactProblems = Partial<Record<ContactField, MessageRef>>;
+
+/** The translated problems the form shows next to its fields. */
+export type ContactValidation = Partial<Record<ContactField, string>>;
 
 export const CONTACT_FIELD_IDS: Record<keyof ContactValidation, string> = {
   name: "contact-name",
@@ -23,34 +25,34 @@ export const CONTACT_FIELD_IDS: Record<keyof ContactValidation, string> = {
 };
 
 /** Checks the minimum lengths of contact.form in backend.config.json; the server checks them again. */
-export function validateContactForm(form: ContactForm, limits: ClientConfig["contactForm"]): ContactValidation {
-  const validation: ContactValidation = {};
+export function validateContactForm(form: ContactForm, limits: ClientConfig["contactForm"]): ContactProblems {
+  const problems: ContactProblems = {};
   const name = form.name.trim();
   const replyTo = form.replyTo.trim();
   const subject = form.subject.trim();
   const message = form.message.trim();
 
   if (!name) {
-    validation.name = "Bitte gib deinen Namen ein.";
+    problems.name = { key: "contact.form.nameMissing" };
   } else if (name.length < limits.name.minLength) {
-    validation.name = `Der Name braucht mindestens ${limits.name.minLength} Zeichen.`;
+    problems.name = { key: "contact.form.nameShort", params: { min: limits.name.minLength } };
   }
 
   if (!replyTo) {
-    validation.replyTo = "Bitte gib eine E-Mail-Adresse oder Telefonnummer an.";
+    problems.replyTo = { key: "contact.form.replyToMissing" };
   } else if (replyTo.length < limits.replyTo.minLength) {
-    validation.replyTo = "Der Rückkontakt ist zu kurz.";
+    problems.replyTo = { key: "contact.form.replyToShort" };
   }
 
   if (subject && subject.length < limits.subject.minLength) {
-    validation.subject = `Der Betreff braucht mindestens ${limits.subject.minLength} Zeichen.`;
+    problems.subject = { key: "contact.form.subjectShort", params: { min: limits.subject.minLength } };
   }
 
   if (!message) {
-    validation.message = "Bitte gib eine Nachricht ein.";
+    problems.message = { key: "contact.form.messageMissing" };
   } else if (message.length < limits.message.minLength) {
-    validation.message = `Die Nachricht braucht mindestens ${limits.message.minLength} Zeichen.`;
+    problems.message = { key: "contact.form.messageShort", params: { min: limits.message.minLength } };
   }
 
-  return validation;
+  return problems;
 }

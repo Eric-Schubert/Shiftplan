@@ -200,7 +200,6 @@
     "saveToSentItemsDefault": false,
     "tokenSkewSeconds": 60,
     "graphScope": "https://graph.microsoft.com/.default",
-    "dateLocale": "de-DE",
     "timezone": "Europe/Berlin",
     "subjectMaxLength": 240,
     "errorBodyMaxLength": 800

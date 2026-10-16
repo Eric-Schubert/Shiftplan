@@ -38,7 +38,13 @@ export function validateContactMail(value: unknown, errors: MutableErrorList): v
   booleanAt(config.saveToSentItemsDefault, "contactMail.saveToSentItemsDefault", errors);
   integerAt(config.tokenSkewSeconds, "contactMail.tokenSkewSeconds", errors, { min: 0 });
   stringAt(config.graphScope, "contactMail.graphScope", errors);
-  stringAt(config.dateLocale, "contactMail.dateLocale", errors);
+  // Mounted copies of older config files still carry it; the mail follows the instance's language now.
+  if (config.dateLocale !== undefined) {
+    console.warn(
+      "[config] contactMail.dateLocale is ignored: the contact mail uses the instance's language. " +
+        "Remove the key from backend.config.json."
+    );
+  }
   stringAt(config.timezone, "contactMail.timezone", errors);
   validateTimeZone(config.timezone, "contactMail.timezone", errors);
   integerAt(config.subjectMaxLength, "contactMail.subjectMaxLength", errors, { min: 1 });

@@ -33,9 +33,14 @@ export function resolveLocale(event: H3Event): AppLocale {
 }
 
 /**
- * Language tag for texts that no request asked for: pushes, stored audit notes, error texts deep in
- * services. That is the instance's language, German until instances get a language setting.
+ * Locale for texts that no request asked for, such as the contact mail to the operator.
+ * That is the instance's language, German until instances get a language setting.
  */
+export function instanceLocale(): AppLocale {
+  return DEFAULT_LOCALE;
+}
+
+/** Language tag of the instance's language, for the formatters: pushes, stored audit notes, service errors. */
 export function instanceLocaleTag(): string {
-  return localeTag(DEFAULT_LOCALE);
+  return localeTag(instanceLocale());
 }

@@ -27,6 +27,8 @@ Holiday example:
 }
 ```
 
+Country, states and the language of holiday names belong to the instance, not to the reader's UI language. `holidays.countryIsoCode` picks the country (`DE`), state codes work with or without its prefix (`SN` or `DE-SN`), and `holidays.languageIsoCode` picks the language of the names the OpenHolidays API sends (`DE`); a holiday without a name in that language shows the API's first name. `holidays.subdivisionNames` holds the state names shown next to the holidays.
+
 ## API Route Access
 
 Which API routes work without a planner login is built in (`server/config/route-policy.ts`); [API](api.md) lists the access level of every endpoint. The config file cannot open or close routes. To keep the plan private, set a team access code in the settings.
@@ -126,6 +128,8 @@ CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
 ```
 
 Create a Microsoft Entra app registration with the Microsoft Graph application permission `Mail.Send`, grant admin consent, and ideally restrict the app to the sending mailbox. Without these variables, the contact form still works and stores requests locally only. The privacy policy names Microsoft only when this setup is complete.
+
+The mail is written in the instance's language (German for now), dates included; `contactMail.timezone` in `config/backend.config.json` sets the time zone of the received time. Older config files may still contain `contactMail.dateLocale`. The server ignores it with a warning at startup, so remove it from a mounted copy.
 
 ## Demo Instance
 

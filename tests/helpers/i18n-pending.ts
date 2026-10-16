@@ -16,10 +16,8 @@ export const PENDING_LEGAL = [
   "components/legal/LegalPrivacyServices.vue",
   "components/legal/LegalPrivacySidebar.vue",
   "components/legal/LegalPrivacySummary.vue",
-  "composables/useImprintContactForm.ts",
   "pages/datenschutz.vue",
   "pages/impressum.vue",
-  "utils/legal/contact-form.ts",
   "utils/legal/durations.ts",
   "utils/legal/privacy.ts",
 ];
