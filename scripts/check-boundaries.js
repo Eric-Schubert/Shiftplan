@@ -21,6 +21,7 @@ const HANDLERS = ["server/api", "server/middleware", "server/plugins", "server/r
 const I18N_PACKAGES = new Set(["@intlify/core", "vue-i18n"]);
 // shared/ and i18n/ run in the browser and in Nitro, so they may not lean on h3, Nitro, Nuxt, Vue,
 // browser or Node globals.
+// prettier-ignore
 const RUNTIME_GLOBALS = new Set([
   "defineEventHandler", "eventHandler", "createError", "getQuery", "readBody", "getHeader", "getCookie",
   "setCookie", "deleteCookie", "getRouterParam", "getRequestIP", "setResponseStatus", "sendRedirect",

@@ -7,6 +7,7 @@ import { repoFiles } from "./repo-files.js";
 const CHECKED = /\.(vue|ts|js|mjs|cjs|sh|ya?ml)$/;
 const TEST_FILE = /^tests\/|\.test\.ts$/;
 
+// prettier-ignore
 const STOPWORDS = new Set([
   "der", "die", "das", "den", "dem", "und", "wird", "werden", "nicht", "für", "mit", "wenn", "ist", "sind",
   "ein", "eine", "einen", "oder", "auch", "bei", "nur", "noch", "dass", "kein", "keine", "über", "ohne",

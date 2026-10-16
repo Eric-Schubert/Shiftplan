@@ -1,0 +1,14 @@
+# Prettier also reads .gitignore.
+node_modules
+.nuxt
+.output
+dist
+package-lock.json
+utils/changelog.generated.json
+*.sqlite
+public/
+.claude/
+# Documentation stays as written: CI skips the format check for docs-only changes,
+# and docs/api.md and docs/releases.md are partly generated.
+*.md
+docs/
