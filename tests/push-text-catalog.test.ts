@@ -22,6 +22,8 @@ describe("push text catalog guard", () => {
     ['notifyStaff(ids, "Anfrage abgelehnt", body);', "Anfrage abgelehnt"],
     ['const title = "Tauschanfrage";', "Tauschanfrage"],
     ['const title = "Storno bestätigt";', "Storno bestätigt"],
+    ['const more = "weitere \\u00c4nderungen";', "weitere \\u00c4nderungen"],
+    ['const body = "„Neu ist der Plan und nicht alt“";', "„Neu ist der Plan und nicht alt“"],
     ["const body = `${name} kann ${request} nicht tauschen.`;", "{} kann {} nicht tauschen."],
     ["const body = `${name} fällt ${label} aus${shift}`;", "{} fällt {} aus{}"],
     ['const more = `… und ${count} weitere Änderungen`;', "… und {} weitere Änderungen"],
@@ -33,6 +35,21 @@ describe("push text catalog guard", () => {
     ["const url = `/?year=${year}&week=${week}`;", null],
     ['const sql = "SELECT token, staff_id, scope, locale FROM push_devices";', null],
   ];
+
+  it("covers every file that writes push texts", () => {
+    const covered = (file: string) => PUSH_CODE.some((pattern) => pattern.test(file));
+    const writers = [
+      "server/api/push/notify.post.ts",
+      "server/services/absence/notice.ts",
+      "server/services/absence/report.ts",
+      "server/services/push/messages.ts",
+      "server/services/push/native-messages.ts",
+      "server/services/shift-request/flow/notify.ts",
+      "server/services/shift-request/flow/withdraw.ts",
+    ];
+
+    expect(writers.filter((file) => !covered(file))).toEqual([]);
+  });
 
   it.each(probes)("checks %s", (source, expected) => {
     const found = pushTextFindings("x.ts", source);

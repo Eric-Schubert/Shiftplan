@@ -37,6 +37,16 @@ describe("plan change texts", () => {
     ]);
   });
 
+  it("names a single further change in the singular", async () => {
+    const { buildChangePayload } = await messages();
+    const changes = Array.from({ length: 5 }, (_, index) => change({ shiftName: `Schicht ${index + 1}`, shiftOrder: index }));
+
+    const lines = buildChangePayload(changes, "de")!.body.split("\n");
+
+    expect(lines).toHaveLength(5);
+    expect(lines[4]).toBe("… und 1 weitere Änderung");
+  });
+
   it("shortens app texts to what the relay accepts", async () => {
     const { buildNativeMessages } = await messages();
     const changes = Array.from({ length: 30 }, (_, index) =>

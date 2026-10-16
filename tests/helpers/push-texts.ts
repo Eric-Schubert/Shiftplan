@@ -8,7 +8,7 @@ type Token = { kind: string; text: string; line: number };
 export const PUSH_CODE = [
   /^server\/services\/push\//,
   /^server\/services\/push(?:-relay)?\.service\.ts$/,
-  /^server\/services\/absence\/notice\.ts$/,
+  /^server\/services\/absence\/(?:notice|report)\.ts$/,
   /^server\/services\/shift-request\/flow\/(?!apply\.ts$)/,
   /^server\/api\/push\//,
 ];
@@ -18,8 +18,13 @@ const PUSH_WORDS = /\b(?:anfrage|tausch|schicht|storno|ausfall|planung|zusage|na
 // Paths, query strings and catalog keys are not texts: "/?anfragen=1", "push.requests.cancelled.title".
 const NOT_TEXT = /^[/?]|^[a-z]\w*(?:\.\w+)+$/;
 
+// Umlauts and the sharp s, also written as escapes such as \u00e4.
+const UMLAUTS = /[äöüß]|\\u00[c-f][0-9a-f]/i;
+
 function isGerman(text: string): boolean {
-  return /[äöüß]/i.test(text) || isGermanProse(text) || (PUSH_WORDS.test(text) && !NOT_TEXT.test(text));
+  // isGermanProse skips quoted parts (fine for comments); in a push text the quotes are part of it.
+  const unquoted = text.replace(/[„“”"'`]/g, "");
+  return UMLAUTS.test(text) || isGermanProse(unquoted) || (PUSH_WORDS.test(text) && !NOT_TEXT.test(text));
 }
 
 /**
