@@ -10,20 +10,20 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const rotationConfig = getRotationValidationConfig();
 
-  const cycle_length = validateInteger(body.cycle_length, "cycleLength", {
+  const cycleLength = validateInteger(body.cycle_length, "cycleLength", {
     min: rotationConfig.cycleLengthMin,
     max: rotationConfig.cycleLengthMax,
   });
-  const start_year = validateYear(body.start_year, "startYear");
-  const start_week = validateWeek(body.start_week, "startWeek");
+  const startYear = validateYear(body.start_year, "startYear");
+  const startWeek = validateWeek(body.start_week, "startWeek");
 
-  if (cycle_length === undefined && start_year === undefined && start_week === undefined) {
+  if (cycleLength === undefined && startYear === undefined && startWeek === undefined) {
     throw apiError(event, 400, "errors.common.noChanges");
   }
 
   return RotationService.updateConfig({
-    ...(cycle_length !== undefined && { cycle_length }),
-    ...(start_year !== undefined && { start_year }),
-    ...(start_week !== undefined && { start_week }),
+    ...(cycleLength !== undefined && { cycle_length: cycleLength }),
+    ...(startYear !== undefined && { start_year: startYear }),
+    ...(startWeek !== undefined && { start_week: startWeek }),
   });
 });

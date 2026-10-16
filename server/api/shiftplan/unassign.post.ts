@@ -11,13 +11,13 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
 
-  const staff_id = validateId(body.staff_id, "staff_id");
-  const shift_id = validateId(body.shift_id, "shift_id");
+  const staffId = validateId(body.staff_id, "staff_id");
+  const shiftId = validateId(body.shift_id, "shift_id");
   const year = validateYear(body.year, "year", { required: true })!;
   const week = validateWeek(body.week, "week", { required: true })!;
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
-  const success = ShiftplanService.unassignStaff(staff_id, shift_id, weekData.week_id);
+  const success = ShiftplanService.unassignStaff(staffId, shiftId, weekData.week_id);
 
   if (success) {
     AuditService.log({
@@ -26,12 +26,12 @@ export default defineEventHandler(async (event) => {
       action: "unassign",
       year,
       weekNumber: week,
-      shiftId: shift_id,
-      staffId: staff_id,
+      shiftId,
+      staffId,
       source: requestSource(event),
     });
     PushService.queueShiftChange(
-      { year, week, shiftId: shift_id, staffId: staff_id, action: "unassign" },
+      { year, week, shiftId, staffId, action: "unassign" },
       getHeader(event, "origin")
     );
   }

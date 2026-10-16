@@ -12,14 +12,14 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
 
-  const staff_id = validateId(body.staff_id, "staff_id");
-  const shift_id = validateId(body.shift_id, "shift_id");
+  const staffId = validateId(body.staff_id, "staff_id");
+  const shiftId = validateId(body.shift_id, "shift_id");
   const year = validateYear(body.year, "year", { required: true })!;
   const week = validateWeek(body.week, "week", { required: true })!;
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
-  const wasAssigned = ShiftplanService.hasAssignment(staff_id, shift_id, weekData.week_id);
-  const success = ShiftplanService.assignStaff(staff_id, shift_id, weekData.week_id);
+  const wasAssigned = ShiftplanService.hasAssignment(staffId, shiftId, weekData.week_id);
+  const success = ShiftplanService.assignStaff(staffId, shiftId, weekData.week_id);
 
   if (!success) {
     throw apiError(event, 500, "errors.common.assignFailed");
@@ -32,12 +32,12 @@ export default defineEventHandler(async (event) => {
       action: "assign",
       year,
       weekNumber: week,
-      shiftId: shift_id,
-      staffId: staff_id,
+      shiftId,
+      staffId,
       source: requestSource(event),
     });
     PushService.queueShiftChange(
-      { year, week, shiftId: shift_id, staffId: staff_id, action: "assign" },
+      { year, week, shiftId, staffId, action: "assign" },
       getHeader(event, "origin")
     );
   }
