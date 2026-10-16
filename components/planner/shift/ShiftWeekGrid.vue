@@ -98,7 +98,7 @@ function dayLabel(date: string): string {
             class="border-t border-[var(--border-soft)] px-0.5 py-1.5 text-center align-middle"
             :class="CELL_CLASSES[cell.status]"
           >
-            <span v-if="cell.status === 'open'" class="text-xs font-semibold text-[var(--danger-ink)]">{{ t("planner.shift.grid.open") }}</span>
+            <span v-if="cell.status === 'open'" class="text-xs font-semibold text-[var(--danger-ink)]">{{ t("planner.shift.open") }}</span>
             <div v-else class="flex flex-col items-center gap-1">
               <span
                 v-for="person in cell.people"

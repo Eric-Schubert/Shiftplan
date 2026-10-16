@@ -10,7 +10,6 @@ export default {
     note: "Notiz (optional)",
     privacy: "Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht.",
     maxAdmin: "Höchstens 1 Jahr am Stück.",
-    maxPlanner: "Höchstens 8 Wochen am Stück.",
     submit: "Eintragen",
     missing: "Bitte Mitarbeiter und Zeitraum wählen",
     failed: "Ausfall konnte nicht gespeichert werden",

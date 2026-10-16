@@ -28,7 +28,6 @@ export default {
       "Gib den Zugangscode ein, den du von deiner Schichtplanung bekommen hast. Mit dem QR-Code geht es ohne Eintippen.",
     code: "Zugangscode",
     codeMissing: "Bitte Zugangscode eingeben",
-    codeWrong: "Zugangscode ist falsch",
     open: "Plan öffnen",
     memberLogin: "Mit Kürzel und PIN anmelden",
     plannerLogin: "Als Planer anmelden",

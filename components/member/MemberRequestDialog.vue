@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
+import { SWAP_MAX_DAYS } from "~/shared/utils/limits";
 
 // New takeover (give away one shift on one day) or swap (all shifts with someone for a period).
 const props = defineProps<{ visible: boolean; staffId: number }>();
@@ -115,7 +116,7 @@ async function save() {
         </div>
         <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="request" :min="today" />
         <p class="text-xs text-[var(--text-3)]">
-          {{ t("requests.dialog.maxWeeks") }}<template v-if="swapsWeekend">{{ " " + t("requests.dialog.noWeekend") }}</template>
+          {{ t("common.maxWeeks", { weeks: SWAP_MAX_DAYS / 7 }) }}<template v-if="swapsWeekend">{{ " " + t("requests.dialog.noWeekend") }}</template>
         </p>
       </template>
 

@@ -13,7 +13,7 @@ const pin = defineModel<string>("pin", { required: true });
     <p class="text-[var(--text-2)]">{{ $t("member.login.pinIntro") }}</p>
     <div class="grid grid-cols-[6rem_minmax(0,1fr)] gap-3">
       <div class="space-y-1.5">
-        <label for="member-short-code" class="block font-medium text-[var(--text-2)]">{{ $t("member.login.shortCode") }}</label>
+        <label for="member-short-code" class="block font-medium text-[var(--text-2)]">{{ $t("member.shortCode") }}</label>
         <PrimeInputText
           id="member-short-code"
           v-model="shortCode"

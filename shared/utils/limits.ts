@@ -3,6 +3,13 @@
 export const PIN_MIN_LENGTH = 6;
 export const PIN_MAX_LENGTH = 12;
 
+/** Longest absence range that can be entered at once (8 weeks). */
+export const ABSENCE_MAX_DAYS = 56;
+/** Admins may enter up to a year at once, e.g. parental leave. */
+export const ABSENCE_ADMIN_MAX_DAYS = 366;
+/** Longest period a swap covers (8 weeks). */
+export const SWAP_MAX_DAYS = 56;
+
 const PIN_PATTERN = new RegExp(`^\\d{${PIN_MIN_LENGTH},${PIN_MAX_LENGTH}}$`);
 
 export function isValidPin(pin: unknown): pin is string {

@@ -3,7 +3,7 @@ import type { MessageKey } from "~/i18n/types";
 
 const ITEMS: Array<{ label: MessageKey; swatch: string }> = [
   { label: "planner.shift.legend.substitute", swatch: "bg-[var(--info-soft)] ring-[var(--info-ink)]" },
-  { label: "planner.shift.legend.open", swatch: "bg-[var(--danger-soft)] ring-[var(--danger-ink)]" },
+  { label: "planner.shift.open", swatch: "bg-[var(--danger-soft)] ring-[var(--danger-ink)]" },
   { label: "planner.shift.legend.understaffed", swatch: "bg-[var(--warning-soft)] ring-[var(--warning-ink)]" },
   { label: "planner.shift.legend.holiday", swatch: "bg-[var(--positive-soft)] ring-[var(--positive-ink)]" },
 ];

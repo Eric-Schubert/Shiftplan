@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { formatWeekDates, weekLabel } from "~/shared/utils/format/week";
-
 import type { MessageKey } from "~/i18n/types";
+import { formatWeekDates, weekLabel } from "~/shared/utils/format/week";
 
 defineProps<{
   selectedWeek: number;

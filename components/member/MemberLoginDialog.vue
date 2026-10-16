@@ -29,7 +29,7 @@ const busy = ref(false);
 const error = ref("");
 
 const title = computed(() =>
-  step.value === "set-pin" ? t("member.login.hello", { name: member.value?.name ?? "" }) : t("member.login.title")
+  step.value === "set-pin" ? t("member.hello", { name: member.value?.name ?? "" }) : t("member.login.title")
 );
 
 async function run(action: () => Promise<void>, fallback: string) {
@@ -57,7 +57,7 @@ function submitPin() {
   void run(async () => {
     await login(shortCode.value, pin.value);
     finish();
-  }, t("member.login.failed"));
+  }, t("errors.auth.loginFailed"));
 }
 
 function submitCode() {

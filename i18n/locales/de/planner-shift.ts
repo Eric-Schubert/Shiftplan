@@ -3,15 +3,14 @@
 export default {
   understaffed: "Unterbesetzt",
   understaffedOn: "Unterbesetzt {days}",
+  open: "offen",
   grid: {
     shift: "Schicht",
-    open: "offen",
     substitute: "{name} (Vertretung)",
     editDays: "Tage in {shift} ändern",
   },
   legend: {
     substitute: "Vertretung",
-    open: "offen",
     understaffed: "unterbesetzt",
     holiday: "Feiertag",
   },

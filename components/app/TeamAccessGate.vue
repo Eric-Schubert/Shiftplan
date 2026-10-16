@@ -23,7 +23,7 @@ async function submit() {
     // The page notices the granted access itself; this gate is gone by then.
     await login(code.value);
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("app.teamAccess.codeWrong");
+    error.value = cause?.data?.statusMessage || t("errors.team.codeWrong");
   } finally {
     loading.value = false;
   }

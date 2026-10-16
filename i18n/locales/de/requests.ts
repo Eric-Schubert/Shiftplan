@@ -56,7 +56,6 @@ export default {
     myShift: "Meine Schicht an dem Tag",
     swapIntro: "Ihr tauscht im Zeitraum alle Schichten. Erst wenn die andere Person zusagt, ändert sich der Plan.",
     partner: "Tauschen mit",
-    maxWeeks: "Höchstens 8 Wochen am Stück.",
     noWeekend: "Samstag und Sonntag werden nicht getauscht.",
     message: "Nachricht (optional)",
     send: "Anfrage senden",

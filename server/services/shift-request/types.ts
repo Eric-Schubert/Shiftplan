@@ -41,5 +41,6 @@ export type AppliedChange = {
   inPlan?: boolean;
 };
 
-export const SWAP_MAX_DAYS = 56;
+// The swap dialog names this limit too.
+export { SWAP_MAX_DAYS } from "~/shared/utils/limits";
 export const REQUEST_MESSAGE_MAX_LENGTH = 160;

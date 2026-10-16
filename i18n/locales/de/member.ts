@@ -1,11 +1,11 @@
 // Personal sign-in of staff in the browser: short code and PIN, invite code, account dialog and panel.
 export default {
+  hello: "Hallo {name}",
+  shortCode: "Kürzel",
   login: {
     title: "Persönlich anmelden",
-    hello: "Hallo {name}",
     pinIntro:
       "Mit deinem Kürzel und deiner PIN siehst du deine Schichten und kannst Ausfälle melden, Schichten abgeben und tauschen.",
-    shortCode: "Kürzel",
     pin: "PIN",
     noPin: "Noch keine PIN?",
     useCode: "Mit dem Code der Planung anmelden",
@@ -18,7 +18,6 @@ export default {
       "Du bist angemeldet. Lege jetzt eine PIN fest, dann kannst du dich auf jedem Gerät mit deinem Kürzel {code} anmelden.",
     later: "Später",
     missingPin: "Bitte Kürzel und PIN eingeben",
-    failed: "Anmeldung fehlgeschlagen",
     missingCode: "Bitte den Code eingeben",
     codeInvalid: "Der Code ist ungültig",
   },
@@ -38,10 +37,8 @@ export default {
   account: {
     signedInAs: "Angemeldet als {name}",
     title: "Mein Zugang",
-    shortCode: "Kürzel",
   },
   panel: {
-    hello: "Hallo {name}",
     marked: "Deine Schichten sind im Plan markiert.",
     failed: "Das hat nicht geklappt",
   },

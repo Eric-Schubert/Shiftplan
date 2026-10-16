@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ABSENCE_REASON_KEYS, type AbsenceReason } from "~/types/absence";
+import { ABSENCE_MAX_DAYS } from "~/shared/utils/limits";
 import { datesOfISOWeek } from "~/shared/utils/week";
 
 const props = defineProps<{
@@ -113,7 +114,7 @@ async function save() {
         <PrimeInputText id="absence-note" v-model="note" maxlength="200" class="w-full" />
         <p class="text-xs text-[var(--text-3)]">
           {{ t("absence.dialog.privacy") }}
-          {{ authStore.isAdmin ? t("absence.dialog.maxAdmin") : t("absence.dialog.maxPlanner") }}
+          {{ authStore.isAdmin ? t("absence.dialog.maxAdmin") : t("common.maxWeeks", { weeks: ABSENCE_MAX_DAYS / 7 }) }}
         </p>
       </div>
 

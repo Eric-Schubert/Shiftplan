@@ -17,4 +17,6 @@ export default {
   },
   choose: "Bitte wählen",
   period: { from: "Von", to: "Bis" },
+  // Longest absence or swap a member enters at once.
+  maxWeeks: "Höchstens {weeks} Wochen am Stück.",
 };

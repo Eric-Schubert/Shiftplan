@@ -103,7 +103,7 @@ async function onSignedIn() {
         <div class="min-w-0">
           <p class="truncate font-semibold text-[var(--text-1)]">{{ member.name }}</p>
           <p class="text-[var(--text-3)]">
-            {{ t("member.account.shortCode") }} <span class="font-mono font-semibold text-[var(--text-2)]">{{ member.shortCode ?? "–" }}</span>
+            {{ t("member.shortCode") }} <span class="font-mono font-semibold text-[var(--text-2)]">{{ member.shortCode ?? "–" }}</span>
           </p>
         </div>
         <PrimeButton :label="t('common.actions.signOut')" icon="pi pi-sign-out" size="small" severity="secondary" outlined :loading="busy" @click="signOut" />

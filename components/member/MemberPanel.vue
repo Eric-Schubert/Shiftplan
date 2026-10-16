@@ -76,7 +76,7 @@ defineExpose({ refresh });
   <section id="anfragen" class="planner-slab space-y-4 !py-4">
     <div class="flex flex-wrap items-center gap-3">
       <div class="min-w-0 flex-1 basis-48">
-        <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ t("member.panel.hello", { name: member.name.split(" ")[0] ?? "" }) }}</h3>
+        <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ t("member.hello", { name: member.name.split(" ")[0] ?? "" }) }}</h3>
         <p class="text-sm text-[var(--text-2)]">{{ t("member.panel.marked") }}</p>
       </div>
       <PrimeButton :label="t('absence.member.report')" icon="pi pi-calendar-times" size="small" class="min-h-9" @click="showAbsence = true" />

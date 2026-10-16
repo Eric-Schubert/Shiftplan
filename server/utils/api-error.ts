@@ -1,11 +1,12 @@
 import { createError, type H3Event } from "h3";
 import { DEFAULT_LOCALE, t, type Locale, type MessageKey, type MessageValues } from "~/server/lib/i18n/translate";
 import { localeTag } from "~/i18n/config";
+import type { MessageRef as CatalogMessageRef } from "~/i18n/types";
 import { resolveLocale } from "~/server/utils/locale";
 import { formatDay } from "~/shared/utils/format/day";
 
 /** A parameter that is itself a catalog message, such as a field label; it is translated in the same locale. */
-export type MessageRef = { key: MessageKey; params?: ErrorParams };
+export interface MessageRef extends CatalogMessageRef<ErrorParams> {}
 /** A day as YYYY-MM-DD; the message shows it formatted, `data.params` keeps the ISO date. */
 export type DateParam = { date: string };
 export type ErrorParams = Record<string, string | number | MessageRef | DateParam>;

@@ -1,7 +1,7 @@
 import { createCoreContext, translate, type CoreContext } from "@intlify/core";
 import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "./config";
 import de from "./locales/de";
-import type { MessageKey, Messages } from "./types";
+import type { MessageKey, MessageParams, Messages } from "./types";
 
 // Server texts (errors, pushes, mails) with the same catalogs and message syntax as the app.
 // No Nuxt, Nitro or h3 here: tests import it directly and push flushes run without a request.
@@ -24,7 +24,7 @@ function contextFor(locale: AppLocale): CoreContext {
   return context;
 }
 
-export type MessageParams = Record<string, string | number>;
+export type { MessageParams };
 
 /**
  * The message for `key` in `locale`, falling back to German for unknown locales and missing keys.
