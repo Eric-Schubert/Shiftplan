@@ -76,7 +76,10 @@ export function appPropsXml(): string {
 </Properties>`;
 }
 
-/** Index into cellXfs in stylesXml(); keep both in the same order. */
+/**
+ * Index into cellXfs in stylesXml(); keep both in the same order. Input cells use the Text format (49),
+ * so Excel keeps a shift named "01" or "6:00" as typed instead of turning it into a number or time.
+ */
 export const CELL_STYLE_IDS: Record<XlsxCellStyle, number> = {
   header: 1,
   headerWrap: 2,
@@ -115,7 +118,7 @@ export function stylesXml(): string {
     <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>
     <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
     <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"/>
+    <xf numFmtId="49" fontId="0" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFill="1" applyBorder="1"/>
     <xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>

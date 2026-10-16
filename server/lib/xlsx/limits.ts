@@ -8,3 +8,4 @@ export const MAX_ZIP_EXPANSION_RATIO = XLSX_LIMITS.maxZipExpansionRatio;
 export const MAX_WORKSHEET_COUNT = XLSX_LIMITS.maxWorksheetCount;
 export const MAX_WORKSHEET_ROWS = XLSX_LIMITS.maxWorksheetRows;
 export const MAX_WORKSHEET_COLUMNS = XLSX_LIMITS.maxWorksheetColumns;
+export const MAX_CELL_TEXT_LENGTH = 32767; // Excel allows no more characters in one cell.

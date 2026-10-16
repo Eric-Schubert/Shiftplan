@@ -17,7 +17,7 @@ export type HeaderColumns = {
 /** Finds the value next to a label like "Startjahr" in column A, above the table header. */
 function readConfigValue(rows: XlsxCellValue[][], headerRow: number, labels: string[]): XlsxCellValue {
   for (let rowIndex = 0; rowIndex < headerRow; rowIndex++) {
-    const label = normalizeLabel(toText(readCell(rows, rowIndex, 0)));
+    const label = labelOf(readCell(rows, rowIndex, 0));
     if (labels.includes(label)) return readCell(rows, rowIndex, 1);
   }
 
@@ -52,9 +52,18 @@ export function parseConfig(rows: XlsxCellValue[][], headerRow: number): Omit<Ro
   };
 }
 
+// Longer than any label or header; such a cell is neither and is not normalized at all.
+const MAX_LABEL_LENGTH = 200;
+
+/** A cell as label to compare: normalizeLabel, or "" for a long text that cannot be one. */
+function labelOf(value: XlsxCellValue): string {
+  const text = toText(value);
+  return text.length > MAX_LABEL_LENGTH ? "" : normalizeLabel(text);
+}
+
 /** The normalized cells of a row; empty cells give "", so a row with gaps has no holes. */
 function headerTexts(row: XlsxCellValue[] | undefined): string[] {
-  return Array.from(row || [], (value) => normalizeLabel(toText(value)));
+  return Array.from(row || [], labelOf);
 }
 
 function findHeader(headers: string[], candidates: string[]): number {
