@@ -27,12 +27,7 @@ const dialogHeader = computed(() => {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="dialogHeader"
-    modal
-    :style="{ width: '25rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="dialogHeader" modal :style="{ width: '25rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <div class="space-y-2">
       <p v-if="availableStaff.length === 0" class="text-gray-500 dark:text-gray-400">
         {{ t("settings.rotation.assign.allAssigned") }}
@@ -47,12 +42,7 @@ const dialogHeader = computed(() => {
         @click="emit('assign', staff.staff_id)"
       >
         <span class="text-gray-900 dark:text-white">{{ staff.name }}</span>
-        <PrimeTag
-          v-if="staff.is_parttime"
-          :value="t('settings.staff.partTime')"
-          severity="secondary"
-          class="text-xs"
-        />
+        <PrimeTag v-if="staff.is_parttime" :value="t('settings.staff.partTime')" severity="secondary" class="text-xs" />
       </button>
     </div>
   </PrimeDialog>

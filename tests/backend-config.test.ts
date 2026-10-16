@@ -59,7 +59,7 @@ describe("backend config", () => {
     });
   });
 
-  it("upper-cases CSRF methods, so a mounted \"post\" still protects POST", () => {
+  it('upper-cases CSRF methods, so a mounted "post" still protects POST', () => {
     const custom = structuredClone(backendConfig);
     Object.assign(custom.auth, { routes: { csrfMethods: ["post", "Delete"] } });
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-config-"));

@@ -35,9 +35,11 @@ function roleLabel(role: UserRole): string {
         <div class="flex items-center gap-3">
           <div
             class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
-            :class="user.role === 'admin'
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'"
+            :class="
+              user.role === 'admin'
+                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+            "
           >
             {{ user.username.charAt(0).toUpperCase() }}
           </div>
@@ -47,24 +49,13 @@ function roleLabel(role: UserRole): string {
               {{ user.username }}
             </span>
             <div class="mt-0.5 flex items-center gap-2">
-              <PrimeTag
-                :value="roleLabel(user.role)"
-                :severity="roleSeverity(user.role)"
-                class="text-xs"
-              />
+              <PrimeTag :value="roleLabel(user.role)" :severity="roleSeverity(user.role)" class="text-xs" />
               <span v-if="!user.active" class="text-xs text-gray-400">{{ t("settings.list.inactive") }}</span>
             </div>
           </div>
         </div>
 
-        <PrimeButton
-          icon="pi pi-trash"
-          severity="danger"
-          outlined
-          :label="t('common.actions.delete')"
-          class="min-h-10"
-          @click="emit('delete', user)"
-        />
+        <PrimeButton icon="pi pi-trash" severity="danger" outlined :label="t('common.actions.delete')" class="min-h-10" @click="emit('delete', user)" />
       </div>
 
       <div v-if="users.length === 0" class="py-8 text-center text-gray-400">

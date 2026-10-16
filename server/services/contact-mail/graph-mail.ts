@@ -5,10 +5,7 @@ import { getGraphAccessToken } from "~/server/services/contact-mail/graph-token"
 import { buildMailText, buildSubject, getReplyAddress } from "~/server/services/contact-mail/message";
 
 async function readResponseText(response: Response): Promise<string> {
-  return (await response.text().catch(() => "")).slice(
-    0,
-    getContactMailDefaults().errorBodyMaxLength
-  );
+  return (await response.text().catch(() => "")).slice(0, getContactMailDefaults().errorBodyMaxLength);
 }
 
 export async function sendGraphMail(config: ContactMailConfig, message: ContactMessage): Promise<void> {
@@ -40,24 +37,17 @@ export async function sendGraphMail(config: ContactMailConfig, message: ContactM
     saveToSentItems: config.saveToSentItems,
   };
 
-  const response = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(config.from)}/sendMail`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
-    }
-  );
+  const response = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(config.from)}/sendMail`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
+  });
 
   if (!response.ok) {
-    throw new Error(
-      `Microsoft Graph sendMail failed (${response.status}): ${await readResponseText(
-        response
-      )}`
-    );
+    throw new Error(`Microsoft Graph sendMail failed (${response.status}): ${await readResponseText(response)}`);
   }
 }

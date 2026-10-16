@@ -69,8 +69,7 @@ describe("checks before a request changes the plan", () => {
     let admin = await requireApproval();
     const anna = await member(ANNA, "anna:tok");
     const max = await member(MAX, "max:tok");
-    const approve = (id: number) =>
-      client.request<any>("POST", `/api/requests/${id}`, { jar: admin, csrf: true, body: { action: "approve" } });
+    const approve = (id: number) => client.request<any>("POST", `/api/requests/${id}`, { jar: admin, csrf: true, body: { action: "approve" } });
     const thursday = (await create(anna, { kind: "takeover", date: THURSDAY })).json!.request.request_id;
     const friday = (await create(anna, { kind: "takeover", date: FRIDAY })).json!.request.request_id;
     await act(max, thursday, "accept");

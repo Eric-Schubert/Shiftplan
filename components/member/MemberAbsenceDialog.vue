@@ -70,12 +70,7 @@ async function save() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('absence.member.report')"
-    modal
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('absence.member.report')" modal :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <form class="space-y-4 text-sm" @submit.prevent="save">
       <div class="grid grid-cols-2 gap-3">
         <div class="space-y-1.5">
@@ -120,13 +115,7 @@ async function save() {
             <span class="text-xs text-[var(--text-3)]">{{ t("absence.member.seekTakeoverHint") }}</span>
           </span>
         </label>
-        <PrimeInputText
-          v-if="notifyTeam"
-          v-model="message"
-          maxlength="160"
-          :placeholder="t('absence.member.message')"
-          class="w-full"
-        />
+        <PrimeInputText v-if="notifyTeam" v-model="message" maxlength="160" :placeholder="t('absence.member.message')" class="w-full" />
       </div>
 
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>

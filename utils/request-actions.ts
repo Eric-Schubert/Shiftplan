@@ -8,11 +8,7 @@ export type RequestAction = "accept" | "decline" | "cancel" | "request_undo" | "
  * One action per own request: withdraw it, ask for an undo or drop the ask. An undo is offered until
  * the day before in the member's own time zone; the server checks the rest.
  */
-export function ownRequestAction(
-  request: ShiftRequest,
-  memberId: number,
-  today = todayISO()
-): { label: MessageKey; action: RequestAction } | null {
+export function ownRequestAction(request: ShiftRequest, memberId: number, today = todayISO()): { label: MessageKey; action: RequestAction } | null {
   const open = request.status === "open" || request.status === "pending_approval";
   if (request.requester_staff_id === memberId && open) return { label: "requests.own.cancel", action: "cancel" };
   if (request.partner_staff_id === memberId && request.status === "pending_approval") {

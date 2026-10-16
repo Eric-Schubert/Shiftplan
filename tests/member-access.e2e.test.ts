@@ -27,8 +27,7 @@ describe("personal app access", () => {
   it("accepts codes typed with spaces or dashes and rejects expired ones", async () => {
     const planner = await client.loginAs("planner", "planner1234");
     const create = async () =>
-      (await client.request<{ code: string }>("POST", "/api/member-invites", { jar: planner, csrf: true, body: { staffId: MAX } }))
-        .json!.code;
+      (await client.request<{ code: string }>("POST", "/api/member-invites", { jar: planner, csrf: true, body: { staffId: MAX } })).json!.code;
 
     const typed = await create();
     const ok = await client.request("POST", "/api/member/redeem", {

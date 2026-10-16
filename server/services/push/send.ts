@@ -20,11 +20,7 @@ export async function sendNative(messages: NativeMessage[]): Promise<SendCounts>
 }
 
 /** One relay message per language of the devices; with one language that is the single call as before. */
-function perLocale<P extends PushPayload>(
-  devices: StoredDevice[],
-  payload: Localized<P>,
-  data: (payload: P) => Record<string, string>
-): NativeMessage[] {
+function perLocale<P extends PushPayload>(devices: StoredDevice[], payload: Localized<P>, data: (payload: P) => Record<string, string>): NativeMessage[] {
   return [...groupByLocale(devices)].map(([locale, group]) => {
     const text = render(payload, locale);
     return { title: text.title, body: text.body, data: data(text), tokens: group.map((device) => device.token) };
@@ -34,9 +30,7 @@ function perLocale<P extends PushPayload>(
 /** Team message from a planner: browsers and app devices get the same text. */
 export async function sendToAll(payload: Localized<PushPayload>): Promise<SendCounts> {
   const web = await sendWebPush(payload);
-  const native = await sendNative(
-    perLocale(listDevices(), payload, ({ url }) => ({ instanceId: TeamAccessService.getInstanceId(), url }))
-  );
+  const native = await sendNative(perLocale(listDevices(), payload, ({ url }) => ({ instanceId: TeamAccessService.getInstanceId(), url })));
   return { sent: web.sent + native.sent, failed: web.failed + native.failed };
 }
 
@@ -49,9 +43,7 @@ export async function sendTeamNotice(
   options: { excludeStaffId?: number } = {}
 ): Promise<SendCounts> {
   const web = await sendWebPush(payload, { excludeStaffId: options.excludeStaffId });
-  const devices = listDevices().filter(
-    (device) => options.excludeStaffId === undefined || device.staff_id !== options.excludeStaffId
-  );
+  const devices = listDevices().filter((device) => options.excludeStaffId === undefined || device.staff_id !== options.excludeStaffId);
   const native = await sendNative(
     perLocale(devices, payload, ({ url, year, week }) => ({
       instanceId: TeamAccessService.getInstanceId(),
@@ -68,15 +60,10 @@ export async function sendTeamNotice(
  * browsers signed in as them. Team devices are not reached, not even when someone picked
  * that person in team mode, because anyone with the team code can pick anyone.
  */
-export async function sendToStaff(
-  staffIds: number[],
-  payload: Localized<PushPayload & { kind?: string }>
-): Promise<SendCounts> {
+export async function sendToStaff(staffIds: number[], payload: Localized<PushPayload & { kind?: string }>): Promise<SendCounts> {
   const wanted = new Set(staffIds);
   const web = await sendWebPush(payload, { staffIds });
-  const devices = listDevices().filter(
-    (device) => device.personal === 1 && device.staff_id !== null && wanted.has(device.staff_id)
-  );
+  const devices = listDevices().filter((device) => device.personal === 1 && device.staff_id !== null && wanted.has(device.staff_id));
   if (devices.length === 0) return web;
   const native = await sendNative(
     perLocale(devices, payload, ({ url, kind }) => ({

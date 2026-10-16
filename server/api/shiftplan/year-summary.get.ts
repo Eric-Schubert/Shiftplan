@@ -12,7 +12,8 @@ export default defineEventHandler((event) => {
   const db = getDatabase();
 
   const weeks = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         w.week_number,
         COUNT(sa.assignment_id) as assignment_count
@@ -22,7 +23,8 @@ export default defineEventHandler((event) => {
       GROUP BY w.week_id
       HAVING assignment_count > 0
       ORDER BY w.week_number
-    `)
+    `
+    )
     .all(year) as Array<{ week_number: number; assignment_count: number }>;
 
   return {

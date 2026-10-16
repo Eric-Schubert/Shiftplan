@@ -75,8 +75,6 @@ describe("Rotation Excel import/export", () => {
       config: { cycle_length: 2, start_year: 2026, start_week: 3 },
     });
     expect(db.prepare("SELECT start_week FROM rotation_config").get()).toEqual({ start_week: 1 });
-    expect(db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern").all()).toEqual([
-      { pattern_week: 1, staff_id: 1, shift_id: 1 },
-    ]);
+    expect(db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern").all()).toEqual([{ pattern_week: 1, staff_id: 1, shift_id: 1 }]);
   });
 });

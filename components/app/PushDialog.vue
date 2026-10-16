@@ -18,12 +18,7 @@ async function run(action: () => Promise<void>) {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogOpen"
-    :header="t('app.push.header')"
-    modal
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogOpen" :header="t('app.push.header')" modal :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <div class="space-y-3 text-sm leading-6 text-[var(--text-2)]">
       <div v-if="state === 'loading'" class="flex items-center gap-3">
         <PrimeProgressSpinner class="!h-5 !w-5" />
@@ -58,10 +53,7 @@ async function run(action: () => Promise<void>) {
         <p>
           {{ t("app.push.intro") }}
         </p>
-        <p
-          v-if="state === 'on'"
-          class="flex items-center gap-2 font-medium text-[var(--positive-ink)]"
-        >
+        <p v-if="state === 'on'" class="flex items-center gap-2 font-medium text-[var(--positive-ink)]">
           <i class="pi pi-check" aria-hidden="true"></i>
           {{ t("app.push.active") }}
         </p>
@@ -74,14 +66,7 @@ async function run(action: () => Promise<void>) {
 
     <template #footer>
       <PrimeButton :label="t('common.actions.close')" text @click="dialogOpen = false" />
-      <PrimeButton
-        v-if="state === 'off'"
-        :label="t('common.actions.activate')"
-        icon="pi pi-bell"
-        class="min-h-11"
-        :loading="busy"
-        @click="run(enable)"
-      />
+      <PrimeButton v-if="state === 'off'" :label="t('common.actions.activate')" icon="pi pi-bell" class="min-h-11" :loading="busy" @click="run(enable)" />
       <PrimeButton
         v-else-if="state === 'on'"
         :label="t('app.push.disable')"

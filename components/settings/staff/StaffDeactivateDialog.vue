@@ -43,13 +43,7 @@ async function deactivate() {
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
-      <PrimeButton
-        :label="t('common.actions.deactivate')"
-        severity="danger"
-        class="min-h-11"
-        :loading="saving"
-        @click="deactivate"
-      />
+      <PrimeButton :label="t('common.actions.deactivate')" severity="danger" class="min-h-11" :loading="saving" @click="deactivate" />
     </template>
   </PrimeDialog>
 </template>

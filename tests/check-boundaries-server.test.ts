@@ -3,17 +3,24 @@ import { checkBoundaries as check } from "./helpers/boundaries";
 
 describe("boundary check server rules", () => {
   it("reports server/utils and server/lib importing services", () => {
-    expect(check({ "server/utils/flow.ts": 'import { A } from "#server/services/a.service";', "server/lib/x/y.ts": 'import { B } from "~/server/services/b/c";' })).toEqual([
-      "server/utils/flow.ts:1 server/utils imports a service",
-      "server/lib/x/y.ts:1 server/lib imports a service",
-    ]);
+    expect(
+      check({
+        "server/utils/flow.ts": 'import { A } from "#server/services/a.service";',
+        "server/lib/x/y.ts": 'import { B } from "~/server/services/b/c";',
+      })
+    ).toEqual(["server/utils/flow.ts:1 server/utils imports a service", "server/lib/x/y.ts:1 server/lib imports a service"]);
   });
 
   it("lets services reach other features only through their facade", () => {
     const contents = {
       "server/services/b.service.ts": "",
       "server/services/c/index.ts": "",
-      "server/services/a/x.ts": ['import "~/server/services/b.service";', 'import "~/server/services/c";', 'import "~/server/services/b/internal";', 'import "./y";'].join("\n"),
+      "server/services/a/x.ts": [
+        'import "~/server/services/b.service";',
+        'import "~/server/services/c";',
+        'import "~/server/services/b/internal";',
+        'import "./y";',
+      ].join("\n"),
     };
     expect(check(contents)).toEqual(["server/services/a/x.ts:3 service imports another service's internals instead of its facade"]);
   });
@@ -45,7 +52,19 @@ describe("boundary check server rules", () => {
   });
 
   it("keeps app code out of all server code, types/ and shared/ stay open", () => {
-    const app = ["~/components/A.vue", "~/composables/useX", "~/stores/auth", "~/utils/legal/durations", "~/pages/index.vue", "~/layouts/default.vue", "~/plugins/x", "~/theme/primevue-theme", "~/assets/theme.css", "~/app.vue", "~/error.vue"];
+    const app = [
+      "~/components/A.vue",
+      "~/composables/useX",
+      "~/stores/auth",
+      "~/utils/legal/durations",
+      "~/pages/index.vue",
+      "~/layouts/default.vue",
+      "~/plugins/x",
+      "~/theme/primevue-theme",
+      "~/assets/theme.css",
+      "~/app.vue",
+      "~/error.vue",
+    ];
     const open = ["~/types/privacy", "~/shared/utils/retention", "~/server/utils/database", "~/server/plugins/x", "h3"];
     const source = [...app, ...open].map((spec) => `import "${spec}";`).join("\n");
     const rule = "server code imports app code";

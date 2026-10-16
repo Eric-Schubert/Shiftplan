@@ -16,9 +16,7 @@ describe("database migrations", () => {
 
     migrateMainDatabase(db);
 
-    const codes = (db.prepare("SELECT short_code FROM staff ORDER BY staff_id").all() as Array<{ short_code: string }>).map(
-      (row) => row.short_code
-    );
+    const codes = (db.prepare("SELECT short_code FROM staff ORDER BY staff_id").all() as Array<{ short_code: string }>).map((row) => row.short_code);
     expect(codes).toEqual(["MM", "MM2", "OY", "CHER", "AL", "KMS"]);
     db.close();
   });

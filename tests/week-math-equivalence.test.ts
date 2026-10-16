@@ -1,15 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { patternWeekFor } from "~/shared/utils/rotation-math";
-import {
-  datesOfISOWeek,
-  isoWeekMonday,
-  isoWeekOfDate,
-  isoWeekRange,
-  isoWeeksBetween,
-  isoWeeksInYear,
-  toISOWeek,
-  weekOfDate,
-} from "~/shared/utils/week";
+import { datesOfISOWeek, isoWeekMonday, isoWeekOfDate, isoWeekRange, isoWeeksBetween, isoWeeksInYear, toISOWeek, weekOfDate } from "~/shared/utils/week";
 import * as legacy from "./helpers/legacy-week-math";
 
 // The shared week math replaced seven copies. This compares it with frozen copies of the old

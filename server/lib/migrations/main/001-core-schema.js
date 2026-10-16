@@ -63,9 +63,7 @@ export default {
           UNIQUE(year, week_number)
         )
       `);
-    database.exec(
-      "CREATE UNIQUE INDEX IF NOT EXISTS idx_weeks_year_week_number ON weeks(year, week_number)"
-    );
+    database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_weeks_year_week_number ON weeks(year, week_number)");
 
     database.exec(`
         CREATE TABLE IF NOT EXISTS shift_assignments (
@@ -79,8 +77,6 @@ export default {
           UNIQUE(staff_id, shift_id, week_id)
         )
       `);
-    database.exec(
-      "CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_assignments_unique ON shift_assignments(staff_id, shift_id, week_id)"
-    );
+    database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_assignments_unique ON shift_assignments(staff_id, shift_id, week_id)");
   },
 };

@@ -6,10 +6,7 @@ export default {
   id: "013_admin_push_locale",
   description: "Remember the language of push subscriptions and app devices",
   shouldRun(database) {
-    return (
-      hasMissingColumns(database, "push_subscriptions", ["locale"]) ||
-      hasMissingColumns(database, "push_devices", ["locale"])
-    );
+    return hasMissingColumns(database, "push_subscriptions", ["locale"]) || hasMissingColumns(database, "push_devices", ["locale"]);
   },
   up(database) {
     // Pushes are written in each recipient's language. Everything registered before got German,

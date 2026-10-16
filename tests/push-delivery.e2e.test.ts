@@ -65,8 +65,7 @@ describe("bundled plan-change pushes", () => {
     // Thursday of week 41/2026.
     vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-08T10:00:00Z") });
     const { PushService } = client.push;
-    const dayChange = (date: string) =>
-      PushService.queueShiftChange({ year: 2026, week: 41, shiftId: 1, staffId: 1, action: "assign", date });
+    const dayChange = (date: string) => PushService.queueShiftChange({ year: 2026, week: 41, shiftId: 1, staffId: 1, action: "assign", date });
 
     dayChange("2026-10-05");
     const pastQueued = PushService.hasPendingChanges();

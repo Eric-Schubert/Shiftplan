@@ -14,9 +14,7 @@ const hasBuildMetadata = computed(() => /\+\d+$/.test(currentVersion));
 const dialogWidth = computed(() => (showReleaseList.value ? "880px" : "720px"));
 const displayCurrentVersion = computed(() => formatVersion(currentVersion));
 const dialogEyebrow = computed(() => (showReleaseList.value ? t("changelog.eyebrow.history") : t("changelog.eyebrow.detail")));
-const dialogTitle = computed(() =>
-  selectedEntry.value ? releaseTitle(selectedEntry.value) : t("changelog.title")
-);
+const dialogTitle = computed(() => (selectedEntry.value ? releaseTitle(selectedEntry.value) : t("changelog.title")));
 
 watch(isVisible, (visible) => {
   if (!visible) selectedEntry.value = null;
@@ -43,18 +41,9 @@ watch(isVisible, (visible) => {
       />
     </template>
 
-    <ChangelogReleaseDetail
-      v-if="selectedEntry"
-      :entry="selectedEntry"
-      :current-version="displayCurrentVersion"
-    />
+    <ChangelogReleaseDetail v-if="selectedEntry" :entry="selectedEntry" :current-version="displayCurrentVersion" />
 
-    <ChangelogReleaseList
-      v-else
-      :entries="entries"
-      :current-version="displayCurrentVersion"
-      @open="selectedEntry = $event"
-    />
+    <ChangelogReleaseList v-else :entries="entries" :current-version="displayCurrentVersion" @open="selectedEntry = $event" />
 
     <template #footer>
       <div class="changelog-footer">
@@ -66,12 +55,7 @@ watch(isVisible, (visible) => {
           outlined
           @click="selectedEntry = null"
         />
-        <PrimeButton
-          :label="t('changelog.close')"
-          severity="secondary"
-          outlined
-          @click="dismiss"
-        />
+        <PrimeButton :label="t('changelog.close')" severity="secondary" outlined @click="dismiss" />
       </div>
     </template>
   </PrimeDialog>

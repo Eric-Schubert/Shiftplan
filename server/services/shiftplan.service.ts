@@ -1,18 +1,8 @@
 import type { GenerationResult } from "~/types/shiftplan";
 import { getDatabase } from "~/server/utils/database";
 import { RotationService } from "~/server/services/rotation.service";
-import {
-  assignStaff,
-  getOrCreateWeek,
-  getWeek,
-  hasAssignment,
-  unassignStaff,
-} from "~/server/services/shiftplan/weeks";
-import {
-  getWeeklyPlan,
-  getWeeklyPlanReadOnly,
-  type PlanWithPatternWeek,
-} from "~/server/services/shiftplan/weekly-plan";
+import { assignStaff, getOrCreateWeek, getWeek, hasAssignment, unassignStaff } from "~/server/services/shiftplan/weeks";
+import { getWeeklyPlan, getWeeklyPlanReadOnly, type PlanWithPatternWeek } from "~/server/services/shiftplan/weekly-plan";
 import { listWeeks, previewGeneration } from "~/server/services/shiftplan/generation";
 
 export { readGenerationRange } from "~/server/services/shiftplan/generation-range";
@@ -50,12 +40,7 @@ export const ShiftplanService = {
    * Fills several weeks from the rotation pattern in one transaction. Weeks that are
    * already planned are skipped unless overwrite is set.
    */
-  generateMultipleWeeks(
-    startYear: number,
-    startWeek: number,
-    numberOfWeeks: number,
-    options: { overwrite?: boolean } = {}
-  ): GenerationResult {
+  generateMultipleWeeks(startYear: number, startWeek: number, numberOfWeeks: number, options: { overwrite?: boolean } = {}): GenerationResult {
     const db = getDatabase();
     const overwrite = options.overwrite ?? true;
     const result: GenerationResult = { generated: 0, skipped: 0, overwritten: 0, weeks: [] };

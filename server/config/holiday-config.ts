@@ -36,7 +36,10 @@ export function getPublicHolidaySubdivisionCodes(): string[] {
 export function resolveSchoolHolidaySubdivisionCodes(event: H3Event, statesParam?: string): string[] {
   const config = getHolidayConfig();
   const rawCodes = statesParam
-    ? statesParam.split(",").map((entry) => entry.trim()).filter(Boolean)
+    ? statesParam
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
     : config.school.defaultSubdivisionCodes;
 
   const knownStates = config.subdivisionNames;

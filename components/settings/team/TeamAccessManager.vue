@@ -55,8 +55,7 @@ async function applyChange(action: PendingAction) {
   saving.value = true;
   error.value = "";
   try {
-    const body =
-      action === "generate" ? { generate: true } : { code: action === "remove" ? null : customCode.value };
+    const body = action === "generate" ? { generate: true } : { code: action === "remove" ? null : customCode.value };
     await authFetch("/api/team-access", {
       method: "POST",
       body,
@@ -104,14 +103,7 @@ onMounted(load);
         @remove="requestChange('remove')"
         @error="error = $event"
       />
-      <PrimeButton
-        v-else
-        :label="t('settings.team.setUp')"
-        icon="pi pi-lock"
-        class="min-h-11"
-        :loading="saving"
-        @click="requestChange('generate')"
-      />
+      <PrimeButton v-else :label="t('settings.team.setUp')" icon="pi pi-lock" class="min-h-11" :loading="saving" @click="requestChange('generate')" />
 
       <TeamAccessCustomCodeForm v-model:code="customCode" :saving="saving" @submit="requestChange('custom')" />
       <TeamAccessNameForm v-model:name="instanceName" @error="error = $event" />

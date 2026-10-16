@@ -35,21 +35,12 @@ const { t } = useI18n();
             </p>
             <div class="flex flex-wrap gap-2">
               <PrimeTag :value="t('settings.shifts.minStaffTag', { count: shift.min_staff })" severity="secondary" />
-              <PrimeTag
-                :value="shift.active ? t('settings.list.active') : t('settings.list.inactive')"
-                :severity="shift.active ? 'success' : 'danger'"
-              />
+              <PrimeTag :value="shift.active ? t('settings.list.active') : t('settings.list.inactive')" :severity="shift.active ? 'success' : 'danger'" />
             </div>
           </div>
 
           <div class="flex flex-wrap justify-end gap-2">
-            <PrimeButton
-              :label="t('common.actions.edit')"
-              severity="secondary"
-              outlined
-              class="min-h-10"
-              @click="emit('edit', shift)"
-            />
+            <PrimeButton :label="t('common.actions.edit')" severity="secondary" outlined class="min-h-10" @click="emit('edit', shift)" />
             <PrimeButton
               :label="shift.active ? t('common.actions.deactivate') : t('common.actions.activate')"
               severity="secondary"
@@ -57,13 +48,7 @@ const { t } = useI18n();
               class="min-h-10"
               @click="emit('toggle-active', shift)"
             />
-            <PrimeButton
-              :label="t('common.actions.delete')"
-              severity="danger"
-              outlined
-              class="min-h-10"
-              @click="emit('delete', shift)"
-            />
+            <PrimeButton :label="t('common.actions.delete')" severity="danger" outlined class="min-h-10" @click="emit('delete', shift)" />
           </div>
         </div>
       </div>
@@ -91,24 +76,14 @@ const { t } = useI18n();
 
         <PrimeColumn field="active" :header="t('settings.list.status')" sortable>
           <template #body="{ data }">
-            <PrimeTag
-              :value="data.active ? t('settings.list.active') : t('settings.list.inactive')"
-              :severity="data.active ? 'success' : 'danger'"
-            />
+            <PrimeTag :value="data.active ? t('settings.list.active') : t('settings.list.inactive')" :severity="data.active ? 'success' : 'danger'" />
           </template>
         </PrimeColumn>
 
         <PrimeColumn :header="t('settings.list.actions')" style="width: 180px">
           <template #body="{ data }">
             <div class="flex gap-1">
-              <PrimeButton
-                icon="pi pi-pencil"
-                text
-                rounded
-                class="!h-10 !w-10"
-                :aria-label="t('settings.shifts.edit')"
-                @click="emit('edit', data)"
-              />
+              <PrimeButton icon="pi pi-pencil" text rounded class="!h-10 !w-10" :aria-label="t('settings.shifts.edit')" @click="emit('edit', data)" />
               <PrimeButton
                 :icon="data.active ? 'pi pi-eye-slash' : 'pi pi-eye'"
                 text

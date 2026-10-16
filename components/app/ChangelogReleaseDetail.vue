@@ -27,10 +27,7 @@ const { t } = useI18n();
         >
           {{ releaseTitle(entry) }}
         </a>
-        <h3
-          v-else
-          class="changelog-detail__release-title"
-        >
+        <h3 v-else class="changelog-detail__release-title">
           {{ entry.title }}
         </h3>
         <p class="changelog-detail__summary">
@@ -39,19 +36,10 @@ const { t } = useI18n();
       </div>
 
       <div class="changelog-detail__actions">
-        <span
-          v-if="isCurrentRelease(entry, currentVersion)"
-          class="changelog-badge changelog-badge--accent"
-        >
+        <span v-if="isCurrentRelease(entry, currentVersion)" class="changelog-badge changelog-badge--accent">
           {{ t("changelog.currentInstalled") }}
         </span>
-        <a
-          v-if="releaseUrl(entry)"
-          :href="releaseUrl(entry) || undefined"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="changelog-link-button"
-        >
+        <a v-if="releaseUrl(entry)" :href="releaseUrl(entry) || undefined" target="_blank" rel="noopener noreferrer" class="changelog-link-button">
           <i class="pi pi-share-alt text-base" aria-hidden="true"></i>
           {{ t("changelog.onGithub") }}
         </a>
@@ -74,11 +62,7 @@ const { t } = useI18n();
       </div>
 
       <ul class="changelog-detail__list">
-        <li
-          v-for="change in entry.changes"
-          :key="change"
-          class="changelog-change"
-        >
+        <li v-for="change in entry.changes" :key="change" class="changelog-change">
           <i class="pi pi-check-circle changelog-change__icon" aria-hidden="true"></i>
           <span>{{ change }}</span>
         </li>

@@ -1,12 +1,5 @@
 export type ShiftRequestKind = "takeover" | "swap";
-export type ShiftRequestStatus =
-  | "open"
-  | "pending_approval"
-  | "done"
-  | "declined"
-  | "rejected"
-  | "cancelled"
-  | "reverted";
+export type ShiftRequestStatus = "open" | "pending_approval" | "done" | "declined" | "rejected" | "cancelled" | "reverted";
 
 export type ShiftRequest = {
   request_id: number;

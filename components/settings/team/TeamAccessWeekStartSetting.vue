@@ -29,13 +29,7 @@ async function save(value: boolean) {
 
 <template>
   <label class="flex max-w-[46rem] items-start gap-3 rounded-xl border border-[var(--border-soft)] p-4 text-sm">
-    <PrimeCheckbox
-      :model-value="enabled"
-      binary
-      input-id="team-next-week-from-saturday"
-      :disabled="saving"
-      @update:model-value="save"
-    />
+    <PrimeCheckbox :model-value="enabled" binary input-id="team-next-week-from-saturday" :disabled="saving" @update:model-value="save" />
     <span>
       <span class="block font-medium text-[var(--text-1)]">{{ t("settings.team.weekStart.label") }}</span>
       <span class="text-[var(--text-2)]">{{ t("settings.team.weekStart.hint") }}</span>

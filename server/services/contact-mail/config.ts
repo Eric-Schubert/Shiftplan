@@ -54,10 +54,7 @@ export function getContactMailConfig(): ContactMailConfig | null {
     clientSecret: envValue("CONTACT_MAIL_GRAPH_CLIENT_SECRET"),
     from: envValue("CONTACT_MAIL_GRAPH_FROM"),
     subjectPrefix: envValue("CONTACT_MAIL_SUBJECT_PREFIX") || getContactMailDefaults().subjectPrefix,
-    saveToSentItems: boolEnv(
-      "CONTACT_MAIL_SAVE_TO_SENT_ITEMS",
-      getContactMailDefaults().saveToSentItemsDefault
-    ),
+    saveToSentItems: boolEnv("CONTACT_MAIL_SAVE_TO_SENT_ITEMS", getContactMailDefaults().saveToSentItemsDefault),
   };
 
   const missingFields = [

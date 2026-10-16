@@ -11,10 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
   banner: false,
 });
 
-const { holidays, schoolHolidays, loading, error } = useHolidayWeek(
-  toRef(props, "year"),
-  toRef(props, "week")
-);
+const { holidays, schoolHolidays, loading, error } = useHolidayWeek(toRef(props, "year"), toRef(props, "week"));
 
 const hasContent = computed(() => holidays.value.length > 0 || schoolHolidays.value.length > 0);
 </script>
@@ -25,37 +22,19 @@ const hasContent = computed(() => holidays.value.length > 0 || schoolHolidays.va
     <span v-if="!compact && !banner">{{ $t("holidays.loading") }}</span>
   </div>
 
-  <div
-    v-else-if="error && !hasContent && !banner"
-    class="text-sm text-[var(--danger-ink)]"
-  >
+  <div v-else-if="error && !hasContent && !banner" class="text-sm text-[var(--danger-ink)]">
     <span v-if="!compact">{{ error }}</span>
   </div>
 
-  <HolidayBannerCard
-    v-else-if="banner && hasContent"
-    :holidays="holidays"
-    :school-holidays="schoolHolidays"
-  />
+  <HolidayBannerCard v-else-if="banner && hasContent" :holidays="holidays" :school-holidays="schoolHolidays" />
 
   <div v-else-if="hasContent">
-    <HolidayCompactList
-      v-if="compact"
-      :holidays="holidays"
-      :school-holidays="schoolHolidays"
-    />
+    <HolidayCompactList v-if="compact" :holidays="holidays" :school-holidays="schoolHolidays" />
 
-    <HolidayDetailPanels
-      v-else
-      :holidays="holidays"
-      :school-holidays="schoolHolidays"
-    />
+    <HolidayDetailPanels v-else :holidays="holidays" :school-holidays="schoolHolidays" />
   </div>
 
-  <div
-    v-else-if="!banner && !compact"
-    class="text-sm text-[var(--text-3)]"
-  >
+  <div v-else-if="!banner && !compact" class="text-sm text-[var(--text-3)]">
     {{ $t("holidays.none") }}
   </div>
 </template>

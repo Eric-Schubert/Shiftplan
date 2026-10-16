@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CookieJar } from "./helpers/api-harness";
-import {
-  ANNA,
-  FCM_ENDPOINT,
-  SAME_ORIGIN,
-  bearer,
-  client,
-  inviteAndRedeem,
-  teamMessage,
-  useMemberAccessClient,
-} from "./helpers/member-access";
+import { ANNA, FCM_ENDPOINT, SAME_ORIGIN, bearer, client, inviteAndRedeem, teamMessage, useMemberAccessClient } from "./helpers/member-access";
 import { KEYS, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);

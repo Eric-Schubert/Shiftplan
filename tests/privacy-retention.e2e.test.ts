@@ -57,11 +57,7 @@ describe("retention", () => {
     insert.run("2026-07-07", "2026-07-07", "Arzttermin");
     const planner = await client.loginAs("planner", "planner1234");
 
-    const list = await client.request<{ requests: { date_to: string; message: string | null }[] }>(
-      "GET",
-      "/api/requests",
-      { jar: planner }
-    );
+    const list = await client.request<{ requests: { date_to: string; message: string | null }[] }>("GET", "/api/requests", { jar: planner });
 
     expect(list.json!.requests.map(({ date_to, message }) => ({ date_to, message }))).toEqual([
       { date_to: "2026-07-07", message: "Arzttermin" },
@@ -97,12 +93,7 @@ describe("privacy facts", () => {
     vi.stubEnv("CONTACT_MAIL_GRAPH_FROM", "postfach@example.com");
     const complete = await client.request<Facts>("GET", "/api/legal/privacy");
 
-    expect([without.status, without.json?.microsoft, incomplete.json?.microsoft, complete.json?.microsoft]).toEqual([
-      200,
-      false,
-      false,
-      true,
-    ]);
+    expect([without.status, without.json?.microsoft, incomplete.json?.microsoft, complete.json?.microsoft]).toEqual([200, false, false, true]);
   });
 
   it("is public without the route in backend.config.json and names the relay host only", async () => {

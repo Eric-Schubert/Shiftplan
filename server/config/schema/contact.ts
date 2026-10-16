@@ -1,12 +1,4 @@
-import {
-  booleanAt,
-  integerAt,
-  objectAt,
-  oneOf,
-  stringAt,
-  validateTimeZone,
-  type MutableErrorList,
-} from "./fields";
+import { booleanAt, integerAt, objectAt, oneOf, stringAt, validateTimeZone, type MutableErrorList } from "./fields";
 import { rangeOrder, validateLength } from "./ranges";
 
 export function validateContact(value: unknown, errors: MutableErrorList): void {
@@ -41,8 +33,7 @@ export function validateContactMail(value: unknown, errors: MutableErrorList): v
   // Mounted copies of older config files still carry it; the mail follows the instance's language now.
   if (config.dateLocale !== undefined) {
     console.warn(
-      "[config] contactMail.dateLocale is ignored: the contact mail uses the instance's language. " +
-        "Remove the key from backend.config.json."
+      "[config] contactMail.dateLocale is ignored: the contact mail uses the instance's language. " + "Remove the key from backend.config.json."
     );
   }
   stringAt(config.timezone, "contactMail.timezone", errors);

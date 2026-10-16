@@ -1,11 +1,6 @@
 // @ts-check
 import bcrypt from "bcryptjs";
-import {
-  BOOTSTRAP_ADMIN_PASSWORD_ENV,
-  BOOTSTRAP_PASSWORD_HASH_COST,
-  MAX_BOOTSTRAP_PASSWORD_LENGTH,
-  MIN_BOOTSTRAP_PASSWORD_LENGTH,
-} from "./config.js";
+import { BOOTSTRAP_ADMIN_PASSWORD_ENV, BOOTSTRAP_PASSWORD_HASH_COST, MAX_BOOTSTRAP_PASSWORD_LENGTH, MIN_BOOTSTRAP_PASSWORD_LENGTH } from "./config.js";
 
 /** @param {unknown} value */
 export function isPasswordHash(value) {
@@ -39,10 +34,7 @@ function validateBootstrapAdminPassword(password) {
 
 /** @param {import("./runner.js").MigrationOptions} [options] */
 export function readBootstrapAdminPassword(options = {}) {
-  const directValue =
-    typeof options.bootstrapAdminPassword === "string"
-      ? options.bootstrapAdminPassword
-      : process.env[BOOTSTRAP_ADMIN_PASSWORD_ENV];
+  const directValue = typeof options.bootstrapAdminPassword === "string" ? options.bootstrapAdminPassword : process.env[BOOTSTRAP_ADMIN_PASSWORD_ENV];
 
   if (typeof directValue !== "string") return undefined;
 

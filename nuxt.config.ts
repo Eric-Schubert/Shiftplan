@@ -11,9 +11,7 @@ function getAppVersion(): string {
     return fs.readFileSync(versionFile, "utf-8").trim();
   } catch {
     try {
-      const pkg = JSON.parse(
-        fs.readFileSync(path.resolve(import.meta.dirname, "package.json"), "utf-8")
-      );
+      const pkg = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "package.json"), "utf-8"));
       return pkg.version || "0.0.0";
     } catch {
       return "0.0.0";
@@ -53,12 +51,7 @@ export default defineNuxtConfig({
 
   nitro: nitroConfig,
 
-  modules: [
-    "@primevue/nuxt-module",
-    "@pinia/nuxt",
-    "@nuxtjs/tailwindcss",
-    "@nuxtjs/i18n",
-  ],
+  modules: ["@primevue/nuxt-module", "@pinia/nuxt", "@nuxtjs/tailwindcss", "@nuxtjs/i18n"],
 
   i18n: i18nConfig,
 
@@ -75,11 +68,7 @@ export default defineNuxtConfig({
     autoImport: true,
     components: {
       prefix: "Prime",
-      include: [
-        "Button",
-        "Dialog",
-        "ProgressSpinner",
-      ],
+      include: ["Button", "Dialog", "ProgressSpinner"],
     },
     importTheme: {
       as: "PrimeVueTheme",

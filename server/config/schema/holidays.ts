@@ -1,13 +1,4 @@
-import {
-  booleanAt,
-  integerAt,
-  objectAt,
-  oneOf,
-  stringArrayAt,
-  stringAt,
-  validateTimeZone,
-  type MutableErrorList,
-} from "./fields";
+import { booleanAt, integerAt, objectAt, oneOf, stringArrayAt, stringAt, validateTimeZone, type MutableErrorList } from "./fields";
 import { subdivisionShortCode } from "~/server/lib/holidays/open-holidays";
 
 export function validateHolidays(value: unknown, errors: MutableErrorList): void {
@@ -22,20 +13,11 @@ export function validateHolidays(value: unknown, errors: MutableErrorList): void
 
   const publicConfig = objectAt(config.public, "holidays.public", errors);
   booleanAt(publicConfig.includeNationwide, "holidays.public.includeNationwide", errors);
-  const publicStates = stringArrayAt(
-    publicConfig.subdivisionCodes,
-    "holidays.public.subdivisionCodes",
-    errors
-  );
+  const publicStates = stringArrayAt(publicConfig.subdivisionCodes, "holidays.public.subdivisionCodes", errors);
   oneOf(publicConfig.regionalType, "holidays.public.regionalType", new Set(["regional"]), errors);
 
   const school = objectAt(config.school, "holidays.school", errors);
-  const schoolStates = stringArrayAt(
-    school.defaultSubdivisionCodes,
-    "holidays.school.defaultSubdivisionCodes",
-    errors,
-    { minLength: 1 }
-  );
+  const schoolStates = stringArrayAt(school.defaultSubdivisionCodes, "holidays.school.defaultSubdivisionCodes", errors, { minLength: 1 });
   const window = objectAt(school.lookupWindow, "holidays.school.lookupWindow", errors);
   integerAt(window.startYearOffset, "holidays.school.lookupWindow.startYearOffset", errors);
   integerAt(window.startMonth, "holidays.school.lookupWindow.startMonth", errors, { min: 1, max: 12 });

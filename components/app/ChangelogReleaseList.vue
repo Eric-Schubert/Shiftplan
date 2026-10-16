@@ -29,13 +29,7 @@ function remainingChangeCount(entry: ChangelogEntry): number {
 
 <template>
   <div class="changelog-shell">
-    <button
-      v-for="entry in entries"
-      :key="`${entry.date}:${entry.title}`"
-      type="button"
-      class="changelog-release"
-      @click="emit('open', entry)"
-    >
+    <button v-for="entry in entries" :key="`${entry.date}:${entry.title}`" type="button" class="changelog-release" @click="emit('open', entry)">
       <div class="changelog-release__meta">
         <span class="changelog-release__relative">
           {{ formatRelativeChangelogDate(localeTag, entry.date) }}
@@ -51,37 +45,21 @@ function remainingChangeCount(entry: ChangelogEntry): number {
             {{ releaseTitle(entry) }}
           </h3>
           <div class="changelog-release__badges">
-            <span
-              v-if="isLatest(entry)"
-              class="changelog-badge changelog-badge--success"
-            >
+            <span v-if="isLatest(entry)" class="changelog-badge changelog-badge--success">
               {{ t("changelog.latest") }}
             </span>
-            <span
-              v-if="isCurrentRelease(entry, currentVersion)"
-              class="changelog-badge changelog-badge--accent"
-            >
+            <span v-if="isCurrentRelease(entry, currentVersion)" class="changelog-badge changelog-badge--accent">
               {{ t("changelog.current") }}
             </span>
           </div>
         </div>
 
-        <ul
-          v-if="entry.changes.length"
-          class="changelog-release__preview"
-        >
-          <li
-            v-for="change in previewChanges(entry)"
-            :key="change"
-            class="changelog-release__preview-item"
-          >
+        <ul v-if="entry.changes.length" class="changelog-release__preview">
+          <li v-for="change in previewChanges(entry)" :key="change" class="changelog-release__preview-item">
             <i class="pi pi-check-circle changelog-release__preview-icon" aria-hidden="true"></i>
             <span>{{ change }}</span>
           </li>
-          <li
-            v-if="remainingChangeCount(entry)"
-            class="changelog-release__preview-more"
-          >
+          <li v-if="remainingChangeCount(entry)" class="changelog-release__preview-more">
             {{ t("changelog.morePoints", { count: remainingChangeCount(entry) }) }}
           </li>
         </ul>

@@ -16,8 +16,7 @@ const SHEETS = ["instructions", "rotation", "shifts"] as const;
  */
 function catalogProblems(locales: readonly string[], translate: Translate): string[] {
   const problems: string[] = [];
-  const everywhere = (key: MessageKey, normalize = normalizeLabel) =>
-    new Set(locales.map((locale) => normalize(translate(locale, key))));
+  const everywhere = (key: MessageKey, normalize = normalizeLabel) => new Set(locales.map((locale) => normalize(translate(locale, key))));
   const fields = FIELDS.map((field) => [field, everywhere(`excel.labels.${field}`)] as const);
 
   fields.forEach(([field, labels], index) => {

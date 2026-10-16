@@ -11,8 +11,7 @@ export default {
     // Absences name only their days, never the reason.
     absence: "{days}",
     // A rollout either overwrites planned weeks or skips them, never both.
-    generated:
-      "1 Woche bis {weekOfYear} aus dem Rotationsmuster erzeugt | {count} Wochen bis {weekOfYear} aus dem Rotationsmuster erzeugt",
+    generated: "1 Woche bis {weekOfYear} aus dem Rotationsmuster erzeugt | {count} Wochen bis {weekOfYear} aus dem Rotationsmuster erzeugt",
     generatedOverwritten:
       "1 Woche bis {weekOfYear} aus dem Rotationsmuster erzeugt, {overwritten} davon überschrieben | {count} Wochen bis {weekOfYear} aus dem Rotationsmuster erzeugt, {overwritten} davon überschrieben",
     generatedSkipped:

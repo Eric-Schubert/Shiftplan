@@ -1,13 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APPLE_ENDPOINT,
-  FCM_ENDPOINT,
-  client,
-  closePushClient,
-  currentWeek,
-  openPushClient,
-  stubPushRelay,
-} from "./helpers/push-client";
+import { APPLE_ENDPOINT, FCM_ENDPOINT, client, closePushClient, currentWeek, openPushClient, stubPushRelay } from "./helpers/push-client";
 import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);

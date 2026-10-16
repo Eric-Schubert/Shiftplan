@@ -48,7 +48,7 @@ describe("translation keys in app code", () => {
     const source = [
       '<template>{{ $t("common.meta.nope") }} {{ t("common.meta.description") }}',
       '<i18n-t keypath="app.push.install.share" tag="li" /><i18n-t tag="p" keypath="app.push.nope" /></template>',
-      "<script setup>const { t } = useI18n(); t('common.meta'); i18n.tm(\"primevue.fileSizeTypes\"); format(\"x\");",
+      '<script setup>const { t } = useI18n(); t(\'common.meta\'); i18n.tm("primevue.fileSizeTypes"); format("x");',
       'const KEYS = { open: "requests.status.open", gone: "requests.status.gon" };',
       't(busy ? "app.push.checking" : `app.push.chekcing`); const key = "absence.remove.day"; t(`absence.reasons.${reason}`);',
       "</script>",

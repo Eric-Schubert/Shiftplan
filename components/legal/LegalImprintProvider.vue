@@ -7,11 +7,7 @@ const imprint = computed(() => runtimeConfig.public.imprint || {});
 const addressLines = computed(() => imprintAddressLines(imprint.value));
 
 const hasCoreImprint = computed(
-  () =>
-    Boolean(imprint.value.providerName) &&
-    Boolean(imprint.value.streetAddress) &&
-    Boolean(imprint.value.postalCode) &&
-    Boolean(imprint.value.city)
+  () => Boolean(imprint.value.providerName) && Boolean(imprint.value.streetAddress) && Boolean(imprint.value.postalCode) && Boolean(imprint.value.city)
 );
 // § 5 Abs. 1 DDG also requires an e-mail address. Without it the data shows with a warning.
 const missingEmail = computed(() => !imprint.value.publicEmail);
@@ -25,11 +21,7 @@ const taxIdLabel = computed(() => (/-\d{5}$/.test(imprint.value.vatId ?? "") ? "
 
     <div v-if="hasCoreImprint" class="mt-4 space-y-5">
       <address class="not-italic text-base leading-7 text-[var(--text-1)]">
-        <span
-          v-for="line in addressLines"
-          :key="line"
-          class="block"
-        >
+        <span v-for="line in addressLines" :key="line" class="block">
           {{ line }}
         </span>
       </address>
@@ -71,7 +63,10 @@ const taxIdLabel = computed(() => (/-\d{5}$/.test(imprint.value.vatId ?? "") ? "
       </dl>
     </div>
 
-    <div v-if="!hasCoreImprint || missingEmail" class="mt-4 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
+    <div
+      v-if="!hasCoreImprint || missingEmail"
+      class="mt-4 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]"
+    >
       Das Impressum ist noch nicht vollständig konfiguriert.
     </div>
   </section>

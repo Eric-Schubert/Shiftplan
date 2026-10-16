@@ -1,10 +1,6 @@
 import { formatDay } from "~/shared/utils/format/day";
 import type { MessageKey } from "~/i18n/types";
-import type {
-  HolidayBannerItem,
-  PublicHoliday,
-  SchoolHolidayPeriod,
-} from "~/types/holiday";
+import type { HolidayBannerItem, PublicHoliday, SchoolHolidayPeriod } from "~/types/holiday";
 
 /** Short-name keys by the holiday name the holiday API sends (German); the names are data, not UI text. */
 export const SHORT_NAME_KEYS: Record<string, MessageKey> = {
@@ -43,11 +39,7 @@ export function shortenHolidayName(name: string, translate: (key: MessageKey) =>
   return key ? translate(key) : name;
 }
 
-export function buildHolidayBannerItems(
-  locale: string,
-  holidays: PublicHoliday[],
-  schoolHolidays: SchoolHolidayPeriod[]
-): HolidayBannerItem[] {
+export function buildHolidayBannerItems(locale: string, holidays: PublicHoliday[], schoolHolidays: SchoolHolidayPeriod[]): HolidayBannerItem[] {
   const holidayItems: HolidayBannerItem[] = holidays.map((holiday) => ({
     key: `holiday-${holiday.date}-${holiday.name}`,
     label: holiday.name,

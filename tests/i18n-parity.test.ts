@@ -9,13 +9,10 @@ const OTHER_LOCALES = { en };
 function messages(node: unknown, path: string): Array<[string, string]> {
   if (typeof node === "string") return [[path, node]];
   if (Array.isArray(node)) return node.flatMap((child, index) => messages(child, `${path}[${index}]`));
-  return Object.entries(node as Record<string, unknown>).flatMap(([name, child]) =>
-    messages(child, path ? `${path}.${name}` : name)
-  );
+  return Object.entries(node as Record<string, unknown>).flatMap(([name, child]) => messages(child, path ? `${path}.${name}` : name));
 }
 
-const placeholders = (message: string) =>
-  [...new Set([...message.matchAll(/\{\s*(\w+)\s*\}/g)].map((match) => match[1]))].sort();
+const placeholders = (message: string) => [...new Set([...message.matchAll(/\{\s*(\w+)\s*\}/g)].map((match) => match[1]))].sort();
 
 /** Plural forms: parts split by a „|“ outside of {…}. */
 function forms(message: string): number {

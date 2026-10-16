@@ -11,15 +11,11 @@ export function useRotationPatternInteractions() {
   const availableStaffForAssign = computed(() => {
     if (!assignContext.value || !dataStore.rotationPattern) return [];
 
-    const weekData = dataStore.rotationPattern.weeks.find(
-      (week) => week.pattern_week === assignContext.value?.patternWeek
-    );
+    const weekData = dataStore.rotationPattern.weeks.find((week) => week.pattern_week === assignContext.value?.patternWeek);
 
     if (!weekData) return dataStore.activeStaff;
 
-    const shiftAssignment = weekData.assignments.find(
-      (assignment) => assignment.shift.shift_id === assignContext.value?.shiftId
-    );
+    const shiftAssignment = weekData.assignments.find((assignment) => assignment.shift.shift_id === assignContext.value?.shiftId);
 
     if (!shiftAssignment) return dataStore.activeStaff;
 
@@ -37,11 +33,7 @@ export function useRotationPatternInteractions() {
 
     assigning.value = true;
     try {
-      await dataStore.assignToRotation(
-        assignContext.value.patternWeek,
-        staffId,
-        assignContext.value.shiftId
-      );
+      await dataStore.assignToRotation(assignContext.value.patternWeek, staffId, assignContext.value.shiftId);
       showAssignDialog.value = false;
     } finally {
       assigning.value = false;

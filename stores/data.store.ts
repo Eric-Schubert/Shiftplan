@@ -2,26 +2,9 @@ import { defineStore } from "pinia";
 import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import type { Shift, ShiftCreateDTO, ShiftUpdateDTO } from "~/types/shift";
 import type { FullRotationPattern, RotationConfig } from "~/types/rotation";
-import {
-  fetchStaffData,
-  createStaffRecord,
-  updateStaffRecord,
-  deleteStaffRecord,
-  toggleStaffActiveStatus,
-} from "./data/staff";
-import {
-  fetchShiftsData,
-  createShiftRecord,
-  updateShiftRecord,
-  deleteShiftRecord,
-  toggleShiftActiveStatus,
-} from "./data/shifts";
-import {
-  fetchRotationData,
-  updateRotationConfigData,
-  assignToRotationData,
-  unassignFromRotationData,
-} from "./data/rotation";
+import { fetchStaffData, createStaffRecord, updateStaffRecord, deleteStaffRecord, toggleStaffActiveStatus } from "./data/staff";
+import { fetchShiftsData, createShiftRecord, updateShiftRecord, deleteShiftRecord, toggleShiftActiveStatus } from "./data/shifts";
+import { fetchRotationData, updateRotationConfigData, assignToRotationData, unassignFromRotationData } from "./data/rotation";
 
 export const useDataStore = defineStore("data", {
   state: () => ({
@@ -58,11 +41,7 @@ export const useDataStore = defineStore("data", {
     async init() {
       if (this.initialized) return;
 
-      await Promise.all([
-        this.fetchStaff(),
-        this.fetchShifts(),
-        this.fetchRotation(),
-      ]);
+      await Promise.all([this.fetchStaff(), this.fetchShifts(), this.fetchRotation()]);
 
       this.initialized = true;
     },
@@ -115,19 +94,11 @@ export const useDataStore = defineStore("data", {
       await updateRotationConfigData(this, data);
     },
 
-    async assignToRotation(
-      patternWeek: number,
-      staffId: number,
-      shiftId: number
-    ): Promise<void> {
+    async assignToRotation(patternWeek: number, staffId: number, shiftId: number): Promise<void> {
       await assignToRotationData(this, patternWeek, staffId, shiftId);
     },
 
-    async unassignFromRotation(
-      patternWeek: number,
-      staffId: number,
-      shiftId: number
-    ): Promise<void> {
+    async unassignFromRotation(patternWeek: number, staffId: number, shiftId: number): Promise<void> {
       await unassignFromRotationData(this, patternWeek, staffId, shiftId);
     },
   },

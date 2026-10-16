@@ -47,17 +47,9 @@ const coverageNote = computed(() =>
 
 <template>
   <section class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
-    <div
-      class="swipe-content min-w-0 space-y-4"
-      :class="swipeClass"
-      :style="swipeStyle"
-    >
+    <div class="swipe-content min-w-0 space-y-4" :class="swipeClass" :style="swipeStyle">
       <div class="lg:hidden">
-        <HolidayInfo
-          :year="appStore.selectedYear"
-          :week="appStore.selectedWeek"
-          banner
-        />
+        <HolidayInfo :year="appStore.selectedYear" :week="appStore.selectedWeek" banner />
       </div>
 
       <PlannerCurrentWeekSection
@@ -84,18 +76,11 @@ const coverageNote = computed(() =>
       <div class="mb-3 flex items-center justify-between gap-3">
         <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ t("planner.week.board.calendar") }}</h3>
         <span class="inline-flex items-center gap-1.5 text-xs text-[var(--text-3)]">
-          <span
-            class="h-1.5 w-1.5 rounded-full"
-            :class="pending ? 'bg-amber-500' : 'bg-emerald-500'"
-            aria-hidden="true"
-          ></span>
+          <span class="h-1.5 w-1.5 rounded-full" :class="pending ? 'bg-amber-500' : 'bg-emerald-500'" aria-hidden="true"></span>
           {{ pending ? t("planner.week.board.updating") : t("planner.week.board.current") }}
         </span>
       </div>
-      <HolidayInfo
-        :year="appStore.selectedYear"
-        :week="appStore.selectedWeek"
-      />
+      <HolidayInfo :year="appStore.selectedYear" :week="appStore.selectedWeek" />
     </aside>
   </section>
 </template>

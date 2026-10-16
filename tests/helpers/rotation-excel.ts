@@ -22,11 +22,7 @@ function seedDatabase(database: DatabaseType) {
   insertShift.run("Früh", "06:00", "14:00", "#22c55e", 1);
   insertShift.run("Spät", "14:00", "22:00", "#3b82f6", 2);
 
-  database
-    .prepare(
-      "INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 2, 2026, 1)"
-    )
-    .run();
+  database.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 2, 2026, 1)").run();
   database.prepare("INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (1, 1, 1)").run();
 }
 

@@ -61,9 +61,7 @@ export function assignMissingShortCodes(database) {
     database.prepare("SELECT staff_id, name FROM staff WHERE short_code IS NULL ORDER BY staff_id").all()
   );
   if (missing.length === 0) return 0;
-  const codes = /** @type {{ short_code: string }[]} */ (
-    database.prepare("SELECT short_code FROM staff WHERE short_code IS NOT NULL").all()
-  );
+  const codes = /** @type {{ short_code: string }[]} */ (database.prepare("SELECT short_code FROM staff WHERE short_code IS NOT NULL").all());
   const taken = new Set(codes.map((row) => row.short_code));
   const update = database.prepare("UPDATE staff SET short_code = ? WHERE staff_id = ?");
   for (const row of missing) {

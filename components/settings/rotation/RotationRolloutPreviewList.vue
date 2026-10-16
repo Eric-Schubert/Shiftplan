@@ -28,9 +28,7 @@ function weekStatus(week: GenerationPreviewWeek): { label: MessageKey; tone: str
 
 <template>
   <div class="overflow-hidden rounded-xl border border-[var(--border-soft)]">
-    <div
-      class="flex items-center justify-between bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-1)]"
-    >
+    <div class="flex items-center justify-between bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-1)]">
       <span>
         {{ t("settings.rollout.preview.title") }}
         <template v-if="lastPreviewWeek">
@@ -46,11 +44,7 @@ function weekStatus(week: GenerationPreviewWeek): { label: MessageKey; tone: str
       <i v-if="loading" class="pi pi-spinner pi-spin text-[var(--text-3)]" aria-hidden="true"></i>
     </div>
     <ul class="max-h-56 divide-y divide-[var(--border-soft)] overflow-y-auto text-sm">
-      <li
-        v-for="week in preview"
-        :key="`${week.year}-${week.week}`"
-        class="flex items-center justify-between gap-3 px-4 py-1.5"
-      >
+      <li v-for="week in preview" :key="`${week.year}-${week.week}`" class="flex items-center justify-between gap-3 px-4 py-1.5">
         <span class="text-[var(--text-1)]">
           {{ weekOfYearLabel(localeTag, week.year, week.week) }}
           <span class="text-[var(--text-3)]">· {{ t("settings.rotation.patternWeek", { week: week.pattern_week }) }}</span>

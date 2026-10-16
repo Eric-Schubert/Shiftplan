@@ -60,11 +60,9 @@ export function formatWeekDateRange({ start, end }: { start: Date; end: Date }):
 /** utils/analytics/format.ts */
 export const analytics = {
   formatNumber: (value: number) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(value || 0),
-  formatAverage: (value: number) =>
-    new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 0 }).format(value || 0),
+  formatAverage: (value: number) => new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 0 }).format(value || 0),
   formatDate: (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }),
-  formatLongDate: (date: string) =>
-    new Date(`${date}T12:00:00`).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" }),
+  formatLongDate: (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" }),
 };
 
 /** utils/timestamp.ts */

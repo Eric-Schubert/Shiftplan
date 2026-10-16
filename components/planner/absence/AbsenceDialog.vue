@@ -23,9 +23,7 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
-const staffOptions = computed(() =>
-  dataStore.activeStaff.map((staff) => ({ label: staff.name, value: staff.staff_id }))
-);
+const staffOptions = computed(() => dataStore.activeStaff.map((staff) => ({ label: staff.name, value: staff.staff_id })));
 const { t } = useI18n();
 const reasonOptions = computed(() =>
   (Object.keys(ABSENCE_REASON_KEYS) as AbsenceReason[]).map((reason) => ({ label: t(ABSENCE_REASON_KEYS[reason]), value: reason }))
@@ -74,12 +72,7 @@ async function save() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('absence.add')"
-    modal
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('absence.add')" modal :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <form class="space-y-4 text-sm" @submit.prevent="save">
       <div class="space-y-1.5">
         <label for="absence-staff" class="block font-medium text-[var(--text-2)]">{{ t("absence.dialog.staff") }}</label>
@@ -99,14 +92,7 @@ async function save() {
 
       <div class="space-y-1.5">
         <label for="absence-reason" class="block font-medium text-[var(--text-2)]">{{ t("absence.reason") }}</label>
-        <PrimeSelect
-          v-model="reason"
-          input-id="absence-reason"
-          :options="reasonOptions"
-          option-label="label"
-          option-value="value"
-          class="w-full"
-        />
+        <PrimeSelect v-model="reason" input-id="absence-reason" :options="reasonOptions" option-label="label" option-value="value" class="w-full" />
       </div>
 
       <div class="space-y-1.5">

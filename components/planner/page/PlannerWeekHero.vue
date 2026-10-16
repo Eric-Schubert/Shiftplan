@@ -79,12 +79,7 @@ const { t } = useI18n();
         <button type="button" :aria-label="t('planner.week.hero.previous')" @click="emit('previous')">
           <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i>
         </button>
-        <button
-          type="button"
-          :class="{ 'is-active': isCurrentWeek }"
-          :aria-current="isCurrentWeek ? 'date' : undefined"
-          @click="emit('today')"
-        >
+        <button type="button" :class="{ 'is-active': isCurrentWeek }" :aria-current="isCurrentWeek ? 'date' : undefined" @click="emit('today')">
           {{ t("planner.week.hero.today") }}
         </button>
         <button type="button" :aria-label="t('planner.week.hero.next')" @click="emit('next')">

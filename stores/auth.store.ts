@@ -1,11 +1,6 @@
 import { defineStore } from "pinia";
 import type { SessionUser } from "~/types/auth";
-import {
-  SESSION_EXTEND_INTERVAL_MS,
-  readCsrfCookie,
-  type AuthSessionResponse,
-  type LoginResponse,
-} from "./auth/session";
+import { SESSION_EXTEND_INTERVAL_MS, readCsrfCookie, type AuthSessionResponse, type LoginResponse } from "./auth/session";
 import { useConfigStore } from "./config.store";
 
 export const useAuthStore = defineStore("auth", {
@@ -78,10 +73,7 @@ export const useAuthStore = defineStore("auth", {
       return false;
     },
 
-    async login(
-      username: string,
-      password: string
-    ): Promise<{ success: boolean; message?: string }> {
+    async login(username: string, password: string): Promise<{ success: boolean; message?: string }> {
       try {
         const result = await $fetch<LoginResponse>("/api/auth/login", {
           method: "POST",

@@ -16,12 +16,7 @@ export function stringAt(value: unknown, path: string, errors: MutableErrorList)
   return value;
 }
 
-export function stringArrayAt(
-  value: unknown,
-  path: string,
-  errors: MutableErrorList,
-  options: { minLength?: number } = {}
-): string[] {
+export function stringArrayAt(value: unknown, path: string, errors: MutableErrorList, options: { minLength?: number } = {}): string[] {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     errors.push(`${path} must be a list of strings`);
     return [];
@@ -40,12 +35,7 @@ export function booleanAt(value: unknown, path: string, errors: MutableErrorList
   return value;
 }
 
-export function integerAt(
-  value: unknown,
-  path: string,
-  errors: MutableErrorList,
-  options: { min?: number; max?: number } = {}
-): number {
+export function integerAt(value: unknown, path: string, errors: MutableErrorList, options: { min?: number; max?: number } = {}): number {
   if (!Number.isInteger(value)) {
     errors.push(`${path} must be an integer`);
     return 0;
@@ -60,12 +50,7 @@ export function integerAt(
   return numberValue;
 }
 
-export function oneOf(
-  value: unknown,
-  path: string,
-  allowed: Set<string>,
-  errors: MutableErrorList
-): void {
+export function oneOf(value: unknown, path: string, allowed: Set<string>, errors: MutableErrorList): void {
   if (typeof value !== "string" || !allowed.has(value)) {
     errors.push(`${path} must be one of: ${Array.from(allowed).join(", ")}`);
   }

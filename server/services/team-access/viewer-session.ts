@@ -19,9 +19,7 @@ export function createViewerSession(): { token: string; expiresAt: number } {
 
   const token = randomBytes(32).toString("hex");
   const expiresAt = now + VIEWER_SESSION_MS;
-  db.prepare(
-    "INSERT INTO viewer_sessions (session_token, created_at, expires_at) VALUES (?, ?, ?)"
-  ).run(token, now, expiresAt);
+  db.prepare("INSERT INTO viewer_sessions (session_token, created_at, expires_at) VALUES (?, ?, ?)").run(token, now, expiresAt);
   return { token, expiresAt };
 }
 
@@ -39,9 +37,7 @@ export function validateViewerSession(token: string | undefined): boolean {
   if (!token) return false;
 
   const db = getAdminDatabase();
-  const session = db
-    .prepare("SELECT expires_at FROM viewer_sessions WHERE session_token = ?")
-    .get(token) as { expires_at: number } | undefined;
+  const session = db.prepare("SELECT expires_at FROM viewer_sessions WHERE session_token = ?").get(token) as { expires_at: number } | undefined;
   if (!session) return false;
 
   const now = Date.now();
@@ -52,10 +48,7 @@ export function validateViewerSession(token: string | undefined): boolean {
 
   // Keep devices that are in regular use signed in without a write on every request.
   if (session.expires_at - now < VIEWER_SESSION_MS / 2) {
-    db.prepare("UPDATE viewer_sessions SET expires_at = ? WHERE session_token = ?").run(
-      now + VIEWER_SESSION_MS,
-      token
-    );
+    db.prepare("UPDATE viewer_sessions SET expires_at = ? WHERE session_token = ?").run(now + VIEWER_SESSION_MS, token);
   }
   return true;
 }

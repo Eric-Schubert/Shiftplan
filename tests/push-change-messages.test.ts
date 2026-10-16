@@ -26,7 +26,10 @@ describe("plan change texts", () => {
     const { buildChangePayload } = await messages();
     const days = ["2026-10-11", "2026-10-07", "2026-10-05", "2026-10-09", "2026-10-06", "2026-10-08"];
     // The queue keeps the raw date; the text adds it in the recipient's language.
-    const payload = buildChangePayload(days.map((date) => change({ date })), "de")!;
+    const payload = buildChangePayload(
+      days.map((date) => change({ date })),
+      "de"
+    )!;
 
     expect(payload.body.split("\n").map((line) => line.split(":")[0])).toEqual([
       "KW 41 · Früh Mo. 05.10.",

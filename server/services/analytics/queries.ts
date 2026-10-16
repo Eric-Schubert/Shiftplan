@@ -1,11 +1,7 @@
 import { getDatabase } from "~/server/utils/database";
 import { getAnalyticsConfig } from "~/server/config/analytics-config";
 import { shiftDate } from "~/server/services/analytics/dates";
-import type {
-  AnalyticsDailyMetric,
-  AnalyticsLocationMetric,
-  AnalyticsPageMetric,
-} from "~/types/analytics";
+import type { AnalyticsDailyMetric, AnalyticsLocationMetric, AnalyticsPageMetric } from "~/types/analytics";
 
 type DailyRow = {
   date: string;

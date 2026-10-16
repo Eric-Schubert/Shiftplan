@@ -16,9 +16,7 @@ describe("auth and planner e2e", () => {
       csrf: true,
       body: { username: "newplanner", password: "Newplanner1234", role: "planner" },
     });
-    const user = client.adminDb
-      .prepare("SELECT username, role, active FROM users WHERE username = ?")
-      .get("newplanner");
+    const user = client.adminDb.prepare("SELECT username, role, active FROM users WHERE username = ?").get("newplanner");
 
     expect(created.status).toBe(200);
     expect(created.json).toMatchObject({
@@ -41,9 +39,7 @@ describe("auth and planner e2e", () => {
       csrf: true,
       body: { username: "weakplanner", password: "weakpass1", role: "planner" },
     });
-    const user = client.adminDb
-      .prepare("SELECT username FROM users WHERE username = ?")
-      .get("weakplanner");
+    const user = client.adminDb.prepare("SELECT username FROM users WHERE username = ?").get("weakplanner");
 
     expect(created.status).toBe(400);
     expect(user).toBeUndefined();

@@ -80,9 +80,7 @@ export async function createApiClient(
   const mainDb = databaseModule.getDatabase();
   const adminDb = databaseModule.getAdminDatabase();
   adminDb.prepare("DELETE FROM users").run();
-  const insertUser = adminDb.prepare(
-    "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))"
-  );
+  const insertUser = adminDb.prepare("INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))");
   insertUser.run("admin", bcrypt.hashSync("admin1234", 8), "admin");
   insertUser.run("planner", bcrypt.hashSync("planner1234", 8), "planner");
   seed?.(mainDb);

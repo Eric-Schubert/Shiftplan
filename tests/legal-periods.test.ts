@@ -36,12 +36,8 @@ describe("periods in the legal pages", () => {
   });
 
   it("notices a period typed into the text", () => {
-    expect(writtenPeriods("<template><span>Gründe werden nach 90 Tagen gelöscht.</span></template>")).toEqual([
-      "90 Tagen",
-    ]);
-    expect(writtenPeriods("<template><dd>werden ein\n  Jahr nach Eingang gelöscht.</dd></template>")).toEqual([
-      "ein Jahr",
-    ]);
+    expect(writtenPeriods("<template><span>Gründe werden nach 90 Tagen gelöscht.</span></template>")).toEqual(["90 Tagen"]);
+    expect(writtenPeriods("<template><dd>werden ein\n  Jahr nach Eingang gelöscht.</dd></template>")).toEqual(["ein Jahr"]);
     expect(writtenPeriods('<template>nach {{ periodText(retention.analytics, "dative") }}</template>')).toEqual([]);
   });
 });

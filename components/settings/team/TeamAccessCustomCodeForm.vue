@@ -20,14 +20,7 @@ const code = defineModel<string>("code", { required: true });
         spellcheck="false"
         :disabled="saving"
       />
-      <PrimeButton
-        type="submit"
-        :label="$t('common.actions.save')"
-        severity="secondary"
-        outlined
-        class="min-h-11"
-        :disabled="code.trim().length < 6"
-      />
+      <PrimeButton type="submit" :label="$t('common.actions.save')" severity="secondary" outlined class="min-h-11" :disabled="code.trim().length < 6" />
     </div>
   </form>
 </template>

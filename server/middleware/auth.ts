@@ -1,11 +1,5 @@
 import type { H3Event } from "h3";
-import {
-  validateSession,
-  getSessionToken,
-  validateCsrfToken,
-  getCsrfTokenFromRequest,
-  refreshSessionCookies,
-} from "~/server/utils/session";
+import { validateSession, getSessionToken, validateCsrfToken, getCsrfTokenFromRequest, refreshSessionCookies } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 import { classifyRoute } from "~/server/config/route-policy";
 import { TeamAccessService } from "~/server/services/team-access.service";

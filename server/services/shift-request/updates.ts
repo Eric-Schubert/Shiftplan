@@ -38,9 +38,7 @@ export function setStatus(
 /** Marks who asked to undo a finished request, or clears the ask; `expected` is the ask seen before. */
 export function setUndoRequest(requestId: number, staffId: number | null, expected: number | null): ShiftRequest {
   const result = getDatabase()
-    .prepare(
-      "UPDATE shift_requests SET undo_requested_by = ? WHERE request_id = ? AND status = 'done' AND undo_requested_by IS ?"
-    )
+    .prepare("UPDATE shift_requests SET undo_requested_by = ? WHERE request_id = ? AND status = 'done' AND undo_requested_by IS ?")
     .run(staffId, requestId, expected);
   if (result.changes === 0) conflict("errors.requests.alreadyHandled");
   return getById(requestId)!;

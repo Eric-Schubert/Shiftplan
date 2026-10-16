@@ -2,13 +2,7 @@ import { getDatabase } from "~/server/utils/database";
 import { getAnalyticsConfig } from "~/server/config/analytics-config";
 import { clampSummaryDays, getBerlinDate, shiftDate } from "~/server/services/analytics/dates";
 import { queryDaily, queryLocations, queryTopPages } from "~/server/services/analytics/queries";
-import {
-  hashDailyVisitor,
-  normalizeCountryCode,
-  normalizePath,
-  normalizeReferrer,
-  normalizeText,
-} from "~/server/services/analytics/visitor";
+import { hashDailyVisitor, normalizeCountryCode, normalizePath, normalizeReferrer, normalizeText } from "~/server/services/analytics/visitor";
 import type { AnalyticsSummary } from "~/types/analytics";
 
 export { isLikelyBot, normalizeAnalyticsPath, readDecodedHeader } from "~/server/services/analytics/request";

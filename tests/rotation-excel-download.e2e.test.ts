@@ -26,11 +26,13 @@ describe("Rotation Excel template download", () => {
     const disposition = response.headers.find(([name]) => name.toLowerCase() === "content-disposition")?.[1];
 
     expect(response.status).toBe(200);
-    expect(disposition).toBe(
-      "attachment; filename=\"shiftplan-rotation-template.xlsx\"; filename*=UTF-8''shiftplan-rotation-template.xlsx"
-    );
+    expect(disposition).toBe("attachment; filename=\"shiftplan-rotation-template.xlsx\"; filename*=UTF-8''shiftplan-rotation-template.xlsx");
     expect(dispositionFileName(disposition)).toBe("shiftplan-rotation-template.xlsx");
-    expect(Buffer.from(response.body as Uint8Array).subarray(0, 2).toString()).toBe("PK");
+    expect(
+      Buffer.from(response.body as Uint8Array)
+        .subarray(0, 2)
+        .toString()
+    ).toBe("PK");
   });
 
   it("needs a planner", async () => {
@@ -41,7 +43,7 @@ describe("Rotation Excel template download", () => {
 describe("Content-Disposition file names", () => {
   it.each([
     ["shiftplan-rotation-template.xlsx", 'filename="shiftplan-rotation-template.xlsx"'],
-    ["Schichtplan Übersicht.xlsx", 'filename="Schichtplan _bersicht.xlsx"; filename*=UTF-8\'\'Schichtplan%20%C3%9Cbersicht.xlsx'],
+    ["Schichtplan Übersicht.xlsx", "filename=\"Schichtplan _bersicht.xlsx\"; filename*=UTF-8''Schichtplan%20%C3%9Cbersicht.xlsx"],
     ['Plan "A" (2).xlsx', "filename=\"Plan _A_ (2).xlsx\"; filename*=UTF-8''Plan%20%22A%22%20%282%29.xlsx"],
   ])("keeps %s through the header", (name, part) => {
     const header = attachmentDisposition(name);

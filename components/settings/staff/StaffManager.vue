@@ -38,10 +38,7 @@ async function toggleActive(staff: Staff) {
 
 <template>
   <div class="space-y-4">
-    <StaffManagementHeader
-      :count="dataStore.staff.length"
-      @create="openCreateDialog"
-    />
+    <StaffManagementHeader :count="dataStore.staff.length" @create="openCreateDialog" />
 
     <StaffManagementList
       :staff="dataStore.staff"
@@ -51,22 +48,10 @@ async function toggleActive(staff: Staff) {
       @delete="openDeleteDialog"
     />
 
-    <StaffFormDialog
-      :visible="showFormDialog"
-      :staff="editingStaff"
-      @update:visible="showFormDialog = $event"
-    />
+    <StaffFormDialog :visible="showFormDialog" :staff="editingStaff" @update:visible="showFormDialog = $event" />
 
-    <StaffDeleteDialog
-      :visible="showDeleteDialog"
-      :staff="staffToDelete"
-      @update:visible="showDeleteDialog = $event"
-    />
+    <StaffDeleteDialog :visible="showDeleteDialog" :staff="staffToDelete" @update:visible="showDeleteDialog = $event" />
 
-    <StaffDeactivateDialog
-      :visible="showDeactivateDialog"
-      :staff="staffToDeactivate"
-      @update:visible="showDeactivateDialog = $event"
-    />
+    <StaffDeactivateDialog :visible="showDeactivateDialog" :staff="staffToDeactivate" @update:visible="showDeactivateDialog = $event" />
   </div>
 </template>

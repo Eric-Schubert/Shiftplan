@@ -9,17 +9,48 @@ const [mon, tue] = week as [string, string];
 
 function shift(staff: Array<[number, string]>, minStaff = 1): ShiftWithStaff {
   return {
-    shift_id: 1, name: "Spät", active: 1, start_time: "09:30", end_time: "18:00", color: "#000", min_staff: minStaff, sort_order: 1,
+    shift_id: 1,
+    name: "Spät",
+    active: 1,
+    start_time: "09:30",
+    end_time: "18:00",
+    color: "#000",
+    min_staff: minStaff,
+    sort_order: 1,
     assigned_staff: staff.map(([staff_id, name]) => ({ staff_id, name, active: 1, is_parttime: 0, short_code: null })),
   };
 }
 
 function change(staffId: number, name: string, date: string, kind: "add" | "remove"): ShiftDayChange {
-  return { change_id: 0, staff_id: staffId, staff_name: name, shift_id: 1, shift_name: "Spät", change_date: date, kind, source: "web", created_by: "", created_at: "" };
+  return {
+    change_id: 0,
+    staff_id: staffId,
+    staff_name: name,
+    shift_id: 1,
+    shift_name: "Spät",
+    change_date: date,
+    kind,
+    source: "web",
+    created_by: "",
+    created_at: "",
+  };
 }
 
 function absence(staffId: number, date: string): Absence {
-  return { absence_id: 0, staff_id: staffId, staff_name: "", absence_date: date, shift_id: null, shift_name: null, batch_id: null, range_from: date, range_to: date, source: "web", created_by: "", created_at: "" };
+  return {
+    absence_id: 0,
+    staff_id: staffId,
+    staff_name: "",
+    absence_date: date,
+    shift_id: null,
+    shift_name: null,
+    batch_id: null,
+    range_from: date,
+    range_to: date,
+    source: "web",
+    created_by: "",
+    created_at: "",
+  };
 }
 
 describe("week grid", () => {
@@ -31,7 +62,20 @@ describe("week grid", () => {
   });
 
   it("marks days below the minimum as short", () => {
-    const row = weekGridRow(shift([[1, "AR"], [2, "KM"]], 2), week, [], [absence(2, tue)], new Set(), "de-DE");
+    const row = weekGridRow(
+      shift(
+        [
+          [1, "AR"],
+          [2, "KM"],
+        ],
+        2
+      ),
+      week,
+      [],
+      [absence(2, tue)],
+      new Set(),
+      "de-DE"
+    );
     expect(row.map((cell) => cell.status)).toEqual(["ok", "short", "ok", "ok", "ok"]);
   });
 

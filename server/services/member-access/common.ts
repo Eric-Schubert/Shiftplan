@@ -6,8 +6,6 @@ export function sha256(value: string): string {
 }
 
 export function staffName(staffId: number): string | null {
-  const row = getDatabase()
-    .prepare("SELECT name FROM staff WHERE staff_id = ? AND active = 1")
-    .get(staffId) as { name: string } | undefined;
+  const row = getDatabase().prepare("SELECT name FROM staff WHERE staff_id = ? AND active = 1").get(staffId) as { name: string } | undefined;
   return row?.name ?? null;
 }

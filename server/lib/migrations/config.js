@@ -20,11 +20,7 @@ function loadBackendConfig() {
   const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();
   const cwdPath = path.resolve(process.cwd(), "config", "backend.config.json");
   const sourcePath = fileURLToPath(new URL("../../../config/backend.config.json", import.meta.url));
-  const configPath = configuredPath
-    ? path.resolve(configuredPath)
-    : fs.existsSync(cwdPath)
-      ? cwdPath
-      : sourcePath;
+  const configPath = configuredPath ? path.resolve(configuredPath) : fs.existsSync(cwdPath) ? cwdPath : sourcePath;
 
   return JSON.parse(fs.readFileSync(configPath, "utf-8"));
 }

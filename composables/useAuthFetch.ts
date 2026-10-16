@@ -14,15 +14,12 @@ export function useAuthFetch() {
     }
   }
 
-  async function authFetch<T = any>(
-    url: string,
-    options: Parameters<typeof $fetch>[1] = {}
-  ): Promise<T> {
+  async function authFetch<T = any>(url: string, options: Parameters<typeof $fetch>[1] = {}): Promise<T> {
     const method = String(options.method || "GET").toUpperCase();
     const needsCsrf = configStore.csrf.methods.includes(method);
 
     const headers: Record<string, string> = {
-      ...(options.headers as Record<string, string> || {}),
+      ...((options.headers as Record<string, string>) || {}),
     };
 
     if (needsCsrf && authStore.csrfToken) {

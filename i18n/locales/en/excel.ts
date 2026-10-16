@@ -14,11 +14,9 @@ export default {
   nameAmbiguous: "{label} '{name}' in {location} exists more than once",
   shiftIdUnknown: "Shift ID {id} in row {row} is unknown or inactive",
   staffNameMissing: "Row {row} has no name in the “Staff member” column",
-  weekColumnBeyondCycle:
-    "The column “Pattern week {week}” does not fit the cycle length of {cycle}. Increase the cycle length or delete the column.",
+  weekColumnBeyondCycle: "The column “Pattern week {week}” does not fit the cycle length of {cycle}. Increase the cycle length or delete the column.",
   weekColumnTwice: "The column “Pattern week {week}” appears twice",
-  weekColumnMissing:
-    "The column “Pattern week {week}” is missing. A cycle length of {cycle} needs the columns Pattern week 1 to Pattern week {cycle}.",
+  weekColumnMissing: "The column “Pattern week {week}” is missing. A cycle length of {cycle} needs the columns Pattern week 1 to Pattern week {cycle}.",
   // Written into the template and read back by the import, in every language. The import ignores
   // case, spaces, „(…)“ and „-“ and takes „ae“ for „ä“. Pattern week and shift ID: earlier template.
   labels: {

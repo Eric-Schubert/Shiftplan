@@ -66,10 +66,7 @@ export function rotationRows(input: RotationSheetInput): XlsxCell[][] {
     ],
     [
       {
-        value:
-          staff.length === 0 || shifts.length === 0
-            ? t(locale, "excelTemplate.incomplete")
-            : currentWeekText(locale, current),
+        value: staff.length === 0 || shifts.length === 0 ? t(locale, "excelTemplate.incomplete") : currentWeekText(locale, current),
         style: "hint",
       },
     ],

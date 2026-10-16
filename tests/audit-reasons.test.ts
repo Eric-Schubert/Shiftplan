@@ -35,24 +35,14 @@ const CASES: Array<[AuditReason, string]> = [
     { key: "audit.reason.generatedSkipped", params: { count: 1, year: 2026, week: 42, overwritten: 0, skipped: 3 } },
     "1 Woche bis KW 42/2026 aus dem Rotationsmuster erzeugt, 3 bereits geplante übersprungen",
   ],
-  [
-    { key: "audit.reason.patternImported", params: { cycle: 4, count: 1 } },
-    "Rotationsmuster aus Excel ersetzt: 4-Wochen-Zyklus, 1 Zuweisung",
-  ],
-  [
-    { key: "audit.reason.patternImported", params: { cycle: 1, count: 0 } },
-    "Rotationsmuster aus Excel ersetzt: 1-Wochen-Zyklus, 0 Zuweisungen",
-  ],
-  [
-    { key: "audit.reason.patternImported", params: { cycle: 6, count: 23 } },
-    "Rotationsmuster aus Excel ersetzt: 6-Wochen-Zyklus, 23 Zuweisungen",
-  ],
+  [{ key: "audit.reason.patternImported", params: { cycle: 4, count: 1 } }, "Rotationsmuster aus Excel ersetzt: 4-Wochen-Zyklus, 1 Zuweisung"],
+  [{ key: "audit.reason.patternImported", params: { cycle: 1, count: 0 } }, "Rotationsmuster aus Excel ersetzt: 1-Wochen-Zyklus, 0 Zuweisungen"],
+  [{ key: "audit.reason.patternImported", params: { cycle: 6, count: 23 } }, "Rotationsmuster aus Excel ersetzt: 6-Wochen-Zyklus, 23 Zuweisungen"],
 ];
 
 // The app renders with vue-i18n like AuditLogEntry.vue: the plural count is its own argument.
 const app = createI18n({ legacy: false, locale: DEFAULT_LOCALE, messages: { de, en } }).global;
-const appTranslate: Translate = (key, params) =>
-  typeof params.count === "number" ? app.t(key, params, params.count) : app.t(key, params);
+const appTranslate: Translate = (key, params) => (typeof params.count === "number" ? app.t(key, params, params.count) : app.t(key, params));
 const known = (key: string) => app.te(key);
 
 /** An entry as GET /api/audit returns it after the server stored `reason`. */
@@ -101,10 +91,8 @@ describe("audit reasons", () => {
 
   it("renders the same stored entry in the reader's language", () => {
     const english = createI18n({ legacy: false, locale: "en", fallbackLocale: DEFAULT_LOCALE, messages: { de, en } }).global;
-    const translate: Translate = (key, params) =>
-      typeof params.count === "number" ? english.t(key, params, params.count) : english.t(key, params);
-    const render = (reason: AuditReason) =>
-      entryReason({ ...written(reason), reason: null }, localeTag("en"), translate, (key) => english.te(key));
+    const translate: Translate = (key, params) => (typeof params.count === "number" ? english.t(key, params, params.count) : english.t(key, params));
+    const render = (reason: AuditReason) => entryReason({ ...written(reason), reason: null }, localeTag("en"), translate, (key) => english.te(key));
 
     expect(render(CASES[0]![0])).toBe("only Thu 08/10");
     expect(render(CASES[2]![0])).toBe("Swap Anna Weber ↔ Max Mustermann, Thu 08/10");

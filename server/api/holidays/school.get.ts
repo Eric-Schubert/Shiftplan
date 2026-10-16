@@ -11,9 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const year = parseInt(query.year as string);
   const week = query.week ? parseInt(query.week as string) : null;
-  const statesParam = Array.isArray(query.states)
-    ? query.states.join(",")
-    : query.states as string | undefined;
+  const statesParam = Array.isArray(query.states) ? query.states.join(",") : (query.states as string | undefined);
   const states = resolveSchoolHolidaySubdivisionCodes(event, statesParam);
 
   if (!year || isNaN(year)) {

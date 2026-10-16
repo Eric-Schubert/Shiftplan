@@ -37,7 +37,7 @@ describe("API error catalog guard", () => {
     ['error.statusMessage = "Nein";', "statusMessage"],
     ['setResponseStatus(event, 400, "Nicht erlaubt");', "Nicht erlaubt"],
     ['throw new TypeError("Ungültiger Wert");', "Ungültiger Wert"],
-    ['throw new RangeError(`Wert ${value} nicht erlaubt`);', " nicht erlaubt"],
+    ["throw new RangeError(`Wert ${value} nicht erlaubt`);", " nicht erlaubt"],
     ['throw new Error("Datei fehlt");', "Datei fehlt"],
     ['throw new XlsxError("Kaputte Datei");', "Kaputte Datei"],
     ['throw new XlsxError("excel.file.notZip", { name: "a.xml" });', null],

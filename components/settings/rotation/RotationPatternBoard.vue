@@ -28,10 +28,7 @@ const {
       :start-year="dataStore.rotationPattern?.config.start_year || 2026"
     />
 
-    <RotationStaffPool
-      :staff="dataStore.activeStaff"
-      @drag-start="onPoolDragStart"
-    />
+    <RotationStaffPool :staff="dataStore.activeStaff" @drag-start="onPoolDragStart" />
 
     <div v-if="dataStore.loadingRotation" class="flex justify-center py-8">
       <PrimeProgressSpinner />

@@ -28,11 +28,7 @@ useSeoMeta({
 
       <article class="privacy-body">
         <LegalPrivacyPurpose :retention="facts.retentionDays" />
-        <LegalPrivacyProcessing
-          :uses-microsoft="facts.microsoft"
-          :retention="facts.retentionDays"
-          :session="facts.session"
-        />
+        <LegalPrivacyProcessing :uses-microsoft="facts.microsoft" :retention="facts.retentionDays" :session="facts.session" />
         <LegalPrivacyServices
           :hoster="hoster"
           :uses-cloudflare="usesCloudflare"

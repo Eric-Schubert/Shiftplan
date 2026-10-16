@@ -66,9 +66,7 @@ describe("validation errors", () => {
     const error = thrown(() => validateInteger("x", "minStaff"));
     expect(error.statusMessage).toBe("Min. Mitarbeiter muss eine ganze Zahl sein");
     expect(error.data).toEqual({ code: "validation.integer", params: { field: { key: "validation.fields.minStaff" } } });
-    expect(thrown(() => validateString("a".repeat(9), "accessCode", { maxLength: 8 })).statusMessage).toBe(
-      "Zugangscode darf maximal 8 Zeichen haben"
-    );
+    expect(thrown(() => validateString("a".repeat(9), "accessCode", { maxLength: 8 })).statusMessage).toBe("Zugangscode darf maximal 8 Zeichen haben");
     const time = thrown(() => validateTime("8 Uhr", "startTime"));
     expect(time.statusMessage).toBe("Startzeit muss im Format HH:MM sein (z.B. 08:00)");
     expect(time.data).toEqual({ code: "validation.time", params: { field: { key: "validation.fields.startTime" } } });

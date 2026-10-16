@@ -28,30 +28,17 @@ const KEYS = {
 } as const satisfies Record<string, Record<"header" | "text" | "label", MessageKey>>;
 
 const keys = computed(() => KEYS[props.removing ? "remove" : props.firstCode ? "first" : "change"]);
-const confirmText = computed(() =>
-  t(keys.value.text, { keepsPersonal: t("settings.team.confirm.keepsPersonal") })
-);
+const confirmText = computed(() => t(keys.value.text, { keepsPersonal: t("settings.team.confirm.keepsPersonal") }));
 const header = computed(() => t(keys.value.header));
 const confirmLabel = computed(() => t(keys.value.label));
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="visible"
-    :header="header"
-    modal
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="visible" :header="header" modal :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <p class="text-sm leading-6">{{ confirmText }}</p>
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="visible = false" />
-      <PrimeButton
-        :label="confirmLabel"
-        :severity="removing ? 'danger' : undefined"
-        class="min-h-11"
-        :loading="saving"
-        @click="emit('confirm')"
-      />
+      <PrimeButton :label="confirmLabel" :severity="removing ? 'danger' : undefined" class="min-h-11" :loading="saving" @click="emit('confirm')" />
     </template>
   </PrimeDialog>
 </template>

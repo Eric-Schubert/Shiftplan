@@ -55,15 +55,12 @@ export function listForPlanner(now = Date.now()): ShiftRequest[] {
 /** An undo can only be confirmed until the day before, so later asks are dropped. */
 function clearStaleUndoAsks(): void {
   getDatabase()
-    .prepare(
-      "UPDATE shift_requests SET undo_requested_by = NULL WHERE status = 'done' AND undo_requested_by IS NOT NULL AND date_from <= ?"
-    )
+    .prepare("UPDATE shift_requests SET undo_requested_by = NULL WHERE status = 'done' AND undo_requested_by IS NOT NULL AND date_from <= ?")
     .run(today());
 }
 
 export function appliedChanges(requestId: number): AppliedChange[] {
   const row = getDatabase().prepare("SELECT applied_changes FROM shift_requests WHERE request_id = ?").get(requestId) as
-    | { applied_changes: string | null }
-    | undefined;
+    { applied_changes: string | null } | undefined;
   return row?.applied_changes ? (JSON.parse(row.applied_changes) as AppliedChange[]) : [];
 }

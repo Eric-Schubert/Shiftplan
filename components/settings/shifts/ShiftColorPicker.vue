@@ -2,14 +2,7 @@
 // Preset shift colors; the chosen one is ringed.
 const color = defineModel<string>();
 
-const colorOptions = [
-  { value: "#22c55e" },
-  { value: "#3b82f6" },
-  { value: "#8b5cf6" },
-  { value: "#f97316" },
-  { value: "#ef4444" },
-  { value: "#06b6d4" },
-];
+const colorOptions = [{ value: "#22c55e" }, { value: "#3b82f6" }, { value: "#8b5cf6" }, { value: "#f97316" }, { value: "#ef4444" }, { value: "#06b6d4" }];
 </script>
 
 <template>

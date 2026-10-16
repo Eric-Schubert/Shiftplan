@@ -2,11 +2,7 @@ import bcrypt from "bcryptjs";
 import type { UserRole } from "~/types/auth";
 import { requireAdmin } from "~/server/utils/auth";
 import { getAdminDatabase } from "~/server/utils/database";
-import {
-  getPasswordHashCost,
-  getUserValidationConfig,
-  passwordPolicyError,
-} from "~/server/config/auth-config";
+import { getPasswordHashCost, getUserValidationConfig, passwordPolicyError } from "~/server/config/auth-config";
 import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
@@ -39,9 +35,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getAdminDatabase();
-  const existing = db
-    .prepare("SELECT user_id FROM users WHERE username = ?")
-    .get(username);
+  const existing = db.prepare("SELECT user_id FROM users WHERE username = ?").get(username);
 
   if (existing) {
     throw apiError(event, 409, "errors.auth.usernameTaken");
@@ -49,9 +43,7 @@ export default defineEventHandler(async (event) => {
 
   const passwordHash = await bcrypt.hash(body.password, getPasswordHashCost());
   const result = db
-    .prepare(
-      "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))"
-    )
+    .prepare("INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, ?, 1, datetime('now'))")
     .run(username, passwordHash, body.role);
 
   return {

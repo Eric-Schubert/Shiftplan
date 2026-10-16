@@ -19,9 +19,7 @@ const bannerTone = computed(() => {
     return "planner-holiday-banner--mixed";
   }
 
-  return props.holidays.length > 0
-    ? "planner-holiday-banner--holiday"
-    : "planner-holiday-banner--school";
+  return props.holidays.length > 0 ? "planner-holiday-banner--holiday" : "planner-holiday-banner--school";
 });
 
 const localeTag = useLocaleTag();
@@ -41,11 +39,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(localeTag.value, prop
     </div>
 
     <div>
-      <div
-        v-for="item in bannerItems"
-        :key="item.key"
-        class="planner-holiday-banner__row"
-      >
+      <div v-for="item in bannerItems" :key="item.key" class="planner-holiday-banner__row">
         <div class="flex min-w-0 flex-1 items-start gap-2">
           <span
             class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -58,11 +52,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(localeTag.value, prop
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-medium text-[var(--text-1)]">{{ item.label }}</p>
             <div v-if="item.states.length > 0" class="mt-1 flex flex-wrap gap-1">
-              <span
-                v-for="state in item.states"
-                :key="`${item.key}-${state}`"
-                class="planner-holiday-banner__state"
-              >
+              <span v-for="state in item.states" :key="`${item.key}-${state}`" class="planner-holiday-banner__state">
                 {{ state }}
               </span>
             </div>

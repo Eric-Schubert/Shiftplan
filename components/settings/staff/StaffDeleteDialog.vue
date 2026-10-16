@@ -33,23 +33,12 @@ async function deleteStaff() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('settings.staff.delete')"
-    modal
-    :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('settings.staff.delete')" modal :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <p>{{ t("settings.staff.deleteText", { name: staff?.name ?? "" }) }}</p>
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
-      <PrimeButton
-        :label="t('settings.staff.delete')"
-        severity="danger"
-        class="min-h-11"
-        :loading="deleting"
-        @click="deleteStaff"
-      />
+      <PrimeButton :label="t('settings.staff.delete')" severity="danger" class="min-h-11" :loading="deleting" @click="deleteStaff" />
     </template>
   </PrimeDialog>
 </template>

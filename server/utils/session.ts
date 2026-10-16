@@ -2,24 +2,12 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { SessionUser } from "~/types/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getAuthConfig } from "~/server/config/auth-config";
-import {
-  cleanupExpiredSessions,
-  getSessionRecord,
-  sessionDurationMs,
-  toSessionUser,
-  type SessionClient,
-} from "~/server/lib/session/records";
+import { cleanupExpiredSessions, getSessionRecord, sessionDurationMs, toSessionUser, type SessionClient } from "~/server/lib/session/records";
 
 export type { SessionClient } from "~/server/lib/session/records";
 export { deleteUserSessions } from "~/server/lib/session/records";
 export { limitAttempt, type AttemptBucket } from "~/server/lib/session/rate-limit";
-export {
-  getClientIP,
-  getClientNetwork,
-  getCsrfTokenFromRequest,
-  getSessionToken,
-  requestSource,
-} from "~/server/lib/session/request";
+export { getClientIP, getClientNetwork, getCsrfTokenFromRequest, getSessionToken, requestSource } from "~/server/lib/session/request";
 export { clearSessionCookies, refreshSessionCookies, setSessionCookies } from "~/server/lib/session/cookies";
 
 export function createSession(
@@ -51,17 +39,7 @@ export function createSession(
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
     )
-    .run(
-      sessionToken,
-      user.userId,
-      user.username,
-      user.role,
-      csrfToken,
-      now,
-      now + sessionDuration,
-      now,
-      client
-    );
+    .run(sessionToken, user.userId, user.username, user.role, csrfToken, now, now + sessionDuration, now, client);
 
   return { sessionToken, csrfToken, expiresAt: now + sessionDuration };
 }
@@ -83,19 +61,14 @@ export function getSessionData(token: string | undefined): SessionUser | null {
   if (getAuthConfig().session.extendOnActivity) {
     const sessionDuration = sessionDurationMs(session.client ?? "web");
     getAdminDatabase()
-      .prepare(
-        "UPDATE auth_sessions SET last_activity = ?, expires_at = ? WHERE session_token = ?"
-      )
+      .prepare("UPDATE auth_sessions SET last_activity = ?, expires_at = ? WHERE session_token = ?")
       .run(now, now + sessionDuration, token);
   }
 
   return toSessionUser(session);
 }
 
-export function validateCsrfToken(
-  sessionToken: string | undefined,
-  csrfToken: string | undefined
-): boolean {
+export function validateCsrfToken(sessionToken: string | undefined, csrfToken: string | undefined): boolean {
   if (!sessionToken || !csrfToken) return false;
 
   const session = getSessionRecord(sessionToken);
@@ -131,8 +104,6 @@ export function getCsrfToken(sessionToken: string | undefined): string | null {
 
 export function destroySession(token: string | undefined): boolean {
   if (!token) return false;
-  const result = getAdminDatabase()
-    .prepare("DELETE FROM auth_sessions WHERE session_token = ?")
-    .run(token);
+  const result = getAdminDatabase().prepare("DELETE FROM auth_sessions WHERE session_token = ?").run(token);
   return result.changes > 0;
 }

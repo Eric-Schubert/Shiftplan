@@ -40,10 +40,7 @@ export function getClientIP(event: H3Event): string {
   if (!trust) {
     // Behind a proxy every client then shares the proxy's address and its limits.
     if (socketIP !== "unknown" && getHeader(event, "x-forwarded-for")) {
-      warnOnce(
-        "untrusted",
-        "Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit."
-      );
+      warnOnce("untrusted", "Requests arrive through a proxy, but SHIFTPLAN_TRUST_PROXY_HEADERS is off: all clients share one sign-in limit.");
     }
     return socketIP;
   }

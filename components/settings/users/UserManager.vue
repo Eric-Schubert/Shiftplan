@@ -28,23 +28,10 @@ onMounted(fetchUsers);
   <div class="space-y-4">
     <UserManagementHeader @create="showCreateDialog = true" />
 
-    <UserManagementList
-      :users="users"
-      :loading="loading"
-      @delete="openDeleteDialog"
-    />
+    <UserManagementList :users="users" :loading="loading" @delete="openDeleteDialog" />
 
-    <UserCreateDialog
-      :visible="showCreateDialog"
-      @update:visible="showCreateDialog = $event"
-      @created="fetchUsers"
-    />
+    <UserCreateDialog :visible="showCreateDialog" @update:visible="showCreateDialog = $event" @created="fetchUsers" />
 
-    <UserDeleteDialog
-      :visible="showDeleteDialog"
-      :user="userToDelete"
-      @update:visible="showDeleteDialog = $event"
-      @deleted="fetchUsers"
-    />
+    <UserDeleteDialog :visible="showDeleteDialog" :user="userToDelete" @update:visible="showDeleteDialog = $event" @deleted="fetchUsers" />
   </div>
 </template>

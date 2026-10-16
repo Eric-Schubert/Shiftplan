@@ -26,13 +26,7 @@ function goHome() {
             {{ notFound ? t("app.error.text.notFound") : t("app.error.text.other") }}
           </p>
         </div>
-        <PrimeButton
-          :label="t('common.actions.toPlan')"
-          icon="pi pi-arrow-left"
-          size="small"
-          class="min-h-9"
-          @click="goHome"
-        />
+        <PrimeButton :label="t('common.actions.toPlan')" icon="pi pi-arrow-left" size="small" class="min-h-9" @click="goHome" />
       </div>
     </div>
   </NuxtLayout>

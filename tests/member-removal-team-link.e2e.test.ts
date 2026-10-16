@@ -39,9 +39,7 @@ describe("after removing a person", () => {
     expect(afterRemoval.browsers).toEqual([]);
     expect(nextPageLoad.status).toBe(200);
     expect(afterPageLoad.browsers).toEqual([ANNA_BROWSER]);
-    expect(client.adminDb.prepare("SELECT staff_id, member_session FROM push_subscriptions").all()).toEqual([
-      { staff_id: null, member_session: null },
-    ]);
+    expect(client.adminDb.prepare("SELECT staff_id, member_session FROM push_subscriptions").all()).toEqual([{ staff_id: null, member_session: null }]);
     expect(plan.status).toBe(200);
   });
 
@@ -54,9 +52,7 @@ describe("after removing a person", () => {
     const team = await client.request("POST", "/api/push/devices", { body: { platform: "android", token: "team:APA91b" } });
 
     expect([claim.status, team.status]).toEqual([400, 200]);
-    expect(client.adminDb.prepare("SELECT token, staff_id FROM push_devices").all()).toEqual([
-      { token: "team:APA91b", staff_id: null },
-    ]);
+    expect(client.adminDb.prepare("SELECT token, staff_id FROM push_devices").all()).toEqual([{ token: "team:APA91b", staff_id: null }]);
   });
 });
 

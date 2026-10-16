@@ -1,12 +1,4 @@
-import {
-  booleanAt,
-  integerAt,
-  objectAt,
-  oneOf,
-  stringArrayAt,
-  stringAt,
-  type MutableErrorList,
-} from "./fields";
+import { booleanAt, integerAt, objectAt, oneOf, stringArrayAt, stringAt, type MutableErrorList } from "./fields";
 import { rangeOrder } from "./ranges";
 
 const HTTP_METHODS = new Set(["GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"]);
@@ -71,8 +63,7 @@ export function validateAuth(value: unknown, errors: MutableErrorList): void {
   for (const key of ["public", "publicGetPrefixes"]) {
     if (routes[key] !== undefined) stringArrayAt(routes[key], `auth.routes.${key}`, errors);
   }
-  const methods =
-    routes.csrfMethods === undefined ? [] : stringArrayAt(routes.csrfMethods, "auth.routes.csrfMethods", errors);
+  const methods = routes.csrfMethods === undefined ? [] : stringArrayAt(routes.csrfMethods, "auth.routes.csrfMethods", errors);
   if (Array.isArray(routes.csrfMethods) && routes.csrfMethods.length === 0) {
     errors.push("auth.routes.csrfMethods must not be empty; leave it out for the default methods");
   }

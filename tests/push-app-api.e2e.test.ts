@@ -104,8 +104,7 @@ describe("app api e2e", () => {
 
   it("registers app devices and removes them with a new code", async () => {
     const headers = await appLogin(await enableCode());
-    const devices = () =>
-      client.adminDb.prepare("SELECT platform, token, staff_id, scope FROM push_devices").all();
+    const devices = () => client.adminDb.prepare("SELECT platform, token, staff_id, scope FROM push_devices").all();
 
     const anonymous = await client.request("POST", "/api/push/devices", {
       body: { platform: "ios", token: FCM_TOKEN },

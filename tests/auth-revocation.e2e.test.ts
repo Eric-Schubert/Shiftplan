@@ -22,8 +22,7 @@ function changePassword(jar: CookieJar, currentPassword: string, newPassword: st
 }
 
 function userId(username: string): number {
-  return (client.adminDb.prepare("SELECT user_id FROM users WHERE username = ?").get(username) as { user_id: number })
-    .user_id;
+  return (client.adminDb.prepare("SELECT user_id FROM users WHERE username = ?").get(username) as { user_id: number }).user_id;
 }
 
 describe("ending planner sessions", () => {

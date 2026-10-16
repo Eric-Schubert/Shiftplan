@@ -7,27 +7,23 @@ export default {
     changeFailed: "Notifications could not be changed",
     checking: "Checking status.",
     install: {
-      intro:
-        "On iPhone, notifications only arrive when Shiftplan is on your Home Screen as an app (iOS 16.4 or later).",
+      intro: "On iPhone, notifications only arrive when Shiftplan is on your Home Screen as an app (iOS 16.4 or later).",
       share: "In Safari, tap {share}.",
       shareLabel: "Share",
       add: "Choose “Add to Home Screen”.",
       open: "Open Shiftplan from the Home Screen and tap the bell there.",
     },
-    unsupported:
-      "This browser does not support push notifications. Use Chrome, Edge, Firefox or Safari, for example.",
+    unsupported: "This browser does not support push notifications. Use Chrome, Edge, Firefox or Safari, for example.",
     denied:
       "Notifications are blocked for this site. Allow them in your browser settings (iPhone: Settings → Notifications → Shiftplan) and reload the page.",
-    intro:
-      "You get a notification when shifts change this week or next week, or when your planners message the team directly.",
+    intro: "You get a notification when shifts change this week or next week, or when your planners message the team directly.",
     active: "Active on this device.",
     disable: "Turn off",
     noAccess: "No access to the shift plan",
   },
   teamAccess: {
     title: "Open the shift plan",
-    intro:
-      "Enter the access code you got from your planners. With the QR code, there is no need to type it.",
+    intro: "Enter the access code you got from your planners. With the QR code, there is no need to type it.",
     code: "Access code",
     codeMissing: "Please enter the access code",
     open: "Open plan",

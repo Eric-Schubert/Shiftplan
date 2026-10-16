@@ -37,9 +37,7 @@ const contentSlideClass = computed(() => {
   return "";
 });
 const contentSlideStyle = computed(() =>
-  isSwiping.value
-    ? { transform: `translateX(${swipeOffset.value}px)`, opacity: 1 - Math.abs(swipeOffset.value) / 200 }
-    : {}
+  isSwiping.value ? { transform: `translateX(${swipeOffset.value}px)`, opacity: 1 - Math.abs(swipeOffset.value) / 200 } : {}
 );
 
 function jumpWeeks(offset: number) {
@@ -94,10 +92,6 @@ function jumpWeeks(offset: number) {
       @generated="emit('generated')"
     />
 
-    <LazyTeamNotifyDialog
-      v-if="showNotifyDialog"
-      :visible="showNotifyDialog"
-      @update:visible="showNotifyDialog = $event"
-    />
+    <LazyTeamNotifyDialog v-if="showNotifyDialog" :visible="showNotifyDialog" @update:visible="showNotifyDialog = $event" />
   </div>
 </template>

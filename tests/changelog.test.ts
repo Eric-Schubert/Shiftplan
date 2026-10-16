@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  compareChangelogEntries as compareGeneratedChangelogEntries,
-  compareVersions,
-  transformReleases,
-} from "../scripts/generate-changelog.js";
-import {
-  compareChangelogEntries as compareRuntimeChangelogEntries,
-  formatRelativeChangelogDate,
-  getCalendarDayDiff,
-} from "../utils/changelog";
+import { compareChangelogEntries as compareGeneratedChangelogEntries, compareVersions, transformReleases } from "../scripts/generate-changelog.js";
+import { compareChangelogEntries as compareRuntimeChangelogEntries, formatRelativeChangelogDate, getCalendarDayDiff } from "../utils/changelog";
 
 describe("changelog ordering", () => {
   it("sorts semantic versions numerically", () => {
@@ -22,14 +14,8 @@ describe("changelog ordering", () => {
       { date: "2026-04-16", title: "v1.5.10", changes: ["Audit planner shift assignment changes"] },
     ];
 
-    expect([...entries].sort(compareGeneratedChangelogEntries).map((entry) => entry.title)).toEqual([
-      "v1.5.10",
-      "v1.5.9",
-    ]);
-    expect([...entries].sort(compareRuntimeChangelogEntries).map((entry) => entry.title)).toEqual([
-      "v1.5.10",
-      "v1.5.9",
-    ]);
+    expect([...entries].sort(compareGeneratedChangelogEntries).map((entry) => entry.title)).toEqual(["v1.5.10", "v1.5.9"]);
+    expect([...entries].sort(compareRuntimeChangelogEntries).map((entry) => entry.title)).toEqual(["v1.5.10", "v1.5.9"]);
   });
 
   it("transforms git-cliff releases in version order for equal dates", () => {

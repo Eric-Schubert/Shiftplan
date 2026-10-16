@@ -19,9 +19,7 @@ const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => 
 function removedDays(staffId: number): string {
   return formatWeekdays(
     localeTag.value,
-    shiftChanges.value
-      .filter((change) => change.kind === "remove" && change.staff_id === staffId)
-      .map((change) => change.change_date)
+    shiftChanges.value.filter((change) => change.kind === "remove" && change.staff_id === staffId).map((change) => change.change_date)
   );
 }
 

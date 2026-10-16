@@ -31,9 +31,7 @@ export function watchAccessGranted(needsAccessCode: Ref<boolean>, onGranted: () 
   watch(needsAccessCode, (needed, neededBefore) => {
     if (neededBefore && !needed) {
       // The page shows its own error state when loading fails; nothing may escape unhandled.
-      new Promise((resolve) => resolve(onGranted())).catch((error) =>
-        console.error("Loading after access was granted failed", error)
-      );
+      new Promise((resolve) => resolve(onGranted())).catch((error) => console.error("Loading after access was granted failed", error));
     }
   });
 }

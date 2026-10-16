@@ -1,7 +1,6 @@
 import { ref, watch, onUnmounted, type Ref } from "vue";
 
 interface SwipeOptions {
-
   threshold?: number;
 
   maxVerticalDistance?: number;
@@ -11,17 +10,8 @@ interface SwipeOptions {
   onSwipeRight?: () => void;
 }
 
-export function useSwipe(
-  elementRef: Ref<HTMLElement | null>,
-  options: SwipeOptions = {}
-) {
-  const {
-    threshold = 50,
-    maxVerticalDistance = 100,
-    maxDuration = 300,
-    onSwipeLeft,
-    onSwipeRight,
-  } = options;
+export function useSwipe(elementRef: Ref<HTMLElement | null>, options: SwipeOptions = {}) {
+  const { threshold = 50, maxVerticalDistance = 100, maxDuration = 300, onSwipeLeft, onSwipeRight } = options;
 
   const isSwiping = ref(false);
   const swipeDirection = ref<"left" | "right" | null>(null);
@@ -73,11 +63,7 @@ export function useSwipe(
     isSwiping.value = false;
     swipeOffset.value = 0;
 
-    if (
-      Math.abs(diffX) >= threshold &&
-      diffY <= maxVerticalDistance &&
-      duration <= maxDuration
-    ) {
+    if (Math.abs(diffX) >= threshold && diffY <= maxVerticalDistance && duration <= maxDuration) {
       if (diffX < 0) {
         swipeDirection.value = "left";
         onSwipeLeft?.();
@@ -100,13 +86,17 @@ export function useSwipe(
   }
 
   // The element can appear later, e.g. after the team access code was entered.
-  watch(elementRef, (el, previous) => {
-    unbind(previous);
-    if (!el) return;
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: true });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-  }, { immediate: true });
+  watch(
+    elementRef,
+    (el, previous) => {
+      unbind(previous);
+      if (!el) return;
+      el.addEventListener("touchstart", handleTouchStart, { passive: true });
+      el.addEventListener("touchmove", handleTouchMove, { passive: true });
+      el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    },
+    { immediate: true }
+  );
 
   onUnmounted(() => {
     unbind(elementRef.value);

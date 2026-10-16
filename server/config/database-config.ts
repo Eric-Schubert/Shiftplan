@@ -4,9 +4,7 @@ import { getBackendConfig } from "./backend-config";
 
 export function getDatabasePaths(): { main: string; admin: string } {
   const config = getBackendConfig().database;
-  const directory = path.isAbsolute(config.directory)
-    ? config.directory
-    : path.resolve(process.cwd(), config.directory);
+  const directory = path.isAbsolute(config.directory) ? config.directory : path.resolve(process.cwd(), config.directory);
 
   return {
     main: path.resolve(directory, config.mainFile),

@@ -28,17 +28,11 @@ const shifts = computed(() => {
   return shiftsWithStaff.length > 0 ? shiftsWithStaff : null;
 });
 
-const assignmentCount = computed(() =>
-  props.plan?.shifts ? props.plan.shifts.reduce((sum, shift) => sum + shift.assigned_staff.length, 0) : 0
-);
+const assignmentCount = computed(() => (props.plan?.shifts ? props.plan.shifts.reduce((sum, shift) => sum + shift.assigned_staff.length, 0) : 0));
 </script>
 
 <template>
-  <button
-    type="button"
-    class="planner-preview-card flex w-full flex-col text-left"
-    @click="emit('select')"
-  >
+  <button type="button" class="planner-preview-card flex w-full flex-col text-left" @click="emit('select')">
     <div class="planner-preview-card__header flex items-baseline justify-between gap-3 px-4 py-3">
       <div class="flex items-baseline gap-2">
         <h4 class="text-base font-semibold text-[var(--text-1)]">{{ weekLabel(localeTag, week.week) }}</h4>
@@ -57,26 +51,11 @@ const assignmentCount = computed(() =>
       </div>
 
       <template v-else>
-        <HolidayInfo
-          :year="week.year"
-          :week="week.week"
-          compact
-        />
+        <HolidayInfo :year="week.year" :week="week.week" compact />
 
-        <ul
-          v-if="shifts"
-          class="space-y-2"
-        >
-          <li
-            v-for="shift in shifts"
-            :key="shift.name"
-            class="flex items-start gap-2.5"
-          >
-            <span
-              class="mt-0.5 h-4 w-1 flex-shrink-0 rounded-full"
-              :style="{ backgroundColor: shift.color }"
-              aria-hidden="true"
-            ></span>
+        <ul v-if="shifts" class="space-y-2">
+          <li v-for="shift in shifts" :key="shift.name" class="flex items-start gap-2.5">
+            <span class="mt-0.5 h-4 w-1 flex-shrink-0 rounded-full" :style="{ backgroundColor: shift.color }" aria-hidden="true"></span>
             <div class="min-w-0 text-[0.8125rem] leading-5">
               <span class="font-semibold text-[var(--text-1)]">{{ shift.name }}</span>
               <span class="text-[var(--text-2)]"> · {{ shift.staff.join(", ") }}</span>
@@ -84,10 +63,7 @@ const assignmentCount = computed(() =>
           </li>
         </ul>
 
-        <p
-          v-else
-          class="py-2 text-sm text-[var(--text-3)]"
-        >
+        <p v-else class="py-2 text-sm text-[var(--text-3)]">
           {{ $t("planner.week.preview.notPlanned") }}
         </p>
       </template>

@@ -54,9 +54,7 @@ export function formatWeekdays(locale: string, dates: string[]): string {
   const weekday = (date: string) => formatDay(locale, date, "weekday");
   return runs
     .map((run) =>
-      run.length >= 3
-        ? fill(patterns.weekdayRun, { from: weekday(run[0]!), to: weekday(run.at(-1)!) })
-        : run.map(weekday).join(patterns.listSeparator)
+      run.length >= 3 ? fill(patterns.weekdayRun, { from: weekday(run[0]!), to: weekday(run.at(-1)!) }) : run.map(weekday).join(patterns.listSeparator)
     )
     .join(patterns.listSeparator);
 }

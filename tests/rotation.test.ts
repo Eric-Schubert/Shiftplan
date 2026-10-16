@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import {
-  setupTestDatabase,
-  cleanupTestDatabase,
-  getTestDatabase,
-  insertTestData,
-} from "./setup";
+import { setupTestDatabase, cleanupTestDatabase, getTestDatabase, insertTestData } from "./setup";
 
 const INSERT_PATTERN = "INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (?, ?, ?)";
 
@@ -21,9 +16,7 @@ describe("Rotation Operations", () => {
     it("should create default config", () => {
       const db = getTestDatabase();
 
-      db.prepare(
-        "INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)"
-      ).run();
+      db.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)").run();
 
       const config = db.prepare("SELECT * FROM rotation_config WHERE config_id = 1").get() as any;
 
@@ -36,9 +29,7 @@ describe("Rotation Operations", () => {
     it("should update cycle length", () => {
       const db = getTestDatabase();
 
-      db.prepare(
-        "INSERT INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)"
-      ).run();
+      db.prepare("INSERT INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)").run();
       db.prepare("UPDATE rotation_config SET cycle_length = ? WHERE config_id = 1").run(6);
 
       const config = db.prepare("SELECT * FROM rotation_config WHERE config_id = 1").get() as any;
@@ -102,9 +93,7 @@ describe("Rotation Operations", () => {
       db.prepare(INSERT_PATTERN).run(1, 1, 1);
       db.prepare("DELETE FROM rotation_pattern WHERE pattern_week = ? AND staff_id = ? AND shift_id = ?").run(1, 1, 1);
 
-      const pattern = db
-        .prepare("SELECT * FROM rotation_pattern WHERE pattern_week = ? AND staff_id = ? AND shift_id = ?")
-        .get(1, 1, 1);
+      const pattern = db.prepare("SELECT * FROM rotation_pattern WHERE pattern_week = ? AND staff_id = ? AND shift_id = ?").get(1, 1, 1);
 
       expect(pattern).toBeUndefined();
     });

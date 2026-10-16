@@ -46,9 +46,7 @@ export function getMember(event: H3Event): Member | null {
   purgeMemberAccess();
   const db = getAdminDatabase();
   const session = db
-    .prepare(
-      "SELECT session_id, staff_id, last_seen_at FROM member_sessions WHERE token_hash = ? AND revoked_at IS NULL"
-    )
+    .prepare("SELECT session_id, staff_id, last_seen_at FROM member_sessions WHERE token_hash = ? AND revoked_at IS NULL")
     .get(sha256(token)) as { session_id: string; staff_id: number; last_seen_at: number } | undefined;
   if (!session) return null;
 
@@ -90,9 +88,7 @@ export function listSessions(staffId?: number): MemberSession[] {
   }>;
 
   const names = new Map(
-    (getDatabase().prepare("SELECT staff_id, name FROM staff").all() as Array<{ staff_id: number; name: string }>).map(
-      (row) => [row.staff_id, row.name]
-    )
+    (getDatabase().prepare("SELECT staff_id, name FROM staff").all() as Array<{ staff_id: number; name: string }>).map((row) => [row.staff_id, row.name])
   );
 
   return rows.map((row) => ({

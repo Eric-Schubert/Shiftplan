@@ -1,11 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import {
-  CONFIG,
-  generateApiDocs,
-  generateDocContent,
-  generateWorkflowDocs,
-} from "../scripts/docs-generator.js";
+import { CONFIG, generateApiDocs, generateDocContent, generateWorkflowDocs } from "../scripts/docs-generator.js";
 
 describe("docs generator", () => {
   it("generates stable docs content", () => {
@@ -46,8 +41,7 @@ describe("docs generator", () => {
       return {
         ...original,
         ROUTE_POLICY: { ...original.ROUTE_POLICY, csrfMethods: ["POST"] },
-        classifyRoute: (method: string, path: string) =>
-          path.startsWith("/api/holidays/") ? "teamRead" : original.classifyRoute(method, path),
+        classifyRoute: (method: string, path: string) => (path.startsWith("/api/holidays/") ? "teamRead" : original.classifyRoute(method, path)),
       };
     });
 

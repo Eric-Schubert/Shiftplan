@@ -27,8 +27,7 @@ function runSetup(env: Record<string, string> = {}) {
   execFileSync("node", ["setup.js"], { env: childEnv, stdio: "pipe" });
 
   const db = new Database(path.join(database.directory, database.mainFile), { readonly: true });
-  const count = (table: string) =>
-    (db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get() as { count: number }).count;
+  const count = (table: string) => (db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get() as { count: number }).count;
   const result = { staff: count("staff"), shifts: count("shifts") };
   db.close();
   return result;

@@ -18,11 +18,8 @@ export function upcomingCalendarWeeks(
   for (let index = 0; index < config.cycle_length * occurrences; index++) {
     const monday = new Date(currentMonday);
     monday.setUTCDate(monday.getUTCDate() + index * 7);
-    const patternIndex =
-      (((offset + index) % config.cycle_length) + config.cycle_length) % config.cycle_length;
-    result[patternIndex]?.push(
-      toISOWeek(monday.getUTCFullYear(), monday.getUTCMonth() + 1, monday.getUTCDate())
-    );
+    const patternIndex = (((offset + index) % config.cycle_length) + config.cycle_length) % config.cycle_length;
+    result[patternIndex]?.push(toISOWeek(monday.getUTCFullYear(), monday.getUTCMonth() + 1, monday.getUTCDate()));
   }
 
   return result;
@@ -33,9 +30,7 @@ export function formatCalendarWeeks(locale: AppLocale, weeks: ISOWeek[]): string
   if (weeks.length === 0) return "";
 
   const sameYear = weeks.every((entry) => entry.year === weeks[0]?.year);
-  const parts = weeks.map((entry) =>
-    sameYear ? `${entry.week}` : `${entry.week}/${String(entry.year).slice(-2)}`
-  );
+  const parts = weeks.map((entry) => (sameYear ? `${entry.week}` : `${entry.week}/${String(entry.year).slice(-2)}`));
 
   return weekLabel(localeTag(locale), parts.join(", "));
 }

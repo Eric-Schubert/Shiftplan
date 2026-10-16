@@ -6,17 +6,12 @@ const ANALYTICS_SALT_KEY = "analytics_salt";
 
 function getAnalyticsSalt(): string {
   const db = getAdminDatabase();
-  const existing = db
-    .prepare("SELECT value FROM settings WHERE key = ?")
-    .get(ANALYTICS_SALT_KEY) as { value: string } | undefined;
+  const existing = db.prepare("SELECT value FROM settings WHERE key = ?").get(ANALYTICS_SALT_KEY) as { value: string } | undefined;
 
   if (existing?.value) return existing.value;
 
   const salt = randomBytes(32).toString("hex");
-  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(
-    ANALYTICS_SALT_KEY,
-    salt
-  );
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(ANALYTICS_SALT_KEY, salt);
   return salt;
 }
 

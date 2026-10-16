@@ -1,8 +1,7 @@
 // Download file names in a Content-Disposition header (RFC 6266): the server writes them, the app reads them.
 
 // Characters RFC 5987 does not allow unencoded, on top of what encodeURIComponent encodes.
-const encodeExtended = (value: string) =>
-  encodeURIComponent(value).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+const encodeExtended = (value: string) => encodeURIComponent(value).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
 
 /** `attachment` with an ASCII `filename` for old clients and the exact name as UTF-8 `filename*`. */
 export function attachmentDisposition(fileName: string): string {

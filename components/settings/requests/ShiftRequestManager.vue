@@ -17,9 +17,7 @@ const others = computed(() => requests.value.filter((request) => request.status 
 
 function summary(request: ShiftRequest): string {
   if (request.kind === "takeover") {
-    const helper = request.partner_name
-      ? t("settings.requests.summary.takenBy", { name: request.partner_name })
-      : t("settings.requests.summary.seeking");
+    const helper = request.partner_name ? t("settings.requests.summary.takenBy", { name: request.partner_name }) : t("settings.requests.summary.seeking");
     return `${request.requester_name} · ${request.shift_name} · ${helper}`;
   }
   return t("settings.requests.summary.swap", { requester: request.requester_name, partner: request.partner_name ?? "?" });
@@ -83,8 +81,21 @@ onMounted(load);
               <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
             </div>
             <div class="flex gap-2">
-              <PrimeButton :label="t('common.actions.decline')" size="small" severity="secondary" text :disabled="busy !== null" @click="decide(request, 'reject')" />
-              <PrimeButton :label="t('settings.requests.approve')" size="small" icon="pi pi-check" :loading="busy === request.request_id" @click="decide(request, 'approve')" />
+              <PrimeButton
+                :label="t('common.actions.decline')"
+                size="small"
+                severity="secondary"
+                text
+                :disabled="busy !== null"
+                @click="decide(request, 'reject')"
+              />
+              <PrimeButton
+                :label="t('settings.requests.approve')"
+                size="small"
+                icon="pi pi-check"
+                :loading="busy === request.request_id"
+                @click="decide(request, 'approve')"
+              />
             </div>
           </li>
         </ul>

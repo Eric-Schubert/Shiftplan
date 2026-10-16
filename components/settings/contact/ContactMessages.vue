@@ -30,13 +30,8 @@ async function markRead(message: ContactMessage) {
 
   updatingId.value = message.contact_id;
   try {
-    const updated = await authFetch<ContactMessage>(
-      `/api/contact/messages/${message.contact_id}`,
-      { method: "PATCH" }
-    );
-    messages.value = messages.value.map((item) =>
-      item.contact_id === updated.contact_id ? updated : item
-    );
+    const updated = await authFetch<ContactMessage>(`/api/contact/messages/${message.contact_id}`, { method: "PATCH" });
+    messages.value = messages.value.map((item) => (item.contact_id === updated.contact_id ? updated : item));
   } finally {
     updatingId.value = null;
   }
@@ -95,14 +90,7 @@ onMounted(fetchMessages);
         {{ t("settings.contact.empty") }}
       </div>
 
-      <SettingsPager
-        v-if="totalPages > 1"
-        :page="page"
-        :total-pages="totalPages"
-        class="border-[var(--border-soft)]"
-        @prev="prevPage"
-        @next="nextPage"
-      >
+      <SettingsPager v-if="totalPages > 1" :page="page" :total-pages="totalPages" class="border-[var(--border-soft)]" @prev="prevPage" @next="nextPage">
         <span class="text-sm text-[var(--text-2)]">
           {{ t("settings.contact.page", { page: page + 1, pages: totalPages, count: total }) }}
         </span>

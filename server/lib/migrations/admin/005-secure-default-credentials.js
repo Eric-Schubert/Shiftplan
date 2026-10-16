@@ -18,8 +18,6 @@ export default {
       );
     }
 
-    database
-      .prepare("UPDATE users SET password_hash = ? WHERE username = ? AND active = 1")
-      .run(hashPassword(bootstrapPassword), DEFAULT_ADMIN_USERNAME);
+    database.prepare("UPDATE users SET password_hash = ? WHERE username = ? AND active = 1").run(hashPassword(bootstrapPassword), DEFAULT_ADMIN_USERNAME);
   },
 };

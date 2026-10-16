@@ -67,18 +67,14 @@ function groupByText(
  * end-to-end encryption, so they only name weeks and shifts. Devices with "only mine" hear
  * about their own shifts.
  */
-export function buildNativeMessages(
-  changes: PendingChange[],
-  devices: StoredDevice[],
-  instanceId: string,
-  locale: string
-): NativeMessage[] {
-  const effective = withLabels(changes.filter((change) => change.delta !== 0), locale);
+export function buildNativeMessages(changes: PendingChange[], devices: StoredDevice[], instanceId: string, locale: string): NativeMessage[] {
+  const effective = withLabels(
+    changes.filter((change) => change.delta !== 0),
+    locale
+  );
   if (effective.length === 0 || devices.length === 0) return [];
 
-  const team = devices
-    .filter((device) => device.scope === "all")
-    .map((device) => ({ token: device.token, changes: effective }));
+  const team = devices.filter((device) => device.scope === "all").map((device) => ({ token: device.token, changes: effective }));
   const personal = devices
     .filter((device) => device.scope === "mine")
     .map((device) => ({ token: device.token, changes: effective.filter((change) => change.staffId === device.staff_id) }))

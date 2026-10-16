@@ -10,11 +10,7 @@ import { apiError } from "~/server/utils/api-error";
  * to the days before today, so the past keeps showing who was away. Planners may still remove past
  * days to correct them; staff (`upcomingOnly`) can only withdraw what lies ahead.
  */
-export function cancelAbsence(
-  absence: Absence,
-  actor: Actor,
-  options: { wholeRange?: boolean; upcomingOnly?: boolean } = {}
-): number {
+export function cancelAbsence(absence: Absence, actor: Actor, options: { wholeRange?: boolean; upcomingOnly?: boolean } = {}): number {
   const range = options.wholeRange && absence.batch_id ? AbsenceService.listBatch(absence.batch_id) : [absence];
   const today = planningToday();
   const upcoming = range.filter((entry) => entry.absence_date >= today);

@@ -32,7 +32,10 @@ function release(name: string) {
   delete env.GITHUB_OUTPUT;
   const stdout = execFileSync("node", ["scripts/create-release-tag.js"], { cwd: repo, encoding: "utf-8", env });
   return Object.fromEntries(
-    stdout.split("\n").filter((line) => line.includes("=")).map((line) => line.split("=", 2)),
+    stdout
+      .split("\n")
+      .filter((line) => line.includes("="))
+      .map((line) => line.split("=", 2))
   );
 }
 

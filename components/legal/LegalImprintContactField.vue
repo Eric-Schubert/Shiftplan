@@ -12,11 +12,7 @@ defineProps<{
       {{ label }}
     </label>
     <slot />
-    <p
-      v-if="error"
-      :id="`${id}-error`"
-      class="text-xs font-medium leading-5 text-[var(--danger-ink)]"
-    >
+    <p v-if="error" :id="`${id}-error`" class="text-xs font-medium leading-5 text-[var(--danger-ink)]">
       {{ error }}
     </p>
     <slot name="hint" />

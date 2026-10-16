@@ -13,9 +13,7 @@ export default {
   description: "Remove deprecated legacy admin password setting",
   shouldRun(database) {
     if (!tableExists(database, "settings")) return false;
-    return Boolean(
-      database.prepare("SELECT 1 FROM settings WHERE key = 'admin_password'").get()
-    );
+    return Boolean(database.prepare("SELECT 1 FROM settings WHERE key = 'admin_password'").get());
   },
   up(database) {
     deleteLegacyAdminPasswordSetting(database);

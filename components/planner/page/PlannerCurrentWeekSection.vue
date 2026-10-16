@@ -40,9 +40,7 @@ const dayDialogVisible = computed({
   },
 });
 
-const totalAssigned = computed(() =>
-  props.shiftList.reduce((sum, shift) => sum + shift.assigned_staff.length, 0)
-);
+const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum + shift.assigned_staff.length, 0));
 </script>
 
 <template>
@@ -116,12 +114,7 @@ const totalAssigned = computed(() =>
           {{ $t("planner.week.section.unassigned") }}
         </span>
         <span>{{ $t("planner.week.section.unassignedText") }}</span>
-        <button
-          v-if="canEditShifts"
-          type="button"
-          class="font-semibold text-[var(--accent-strong)] hover:underline"
-          @click="emit('generate')"
-        >
+        <button v-if="canEditShifts" type="button" class="font-semibold text-[var(--accent-strong)] hover:underline" @click="emit('generate')">
           {{ $t("planner.week.section.generateNow") }}
         </button>
       </div>

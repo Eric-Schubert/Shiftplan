@@ -34,15 +34,18 @@ let requests: URL[];
 
 function stubOpenHolidaysApi() {
   requests = [];
-  vi.stubGlobal("fetch", vi.fn(async (input: string) => {
-    const url = new URL(input);
-    requests.push(url);
-    const from = url.searchParams.get("validFrom")!;
-    const to = url.searchParams.get("validTo")!;
-    const kind = url.pathname.endsWith("SchoolHolidays") ? "SchoolHolidays" : "PublicHolidays";
-    const body = apiData[kind].filter((entry) => entry.startDate >= from && entry.startDate <= to);
-    return new Response(JSON.stringify(body), { status: 200 });
-  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string) => {
+      const url = new URL(input);
+      requests.push(url);
+      const from = url.searchParams.get("validFrom")!;
+      const to = url.searchParams.get("validTo")!;
+      const kind = url.pathname.endsWith("SchoolHolidays") ? "SchoolHolidays" : "PublicHolidays";
+      const body = apiData[kind].filter((entry) => entry.startDate >= from && entry.startDate <= to);
+      return new Response(JSON.stringify(body), { status: 200 });
+    })
+  );
 }
 
 describe.each(TIME_ZONES)("holiday week range with TZ=$tz", ({ tz, winterOffset, summerOffset }) => {

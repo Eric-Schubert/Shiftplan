@@ -11,9 +11,7 @@ export function worksheetXml(sheet: XlsxSheetInput, selected = false): string {
   const headerRows = new Set(sheet.headerRows || []);
   const cols = columnWidthsXml(sheet.columnWidths, colCount);
   const rows = sheet.rows
-    .map((row, rowIndex) =>
-      rowXml(row, rowIndex + 1, headerRows.has(rowIndex + 1), sheet.rowHeights?.[rowIndex + 1])
-    )
+    .map((row, rowIndex) => rowXml(row, rowIndex + 1, headerRows.has(rowIndex + 1), sheet.rowHeights?.[rowIndex + 1]))
     .filter(Boolean)
     .join("");
 
@@ -34,14 +32,8 @@ function sheetViewsXml(freeze: XlsxSheetInput["freeze"], selected: boolean): str
   }
 
   const topLeft = cellRef(freeze.rows + 1, freeze.cols + 1);
-  const activePane =
-    freeze.rows > 0 && freeze.cols > 0 ? "bottomRight" : freeze.rows > 0 ? "bottomLeft" : "topRight";
-  const split = [
-    freeze.cols > 0 ? `xSplit="${freeze.cols}"` : "",
-    freeze.rows > 0 ? `ySplit="${freeze.rows}"` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const activePane = freeze.rows > 0 && freeze.cols > 0 ? "bottomRight" : freeze.rows > 0 ? "bottomLeft" : "topRight";
+  const split = [freeze.cols > 0 ? `xSplit="${freeze.cols}"` : "", freeze.rows > 0 ? `ySplit="${freeze.rows}"` : ""].filter(Boolean).join(" ");
 
   return `<sheetViews>${view}><pane ${split} topLeftCell="${topLeft}" activePane="${activePane}" state="frozen"/><selection pane="${activePane}" activeCell="${topLeft}" sqref="${topLeft}"/></sheetView></sheetViews>`;
 }
@@ -67,12 +59,8 @@ function listValidationsXml(validations: XlsxListValidation[] | undefined): stri
 
   const items = validations
     .map((validation) => {
-      const prompt = validation.prompt
-        ? ` showInputMessage="1" prompt="${escapeXml(validation.prompt.slice(0, 255))}"`
-        : "";
-      const warning = validation.warning
-        ? ` showErrorMessage="1" errorStyle="warning" error="${escapeXml(validation.warning.slice(0, 255))}"`
-        : "";
+      const prompt = validation.prompt ? ` showInputMessage="1" prompt="${escapeXml(validation.prompt.slice(0, 255))}"` : "";
+      const warning = validation.warning ? ` showErrorMessage="1" errorStyle="warning" error="${escapeXml(validation.warning.slice(0, 255))}"` : "";
 
       return `<dataValidation type="list" allowBlank="1"${prompt}${warning} sqref="${validation.range}"><formula1>${escapeXml(validation.source)}</formula1></dataValidation>`;
     })

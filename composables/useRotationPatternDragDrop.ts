@@ -20,13 +20,7 @@ export function useRotationPatternDragDrop() {
     event.dataTransfer.setData("application/json", JSON.stringify(payload));
   }
 
-  function onChipDragStart({
-    event,
-    patternWeek,
-    shiftId,
-    staffId,
-    staffName,
-  }: RotationStaffDragPayload) {
+  function onChipDragStart({ event, patternWeek, shiftId, staffId, staffName }: RotationStaffDragPayload) {
     if (!event.dataTransfer) return;
 
     const payload: RotationTransferPayload = {
@@ -69,12 +63,7 @@ export function useRotationPatternDragDrop() {
     try {
       const data = JSON.parse(raw) as RotationTransferPayload;
 
-      if (
-        data.source === "rotation" &&
-        data.sourceShiftId !== shiftId &&
-        data.sourcePatternWeek === patternWeek &&
-        data.sourceShiftId !== undefined
-      ) {
+      if (data.source === "rotation" && data.sourceShiftId !== shiftId && data.sourcePatternWeek === patternWeek && data.sourceShiftId !== undefined) {
         await dataStore.unassignFromRotation(patternWeek, data.staffId, data.sourceShiftId);
       } else if (
         data.source === "rotation" &&

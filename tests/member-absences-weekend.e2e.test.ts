@@ -31,5 +31,4 @@ describe("absences on weekends", () => {
     await allowWeekends();
     expect((await report("2026-10-10")).status).toBe(200);
   });
-
 });

@@ -20,24 +20,16 @@ type RelayRegistration = { instanceId: string; secret: string };
 class RelayUnauthorizedError extends Error {}
 
 function getSetting(key: string): string | null {
-  const row = getAdminDatabase()
-    .prepare("SELECT value FROM settings WHERE key = ?")
-    .get(key) as { value: string } | undefined;
+  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(key) as { value: string } | undefined;
   return row?.value || null;
 }
 
 function setSetting(key: string, value: string): void {
-  getAdminDatabase()
-    .prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    )
-    .run(key, value);
+  getAdminDatabase().prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value);
 }
 
 function clearCredentials(): void {
-  getAdminDatabase()
-    .prepare("DELETE FROM settings WHERE key IN (?, ?, ?)")
-    .run(RELAY_ID_SETTING, RELAY_SECRET_SETTING, RELAY_URL_SETTING);
+  getAdminDatabase().prepare("DELETE FROM settings WHERE key IN (?, ?, ?)").run(RELAY_ID_SETTING, RELAY_SECRET_SETTING, RELAY_URL_SETTING);
 }
 
 /** `SHIFTPLAN_PUSH_RELAY_URL=off` (or empty) disables app pushes entirely. */
@@ -67,10 +59,7 @@ export const PushRelayService = {
    * Registers this instance on first use. A changed relay URL or credentials the
    * relay no longer knows lead to a fresh registration.
    */
-  async credentials(
-    relayUrl: string,
-    instance: { name: string; url: string | null }
-  ): Promise<string> {
+  async credentials(relayUrl: string, instance: { name: string; url: string | null }): Promise<string> {
     const id = getSetting(RELAY_ID_SETTING);
     const secret = getSetting(RELAY_SECRET_SETTING);
     if (id && secret && getSetting(RELAY_URL_SETTING) === relayUrl) return `${id}.${secret}`;
@@ -85,10 +74,7 @@ export const PushRelayService = {
     return `${registered.instanceId}.${registered.secret}`;
   },
 
-  async send(
-    messages: NativeMessage[],
-    instance: { name: string; url: string | null }
-  ): Promise<RelayResult> {
+  async send(messages: NativeMessage[], instance: { name: string; url: string | null }): Promise<RelayResult> {
     const result: RelayResult = { sent: 0, failed: 0, invalidTokens: [] };
     const relayUrl = getRelayUrl();
     const total = messages.reduce((sum, message) => sum + message.tokens.length, 0);

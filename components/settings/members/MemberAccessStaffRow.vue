@@ -43,19 +43,11 @@ const { t } = useI18n();
       </p>
       <p v-if="!devices" class="text-xs text-[var(--text-3)]">{{ t("settings.members.noDevice") }}</p>
       <ul v-else class="mt-1 space-y-1">
-        <li
-          v-for="device in devices"
-          :key="device.sessionId"
-          class="flex items-center gap-2 text-xs text-[var(--text-2)]"
-        >
+        <li v-for="device in devices" :key="device.sessionId" class="flex items-center gap-2 text-xs text-[var(--text-2)]">
           <i class="pi pi-mobile text-[0.7rem]" aria-hidden="true"></i>
           <span>{{ device.deviceName || t("settings.members.unnamedDevice") }}</span>
           <span class="text-[var(--text-3)]">{{ t("settings.members.lastSeen", { time: formatTimestamp(localeTag, device.lastSeenAt) }) }}</span>
-          <button
-            type="button"
-            class="ml-1 font-semibold text-[var(--danger-ink)] hover:underline"
-            @click="emit('revoke', device)"
-          >
+          <button type="button" class="ml-1 font-semibold text-[var(--danger-ink)] hover:underline" @click="emit('revoke', device)">
             {{ t("settings.members.revoke") }}
           </button>
         </li>

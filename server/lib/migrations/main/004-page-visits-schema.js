@@ -54,14 +54,8 @@ export default {
     }
 
     database.exec("CREATE INDEX IF NOT EXISTS idx_page_visits_date ON page_visits(visit_date)");
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_page_visits_path_date ON page_visits(path, visit_date)"
-    );
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_page_visits_visitor_date ON page_visits(visit_date, visitor_hash)"
-    );
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_page_visits_country_date ON page_visits(visit_date, country_code)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_page_visits_path_date ON page_visits(path, visit_date)");
+    database.exec("CREATE INDEX IF NOT EXISTS idx_page_visits_visitor_date ON page_visits(visit_date, visitor_hash)");
+    database.exec("CREATE INDEX IF NOT EXISTS idx_page_visits_country_date ON page_visits(visit_date, country_code)");
   },
 };

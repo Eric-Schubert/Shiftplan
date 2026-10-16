@@ -9,11 +9,13 @@ export type PlanWithPatternWeek = WeeklyShiftplan & { pattern_week: number };
 
 function assignedStaff(shiftId: number, weekId: number): Staff[] {
   return getDatabase()
-    .prepare(`
+    .prepare(
+      `
       SELECT s.* FROM staff s
       JOIN shift_assignments sa ON s.staff_id = sa.staff_id
       WHERE sa.shift_id = ? AND sa.week_id = ?
-    `)
+    `
+    )
     .all(shiftId, weekId) as Staff[];
 }
 

@@ -1,13 +1,6 @@
 import { ShiftService } from "~/server/services/shift.service";
 import { requireAdmin } from "~/server/utils/auth";
-import {
-  validateId,
-  validateName,
-  validateTime,
-  validateColor,
-  validateInteger,
-  validateBoolean,
-} from "~/server/utils/validation";
+import { validateId, validateName, validateTime, validateColor, validateInteger, validateBoolean } from "~/server/utils/validation";
 import { getShiftValidationConfig } from "~/server/config/domain-config";
 import { apiError } from "~/server/utils/api-error";
 

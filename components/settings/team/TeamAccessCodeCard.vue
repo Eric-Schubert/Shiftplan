@@ -13,9 +13,7 @@ const copied = ref(false);
 const qrSvg = ref("");
 const { t } = useI18n();
 
-const accessLink = computed(() =>
-  import.meta.client ? `${window.location.origin}/?zugang=${encodeURIComponent(props.code)}` : ""
-);
+const accessLink = computed(() => (import.meta.client ? `${window.location.origin}/?zugang=${encodeURIComponent(props.code)}` : ""));
 
 watch(
   accessLink,

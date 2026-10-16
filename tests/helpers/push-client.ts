@@ -41,10 +41,12 @@ export async function openPushClient() {
   const api = await createApiClient(ROUTES, (db) => {
     db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Anna");
     db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Max");
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order)
       VALUES ('Frühschicht', 1, '06:00', '14:00', '#22c55e', 1, 1)
-    `).run();
+    `
+    ).run();
   });
   client = { ...api, push: await import("../../server/services/push.service") };
 }

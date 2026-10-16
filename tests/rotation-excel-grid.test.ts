@@ -60,20 +60,14 @@ describe("Rotation Excel import, one row per person", () => {
   it("names the row and week of an unknown shift", () => {
     const file = gridFile([["Anna Becker", "Früh", "Nacht"]]);
 
-    expect(() => RotationExcelService.importTemplate(file)).toThrow(
-      "Schicht 'Nacht' in Zeile 8, Woche 2 ist unbekannt oder inaktiv"
-    );
+    expect(() => RotationExcelService.importTemplate(file)).toThrow("Schicht 'Nacht' in Zeile 8, Woche 2 ist unbekannt oder inaktiv");
   });
 
   it("rejects week columns that do not match the cycle length", () => {
-    expect(() =>
-      RotationExcelService.importTemplate(gridFile([["Anna Becker", "Früh"]], ["Woche 1"]))
-    ).toThrow("Die Spalte „Woche 2“ fehlt");
-    expect(() =>
-      RotationExcelService.importTemplate(
-        gridFile([["Anna Becker", "Früh"]], ["Woche 1", "Woche 2", "Woche 3"])
-      )
-    ).toThrow("Die Spalte „Woche 3“ passt nicht zur Zykluslänge 2");
+    expect(() => RotationExcelService.importTemplate(gridFile([["Anna Becker", "Früh"]], ["Woche 1"]))).toThrow("Die Spalte „Woche 2“ fehlt");
+    expect(() => RotationExcelService.importTemplate(gridFile([["Anna Becker", "Früh"]], ["Woche 1", "Woche 2", "Woche 3"]))).toThrow(
+      "Die Spalte „Woche 3“ passt nicht zur Zykluslänge 2"
+    );
   });
 
   it("reports a missing header when a near-miss header row has gaps", () => {
@@ -81,16 +75,12 @@ describe("Rotation Excel import, one row per person", () => {
       sheets: [{ name: "Rotation", rows: [["Startjahr", 2026], [], ["", "Mitarbeiter_in", "Woche1"], ["Anna Becker"]] }],
     });
 
-    expect(() => RotationExcelService.importTemplate(file)).toThrow(
-      "Die Kopfzeile mit Musterwoche, Schicht und Mitarbeiter wurde nicht gefunden"
-    );
+    expect(() => RotationExcelService.importTemplate(file)).toThrow("Die Kopfzeile mit Musterwoche, Schicht und Mitarbeiter wurde nicht gefunden");
   });
 
   it("asks for a name when a row has shifts but no person", () => {
     const file = gridFile([["", "Früh", ""]]);
 
-    expect(() => RotationExcelService.importTemplate(file)).toThrow(
-      "In Zeile 8 fehlt der Name in der Spalte „Mitarbeiter“"
-    );
+    expect(() => RotationExcelService.importTemplate(file)).toThrow("In Zeile 8 fehlt der Name in der Spalte „Mitarbeiter“");
   });
 });

@@ -28,9 +28,7 @@ const repeatPin = ref("");
 const busy = ref(false);
 const error = ref("");
 
-const title = computed(() =>
-  step.value === "set-pin" ? t("member.hello", { name: member.value?.name ?? "" }) : t("member.login.title")
-);
+const title = computed(() => (step.value === "set-pin" ? t("member.hello", { name: member.value?.name ?? "" }) : t("member.login.title")));
 
 async function run(action: () => Promise<void>, fallback: string) {
   busy.value = true;
@@ -112,14 +110,7 @@ onMounted(() => {
       @submit="submitPin"
       @use-code="switchTo('code')"
     />
-    <MemberLoginCodeStep
-      v-else-if="step === 'code'"
-      v-model:code="code"
-      :busy="busy"
-      :error="error"
-      @submit="submitCode"
-      @use-pin="switchTo('pin')"
-    />
+    <MemberLoginCodeStep v-else-if="step === 'code'" v-model:code="code" :busy="busy" :error="error" @submit="submitCode" @use-pin="switchTo('pin')" />
     <MemberLoginSetPinStep
       v-else
       v-model:pin="newPin"

@@ -27,13 +27,7 @@ async function save(value: boolean) {
 
 <template>
   <label class="flex max-w-[46rem] items-start gap-3 rounded-xl border border-[var(--border-soft)] p-4 text-sm">
-    <PrimeCheckbox
-      :model-value="requiresApproval"
-      binary
-      input-id="requests-approval"
-      :disabled="saving"
-      @update:model-value="save"
-    />
+    <PrimeCheckbox :model-value="requiresApproval" binary input-id="requests-approval" :disabled="saving" @update:model-value="save" />
     <span>
       <span class="block font-medium text-[var(--text-1)]">{{ t("settings.requests.approval.label") }}</span>
       <span class="text-[var(--text-2)]">{{ t("settings.requests.approval.hint") }}</span>

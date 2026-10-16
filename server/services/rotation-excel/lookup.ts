@@ -24,12 +24,7 @@ export function makeNameLookup<T extends Staff | Shift>(items: T[], label: strin
   return lookup;
 }
 
-export function resolveByName<T extends Staff | Shift>(
-  lookup: Map<string, T[]>,
-  name: string,
-  label: MessageRef,
-  location: MessageRef
-): T {
+export function resolveByName<T extends Staff | Shift>(lookup: Map<string, T[]>, name: string, label: MessageRef, location: MessageRef): T {
   const normalized = normalizeName(name);
 
   if (!normalized) {

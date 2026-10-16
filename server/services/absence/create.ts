@@ -2,12 +2,7 @@ import { randomBytes } from "node:crypto";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { getDatabase } from "~/server/utils/database";
 import { datesBetween, isWeekendDate } from "~/shared/utils/iso-date";
-import {
-  ABSENCE_MAX_DAYS,
-  ABSENCE_NOTE_MAX_LENGTH,
-  ABSENCE_REASONS,
-  type AbsenceReason,
-} from "~/server/services/absence/model";
+import { ABSENCE_MAX_DAYS, ABSENCE_NOTE_MAX_LENGTH, ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence/model";
 import type { MessageKey } from "~/server/lib/i18n/translate";
 import { apiError, type ErrorParams } from "~/server/utils/api-error";
 
@@ -63,9 +58,7 @@ export function insertAbsences(input: CreateInput): { ids: number[]; skipped: st
   }
 
   const batchId = dates.length > 1 ? randomBytes(8).toString("hex") : null;
-  const exists = db.prepare(
-    "SELECT 1 FROM absences WHERE staff_id = ? AND absence_date = ? AND cancelled_at IS NULL"
-  );
+  const exists = db.prepare("SELECT 1 FROM absences WHERE staff_id = ? AND absence_date = ? AND cancelled_at IS NULL");
   const insert = db.prepare(
     `
       INSERT INTO absences (staff_id, absence_date, shift_id, reason, note, batch_id, source, created_by)

@@ -31,9 +31,7 @@ export function previewGeneration(startYear: number, startWeek: number, numberOf
     JOIN weeks w ON w.week_id = sa.week_id
     WHERE w.year = ? AND w.week_number = ?
   `);
-  const countDayChanges = db.prepare(
-    "SELECT COUNT(*) AS count FROM shift_day_changes WHERE change_date BETWEEN ? AND ?"
-  );
+  const countDayChanges = db.prepare("SELECT COUNT(*) AS count FROM shift_day_changes WHERE change_date BETWEEN ? AND ?");
 
   return listWeeks(startYear, startWeek, numberOfWeeks).map(({ year, week }) => {
     const dates = datesOfISOWeek(year, week);

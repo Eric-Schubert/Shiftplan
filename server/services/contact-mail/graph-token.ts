@@ -23,10 +23,7 @@ export function resetContactMailTokenCacheForTests(): void {
 export async function getGraphAccessToken(config: ContactMailConfig): Promise<string> {
   const cacheKey = `${config.tenantId}:${config.clientId}`;
   const now = Date.now();
-  if (
-    cachedGraphToken?.cacheKey === cacheKey &&
-    cachedGraphToken.expiresAt - getContactMailDefaults().tokenSkewSeconds * 1000 > now
-  ) {
+  if (cachedGraphToken?.cacheKey === cacheKey && cachedGraphToken.expiresAt - getContactMailDefaults().tokenSkewSeconds * 1000 > now) {
     return cachedGraphToken.accessToken;
   }
 
@@ -37,24 +34,19 @@ export async function getGraphAccessToken(config: ContactMailConfig): Promise<st
     scope: getContactMailDefaults().graphScope,
   });
 
-  const response = await fetch(
-    `https://login.microsoftonline.com/${encodeURIComponent(config.tenantId)}/oauth2/v2.0/token`,
-    {
-      method: "POST",
-      headers: {
-        "content-type": "application/x-www-form-urlencoded",
-      },
-      body,
-      signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
-    }
-  );
+  const response = await fetch(`https://login.microsoftonline.com/${encodeURIComponent(config.tenantId)}/oauth2/v2.0/token`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body,
+    signal: AbortSignal.timeout(GRAPH_REQUEST_TIMEOUT_MS),
+  });
 
   const tokenResponse = (await response.json().catch(() => ({}))) as GraphTokenResponse;
   if (!response.ok || !tokenResponse.access_token) {
     throw new Error(
-      `Microsoft Graph token could not be fetched (${response.status}): ${
-        tokenResponse.error_description || tokenResponse.error || "Unknown error"
-      }`
+      `Microsoft Graph token could not be fetched (${response.status}): ${tokenResponse.error_description || tokenResponse.error || "Unknown error"}`
     );
   }
 

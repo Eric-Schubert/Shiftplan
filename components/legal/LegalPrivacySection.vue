@@ -10,7 +10,10 @@ const index = computed(() => PRIVACY_SECTIONS.findIndex((section) => section.id 
 
 <template>
   <section :id="id">
-    <h3><span>{{ index + 1 }}</span>{{ PRIVACY_SECTIONS[index]!.title }}</h3>
+    <h3>
+      <span>{{ index + 1 }}</span
+      >{{ PRIVACY_SECTIONS[index]!.title }}
+    </h3>
     <slot />
   </section>
 </template>

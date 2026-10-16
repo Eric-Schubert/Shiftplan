@@ -72,9 +72,7 @@ describe("holiday names", () => {
     const { resetBackendConfigForTests, PublicHolidayService, SchoolHolidayService } = await services();
 
     expect((await PublicHolidayService.list(2026, null)).map((holiday) => holiday.name)).toEqual(["New Year's Day"]);
-    expect((await SchoolHolidayService.list(2026, null, ["SN"])).holidays.map((holiday) => holiday.name)).toEqual([
-      "Winter holidays",
-    ]);
+    expect((await SchoolHolidayService.list(2026, null, ["SN"])).holidays.map((holiday) => holiday.name)).toEqual(["Winter holidays"]);
     expect(requests.map((url) => url.searchParams.get("languageIsoCode"))).toEqual(["EN", "EN"]);
 
     await PublicHolidayService.list(2026, null);
@@ -84,9 +82,7 @@ describe("holiday names", () => {
     useHolidayConfig({ languageIsoCode: "DE" });
     resetBackendConfigForTests();
     expect((await PublicHolidayService.list(2026, null)).map((holiday) => holiday.name)).toEqual(["Neujahr"]);
-    expect((await SchoolHolidayService.list(2026, null, ["SN"])).holidays.map((holiday) => holiday.name)).toEqual([
-      "Winterferien",
-    ]);
+    expect((await SchoolHolidayService.list(2026, null, ["SN"])).holidays.map((holiday) => holiday.name)).toEqual(["Winterferien"]);
     expect(requests).toHaveLength(4);
   });
 });

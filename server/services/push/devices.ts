@@ -20,16 +20,12 @@ export function listDevices(): StoredDevice[] {
 }
 
 export function countDevices(): number {
-  const row = getAdminDatabase()
-    .prepare("SELECT COUNT(*) AS count FROM push_devices")
-    .get() as { count: number };
+  const row = getAdminDatabase().prepare("SELECT COUNT(*) AS count FROM push_devices").get() as { count: number };
   return row.count;
 }
 
 function countTeamDevices(): number {
-  const row = getAdminDatabase()
-    .prepare("SELECT COUNT(*) AS count FROM push_devices WHERE member_session IS NULL")
-    .get() as { count: number };
+  const row = getAdminDatabase().prepare("SELECT COUNT(*) AS count FROM push_devices WHERE member_session IS NULL").get() as { count: number };
   return row.count;
 }
 
@@ -59,11 +55,7 @@ function trimDevicesOfPerson(staffId: number, personal: boolean, keepToken: stri
  * "only mine" plan changes; personal messages need a personal sign-in.
  * Pushes reach it in the app's `locale` when it sends a supported one, else in `requestLocale`.
  */
-export function registerDevice(
-  input: unknown,
-  member?: { sessionId: string; staffId: number },
-  requestLocale: AppLocale = DEFAULT_LOCALE
-): void {
+export function registerDevice(input: unknown, member?: { sessionId: string; staffId: number }, requestLocale: AppLocale = DEFAULT_LOCALE): void {
   const device = input as {
     platform?: unknown;
     token?: unknown;
@@ -77,12 +69,7 @@ export function registerDevice(
     throw invalid("errors.push.unknownPlatform");
   }
   const token = device.token;
-  if (
-    typeof token !== "string" ||
-    token.length === 0 ||
-    token.length > MAX_DEVICE_TOKEN_LENGTH ||
-    !/^[A-Za-z0-9:_-]+$/.test(token)
-  ) {
+  if (typeof token !== "string" || token.length === 0 || token.length > MAX_DEVICE_TOKEN_LENGTH || !/^[A-Za-z0-9:_-]+$/.test(token)) {
     throw invalid("errors.push.invalidToken");
   }
 
@@ -95,9 +82,7 @@ export function registerDevice(
   // Only active people: a deactivated person's app must not come back in their name.
   let staffId: number | null = member?.staffId ?? null;
   if (!member && device.staffId !== undefined && device.staffId !== null) {
-    const exists =
-      Number.isInteger(device.staffId) &&
-      getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ? AND active = 1").get(device.staffId);
+    const exists = Number.isInteger(device.staffId) && getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ? AND active = 1").get(device.staffId);
     if (!exists) throw invalid("errors.common.unknownStaff");
     staffId = device.staffId as number;
   }

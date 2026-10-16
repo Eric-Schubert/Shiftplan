@@ -1,13 +1,6 @@
 import type { MessageKey } from "~/i18n/types";
 
-export type ShiftRequestStatus =
-  | "open"
-  | "pending_approval"
-  | "done"
-  | "declined"
-  | "rejected"
-  | "cancelled"
-  | "reverted";
+export type ShiftRequestStatus = "open" | "pending_approval" | "done" | "declined" | "rejected" | "cancelled" | "reverted";
 
 export interface ShiftRequest {
   request_id: number;

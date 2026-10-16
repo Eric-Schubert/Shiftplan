@@ -84,11 +84,7 @@ async function saveShift() {
     <div class="space-y-4">
       <div class="flex flex-col gap-2">
         <label for="shift-name" class="font-medium">{{ t("validation.fields.name") }}</label>
-        <PrimeInputText
-          id="shift-name"
-          v-model="form.name"
-          :placeholder="t('settings.shifts.form.namePlaceholder')"
-        />
+        <PrimeInputText id="shift-name" v-model="form.name" :placeholder="t('settings.shifts.form.namePlaceholder')" />
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

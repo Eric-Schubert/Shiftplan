@@ -1,17 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { client, closePushClient, currentWeek, stubPushRelay } from "./helpers/push-client";
-import {
-  ALL,
-  MINE_ANNA,
-  MINE_MAX,
-  MINE_OTHER,
-  calls,
-  changeShift,
-  json,
-  openRelayClient,
-  registerDevices,
-  relayResponses,
-} from "./helpers/push-relay";
+import { ALL, MINE_ANNA, MINE_MAX, MINE_OTHER, calls, changeShift, json, openRelayClient, registerDevices, relayResponses } from "./helpers/push-relay";
 import { webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
@@ -60,9 +49,7 @@ describe("push relay e2e", () => {
     await client.push.PushService.flushPendingChanges();
 
     const registrations = calls.filter((call) => call.url.endsWith("/v1/instances"));
-    expect(registrations).toEqual([
-      { url: "https://relay.test/v1/instances", auth: undefined, body: { name: "Schichtplaner", url: null } },
-    ]);
+    expect(registrations).toEqual([{ url: "https://relay.test/v1/instances", auth: undefined, body: { name: "Schichtplaner", url: null } }]);
   });
 
   it("deletes devices the relay reports as invalid", async () => {

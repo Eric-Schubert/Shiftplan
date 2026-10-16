@@ -33,10 +33,7 @@ function loadWorker(subscribeStatus = 200) {
     handlers.get(type)!({ ...event, waitUntil: (promise: Promise<unknown>) => pending.push(promise) });
     await Promise.all(pending);
   }
-  const posted = () =>
-    fetch.mock.calls
-      .filter(([, init]) => init?.method === "POST")
-      .map(([path, init]) => [path, JSON.parse(String(init!.body))]);
+  const posted = () => fetch.mock.calls.filter(([, init]) => init?.method === "POST").map(([path, init]) => [path, JSON.parse(String(init!.body))]);
   return { self, dispatch, posted };
 }
 
@@ -94,10 +91,6 @@ describe("service worker", () => {
     await click("https://evil.example/login");
     await click("//evil.example/login");
 
-    expect(worker.self.clients.openWindow.mock.calls).toEqual([
-      [`${ORIGIN}/?year=2026&week=41`],
-      [`${ORIGIN}/`],
-      [`${ORIGIN}/`],
-    ]);
+    expect(worker.self.clients.openWindow.mock.calls).toEqual([[`${ORIGIN}/?year=2026&week=41`], [`${ORIGIN}/`], [`${ORIGIN}/`]]);
   });
 });

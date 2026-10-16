@@ -8,11 +8,7 @@ export type RequestOptions = {
   csrf?: boolean;
   headers?: Record<string, string>;
 };
-export type ApiRequest = <T = any>(
-  method: string,
-  path: string,
-  options?: RequestOptions
-) => Promise<PlainResponse & { json: T | null }>;
+export type ApiRequest = <T = any>(method: string, path: string, options?: RequestOptions) => Promise<PlainResponse & { json: T | null }>;
 
 const csrfCookieName = backendConfig.auth.session.cookies.csrfName;
 

@@ -116,11 +116,7 @@ export const DayChangeService = {
 
     if (input.present === inPlan) {
       // Back to what the weekly plan says.
-      db.prepare("DELETE FROM shift_day_changes WHERE staff_id = ? AND shift_id = ? AND change_date = ?").run(
-        input.staffId,
-        input.shiftId,
-        input.date
-      );
+      db.prepare("DELETE FROM shift_day_changes WHERE staff_id = ? AND shift_id = ? AND change_date = ?").run(input.staffId, input.shiftId, input.date);
     } else {
       db.prepare(
         `
@@ -130,15 +126,7 @@ export const DayChangeService = {
           DO UPDATE SET kind = excluded.kind, source = excluded.source, request_id = excluded.request_id,
                         created_by = excluded.created_by, created_at = datetime('now')
         `
-      ).run(
-        input.staffId,
-        input.shiftId,
-        input.date,
-        input.present ? "add" : "remove",
-        input.source,
-        input.createdBy,
-        input.requestId ?? null
-      );
+      ).run(input.staffId, input.shiftId, input.date, input.present ? "add" : "remove", input.source, input.createdBy, input.requestId ?? null);
     }
     return { kind: input.present ? "add" : "remove" };
   },

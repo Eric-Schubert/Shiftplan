@@ -10,8 +10,6 @@ export function purgeOldReasons(now = Date.now()): void {
   lastPurge = now;
   const cutoff = new Date(now - ABSENCE_REASON_RETENTION_DAYS * DAY_MS).toISOString().slice(0, 10);
   const db = getDatabase();
-  db.prepare(
-    "UPDATE absences SET reason = NULL, note = NULL WHERE (reason IS NOT NULL OR note IS NOT NULL) AND absence_date < ?"
-  ).run(cutoff);
+  db.prepare("UPDATE absences SET reason = NULL, note = NULL WHERE (reason IS NOT NULL OR note IS NOT NULL) AND absence_date < ?").run(cutoff);
   db.prepare("DELETE FROM absences WHERE cancelled_at IS NOT NULL AND absence_date < ?").run(cutoff);
 }

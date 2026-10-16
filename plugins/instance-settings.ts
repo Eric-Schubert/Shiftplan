@@ -10,9 +10,7 @@ export default defineNuxtPlugin({
   dependsOn: ["i18n:plugin:route-locale-detect"],
   async setup(nuxtApp) {
     const appStore = useAppStore();
-    const { data } = await useAsyncData("instance", () =>
-      $fetch<InstanceResponse>("/api/instance").catch(() => null)
-    );
+    const { data } = await useAsyncData("instance", () => $fetch<InstanceResponse>("/api/instance").catch(() => null));
 
     useConfigStore().apply(data.value);
     const enabled = data.value?.nextWeekFromSaturday ?? true;

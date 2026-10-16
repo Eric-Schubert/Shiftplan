@@ -1,17 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CookieJar } from "./helpers/api-harness";
-import {
-  ANNA,
-  EARLY,
-  FCM_ENDPOINT,
-  MAX,
-  SAME_ORIGIN,
-  THURSDAY,
-  bearer,
-  client,
-  inviteAndRedeem,
-  useMemberAccessClient,
-} from "./helpers/member-access";
+import { ANNA, EARLY, FCM_ENDPOINT, MAX, SAME_ORIGIN, THURSDAY, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
 import { KEYS, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
@@ -65,11 +54,9 @@ describe("personal app access", () => {
     });
     const planner = await client.loginAs("planner", "planner1234");
 
-    const list = await client.request<Array<{ sessionId: string; staffName: string; deviceName: string }>>(
-      "GET",
-      "/api/member-sessions",
-      { jar: planner }
-    );
+    const list = await client.request<Array<{ sessionId: string; staffName: string; deviceName: string }>>("GET", "/api/member-sessions", {
+      jar: planner,
+    });
     const revoke = await client.request("DELETE", `/api/member-sessions/${list.json![0]!.sessionId}`, {
       jar: planner,
       csrf: true,

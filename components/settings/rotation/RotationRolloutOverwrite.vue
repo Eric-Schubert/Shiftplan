@@ -9,9 +9,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div
-    class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-2)]"
-  >
+  <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm text-[var(--text-2)]">
     <i18n-t keypath="settings.rollout.overwrite.planned" tag="p" class="text-[var(--text-1)]">
       <template #weeks>
         <strong>{{ t("settings.rollout.overwrite.plannedWeeks", { planned: plannedCount, total: totalCount }) }}</strong>
