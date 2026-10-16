@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { PASSWORD_POLICY_HINT } from "~/utils/password-policy";
 import { passwordChangeProblem } from "~/utils/account-forms";
 
 const { authFetch } = useAuthFetch();
+const configStore = useConfigStore();
 const visible = defineModel<boolean>("visible");
 
 const currentPassword = ref("");
@@ -21,7 +21,12 @@ function clearFields() {
 }
 
 async function changePassword() {
-  const problem = passwordChangeProblem(currentPassword.value, newPassword.value, confirmPassword.value);
+  const problem = passwordChangeProblem(
+    currentPassword.value,
+    newPassword.value,
+    confirmPassword.value,
+    configStore.passwordPolicy
+  );
   error.value = problem ?? "";
   success.value = false;
   if (problem) return;
@@ -89,7 +94,7 @@ function onHide() {
           v-model="newPassword"
           input-id="new-password"
           label="Neues Passwort"
-          :placeholder="PASSWORD_POLICY_HINT"
+          :placeholder="configStore.passwordPolicy.hint"
           :described-by="error ? passwordErrorId : undefined"
         />
         <ChangePasswordField

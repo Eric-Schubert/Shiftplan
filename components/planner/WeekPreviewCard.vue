@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { WeeklyShiftplan } from "~/types/shiftplan";
-import backendConfig from "../../config/backend.config.json";
 
 // One upcoming week: assignment count, holidays and who works which shift.
 const props = defineProps<{
@@ -9,6 +8,7 @@ const props = defineProps<{
   loading: boolean;
 }>();
 const emit = defineEmits<{ (e: "select"): void }>();
+const configStore = useConfigStore();
 
 const shifts = computed(() => {
   if (!props.plan?.shifts || props.plan.shifts.length === 0) {
@@ -19,7 +19,7 @@ const shifts = computed(() => {
     .filter((shift) => shift.assigned_staff && shift.assigned_staff.length > 0)
     .map((shift) => ({
       name: shift.name,
-      color: shift.color || backendConfig.validation.shift.defaultColor,
+      color: shift.color || configStore.shiftDefaults.color,
       staff: shift.assigned_staff.map((staff) => staff.name),
     }));
 

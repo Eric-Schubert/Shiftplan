@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PASSWORD_POLICY_HINT } from "~/utils/password-policy";
 import { newUserProblem } from "~/utils/account-forms";
 import type { UserCreatePayload, UserRole } from "~/types/auth";
 
@@ -13,6 +12,7 @@ const emit = defineEmits<{
 }>();
 
 const { authFetch } = useAuthFetch();
+const configStore = useConfigStore();
 
 const createError = ref("");
 const createErrorId = "create-user-error";
@@ -43,7 +43,7 @@ watch(
 );
 
 async function createUser() {
-  const problem = newUserProblem(form.value);
+  const problem = newUserProblem(form.value, configStore.passwordPolicy);
   createError.value = problem ?? "";
   if (problem) return;
 
@@ -101,7 +101,7 @@ async function createUser() {
           id="create-password"
           type="password"
           class="w-full"
-          :placeholder="PASSWORD_POLICY_HINT"
+          :placeholder="configStore.passwordPolicy.hint"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
         />

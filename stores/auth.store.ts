@@ -6,6 +6,7 @@ import {
   type AuthSessionResponse,
   type LoginResponse,
 } from "./auth/session";
+import { useConfigStore } from "./config.store";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -45,7 +46,7 @@ export const useAuthStore = defineStore("auth", {
 
   actions: {
     _readCsrfCookie(): string | null {
-      return readCsrfCookie();
+      return readCsrfCookie(useConfigStore().csrf.cookieName);
     },
 
     _signOutLocally(): void {
