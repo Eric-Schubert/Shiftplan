@@ -35,7 +35,7 @@ export function useRotationExcelImport(onImported: () => void) {
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = url;
-      link.download = "schichtplan-rotation-template.xlsx";
+      link.download = "shiftplan-rotation-template.xlsx";
       document.body.appendChild(link);
       link.click();
       link.remove();

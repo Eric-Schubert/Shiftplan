@@ -9,7 +9,8 @@ on:
       - "LICENSE"
       - ".gitignore"
   # Pull requests always run, so the required checks report a result. For
-  # documentation-only changes the jobs below are skipped, which counts as passed.
+  # documentation-only changes only the generated-docs check runs, the other jobs and
+  # steps are skipped, which counts as passed.
   pull_request:
     branches: ["master"]
   workflow_dispatch:
@@ -45,12 +46,13 @@ jobs:
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
 
-  # Jobs run unless the change is documentation only. If "changes" fails, its output
-  # stays empty and the jobs still run, so a broken check never skips the tests.
+  # Always runs, so hand edits to generated docs fail even in docs-only changes. That
+  # check needs only Node; npm ci, tests and the length check run for code changes.
+  # If "changes" fails, its output stays empty and everything runs.
   test:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    if: ${{ !cancelled() }}
 
     steps:
       - name: Checkout repository
@@ -59,17 +61,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: "npm"
+          node-version-file: .nvmrc
+          cache: ${{ needs.changes.outputs.code != 'false' && 'npm' || '' }}
 
       - name: Install dependencies
+        if: needs.changes.outputs.code != 'false'
         run: npm ci
 
       - name: Run tests
+        if: needs.changes.outputs.code != 'false'
         run: npm run test:run
 
       - name: Check file length
+        if: needs.changes.outputs.code != 'false'
         run: npm run lint:length
+
+      - name: Check English
+        if: needs.changes.outputs.code != 'false'
+        run: npm run lint:english
 
       - name: Check generated docs
         run: |
@@ -80,43 +89,7 @@ jobs:
             exit 1
           fi
 
-  build:
-    runs-on: ubuntu-latest
-    needs: [changes, test]
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' }}
-    env:
-      SHIFTPLAN_ADMIN_PASSWORD: CiAdminPass1
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Setup database
-        run: node setup.js
-
-      - name: Build application
-        run: npm run build
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-output
-          path: .output/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 5
-
+  # Checks the app with nuxi typecheck and server/** with the Nitro tsconfig.
   typecheck:
     runs-on: ubuntu-latest
     needs: changes
@@ -129,23 +102,45 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run type check
-        run: npx nuxi typecheck
+        run: npm run typecheck
 
+  # The only app build per run happens in the Dockerfile. Layers come from the cache
+  # that Docker Build & Push fills on master, so npm ci usually stays cached.
   docker-smoke:
     runs-on: ubuntu-latest
-    needs: [changes, test, build, typecheck]
-    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' && needs.build.result == 'success' && needs.typecheck.result == 'success' }}
+    needs: [changes, test, typecheck]
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' && needs.test.result == 'success' && needs.typecheck.result == 'success' }}
+    env:
+      # Read by scripts/docker-smoke-test.sh, so build and test use the same name.
+      IMAGE_NAME: shiftplan:smoke
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Build and smoke test Docker image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: .
+          load: true
+          tags: ${{ env.IMAGE_NAME }}
+          build-args: |
+            APP_VERSION=smoke
+          cache-from: type=gha
+
+      - name: Smoke test Docker image
+        env:
+          SMOKE_SKIP_BUILD: "1"
         run: bash scripts/docker-smoke-test.sh

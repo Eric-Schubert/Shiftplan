@@ -44,16 +44,25 @@ function compareVersions(left, right) {
   return 0;
 }
 
-function getLatestTag() {
-  const tags = git(["tag", "--list", "v*"])
+// Newest first.
+function getTags() {
+  return git(["tag", "--list", "v*"])
     .split(/\r?\n/)
     .map((tag) => tag.trim())
     .filter(Boolean)
     .map(parseTag)
     .filter(Boolean)
     .sort(compareVersions);
+}
 
-  return tags[0] || { tag: "v0.0.0", version: [0, 0, 0] };
+function isAncestor(commit, tag) {
+  try {
+    git(["merge-base", "--is-ancestor", commit, tag]);
+    return true;
+  } catch (error) {
+    if (error.status === 1) return false;
+    throw error;
+  }
 }
 
 function getReleaseType() {
@@ -94,8 +103,27 @@ function writeOutputs(outputs) {
   }
 }
 
-const previous = getLatestTag();
+const tags = getTags();
+const previous = tags[0] || { tag: "v0.0.0", version: [0, 0, 0] };
 const releaseType = getReleaseType();
+
+// CI on master can finish out of order or run again. A commit the newest tag already
+// contains gets no new tag. If it carries that tag itself, the outputs are written
+// again so a failed release step can be retried; the release action is idempotent.
+if (tags.length > 0 && isAncestor("HEAD", previous.tag)) {
+  if (git(["rev-parse", "HEAD"]) === git(["rev-parse", `${previous.tag}^{commit}`])) {
+    console.log(`HEAD is ${previous.tag}, retrying the release.`);
+    writeOutputs({
+      previous_tag: tags[1]?.tag || "v0.0.0",
+      new_tag: previous.tag,
+      release_type: releaseType,
+    });
+  } else {
+    console.log(`HEAD is already part of ${previous.tag}.`);
+  }
+  process.exit(0);
+}
+
 const nextVersion = bumpVersion(previous.version, releaseType).join(".");
 const newTag = `v${nextVersion}`;
 

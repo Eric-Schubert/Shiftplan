@@ -31,7 +31,7 @@ function parseTrustProxyEnv(name: string): boolean | "cloudflare" | undefined {
   if (value === "false" || value === "0") return false;
   if (value === "cloudflare") return "cloudflare";
 
-  throw new Error(`${name} muss true, false oder cloudflare sein`);
+  throw new Error(`${name} must be true, false or cloudflare`);
 }
 
 export function resetBackendConfigForTests(): void {

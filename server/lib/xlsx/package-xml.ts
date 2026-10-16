@@ -62,8 +62,8 @@ export function corePropsXml(): string {
   const now = new Date().toISOString();
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <dc:creator>Schichtplaner</dc:creator>
-  <cp:lastModifiedBy>Schichtplaner</cp:lastModifiedBy>
+  <dc:creator>Shiftplan</dc:creator>
+  <cp:lastModifiedBy>Shiftplan</cp:lastModifiedBy>
   <dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created>
   <dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified>
 </cp:coreProperties>`;
@@ -72,7 +72,7 @@ export function corePropsXml(): string {
 export function appPropsXml(): string {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
-  <Application>Schichtplaner</Application>
+  <Application>Shiftplan</Application>
 </Properties>`;
 }
 

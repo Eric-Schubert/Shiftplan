@@ -6,7 +6,7 @@ export type MemberProfile = {
 };
 
 /**
- * Personal sign-in in the browser (Kürzel + PIN or the planner's QR code). The session lives in
+ * Personal sign-in in the browser (short code + PIN or the planner's QR code). The session lives in
  * an HttpOnly cookie; the browser adds the Origin header that the server checks on writes.
  */
 export function useMember() {

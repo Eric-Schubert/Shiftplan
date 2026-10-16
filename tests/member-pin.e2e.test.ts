@@ -6,8 +6,8 @@ import { webPushMock } from "./helpers/web-push-mock";
 vi.mock("web-push", () => webPushMock);
 useMemberPinClient();
 
-describe("sign-in with Kürzel and PIN", () => {
-  it("signs a browser in with the QR code, then any device with Kürzel and PIN", async () => {
+describe("sign-in with short code and PIN", () => {
+  it("signs a browser in with the QR code, then any device with short code and PIN", async () => {
     const firstBrowser = await browserWithInvite(ANNA);
     expect(firstBrowser.get("member_token")).toMatch(/^[0-9a-f]{64}$/);
 
@@ -34,7 +34,7 @@ describe("sign-in with Kürzel and PIN", () => {
     expect(client.adminDb.prepare("SELECT pin_hash FROM member_pins").get()).not.toMatchObject({ pin_hash: "482913" });
   });
 
-  it("gives the same answer for wrong PINs and unknown Kürzel and blocks guessing", async () => {
+  it("gives the same answer for wrong PINs and unknown short codes and blocks guessing", async () => {
     const browser = await browserWithInvite(ANNA);
     await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "482913" } });
 
@@ -86,7 +86,7 @@ describe("sign-in with Kürzel and PIN", () => {
   });
 });
 
-describe("Kürzel", () => {
+describe("short code", () => {
   it("suggests one for new staff and refuses duplicates", async () => {
     const admin = await client.loginAs("admin", "admin1234");
     const created = await client.request<any>("POST", "/api/staff", { jar: admin, csrf: true, body: { name: "Mia Müller" } });

@@ -19,7 +19,7 @@ export async function notify(task: Promise<unknown>): Promise<void> {
   try {
     await task;
   } catch (error) {
-    console.error("[requests] Push fehlgeschlagen:", error);
+    console.error("[requests] Push failed:", error);
   }
 }
 

@@ -37,6 +37,16 @@ The setup creates the initial `admin` user. Change this password after the first
 
 Usernames are case-sensitive: `Planer` and `planer` are two different accounts.
 
+## Sample Data
+
+A new instance starts without staff and shifts. For sample data on the first start, set:
+
+```bash
+SHIFTPLAN_SEED_DEMO_DATA=true
+```
+
+The setup then adds five sample employees and three shifts, but only while the staff list is empty. A public demo instance (`NUXT_PUBLIC_DEMO_LOGIN_USERNAME` set) gets them without this variable.
+
 ## Proxy Headers
 
 Proxy headers are ignored by default so clients cannot spoof their IP address to bypass rate limits. Sign-in limits count failures per client network (IPv4 address or IPv6 /64) and, more generously, per account or short code, so guessing from many addresses still hits a limit while one stranger alone cannot lock a colleague out.

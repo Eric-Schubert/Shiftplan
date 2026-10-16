@@ -1,8 +1,5 @@
-import type {
-  RotationDropPayload,
-  RotationStaffDragPayload,
-  RotationTransferPayload,
-} from "~/types/rotation";
+import type { RotationTransferPayload } from "~/types/rotation";
+import type { RotationDropPayload, RotationStaffDragPayload } from "~/types/rotation-drag";
 
 /** Drag and drop of staff from the pool or between shifts and pattern weeks of the rotation board. */
 export function useRotationPatternDragDrop() {
@@ -90,7 +87,7 @@ export function useRotationPatternDragDrop() {
 
       await dataStore.assignToRotation(patternWeek, data.staffId, shiftId);
     } catch (error) {
-      console.error("Drop fehlgeschlagen:", error);
+      console.error("Drop failed:", error);
     }
   }
 

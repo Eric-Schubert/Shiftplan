@@ -97,7 +97,7 @@ export const PushRelayService = {
     try {
       credential = await this.credentials(relayUrl, instance);
     } catch (error) {
-      console.error("[push] Relay-Registrierung fehlgeschlagen:", (error as Error).message);
+      console.error("[push] Relay registration failed:", (error as Error).message);
       return { ...result, failed: total };
     }
 
@@ -129,7 +129,7 @@ export const PushRelayService = {
           result.failed += response.failed;
           result.invalidTokens.push(...response.invalidTokens);
         } catch (error) {
-          console.error("[push] Relay-Versand fehlgeschlagen:", (error as Error).message);
+          console.error("[push] Relay send failed:", (error as Error).message);
           result.failed += tokens.length;
         }
       }

@@ -43,7 +43,7 @@ export function getContactMailConfig(): ContactMailConfig | null {
   if (!provider && !hasGraphConfig) return null;
 
   if (provider && provider !== "graph") {
-    throw new Error(`Unbekannter Kontakt-Mail-Provider: ${provider}`);
+    throw new Error(`Unknown contact mail provider: ${provider}`);
   }
 
   const config: ContactMailConfig = {
@@ -71,7 +71,7 @@ export function getContactMailConfig(): ContactMailConfig | null {
     .map(([name]) => name);
 
   if (missingFields.length > 0) {
-    throw new Error(`Kontakt-Mail ist unvollständig konfiguriert: ${missingFields.join(", ")}`);
+    throw new Error(`Contact mail is not fully configured, missing: ${missingFields.join(", ")}`);
   }
 
   return config;

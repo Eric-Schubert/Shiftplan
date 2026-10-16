@@ -87,7 +87,7 @@ describe("absences and the plan", () => {
     const anna = await member(ANNA, "anna:tok");
     await member(MAX, "max:tok");
 
-    // KW 42 is not planned yet, so there is no shift to take over.
+    // Week 42 is not planned yet, so there is no shift to take over.
     await report(anna, { date: "2026-10-13", seekTakeover: true });
     const unplanned = sends().at(-1)!.body;
     await report(anna, { date: THURSDAY, seekTakeover: true });

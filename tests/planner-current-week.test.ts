@@ -14,7 +14,7 @@ describe("planner current week", () => {
   afterEach(() => vi.useRealTimers());
 
   it("keeps the running week on weekdays", () => {
-    at("2026-10-09"); // Friday, KW 41
+    at("2026-10-09"); // Friday, week 41
     expect(current(true)).toEqual({ year: 2026, week: 41 });
     expect(current(false)).toEqual({ year: 2026, week: 41 });
   });
@@ -26,11 +26,11 @@ describe("planner current week", () => {
   });
 
   it("follows ISO years across the turn of the year", () => {
-    at("2027-01-02"); // Saturday of KW 53/2026
+    at("2027-01-02"); // Saturday of week 53/2026
     expect(current(true)).toEqual({ year: 2027, week: 1 });
     expect(current(false)).toEqual({ year: 2026, week: 53 });
 
-    at("2025-12-29"); // Monday of KW 1/2026
+    at("2025-12-29"); // Monday of week 1/2026
     expect(current(false)).toEqual({ year: 2026, week: 1 });
   });
 });

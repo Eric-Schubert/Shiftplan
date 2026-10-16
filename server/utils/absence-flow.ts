@@ -59,7 +59,7 @@ export async function reportAbsence(input: {
         takeovers += 1;
       } catch (error) {
         // The shift may already have a request; the absence itself stays valid.
-        console.warn("[absence] Übernahme-Anfrage nicht angelegt:", (error as Error).message);
+        console.warn("[absence] Takeover request not created:", (error as Error).message);
       }
     }
   }
@@ -82,7 +82,7 @@ export async function reportAbsence(input: {
         { excludeStaffId: first.staff_id }
       );
     } catch (error) {
-      console.error("[absence] Team-Push fehlgeschlagen:", error);
+      console.error("[absence] Team push failed:", error);
     }
   }
 

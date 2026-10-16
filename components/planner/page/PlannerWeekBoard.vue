@@ -32,7 +32,7 @@ const holidayNames = computed(() => new Map(holidays.value.map((holiday) => [hol
 // Nobody is expected to work on holidays, so they never leave a shift short.
 const coverageDates = computed(() => workdays.value.filter((date) => !holidayNames.value.has(date)));
 
-// A shift is only „im Soll“ when every work day is covered after day changes and absences.
+// A shift is only fully staffed when every work day is covered after day changes and absences.
 const fullyStaffedShifts = computed(() => {
   const dayChanges = props.shiftplan?.day_changes ?? [];
   return shiftList.value.filter((shift) => understaffedDates(shift, coverageDates.value, dayChanges, props.absences).length === 0).length;

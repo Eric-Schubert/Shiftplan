@@ -43,7 +43,7 @@ describe("docs generator", () => {
     expect(workflowDocs).toContain("scripts/release-prefixes.json");
     expect(workflowDocs).toContain("`security:`");
     expect(workflowDocs).toContain("`docs:`");
-    expect(workflowDocs).toContain("Docker smoke test");
+    expect(workflowDocs).toContain("Docker build with smoke test");
     expect(workflowDocs).toContain("CI success + deploy prefix");
     expect(workflowDocs).not.toContain("`doc:`");
   });

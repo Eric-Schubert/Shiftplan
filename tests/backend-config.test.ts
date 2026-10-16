@@ -12,7 +12,7 @@ describe("backend config", () => {
     const invalidConfig = structuredClone(backendConfig);
     invalidConfig.holidays.public.subdivisionCodes = ["XX"];
 
-    expect(() => validateBackendConfig(invalidConfig)).toThrow(/Bundesland XX/);
+    expect(() => validateBackendConfig(invalidConfig)).toThrow(/state XX/);
   });
 
   describe("SHIFTPLAN_TRUST_PROXY_HEADERS", () => {

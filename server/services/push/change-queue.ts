@@ -82,7 +82,7 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
   const counts: SendCounts = { sent: 0, failed: 0 };
   for (const result of results) {
     if (result.status === "rejected") {
-      console.error("[push] Änderungs-Push fehlgeschlagen:", result.reason);
+      console.error("[push] Change push failed:", result.reason);
       continue;
     }
     counts.sent += result.value.sent;

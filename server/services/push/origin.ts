@@ -39,7 +39,7 @@ export function getHttpsOrigin(): string | null {
   if (url) return url.origin;
   if (!warnedAboutConfig) {
     warnedAboutConfig = true;
-    console.warn(`[push] SHIFTPLAN_PUBLIC_URL ist keine https-Adresse und wird ignoriert: ${configured}`);
+    console.warn(`[push] SHIFTPLAN_PUBLIC_URL is not an https URL and is ignored: ${configured}`);
   }
   return lastOrigin;
 }

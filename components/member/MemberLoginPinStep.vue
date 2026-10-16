@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Sign-in with Kürzel and PIN, the usual way back in.
+// Sign-in with short code and PIN, the usual way back in.
 defineProps<{ busy: boolean; error: string }>();
 const emit = defineEmits<{ (e: "submit"): void; (e: "use-code"): void }>();
 const shortCode = defineModel<string>("shortCode", { required: true });

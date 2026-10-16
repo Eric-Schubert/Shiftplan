@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   try {
     return await SchoolHolidayService.list(year, week, states);
   } catch (error: any) {
-    console.error("Fehler beim Abrufen der Schulferien:", error);
+    console.error("[holidays] Fetching school holidays failed:", error);
     throw createError({
       statusCode: 500,
       message: `Fehler beim Abrufen der Schulferien: ${error.message}`,

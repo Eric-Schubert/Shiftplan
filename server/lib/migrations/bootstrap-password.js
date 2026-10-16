@@ -16,19 +16,19 @@ export function hashPassword(value) {
 
 function validateBootstrapAdminPassword(password) {
   if (password.length < MIN_BOOTSTRAP_PASSWORD_LENGTH) {
-    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens ${MIN_BOOTSTRAP_PASSWORD_LENGTH} Zeichen haben`;
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} must have at least ${MIN_BOOTSTRAP_PASSWORD_LENGTH} characters`;
   }
   if (password.length > MAX_BOOTSTRAP_PASSWORD_LENGTH) {
-    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} darf maximal ${MAX_BOOTSTRAP_PASSWORD_LENGTH} Zeichen haben`;
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} must have at most ${MAX_BOOTSTRAP_PASSWORD_LENGTH} characters`;
   }
   if (!/[A-Z]/.test(password)) {
-    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens einen Großbuchstaben enthalten`;
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} must contain at least one upper case letter`;
   }
   if (!/[a-z]/.test(password)) {
-    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens einen Kleinbuchstaben enthalten`;
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} must contain at least one lower case letter`;
   }
   if (!/[0-9]/.test(password)) {
-    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} muss mindestens eine Zahl enthalten`;
+    return `${BOOTSTRAP_ADMIN_PASSWORD_ENV} must contain at least one digit`;
   }
   return null;
 }

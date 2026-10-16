@@ -1,5 +1,5 @@
-// Reihenfolge = Nummerierung im Text und im Inhaltsverzeichnis. Die ID
-// "app-daten-loeschen" verlinken die Store-Einträge, sie muss bleiben.
+// Order = numbering in the text and the table of contents. Store listings link to the
+// id "app-daten-loeschen", so it must not change.
 export const PRIVACY_SECTIONS = [
   { id: "zweck", title: "Zweck der Anwendung" },
   { id: "daten", title: "Verarbeitete Daten" },

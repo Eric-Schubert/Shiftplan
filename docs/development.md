@@ -4,7 +4,7 @@
 
 Requirements:
 
-- Node.js 20+
+- Node.js 24 (the version CI and the Docker image use, see `.nvmrc`)
 - npm
 
 ```bash
@@ -12,19 +12,23 @@ npm install
 SHIFTPLAN_ADMIN_PASSWORD=SecurePassword1 npm run dev
 ```
 
-The app starts at `http://localhost:3000`. The password is only read on the first start, when the `admin` user is created. See [Configuration](configuration.md#admin-password).
+The app starts at `http://localhost:3000`. The password is only read on the first start, when the `admin` user is created. See [Configuration](configuration.md#admin-password). Add `SHIFTPLAN_SEED_DEMO_DATA=true` on the first start for sample staff and shifts.
 
 ## Commands
 
 ```bash
 npm run dev          # Development server
 npm run test:run     # Run tests once
+npm run typecheck    # Type check the app and server/**
 npm run build        # Production build
 npm run docs         # Regenerate the generated parts of docs/api.md and docs/releases.md
 npm run lint:length  # Fail on source files over 150 lines (aim for about 100)
+npm run lint:english # Fail on German comments, identifiers, test titles and log messages
 ```
 
 CI fails when the generated docs are stale. After adding or changing an API route, run `npm run docs` and commit the result.
+
+Code, comments, test titles and log messages are English; German UI text lives in strings only. `npm run lint:english` runs in CI and flags comments with umlauts or two different German stopwords, identifiers with German stems (`kuerzel`, `firstKw`), German test titles and `console.*` messages. Quoted text such as „Früh“ is ignored, so comments can still name German UI labels. The public wire values `einladung`, `zugang`, `anfragen`, `urlaub`, `privat` and `sonstiges` stay allowed.
 
 ## Docker Image
 

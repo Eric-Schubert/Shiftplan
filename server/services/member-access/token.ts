@@ -1,4 +1,4 @@
-/** Browser session of a staff member signed in with Kürzel and PIN. */
+/** Browser session of a staff member signed in with short code and PIN. */
 export const MEMBER_COOKIE_NAME = "member_token";
 export const MEMBER_COOKIE_DAYS = 365;
 

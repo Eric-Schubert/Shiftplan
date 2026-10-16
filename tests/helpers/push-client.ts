@@ -36,7 +36,7 @@ export function stubPushRelay() {
   vi.stubGlobal("fetch", (...args: unknown[]) => relayFetch(...args));
 }
 
-/** Fresh databases with Anna, Max and the Frühschicht. */
+/** Fresh databases with Anna, Max and the „Frühschicht“. */
 export async function openPushClient() {
   const api = await createApiClient(ROUTES, (db) => {
     db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Anna");

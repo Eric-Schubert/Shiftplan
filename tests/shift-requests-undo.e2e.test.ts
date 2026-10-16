@@ -17,7 +17,7 @@ import { webPushMock } from "./helpers/web-push-mock";
 vi.mock("web-push", () => webPushMock);
 useShiftRequestClient();
 
-/** Anna gives away Früh on Thursday and Max takes it over. */
+/** Anna gives away „Früh“ on Thursday and Max takes it over. */
 async function doneTakeover() {
   const anna = await member(ANNA, "anna:tok");
   const max = await member(MAX, "max:tok");

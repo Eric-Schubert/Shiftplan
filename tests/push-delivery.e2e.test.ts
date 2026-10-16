@@ -62,7 +62,7 @@ describe("bundled plan-change pushes", () => {
   });
 
   it("stays silent about corrections of past days", async () => {
-    // Thursday of KW 41/2026.
+    // Thursday of week 41/2026.
     vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-08T10:00:00Z") });
     const { PushService } = client.push;
     const dayChange = (date: string) =>

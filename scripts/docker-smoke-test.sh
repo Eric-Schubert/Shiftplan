@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-IMAGE_NAME="${IMAGE_NAME:-schichtplaner:smoke}"
-CONTAINER_NAME="${CONTAINER_NAME:-schichtplaner-smoke}"
+IMAGE_NAME="${IMAGE_NAME:-shiftplan:smoke}"
+CONTAINER_NAME="${CONTAINER_NAME:-shiftplan-smoke}"
 HOST_PORT="${HOST_PORT:-3000}"
 BASE_URL="http://127.0.0.1:${HOST_PORT}"
 ADMIN_PASSWORD="${SHIFTPLAN_ADMIN_PASSWORD:-SmokeAdminPass1}"
@@ -17,8 +17,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[smoke] Building Docker image ${IMAGE_NAME}"
-docker build --build-arg APP_VERSION=smoke -t "$IMAGE_NAME" .
+# CI builds the image with the layer cache first and sets SMOKE_SKIP_BUILD=1.
+if [ "${SMOKE_SKIP_BUILD:-0}" = "1" ]; then
+  echo "[smoke] Using existing Docker image ${IMAGE_NAME}"
+else
+  echo "[smoke] Building Docker image ${IMAGE_NAME}"
+  docker build --build-arg APP_VERSION=smoke -t "$IMAGE_NAME" .
+fi
 
 echo "[smoke] Starting container ${CONTAINER_NAME}"
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -79,7 +84,7 @@ esac
 
 echo "[smoke] Checking unauthenticated mutation is rejected"
 mutation_status="$(
-  curl -sS -o /tmp/schichtplaner-smoke-mutation.txt -w "%{http_code}" \
+  curl -sS -o /tmp/shiftplan-smoke-mutation.txt -w "%{http_code}" \
     -H "Content-Type: application/json" \
     -X POST \
     --data '{"year":2026,"week":1,"staff_id":1,"shift_id":1}' \
@@ -88,7 +93,7 @@ mutation_status="$(
 
 if [ "$mutation_status" != "401" ] && [ "$mutation_status" != "403" ]; then
   echo "[smoke] Expected protected mutation to return 401 or 403, got ${mutation_status}"
-  cat /tmp/schichtplaner-smoke-mutation.txt
+  cat /tmp/shiftplan-smoke-mutation.txt
   exit 1
 fi
 

@@ -30,7 +30,7 @@ function seedDatabase(database: DatabaseType) {
   database.prepare("INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (1, 1, 1)").run();
 }
 
-/** Real database in a temp directory with Anna, Ben (and one inactive), Früh and Spät, 2-week rotation. */
+/** Real database in a temp directory with Anna, Ben (and one inactive), „Früh“ and „Spät“, 2-week rotation. */
 export function useRotationExcelModules() {
   const originalCwd = process.cwd();
   let tempDir: string | null = null;

@@ -46,7 +46,7 @@ export function validateHolidays(value: unknown, errors: MutableErrorList): void
   const names = objectAt(config.subdivisionNames, "holidays.subdivisionNames", errors);
   for (const code of [...publicStates, ...schoolStates]) {
     if (!names[normalizeSubdivisionCode(code)]) {
-      errors.push(`holidays.subdivisionNames fehlt fuer Bundesland ${code}`);
+      errors.push(`holidays.subdivisionNames has no name for state ${code}`);
     }
   }
 }

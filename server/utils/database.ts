@@ -25,7 +25,7 @@ export function getDatabase(): DatabaseType {
     db = new Database(databasePath);
     applyConfiguredPragmas(db);
     migrateMainDatabase(db, { logger: logMigration });
-    // setup.js adds its sample staff after the migrations, so they need a Kürzel here.
+    // setup.js adds its sample staff after the migrations, so they need a short code here.
     assignMissingShortCodes(db);
   }
   return db;

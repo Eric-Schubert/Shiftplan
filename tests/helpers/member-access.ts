@@ -32,7 +32,7 @@ const ROUTES: Route[] = [
 export const ANNA = 1;
 export const MAX = 2;
 export const EARLY = 1;
-// KW 41/2026: Monday 05.10. to Sunday 11.10.
+// Week 41/2026: Monday 05.10. to Sunday 11.10.
 export const THURSDAY = "2026-10-08";
 export const FCM_ENDPOINT = "https://fcm.googleapis.com/fcm/send/web-1";
 export const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
@@ -73,7 +73,7 @@ export async function teamMessage(planner: CookieJar) {
 }
 
 /**
- * Fresh databases for every test: Anna works the Frühschicht in KW 41, Max is free,
+ * Fresh databases for every test: Anna works the „Frühschicht“ in week 41, Max is free,
  * a third person is inactive. Pushes go to the web-push mock and a fake relay.
  */
 export function useMemberAccessClient() {

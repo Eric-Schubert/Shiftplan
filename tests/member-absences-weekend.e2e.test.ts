@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ANNA, allowWeekends, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
 
-// KW 41 is over by now, and staff report absences from today on: the clock stands on its Monday.
+// Week 41 is over by now, and staff report absences from today on: the clock stands on its Monday.
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
 });

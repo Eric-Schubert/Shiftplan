@@ -35,7 +35,7 @@ const LOGOUT_ROUTE = "/api/auth/logout";
 
 
 /**
- * A browser signed in with Kürzel and PIN authenticates with a cookie. Writes must then come
+ * A browser signed in with short code and PIN authenticates with a cookie. Writes must then come
  * from this site itself, which the browser states in the Origin header.
  */
 function isSameOriginRequest(event: any): boolean {
