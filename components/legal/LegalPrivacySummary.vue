@@ -31,7 +31,7 @@ defineProps<{
         <span class="text-[var(--text-2)]"> Die eigene Besuchsstatistik speichert keine IP-Adressen im Klartext und wird nach {{ periodText(retention.analytics, "dative") }} bereinigt. Außer den Push-Nachrichten selbst gehen an Google und Apple nur technische Daten für die Push-Anmeldung, den Update-Hinweis und (Android) den QR-Scanner.</span>
       </li>
       <li class="py-3 last:pb-0">
-        <strong class="text-[var(--text-1)]">Cookies nur für Anmeldung und Zugang.</strong>
+        <strong class="text-[var(--text-1)]">Cookies nur für Anmeldung, Zugang und die gewählte Sprache.</strong>
         <span class="text-[var(--text-2)]"> Sie sind technisch nötig, deshalb gibt es kein Cookie-Banner.</span>
       </li>
     </ul>
