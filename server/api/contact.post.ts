@@ -5,6 +5,7 @@ import { getClientIP } from "~/server/utils/session";
 import { validateString } from "~/server/utils/validation";
 import { getContactFormConfig, getContactRateLimitConfig } from "~/server/config/contact-config";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 type ContactRequestBody = {
   name?: unknown;
@@ -49,7 +50,7 @@ function assertRateLimit(event: H3Event, ip: string): void {
 }
 
 export default defineEventHandler(async (event) => {
-  const body = (await readBody<ContactRequestBody>(event).catch(() => ({}))) as ContactRequestBody;
+  const body = await readObjectBody<ContactRequestBody>(event);
 
   if (typeof body.company === "string" && body.company.trim().length > 0) {
     return { success: true };

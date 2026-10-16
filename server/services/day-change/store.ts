@@ -62,6 +62,11 @@ export const DayChangeService = {
       .all(dates[0], dates[6]) as DayChange[];
   },
 
+  /** Drops the person's single-day changes after `date`, e.g. when they leave the team. */
+  removeStaffAfter(staffId: number, date: string): number {
+    return getDatabase().prepare("DELETE FROM shift_day_changes WHERE staff_id = ? AND change_date > ?").run(staffId, date).changes;
+  },
+
   /** Shifts the person actually works on that day: weekly plan plus day changes. */
   shiftsOnDate(staffId: number, date: string): Array<{ shift_id: number; name: string }> {
     const { year, week } = weekOfDate(date);

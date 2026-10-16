@@ -57,5 +57,8 @@ export default {
     incomplete: "Excel file is incomplete: {path} is missing",
     tooManyRows: "The Excel file contains too many rows in a worksheet",
     tooManyColumns: "The Excel file contains too many columns in a worksheet",
+    brokenXml: "Invalid Excel file: a worksheet is incomplete",
+    cellTooLong: "The Excel file contains a cell with more text than Excel allows",
+    unreadable: "The file cannot be read as an Excel file",
   },
 } satisfies typeof de;

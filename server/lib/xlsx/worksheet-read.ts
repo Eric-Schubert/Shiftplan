@@ -1,23 +1,18 @@
 import { columnNumberFromCellRef } from "./cell-ref";
 import { XlsxError } from "./error";
-import { MAX_WORKSHEET_COLUMNS, MAX_WORKSHEET_ROWS } from "./limits";
+import { MAX_CELL_TEXT_LENGTH, MAX_WORKSHEET_COLUMNS, MAX_WORKSHEET_ROWS } from "./limits";
 import type { XlsxCellValue } from "./types";
 import { decodeXml, parseAttrs, parseTextRuns } from "./xml";
+import { firstXmlElement, xmlElements } from "./xml-scan";
 
 export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCellValue[][] {
   const rows: XlsxCellValue[][] = [];
-  // Excel writes empty but formatted rows and cells self-closing, e.g. <c r="B8" s="5"/>.
-  const rowRegex = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
-  let rowMatch: RegExpExecArray | null;
   let fallbackRow = 1;
   let parsedRows = 0;
 
-  while ((rowMatch = rowRegex.exec(xml)) !== null) {
-    const rowAttrsXml = rowMatch[1];
-    const rowXml = rowMatch[2] ?? "";
-    if (rowAttrsXml === undefined) continue;
-
-    const rowAttrs = parseAttrs(rowAttrsXml);
+  // Excel writes empty but formatted rows and cells self-closing, e.g. <c r="B8" s="5"/>.
+  for (const rowElement of xmlElements(xml, "row")) {
+    const rowAttrs = parseAttrs(rowElement.attrs);
     const rowNumber = Number(rowAttrs.r || fallbackRow);
     if (!Number.isInteger(rowNumber) || rowNumber < 1 || rowNumber > MAX_WORKSHEET_ROWS) {
       throw new XlsxError("excel.file.tooManyRows");
@@ -30,20 +25,14 @@ export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCe
 
     const row: XlsxCellValue[] = [];
     let fallbackCol = 1;
-    const cellRegex = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
-    let cellMatch: RegExpExecArray | null;
 
-    while ((cellMatch = cellRegex.exec(rowXml)) !== null) {
-      const cellAttrsXml = cellMatch[1];
-      const cellXml = cellMatch[2] ?? "";
-      if (cellAttrsXml === undefined) continue;
-
-      const cellAttrs = parseAttrs(cellAttrsXml);
+    for (const cellElement of xmlElements(rowElement.inner ?? "", "c")) {
+      const cellAttrs = parseAttrs(cellElement.attrs);
       const colNumber = cellAttrs.r ? columnNumberFromCellRef(cellAttrs.r) : fallbackCol;
       if (!Number.isInteger(colNumber) || colNumber < 1 || colNumber > MAX_WORKSHEET_COLUMNS) {
         throw new XlsxError("excel.file.tooManyColumns");
       }
-      row[colNumber - 1] = parseCellValue(cellXml, cellAttrs.t, sharedStrings);
+      row[colNumber - 1] = parseCellValue(cellElement.inner ?? "", cellAttrs.t, sharedStrings);
       fallbackCol = colNumber + 1;
     }
 
@@ -54,16 +43,19 @@ export function parseWorksheetRows(xml: string, sharedStrings: string[]): XlsxCe
   return rows.map((row) => row || []);
 }
 
+/** Text as long as Excel allows in a cell at most; longer text only comes from a crafted file. */
+export function checkedText(text: string): string {
+  if (text.length > MAX_CELL_TEXT_LENGTH) throw new XlsxError("excel.file.cellTooLong");
+  return text;
+}
+
 function parseCellValue(xml: string, type: string | undefined, sharedStrings: string[]): XlsxCellValue {
   if (type === "inlineStr") {
-    return parseTextRuns(xml);
+    return checkedText(parseTextRuns(xml));
   }
 
-  const valueMatch = xml.match(/<v\b[^>]*>([\s\S]*?)<\/v>/);
-  if (!valueMatch) return "";
-
-  const rawValue = valueMatch[1];
-  if (rawValue === undefined) return "";
+  const rawValue = firstXmlElement(xml, "v")?.inner;
+  if (rawValue === undefined || rawValue === null) return "";
 
   const raw = decodeXml(rawValue);
 
@@ -76,9 +68,9 @@ function parseCellValue(xml: string, type: string | undefined, sharedStrings: st
   }
 
   if (type === "str") {
-    return raw;
+    return checkedText(raw);
   }
 
   const numberValue = Number(raw);
-  return Number.isFinite(numberValue) ? numberValue : raw;
+  return Number.isFinite(numberValue) ? numberValue : checkedText(raw);
 }

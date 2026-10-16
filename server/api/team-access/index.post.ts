@@ -3,11 +3,12 @@ import { requireAdmin } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
 import { apiError, messageRef } from "~/server/utils/api-error";
 import { isAppLocale } from "~/i18n/config";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const body = await readBody<{
+  const body = await readObjectBody<{
     code?: unknown;
     generate?: unknown;
     instanceName?: unknown;

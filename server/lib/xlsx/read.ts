@@ -2,8 +2,9 @@ import { Buffer } from "node:buffer";
 import { XlsxError } from "./error";
 import { MAX_WORKSHEET_COUNT } from "./limits";
 import type { XlsxSheet, XlsxWorkbook } from "./types";
-import { parseWorksheetRows } from "./worksheet-read";
+import { checkedText, parseWorksheetRows } from "./worksheet-read";
 import { parseAttrs, parseTextRuns } from "./xml";
+import { xmlElements } from "./xml-scan";
 import { readZip } from "./zip-read";
 
 export function parseXlsx(buffer: Buffer): XlsxWorkbook {
@@ -14,14 +15,9 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
 
   const relationships = parseRelationships(rels);
   const sheets: XlsxSheet[] = [];
-  const sheetRegex = /<sheet\b([^>]*)\/?>/g;
-  let sheetMatch: RegExpExecArray | null;
 
-  while ((sheetMatch = sheetRegex.exec(workbook)) !== null) {
-    const sheetAttrs = sheetMatch[1];
-    if (!sheetAttrs) continue;
-
-    const attrs = parseAttrs(sheetAttrs);
+  for (const sheet of xmlElements(workbook, "sheet")) {
+    const attrs = parseAttrs(sheet.attrs);
     const name = attrs.name;
     const relId = attrs["r:id"];
 
@@ -67,14 +63,9 @@ function readXml(zip: Map<string, Buffer>, path: string): string {
 
 function parseRelationships(xml: string): Map<string, string> {
   const relationships = new Map<string, string>();
-  const regex = /<Relationship\b([^>]*)\/?>/g;
-  let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(xml)) !== null) {
-    const relAttrs = match[1];
-    if (!relAttrs) continue;
-
-    const attrs = parseAttrs(relAttrs);
+  for (const relationship of xmlElements(xml, "Relationship")) {
+    const attrs = parseAttrs(relationship.attrs);
     if (attrs.Id && attrs.Target) {
       relationships.set(attrs.Id, attrs.Target);
     }
@@ -87,14 +78,8 @@ function parseSharedStrings(xml: string): string[] {
   if (!xml) return [];
 
   const strings: string[] = [];
-  const regex = /<si\b[^>]*>([\s\S]*?)<\/si>/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(xml)) !== null) {
-    const itemXml = match[1];
-    if (itemXml !== undefined) {
-      strings.push(parseTextRuns(itemXml));
-    }
+  for (const item of xmlElements(xml, "si")) {
+    strings.push(checkedText(parseTextRuns(item.inner ?? "")));
   }
 
   return strings;

@@ -92,7 +92,15 @@ export function replacePattern(
     `
     ).run(config.cycle_length, config.start_year, config.start_week, current.config_id);
 
-    db.prepare("DELETE FROM rotation_pattern").run();
+    // The Excel template lists active staff and shifts only; the hidden rows of deactivated
+    // ones stay for when they come back. Weeks beyond the cycle go in any case.
+    db.prepare(
+      `
+      DELETE FROM rotation_pattern
+      WHERE pattern_week > ?
+         OR (staff_id IN (SELECT staff_id FROM staff WHERE active = 1) AND shift_id IN (SELECT shift_id FROM shifts WHERE active = 1))
+    `
+    ).run(config.cycle_length);
 
     const insertPattern = db.prepare(`
       INSERT OR IGNORE INTO rotation_pattern (pattern_week, staff_id, shift_id)

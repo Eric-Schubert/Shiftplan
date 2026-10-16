@@ -2,13 +2,13 @@ import type { SchoolHolidayPeriod } from "~/types/holiday";
 import { t } from "~/i18n/server";
 import {
   getHolidayApiUrl,
-  getHolidayCacheDurationMs,
   getHolidayConfig,
   getHolidaySubdivisionName,
   getSchoolHolidayLookupRange,
   normalizeHolidaySubdivisionCode,
   toHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
+import { createHolidayCache } from "~/server/lib/holidays/cache";
 import { fetchOpenHolidays, pickName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
 import { instanceLocale } from "~/server/utils/locale";
 import { isoWeekRange } from "~/shared/utils/week";
@@ -30,7 +30,7 @@ export interface SchoolHoliday {
   stateName: string;
 }
 
-const schoolHolidayCache = new Map<string, { data: SchoolHoliday[]; timestamp: number }>();
+const cachedSchoolHolidays = createHolidayCache<SchoolHoliday[]>("school holidays");
 
 async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Promise<SchoolHoliday[]> {
   const config = getHolidayConfig();
@@ -56,22 +56,15 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
   }));
 }
 
-async function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
+function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
   const normalizedStates = [...states].sort();
   const { countryIsoCode, languageIsoCode } = getHolidayConfig();
   const cacheKey = [year, countryIsoCode, languageIsoCode, normalizedStates.join(",")].join("|");
-  const cached = schoolHolidayCache.get(cacheKey);
 
-  if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {
-    return cached.data;
-  }
-
-  const results = await Promise.all(normalizedStates.map((state) => fetchSchoolHolidaysFromAPI(year, state)));
-  const holidays = results.flat();
-  holidays.sort((a, b) => a.start.localeCompare(b.start));
-
-  schoolHolidayCache.set(cacheKey, { data: holidays, timestamp: Date.now() });
-  return holidays;
+  return cachedSchoolHolidays(cacheKey, async () => {
+    const results = await Promise.all(normalizedStates.map((state) => fetchSchoolHolidaysFromAPI(year, state)));
+    return results.flat().sort((a, b) => a.start.localeCompare(b.start));
+  });
 }
 
 function periodsOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
@@ -110,7 +103,7 @@ export const SchoolHolidayService = {
   async list(year: number, week: number | null, states: string[]) {
     let holidays = await getSchoolHolidays(year, states);
 
-    if (week && !isNaN(week)) {
+    if (week) {
       const { start, end } = isoWeekRange(year, week);
       holidays = holidays.filter((h) => periodsOverlap(start, end, h.start, h.end));
     }

@@ -5,6 +5,7 @@ import { isDemoAccount } from "~/server/utils/demo";
 import { deleteUserSessions, getSessionToken, limitAttempt } from "~/server/utils/session";
 import { getMaxPasswordLength, getPasswordHashCost, passwordPolicyError } from "~/server/config/auth-config";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   const currentUser = getSessionUser(event);
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event) => {
     throw apiError(event, 403, "errors.auth.demoPassword");
   }
 
-  const body = await readBody<{ currentPassword: string; newPassword: string }>(event);
+  const body = await readObjectBody<{ currentPassword: string; newPassword: string }>(event);
 
   if (!body?.currentPassword || typeof body.currentPassword !== "string") {
     throw apiError(event, 400, "errors.auth.currentPasswordRequired");

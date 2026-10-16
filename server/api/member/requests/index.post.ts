@@ -2,11 +2,12 @@ import { MemberAccessService } from "~/server/services/member-access.service";
 import { REQUEST_MESSAGE_MAX_LENGTH, requestSwap, requestTakeover } from "~/server/services/shift-request.service";
 import { validateId, validateString } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 /** A staff member asks the team to take over a shift, or a colleague to swap a range. */
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
   const message = validateString(body?.message, "message", { maxLength: REQUEST_MESSAGE_MAX_LENGTH }) ?? null;
 
   if (body?.kind === "takeover") {

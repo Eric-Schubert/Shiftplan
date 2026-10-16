@@ -1,4 +1,5 @@
 import type { Week } from "~/types/shiftplan";
+import type { ISOWeek } from "~/shared/utils/week";
 import { getDatabase } from "~/server/utils/database";
 
 export function getWeek(year: number, weekNumber: number): Week | null {
@@ -65,4 +66,16 @@ export function unassignStaff(staffId: number, shiftId: number, weekId: number):
     )
     .run(staffId, shiftId, weekId);
   return result.changes > 0;
+}
+
+/** Takes a person out of every planned week after `after`, e.g. when they leave the team. */
+export function removeStaffAfterWeek(staffId: number, after: ISOWeek): number {
+  return getDatabase()
+    .prepare(
+      `
+      DELETE FROM shift_assignments
+      WHERE staff_id = ? AND week_id IN (SELECT week_id FROM weeks WHERE year > ? OR (year = ? AND week_number > ?))
+    `
+    )
+    .run(staffId, after.year, after.year, after.week).changes;
 }

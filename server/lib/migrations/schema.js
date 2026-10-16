@@ -55,3 +55,13 @@ export function addColumnIfMissing(database, table, column, definition) {
   }
   return false;
 }
+
+/**
+ * Whether a migration already ran. For data fixes whose condition could come true again later.
+ * @param {Database} database
+ * @param {string} id
+ */
+export function migrationApplied(database, id) {
+  if (!tableExists(database, "schema_migrations")) return false;
+  return Boolean(database.prepare("SELECT 1 FROM schema_migrations WHERE id = ?").get(id));
+}

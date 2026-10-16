@@ -1,9 +1,13 @@
 export type LocalizedName = Array<{ language: string; text: string }>;
 
+// A hanging API would otherwise hold the request for minutes.
+const FETCH_TIMEOUT_MS = 10_000;
+
 /** GET request against the OpenHolidays API, which answers with a JSON list. */
 export async function fetchOpenHolidays<T>(url: string): Promise<T[]> {
   const response = await fetch(url, {
     headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {

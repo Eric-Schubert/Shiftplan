@@ -4,6 +4,7 @@ import type { RotationConfig } from "~/types/rotation";
 import { badRequest, integerInRange, normalizeLabel, readCell, toText } from "~/server/services/rotation-excel/cells";
 import { LABELS, patternWeekOf } from "~/server/services/rotation-excel/labels";
 import { messageRef } from "~/server/utils/api-error";
+import { isoWeeksInYear } from "~/shared/utils/week";
 
 export type HeaderColumns = {
   headerRow: number;
@@ -16,7 +17,7 @@ export type HeaderColumns = {
 /** Finds the value next to a label like "Startjahr" in column A, above the table header. */
 function readConfigValue(rows: XlsxCellValue[][], headerRow: number, labels: string[]): XlsxCellValue {
   for (let rowIndex = 0; rowIndex < headerRow; rowIndex++) {
-    const label = normalizeLabel(toText(readCell(rows, rowIndex, 0)));
+    const label = labelOf(readCell(rows, rowIndex, 0));
     if (labels.includes(label)) return readCell(rows, rowIndex, 1);
   }
 
@@ -26,19 +27,21 @@ function readConfigValue(rows: XlsxCellValue[][], headerRow: number, labels: str
 export function parseConfig(rows: XlsxCellValue[][], headerRow: number): Omit<RotationConfig, "config_id"> {
   const validation = getValidationConfig();
   const rotation = getRotationValidationConfig();
+  const startYear = integerInRange(
+    readConfigValue(rows, headerRow, LABELS.startYear),
+    messageRef("excel.labels.startYear"),
+    validation.year.min,
+    validation.year.max
+  );
 
   return {
-    start_year: integerInRange(
-      readConfigValue(rows, headerRow, LABELS.startYear),
-      messageRef("excel.labels.startYear"),
-      validation.year.min,
-      validation.year.max
-    ),
+    start_year: startYear,
+    // A 52-week year has no week 53.
     start_week: integerInRange(
       readConfigValue(rows, headerRow, LABELS.startWeek),
       messageRef("excel.labels.startWeek"),
       validation.week.min,
-      validation.week.max
+      Math.min(validation.week.max, isoWeeksInYear(startYear))
     ),
     cycle_length: integerInRange(
       readConfigValue(rows, headerRow, LABELS.cycleLength),
@@ -49,9 +52,18 @@ export function parseConfig(rows: XlsxCellValue[][], headerRow: number): Omit<Ro
   };
 }
 
+// Longer than any label or header; such a cell is neither and is not normalized at all.
+const MAX_LABEL_LENGTH = 200;
+
+/** A cell as label to compare: normalizeLabel, or "" for a long text that cannot be one. */
+function labelOf(value: XlsxCellValue): string {
+  const text = toText(value);
+  return text.length > MAX_LABEL_LENGTH ? "" : normalizeLabel(text);
+}
+
 /** The normalized cells of a row; empty cells give "", so a row with gaps has no holes. */
 function headerTexts(row: XlsxCellValue[] | undefined): string[] {
-  return Array.from(row || [], (value) => normalizeLabel(toText(value)));
+  return Array.from(row || [], labelOf);
 }
 
 function findHeader(headers: string[], candidates: string[]): number {

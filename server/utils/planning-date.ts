@@ -1,4 +1,5 @@
 import { getHolidayConfig } from "~/server/config/holiday-config";
+import { toISOWeek, type ISOWeek } from "~/shared/utils/week";
 
 /** Today's calendar date in the planning time zone, so midnight there is the day boundary, not UTC midnight. */
 export function planningDate(now = new Date()): { year: number; month: number; day: number } {
@@ -16,4 +17,10 @@ export function planningDate(now = new Date()): { year: number; month: number; d
 export function planningToday(now = new Date()): string {
   const { year, month, day } = planningDate(now);
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** The ISO week of today in the planning time zone; on 2027-01-01 that is week 53 of 2026. */
+export function planningWeek(now = new Date()): ISOWeek {
+  const { year, month, day } = planningDate(now);
+  return toISOWeek(year, month, day);
 }

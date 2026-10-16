@@ -1,7 +1,7 @@
-// Public and school holidays. `{detail}` is the upstream error, not translated.
+// Public and school holidays.
 export default {
   yearRequired: 'Parameter "year" ist erforderlich',
-  publicFailed: "Fehler beim Abrufen der Feiertage: {detail}",
-  schoolFailed: "Fehler beim Abrufen der Schulferien: {detail}",
+  publicFailed: "Die Feiertage konnten gerade nicht abgerufen werden",
+  schoolFailed: "Die Schulferien konnten gerade nicht abgerufen werden",
   unknownState: "Unbekanntes Bundesland: {code}",
 };

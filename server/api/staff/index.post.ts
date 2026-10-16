@@ -1,11 +1,12 @@
 import { StaffService } from "~/server/services/staff.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateName, validateBoolean } from "~/server/utils/validation";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   const name = validateName(body.name, "name", { required: true, maxLength: 100 });
   const active = validateBoolean(body.active, "active");

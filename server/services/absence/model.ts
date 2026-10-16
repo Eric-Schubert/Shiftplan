@@ -23,4 +23,5 @@ export type Absence = {
   created_at: string;
 };
 
-export type PublicAbsence = Omit<Absence, "reason" | "note">;
+/** What the team sees: no reason, note or the user name of whoever entered it. */
+export type PublicAbsence = Omit<Absence, "reason" | "note" | "created_by">;

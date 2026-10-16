@@ -16,12 +16,15 @@ export function normalizeName(value: string): string {
 }
 
 export function normalizeHeader(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, "")
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (
+    value
+      .toLowerCase()
+      // [^()]: with [^)] an unbalanced "(((…" made the scan quadratic.
+      .replace(/\([^()]*\)/g, "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 }
 
 /** A header or label to compare with the catalog: as normalizeHeader, umlauts written „ae“, „oe“, „ue“. */

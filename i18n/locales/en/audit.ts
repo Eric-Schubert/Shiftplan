@@ -20,6 +20,14 @@ export default {
       "1 week up to {weekOfYear} generated from the rotation pattern, {skipped} skipped as already planned | {count} weeks up to {weekOfYear} generated from the rotation pattern, {skipped} skipped as already planned",
     patternImported:
       "Rotation pattern replaced from Excel: {cycle}-week cycle, {count} assignment | Rotation pattern replaced from Excel: {cycle}-week cycle, {count} assignments",
+    // Copying a year: like a rollout, overwriting and skipping exclude each other.
+    yearCopied: "1 week copied from {sourceYear} to {targetYear} | {count} weeks copied from {sourceYear} to {targetYear}",
+    yearCopiedOverwritten:
+      "1 week copied from {sourceYear} to {targetYear}, {overwritten} of them overwritten | {count} weeks copied from {sourceYear} to {targetYear}, {overwritten} of them overwritten",
+    yearCopiedSkipped:
+      "1 week copied from {sourceYear} to {targetYear}, {skipped} skipped as already planned | {count} weeks copied from {sourceYear} to {targetYear}, {skipped} skipped as already planned",
+    // Deactivating someone clears their weeks after the current one.
+    staffDeactivated: "Deactivated: 1 assignment from {weekOfYear} on removed | Deactivated: {count} assignments from {weekOfYear} on removed",
   },
   action: {
     assign: "Assigned",

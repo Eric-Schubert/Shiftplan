@@ -35,7 +35,7 @@ export const AbsenceService = {
     const rows = resolveShifts(stored);
 
     if (includeReason) return rows;
-    return rows.map(({ reason: _reason, note: _note, ...rest }) => rest);
+    return rows.map(({ reason: _reason, note: _note, created_by: _createdBy, ...rest }) => rest);
   },
 
   getById(absenceId: number): Absence | undefined {

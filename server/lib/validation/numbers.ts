@@ -1,7 +1,17 @@
 import { getValidationConfig } from "~/server/config/domain-config";
+import { apiError } from "~/server/utils/api-error";
+import { isoWeeksInYear } from "~/shared/utils/week";
 import { createValidationError, type FieldKey } from "./error";
 
 type IntegerOptions = { required?: boolean; min?: number; max?: number };
+
+/** A whole number, or its plain digits as text (route and query values). "12abc", "1e3", "5.9", true and [5] are not. */
+function toInteger(value: unknown): number | null {
+  if (typeof value === "number") return Number.isSafeInteger(value) ? value : null;
+  if (typeof value !== "string" || !/^-?\d+$/.test(value)) return null;
+  const num = Number(value);
+  return Number.isSafeInteger(num) ? num : null;
+}
 
 // With `required: true` the validators throw instead of returning undefined.
 export function validateInteger(value: unknown, field: FieldKey, options: IntegerOptions & { required: true }): number;
@@ -16,9 +26,9 @@ export function validateInteger(value: unknown, field: FieldKey, options: Intege
     return undefined;
   }
 
-  const num = typeof value === "string" ? parseInt(value, 10) : Number(value);
+  const num = toInteger(value);
 
-  if (!Number.isInteger(num) || isNaN(num)) {
+  if (num === null) {
     throw createValidationError("integer", field);
   }
 
@@ -63,16 +73,26 @@ export function validateYear(value: unknown, field: FieldKey, options: { require
   });
 }
 
-export function validateWeek(value: unknown, field: FieldKey, options: { required: true }): number;
-export function validateWeek(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
-export function validateWeek(value: unknown, field: FieldKey, options: { required?: boolean } = {}): number | undefined {
+type WeekOptions = { required?: boolean; year?: number };
+
+/** An ISO week number; with `year` also one that exists in that year (52-week years have no week 53). */
+export function validateWeek(value: unknown, field: FieldKey, options: WeekOptions & { required: true }): number;
+export function validateWeek(value: unknown, field: FieldKey, options?: WeekOptions): number | undefined;
+export function validateWeek(value: unknown, field: FieldKey, options: WeekOptions = {}): number | undefined {
   const range = getValidationConfig().week;
 
-  return validateInteger(value, field, {
-    ...options,
+  const week = validateInteger(value, field, {
+    required: options.required,
     min: range.min,
     max: range.max,
   });
+
+  // Week 53 of a 52-week year would be the first week of the next one.
+  if (week !== undefined && options.year !== undefined && week > isoWeeksInYear(options.year)) {
+    throw apiError(null, 400, "errors.shiftplan.noSuchWeek", { year: options.year, week });
+  }
+
+  return week;
 }
 
 export function validateId(value: unknown, field: FieldKey): number {

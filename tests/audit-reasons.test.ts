@@ -38,6 +38,19 @@ const CASES: Array<[AuditReason, string]> = [
   [{ key: "audit.reason.patternImported", params: { cycle: 4, count: 1 } }, "Rotationsmuster aus Excel ersetzt: 4-Wochen-Zyklus, 1 Zuweisung"],
   [{ key: "audit.reason.patternImported", params: { cycle: 1, count: 0 } }, "Rotationsmuster aus Excel ersetzt: 1-Wochen-Zyklus, 0 Zuweisungen"],
   [{ key: "audit.reason.patternImported", params: { cycle: 6, count: 23 } }, "Rotationsmuster aus Excel ersetzt: 6-Wochen-Zyklus, 23 Zuweisungen"],
+  [
+    { key: "audit.reason.yearCopied", params: { count: 52, sourceYear: 2026, targetYear: 2027, overwritten: 0, skipped: 0 } },
+    "52 Wochen aus 2026 nach 2027 kopiert",
+  ],
+  [
+    { key: "audit.reason.yearCopiedOverwritten", params: { count: 1, sourceYear: 2026, targetYear: 2027, overwritten: 1, skipped: 0 } },
+    "1 Woche aus 2026 nach 2027 kopiert, 1 davon überschrieben",
+  ],
+  [
+    { key: "audit.reason.yearCopiedSkipped", params: { count: 40, sourceYear: 2026, targetYear: 2027, overwritten: 0, skipped: 12 } },
+    "40 Wochen aus 2026 nach 2027 kopiert, 12 bereits geplante übersprungen",
+  ],
+  [{ key: "audit.reason.staffDeactivated", params: { count: 3, days: 1, year: 2026, week: 43 } }, "Deaktiviert: 3 Zuweisungen ab KW 43/2026 entfernt"],
 ];
 
 // The app renders with vue-i18n like AuditLogEntry.vue: the plural count is its own argument.

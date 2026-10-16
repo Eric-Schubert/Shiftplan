@@ -1,9 +1,9 @@
 import type de from "../de/errors-holidays";
 
-// Public and school holidays. `{detail}` is the upstream error, not translated.
+// Public and school holidays.
 export default {
   yearRequired: 'Parameter "year" is required',
-  publicFailed: "Could not fetch public holidays: {detail}",
-  schoolFailed: "Could not fetch school holidays: {detail}",
+  publicFailed: "Public holidays could not be fetched right now",
+  schoolFailed: "School holidays could not be fetched right now",
   unknownState: "Unknown federal state: {code}",
 } satisfies typeof de;

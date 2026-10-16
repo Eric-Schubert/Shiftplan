@@ -4,16 +4,17 @@ import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   const staffId = validateId(body.staff_id, "staff_id");
   const shiftId = validateId(body.shift_id, "shift_id");
   const year = validateYear(body.year, "year", { required: true });
-  const week = validateWeek(body.week, "week", { required: true });
+  const week = validateWeek(body.week, "week", { required: true, year });
 
   const weekData = ShiftplanService.getOrCreateWeek(year, week);
   const success = ShiftplanService.unassignStaff(staffId, shiftId, weekData.week_id);

@@ -55,5 +55,8 @@ export default {
     incomplete: "Excel-Datei ist unvollständig: {path} fehlt",
     tooManyRows: "Die Excel-Datei enthält zu viele Zeilen in einem Arbeitsblatt",
     tooManyColumns: "Die Excel-Datei enthält zu viele Spalten in einem Arbeitsblatt",
+    brokenXml: "Ungültige Excel-Datei: ein Arbeitsblatt ist unvollständig",
+    cellTooLong: "Die Excel-Datei enthält eine Zelle mit mehr Text, als Excel erlaubt",
+    unreadable: "Die Datei lässt sich nicht als Excel-Datei lesen",
   },
 };

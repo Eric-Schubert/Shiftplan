@@ -23,17 +23,22 @@ export function getConfig(): RotationConfig {
   return config;
 }
 
+/** Shrinking the cycle deletes the pattern weeks beyond it, so growing it again starts them empty. */
 export function updateConfig(data: RotationConfigUpdateDTO): RotationConfig {
   const db = getDatabase();
   const current = getConfig();
+  const cycleLength = data.cycle_length ?? current.cycle_length;
 
-  db.prepare(
+  db.transaction(() => {
+    db.prepare(
+      `
+      UPDATE rotation_config
+      SET cycle_length = ?, start_year = ?, start_week = ?
+      WHERE config_id = ?
     `
-    UPDATE rotation_config
-    SET cycle_length = ?, start_year = ?, start_week = ?
-    WHERE config_id = ?
-  `
-  ).run(data.cycle_length ?? current.cycle_length, data.start_year ?? current.start_year, data.start_week ?? current.start_week, current.config_id);
+    ).run(cycleLength, data.start_year ?? current.start_year, data.start_week ?? current.start_week, current.config_id);
+    db.prepare("DELETE FROM rotation_pattern WHERE pattern_week > ?").run(cycleLength);
+  })();
 
   return getConfig();
 }
