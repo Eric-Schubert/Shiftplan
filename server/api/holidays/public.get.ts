@@ -1,24 +1,25 @@
 import { defineEventHandler, getQuery } from "h3";
 import { PublicHolidayService } from "~/server/services/public-holiday.service";
 import { apiError } from "~/server/utils/api-error";
+import { validateWeek, validateYear } from "~/server/utils/validation";
 
 export type { PublicHoliday } from "~/types/holiday";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
 
-  const year = parseInt(query.year as string);
-  const week = query.week ? parseInt(query.week as string) : null;
-
-  if (!year || isNaN(year)) {
+  // Public route: only years and weeks the app can show, so arbitrary values cause no upstream requests.
+  const year = validateYear(query.year, "year");
+  if (year === undefined) {
     throw apiError(event, 400, "errors.holidays.yearRequired");
   }
+  const week = query.week ? (validateWeek(query.week, "week", { year }) ?? null) : null;
 
   try {
     return await PublicHolidayService.list(year, week);
   } catch (error) {
+    // The upstream message stays in the log; the client only learns that the source failed.
     console.error("[holidays] Fetching public holidays failed:", error);
-    const detail = error instanceof Error ? error.message : String(error);
-    throw apiError(event, 500, "errors.holidays.publicFailed", { detail });
+    throw apiError(event, 502, "errors.holidays.publicFailed");
   }
 });

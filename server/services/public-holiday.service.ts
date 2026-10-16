@@ -2,12 +2,12 @@ import type { PublicHoliday } from "~/types/holiday";
 import { t } from "~/i18n/server";
 import {
   getHolidayApiUrl,
-  getHolidayCacheDurationMs,
   getHolidayConfig,
   getHolidaySubdivisionName,
   getPublicHolidaySubdivisionCodes,
   normalizeHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
+import { createHolidayCache } from "~/server/lib/holidays/cache";
 import { fetchOpenHolidays, pickName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
 import { instanceLocale } from "~/server/utils/locale";
 import { isoWeekRange } from "~/shared/utils/week";
@@ -22,7 +22,7 @@ interface OpenHolidayResponse {
   subdivisions?: Array<{ code: string; shortName: string }>;
 }
 
-const holidayCache = new Map<string, { data: PublicHoliday[]; timestamp: number }>();
+const cachedHolidays = createHolidayCache<PublicHoliday[]>("public holidays");
 
 // The answer depends on the country, the name language and the configured states, not only on the year.
 function cacheKey(year: number): string {
@@ -69,27 +69,18 @@ async function fetchHolidaysFromAPI(year: number): Promise<PublicHoliday[]> {
   return holidays;
 }
 
-async function getHolidays(year: number): Promise<PublicHoliday[]> {
-  const key = cacheKey(year);
-  const cached = holidayCache.get(key);
-  if (cached && Date.now() - cached.timestamp < getHolidayCacheDurationMs()) {
-    return cached.data;
-  }
-
-  const holidays = await fetchHolidaysFromAPI(year);
-  holidayCache.set(key, { data: holidays, timestamp: Date.now() });
-  return holidays;
+function getHolidays(year: number): Promise<PublicHoliday[]> {
+  return cachedHolidays(cacheKey(year), () => fetchHolidaysFromAPI(year));
 }
 
 export const PublicHolidayService = {
   /** Holidays of a year, or of one week of it (a week can reach into the neighbouring years). */
   async list(year: number, week: number | null): Promise<PublicHoliday[]> {
     const holidays = await getHolidays(year);
-    if (!week || isNaN(week)) return holidays;
+    if (!week) return holidays;
 
     const { start, end } = isoWeekRange(year, week);
-    const prevYear = await getHolidays(year - 1);
-    const nextYear = await getHolidays(year + 1);
+    const [prevYear, nextYear] = await Promise.all([getHolidays(year - 1), getHolidays(year + 1)]);
     const allHolidays = [...prevYear, ...holidays, ...nextYear];
 
     return allHolidays.filter((h) => h.date >= start && h.date <= end);
