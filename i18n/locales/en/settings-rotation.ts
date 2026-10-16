@@ -39,5 +39,11 @@ export default {
     preview: "{week} → pattern week {pattern}",
     save: "Save start point",
     failed: "Start point could not be saved",
+    shrink: {
+      header: "Shorten the cycle?",
+      cycleWeeks: "1 week | {count} weeks",
+      text: "The cycle shrinks from {from} to {to}. Pattern week {first} and its {assignments} are deleted for good. | The cycle shrinks from {from} to {to}. Pattern weeks {first} to {last} and their {assignments} are deleted for good.",
+      confirm: "Shorten cycle",
+    },
   },
 } satisfies typeof de;

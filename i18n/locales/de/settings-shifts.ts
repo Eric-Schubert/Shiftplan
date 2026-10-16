@@ -17,5 +17,6 @@ export default {
     end: "Ende",
     chooseColor: "Farbe {color} auswählen",
   },
-  deleteText: "{name} wirklich löschen? Bereits bestehende Zuordnungen dieser Schicht gehen dabei verloren.",
+  deleteText:
+    "{name} wirklich löschen? Bereits bestehende Zuordnungen dieser Schicht gehen dabei verloren, ebenso Abwesenheiten, die nur für diese Schicht gemeldet wurden.",
 };

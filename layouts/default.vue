@@ -80,7 +80,7 @@ function onActivity() {
             v-if="showPushButton"
             type="button"
             class="app-icon-button"
-            :class="{ 'text-[var(--accent-strong)]': pushState === 'on' }"
+            :class="{ 'text-[var(--accent-strong)]': pushState === 'on', 'text-[var(--danger-ink)]': pushState === 'failed' }"
             :aria-label="pushState === 'on' ? t('app.layout.push.on') : t('app.layout.push.off')"
             :title="pushState === 'on' ? t('app.layout.push.on') : t('app.layout.push.off')"
             @click="pushDialogOpen = true"

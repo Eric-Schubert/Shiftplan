@@ -3,6 +3,7 @@ import type { RotationConfig, RotationConfigPreviewItem } from "~/types/rotation
 import { patternWeekFor } from "~/shared/utils/rotation-math";
 import { weekOfYearLabel } from "~/shared/utils/format/week";
 import { isoWeeksInYear } from "~/shared/utils/week";
+import { patternWeeksBeyond } from "~/utils/rotation-cycle";
 
 const emit = defineEmits<{
   (e: "saved"): void;
@@ -15,11 +16,17 @@ const { t } = useI18n();
 const requestError = useRequestError();
 const saving = ref(false);
 const errorMessage = ref<string | null>(null);
+const confirmShrink = ref(false);
 const configForm = ref<Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">>({
   cycle_length: dataStore.rotationConfig?.cycle_length ?? 4,
   start_year: dataStore.rotationConfig?.start_year ?? new Date().getFullYear(),
   start_week: dataStore.rotationConfig?.start_week ?? 1,
 });
+
+// A shorter cycle deletes the pattern weeks beyond it for good; it asks first when they hold assignments.
+const currentCycleLength = computed(() => dataStore.rotationConfig?.cycle_length ?? 0);
+const lostAssignments = computed(() => patternWeeksBeyond(dataStore.rotationPattern, configForm.value.cycle_length).assignments);
+const shrinks = computed(() => configForm.value.cycle_length > 0 && configForm.value.cycle_length < currentCycleLength.value);
 
 const configPreview = computed<RotationConfigPreviewItem[]>(() => {
   const { cycle_length: cycleLength, start_year: startYear, start_week: startWeek } = configForm.value;
@@ -52,6 +59,11 @@ const configPreview = computed<RotationConfigPreviewItem[]>(() => {
   return preview;
 });
 
+function submit() {
+  if (shrinks.value && lostAssignments.value > 0) confirmShrink.value = true;
+  else void save();
+}
+
 async function save() {
   saving.value = true;
   errorMessage.value = null;
@@ -62,6 +74,7 @@ async function save() {
     errorMessage.value = requestError(error, "settings.rotation.config.failed");
   } finally {
     saving.value = false;
+    confirmShrink.value = false;
   }
 }
 </script>
@@ -117,8 +130,18 @@ async function save() {
     <p v-if="errorMessage" class="text-sm text-[var(--danger-ink)]">{{ errorMessage }}</p>
 
     <div class="flex flex-wrap gap-2">
-      <PrimeButton :label="t('settings.rotation.config.save')" class="min-h-11" :loading="saving" @click="save" />
+      <PrimeButton :label="t('settings.rotation.config.save')" class="min-h-11" :loading="saving" @click="submit" />
       <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text class="min-h-11" @click="emit('cancel')" />
     </div>
+
+    <LazyRotationCycleShrinkDialog
+      v-if="confirmShrink"
+      v-model:visible="confirmShrink"
+      :from="currentCycleLength"
+      :to="configForm.cycle_length"
+      :assignments="lostAssignments"
+      :saving="saving"
+      @confirm="save"
+    />
   </div>
 </template>

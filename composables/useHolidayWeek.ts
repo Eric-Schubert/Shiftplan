@@ -41,7 +41,7 @@ export function cachedHolidayWeeks(): string[] {
   return Object.keys(holidayWeekCache);
 }
 
-async function loadHolidayWeek(year: number, week: number) {
+export async function loadHolidayWeek(year: number, week: number) {
   if (import.meta.server) {
     return;
   }
@@ -62,7 +62,8 @@ async function loadHolidayWeek(year: number, week: number) {
   entry.loading = true;
   entry.error = null;
 
-  const request = Promise.all([
+  // Each answer counts on its own: public holidays decide the coverage, so a failing school-holiday request must not drop them.
+  const request = Promise.allSettled([
     $fetch<PublicHoliday[]>("/api/holidays/public", {
       query: { year, week },
     }),
@@ -71,14 +72,12 @@ async function loadHolidayWeek(year: number, week: number) {
     }),
   ])
     .then(([holidays, school]) => {
-      entry.holidays = holidays;
-      entry.schoolHolidays = school.grouped || [];
-      entry.loaded = true;
-    })
-    .catch((error: { message?: string }) => {
-      // An empty message falls back to the catalog text in useHolidayWeek.
-      entry.error = error.message || "";
-      entry.loaded = false;
+      if (holidays.status === "fulfilled") entry.holidays = holidays.value;
+      if (school.status === "fulfilled") entry.schoolHolidays = school.value.grouped || [];
+      const failed = [holidays, school].find((result): result is PromiseRejectedResult => result.status === "rejected");
+      // An empty message falls back to the catalog text in useHolidayWeek; the next look at the week tries again.
+      entry.error = failed ? (failed.reason as { message?: string } | undefined)?.message || "" : null;
+      entry.loaded = !failed;
     })
     .finally(() => {
       entry.loading = false;

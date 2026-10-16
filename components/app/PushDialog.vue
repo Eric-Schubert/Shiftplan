@@ -50,7 +50,8 @@ async function run(action: () => Promise<void>) {
       </p>
 
       <template v-else>
-        <p>
+        <p v-if="state === 'failed'" role="alert">{{ t("app.push.failed") }}</p>
+        <p v-else>
           {{ t("app.push.intro") }}
         </p>
         <p v-if="state === 'on'" class="flex items-center gap-2 font-medium text-[var(--positive-ink)]">
@@ -68,7 +69,15 @@ async function run(action: () => Promise<void>) {
       <PrimeButton :label="t('common.actions.close')" text @click="dialogOpen = false" />
       <PrimeButton v-if="state === 'off'" :label="t('common.actions.activate')" icon="pi pi-bell" class="min-h-11" :loading="busy" @click="run(enable)" />
       <PrimeButton
-        v-else-if="state === 'on'"
+        v-else-if="state === 'failed'"
+        :label="t('common.actions.retry')"
+        icon="pi pi-refresh"
+        class="min-h-11"
+        :loading="busy"
+        @click="run(enable)"
+      />
+      <PrimeButton
+        v-if="state === 'on' || state === 'failed'"
         :label="t('app.push.disable')"
         icon="pi pi-bell-slash"
         severity="secondary"
