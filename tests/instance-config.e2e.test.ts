@@ -14,6 +14,7 @@ const INSTANCE_KEYS = [
   "contactForm",
   "csrf",
   "instanceId",
+  "locale",
   "name",
   "nextWeekFromSaturday",
   "passwordPolicy",

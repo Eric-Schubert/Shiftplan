@@ -1,0 +1,63 @@
+import type de from "../de/excel";
+
+// Rotation pattern import from the Excel template. `{label}` and `{location}` are messages from below.
+export default {
+  noFile: "No Excel file uploaded",
+  fileTooLarge: "The Excel file must not be larger than {mb} MB",
+  noSheet: "The Excel file contains no worksheet",
+  noRows: "No data rows found in the 'Rotation' sheet",
+  headerMissing: "The header row with pattern week, shift and staff member was not found",
+  integer: "{label} must be a whole number",
+  between: "{label} must be between {min} and {max}",
+  nameMissing: "{label} in {location} is missing",
+  nameUnknown: "{label} '{name}' in {location} is unknown or inactive",
+  nameAmbiguous: "{label} '{name}' in {location} exists more than once",
+  shiftIdUnknown: "Shift ID {id} in row {row} is unknown or inactive",
+  staffNameMissing: "Row {row} has no name in the “Staff member” column",
+  weekColumnBeyondCycle:
+    "The column “Pattern week {week}” does not fit the cycle length of {cycle}. Increase the cycle length or delete the column.",
+  weekColumnTwice: "The column “Pattern week {week}” appears twice",
+  weekColumnMissing:
+    "The column “Pattern week {week}” is missing. A cycle length of {cycle} needs the columns Pattern week 1 to Pattern week {cycle}.",
+  // Written into the template and read back by the import, in every language. The import ignores
+  // case, spaces, „(…)“ and „-“ and takes „ae“ for „ä“. Pattern week and shift ID: earlier template.
+  labels: {
+    staff: "Staff member",
+    shift: "Shift",
+    startYear: "Start year",
+    startWeek: "Start week",
+    cycleLength: "Cycle length",
+    week: "Pattern week {week}",
+    free: "off",
+    patternWeek: "Pattern week",
+    shiftId: "Shift ID",
+    shiftIdInRow: "Shift ID in row {row}",
+    patternWeekInRow: "Pattern week in row {row}",
+  },
+  locations: {
+    row: "row {row}",
+    rowWeek: "row {row}, pattern week {week}",
+  },
+  // The zip and xml reader in server/lib/xlsx.
+  file: {
+    tooManyEntries: "The Excel file contains too many ZIP entries",
+    centralDirectory: "Invalid Excel file: ZIP central directory is corrupt",
+    encrypted: "Password-protected Excel files cannot be imported",
+    zip64: "ZIP64 Excel files are not supported",
+    notZip: "Not a valid Excel file: end of ZIP not found",
+    entryTooLarge: "ZIP entry '{name}' is too large for the Excel import",
+    unpackedTooLarge: "The unpacked Excel file is too large to import",
+    entryInvalid: "ZIP entry '{name}' is invalid",
+    entryExpands: "ZIP entry '{name}' expands too much for the Excel import",
+    localHeader: "Invalid Excel file: local ZIP header is corrupt",
+    truncated: "Invalid Excel file: ZIP data is truncated",
+    sizeMismatch: "Invalid Excel file: ZIP size does not match the content",
+    badZipData: "The Excel file contains invalid or oversized ZIP data",
+    compression: "ZIP compression method {method} is not supported",
+    tooManySheets: "The Excel file contains too many worksheets",
+    noSheets: "No worksheets found in the Excel file",
+    incomplete: "Excel file is incomplete: {path} is missing",
+    tooManyRows: "The Excel file contains too many rows in a worksheet",
+    tooManyColumns: "The Excel file contains too many columns in a worksheet",
+  },
+} satisfies typeof de;

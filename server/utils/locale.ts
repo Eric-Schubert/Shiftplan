@@ -1,5 +1,11 @@
 import { getCookie, getHeader, type H3Event } from "h3";
+import fs from "node:fs";
 import { DEFAULT_LOCALE, isAppLocale, LOCALE_COOKIE, localeTag, type AppLocale } from "~/i18n/config";
+import { getDatabasePaths } from "~/server/config/database-config";
+import { getAdminDatabase } from "~/server/utils/database";
+
+/** Admin setting with the instance's language, written under Team access (team-access/settings.ts). */
+export const INSTANCE_LOCALE_SETTING = "instance_locale";
 
 /** The supported locale of one language tag: "de", "de-AT" and Flutter's "de_DE" all give "de". */
 export function localeFromTag(tag: unknown): AppLocale | null {
@@ -23,21 +29,27 @@ export function localeFromAcceptLanguage(header: string | null | undefined): App
 }
 
 /**
- * Locale for texts rendered for this request: the locale cookie the app sets, then Accept-Language,
- * then German. The Flutter app sends neither, so it gets German.
+ * Locale for texts rendered for this request: the locale cookie the switcher sets, then Accept-Language,
+ * then the instance's language. The Flutter app sends neither, so it gets the instance's.
  */
 export function resolveLocale(event: H3Event): AppLocale {
   const cookie = getCookie(event, LOCALE_COOKIE);
   if (isAppLocale(cookie)) return cookie;
-  return localeFromAcceptLanguage(getHeader(event, "accept-language")) ?? DEFAULT_LOCALE;
+  return localeFromAcceptLanguage(getHeader(event, "accept-language")) ?? instanceLocale();
 }
 
 /**
- * Locale for texts that no request asked for, such as the contact mail to the operator.
- * That is the instance's language, German until instances get a language setting.
+ * Locale for texts that no request asked for, such as the contact mail to the operator: the language
+ * the admin set for the instance, German by default.
  */
 export function instanceLocale(): AppLocale {
-  return DEFAULT_LOCALE;
+  // Without an admin database (before setup.js, in tests without one) there is no setting to read,
+  // and opening it here would create one.
+  if (!fs.existsSync(getDatabasePaths().admin)) return DEFAULT_LOCALE;
+  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(INSTANCE_LOCALE_SETTING) as
+    | { value: string }
+    | undefined;
+  return isAppLocale(row?.value) ? row.value : DEFAULT_LOCALE;
 }
 
 /** Language tag of the instance's language, for the formatters: pushes, stored audit notes, service errors. */

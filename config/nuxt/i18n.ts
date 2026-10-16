@@ -7,9 +7,9 @@ export const i18nConfig: NuxtConfig["i18n"] = {
   strategy: "no_prefix",
   defaultLocale: DEFAULT_LOCALE,
   locales: LOCALES.map((code) => ({ code, language: LOCALE_TAGS[code], files: [`${code}/index.ts`] })),
-  // The locale follows the browser. With one locale a cookie would remember nothing, and the privacy
-  // policy names only sign-in and access cookies; the language switcher turns it on with its notice.
-  // The server already reads LOCALE_COOKIE (server/utils/locale.ts).
+  // Detection reads LOCALE_COOKIE, then the browser language. The module would write the cookie on every
+  // first visit with useCookie on; the language switcher writes it only when someone picks a language
+  // (composables/useLocaleSwitch.ts), as the privacy policy says. The server reads it too (server/utils/locale.ts).
   detectBrowserLanguage: {
     useCookie: false,
     cookieKey: LOCALE_COOKIE,

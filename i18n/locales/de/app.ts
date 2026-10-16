@@ -42,6 +42,7 @@ export default {
     settings: { open: "Einstellungen öffnen", back: "Zurück zum Schichtplan" },
     imprint: "Impressum",
     privacy: "Datenschutz",
+    language: "Sprache",
   },
   settingsPage: {
     checking: "Session wird geprüft.",

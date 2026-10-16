@@ -1,7 +1,8 @@
 import { randomBytes } from "node:crypto";
+import type { AppLocale } from "~/i18n/config";
 import { t } from "~/i18n/server";
 import { getAdminDatabase } from "~/server/utils/database";
-import { instanceLocale } from "~/server/utils/locale";
+import { INSTANCE_LOCALE_SETTING, instanceLocale } from "~/server/utils/locale";
 
 const INSTANCE_NAME_SETTING = "instance_name";
 const INSTANCE_ID_SETTING = "instance_uid";
@@ -53,4 +54,13 @@ export function setNextWeekFromSaturday(enabled: boolean): void {
       "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
     )
     .run(NEXT_WEEK_FROM_SATURDAY_SETTING, enabled ? "1" : "0");
+}
+
+/** The instance's language; instanceLocale() in server/utils/locale.ts reads it for every feature. */
+export function setInstanceLocale(locale: AppLocale): void {
+  getAdminDatabase()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    )
+    .run(INSTANCE_LOCALE_SETTING, locale);
 }

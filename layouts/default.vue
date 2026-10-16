@@ -126,6 +126,7 @@ function onActivity() {
         <NuxtLink to="/datenschutz" class="transition hover:text-[var(--text-1)]">
           {{ t("app.layout.privacy") }}
         </NuxtLink>
+        <LocaleSwitch />
       </div>
     </footer>
 

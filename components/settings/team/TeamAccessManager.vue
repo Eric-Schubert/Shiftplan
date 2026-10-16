@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { DEFAULT_LOCALE, type AppLocale } from "~/i18n/config";
+
 type TeamAccess = {
   code: string | null;
   instanceName: string;
   nextWeekFromSaturday: boolean;
   subscriberCount: number;
+  instanceLocale: AppLocale;
 };
 type PendingAction = "generate" | "custom" | "remove";
 
@@ -16,6 +19,7 @@ const customCode = ref("");
 const pendingAction = ref<PendingAction | null>(null);
 const instanceName = ref("");
 const nextWeekFromSaturday = ref(true);
+const instanceLocale = ref<AppLocale>(DEFAULT_LOCALE);
 const { t } = useI18n();
 
 const confirmVisible = computed({
@@ -31,6 +35,7 @@ async function load() {
     access.value = await authFetch<TeamAccess>("/api/team-access");
     instanceName.value = access.value.instanceName;
     nextWeekFromSaturday.value = access.value.nextWeekFromSaturday;
+    instanceLocale.value = access.value.instanceLocale;
   } finally {
     loading.value = false;
   }
@@ -111,6 +116,7 @@ onMounted(load);
       <TeamAccessCustomCodeForm v-model:code="customCode" :saving="saving" @submit="requestChange('custom')" />
       <TeamAccessNameForm v-model:name="instanceName" @error="error = $event" />
       <TeamAccessWeekStartSetting v-model="nextWeekFromSaturday" @error="error = $event" />
+      <TeamAccessLocaleSetting v-model="instanceLocale" @error="error = $event" />
 
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </template>

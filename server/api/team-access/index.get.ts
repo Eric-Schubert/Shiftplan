@@ -11,5 +11,6 @@ export default defineEventHandler((event) => {
     instanceName: TeamAccessService.getInstanceName(resolveLocale(event)),
     nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday(),
     subscriberCount: PushService.countRecipients(),
+    instanceLocale: TeamAccessService.getInstanceLocale(),
   };
 });

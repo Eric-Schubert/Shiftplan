@@ -36,7 +36,8 @@ info:
     `apiVersion` only increases with incompatible changes. New fields can be added at any time
     and must be ignored by the app.
 
-    Error responses carry the text for the user in `statusMessage` (German) and, independent of the
+    Error responses carry the text for the user in `statusMessage`, in the language of the request
+    (`Accept-Language`, else the instance's `locale` from `GET /api/instance`), and, independent of the
     language, `data.code` (a stable key such as `errors.member.notSignedIn`) with its `data.params`.
     New codes can be added at any time. Unhandled 500 errors and errors from the HTTP layer have no `data`.
 servers:
@@ -661,7 +662,8 @@ paths:
         Each person keeps the ten most recently registered devices, older ones are dropped.
 
         Pushes reach the device in its `locale`. Without a supported value the server takes the
-        language of the request (`Accept-Language`), else German. Registering again updates it.
+        language of the request (`Accept-Language`), else the instance's language. Registering again
+        updates it.
       requestBody:
         required: true
         content:
@@ -731,7 +733,7 @@ components:
               success:
                 type: boolean
     Error:
-      description: Error with a German message in `statusMessage` and its code in `data.code`
+      description: Error with a message in the request's language in `statusMessage` and its code in `data.code`
       content:
         application/json:
           schema:
@@ -785,6 +787,13 @@ components:
           description: >-
             true: from Saturday on, show the next week as the current week. false for teams with
             weekend shifts. If the field is missing (older instance), treat it as true.
+        locale:
+          type: string
+          example: de
+          description: >-
+            The instance's default language as a language code (`de`, `en`), set by the admin.
+            Server texts for requests without a supported `Accept-Language` use it. If the field is
+            missing (older instance), treat it as `de`.
         passwordPolicy:
           type: object
           description: >-

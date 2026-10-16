@@ -13,6 +13,7 @@ export default defineEventHandler((event) => {
     apiVersion: APP_API_VERSION,
     codeRequired: TeamAccessService.isCodeRequired(),
     nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday(),
+    locale: TeamAccessService.getInstanceLocale(),
     ...getClientConfig(),
   };
 });
