@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AuditEntry } from "~/types/auth";
 
+const { t } = useI18n();
 const entries = ref<AuditEntry[]>([]);
 const total = ref(0);
 const loading = ref(true);
@@ -42,7 +43,7 @@ onMounted(fetchEntries);
 <template>
   <div>
     <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
-      Alle manuellen Änderungen am Schichtplan
+      {{ t("audit.intro") }}
     </p>
 
     <div v-if="loading" class="flex justify-center py-8">
@@ -55,7 +56,7 @@ onMounted(fetchEntries);
       </div>
 
       <div v-else class="text-center py-8 text-gray-400">
-        Noch keine Änderungen protokolliert
+        {{ t("audit.empty") }}
       </div>
 
       <SettingsPager
@@ -67,7 +68,7 @@ onMounted(fetchEntries);
         @next="nextPage"
       >
         <span class="text-sm text-gray-500">
-          Seite {{ page + 1 }} von {{ totalPages }} ({{ total }} Einträge)
+          {{ t("audit.page", { page: page + 1, pages: totalPages, total }) }}
         </span>
       </SettingsPager>
     </template>

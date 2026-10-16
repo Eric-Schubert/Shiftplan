@@ -31,9 +31,14 @@ export interface AuditEntry {
   action: AuditAction;
   year: number;
   week_number: number;
-  shift_name: string;
-  staff_name: string;
+  shift_id: number | null;
+  shift_name: string | null;
+  staff_id: number | null;
+  staff_name: string | null;
+  /** German text; entries with a key are rendered from the catalog instead (i18n/audit-reason.ts). */
   reason: string | null;
+  reason_key: string | null;
+  reason_params: Record<string, string | number> | null;
   source: "web" | "app";
   created_at: string;
 }

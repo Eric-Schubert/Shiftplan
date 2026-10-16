@@ -8,8 +8,6 @@ export const PENDING_SETTINGS = [
   "components/settings/analytics/VisitAnalyticsDailyChart.vue",
   "components/settings/analytics/VisitAnalyticsRanking.vue",
   "components/settings/analytics/VisitAnalyticsStats.vue",
-  "components/settings/audit/AuditLog.vue",
-  "components/settings/audit/AuditLogEntry.vue",
   "components/settings/auth/AdminLogin.vue",
   "components/settings/auth/ChangePasswordDialog.vue",
   "components/settings/auth/DemoLoginHint.vue",

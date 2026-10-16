@@ -30,7 +30,10 @@ export default defineEventHandler(async (event) => {
       action: "pattern_import",
       year: result.config.start_year,
       weekNumber: result.config.start_week,
-      reason: `Rotationsmuster aus Excel ersetzt: ${result.config.cycle_length}-Wochen-Zyklus, ${result.importedAssignments} ${result.importedAssignments === 1 ? "Zuweisung" : "Zuweisungen"}`,
+      reason: {
+        key: "audit.reason.patternImported",
+        params: { cycle: result.config.cycle_length, count: result.importedAssignments },
+      },
       source: requestSource(event),
     });
   }
