@@ -1,4 +1,5 @@
 import { parseISODate } from "../iso-date";
+import { cached } from "./cache";
 import { fill, patternsFor } from "./patterns";
 
 /** How a calendar day is written; the examples are German. */
@@ -14,17 +15,9 @@ const OPTIONS: Record<Exclude<DayStyle, "weekday-date">, Intl.DateTimeFormatOpti
   intl: { weekday: "short", day: "2-digit", month: "2-digit" },
 };
 
-const formats = new Map<string, Intl.DateTimeFormat>();
-
+// Calendar dates carry no time, so they are formatted in UTC and never shift a day.
 function formatFor(locale: string, style: Exclude<DayStyle, "weekday-date">): Intl.DateTimeFormat {
-  const key = `${locale}|${style}`;
-  let format = formats.get(key);
-  if (!format) {
-    // Calendar dates carry no time, so they are formatted in UTC and never shift a day.
-    format = new Intl.DateTimeFormat(locale, { ...OPTIONS[style], timeZone: "UTC" });
-    formats.set(key, format);
-  }
-  return format;
+  return cached(`day|${locale}|${style}`, () => new Intl.DateTimeFormat(locale, { ...OPTIONS[style], timeZone: "UTC" }));
 }
 
 /** A YYYY-MM-DD date in the given style; anything else comes back unchanged. */
