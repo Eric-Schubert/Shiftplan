@@ -109,7 +109,7 @@ function main() {
   const counts = Object.entries(Object.groupBy(violations, ({ rule }) => rule));
   console.log(`\n${violations.length} import boundary violations:`);
   for (const [rule, list] of counts) console.log(`${String(list.length).padStart(4)}  ${rule}`);
-  if (report) console.log("Report mode: not failing. Drop --report once these are fixed.");
+  if (report) console.log("Report mode: not failing.");
   else process.exitCode = 1;
 }
 
