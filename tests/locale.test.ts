@@ -23,7 +23,7 @@ describe("request locale", () => {
     expect(localeFromAcceptLanguage(undefined)).toBeNull();
   });
 
-  it("prefers the locale cookie, then Accept-Language, then German", () => {
+  it("prefers the locale cookie, then Accept-Language, then the instance language (German without a database)", () => {
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=de", "accept-language": "fr" }))).toBe("de");
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=xx", "accept-language": "de-CH" }))).toBe("de");
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=en", "accept-language": "de-DE" }))).toBe("en");

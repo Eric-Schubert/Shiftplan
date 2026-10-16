@@ -6,6 +6,7 @@ const ROUTES: Route[] = [
   ["post", "/api/auth/login", "server/api/auth/login.post"],
   ["get", "/api/team-access", "server/api/team-access/index.get"],
   ["post", "/api/team-access", "server/api/team-access/index.post"],
+  ["post", "/api/member/login", "server/api/member/login.post"],
 ];
 
 describe("instance language", () => {
@@ -47,5 +48,24 @@ describe("instance language", () => {
     expect(tag.status).toBe(400);
     expect(notAdmin.status).toBe(403);
     expect((await client.request("GET", "/api/instance")).json).toMatchObject({ locale: "de" });
+  });
+
+  it("words server texts in it when the request names no supported language", async () => {
+    const admin = await client.loginAs("admin", "admin1234");
+    await setLocale(admin, "en");
+    const login = (headers: Record<string, string>) =>
+      client.request("POST", "/api/member/login", { headers, body: { shortCode: "XX", pin: "482917" } });
+
+    const plain = await login({});
+    const french = await login({ "accept-language": "fr-FR" });
+    const german = await login({ "accept-language": "de-DE" });
+    const chosen = await login({ "accept-language": "en", cookie: "shiftplan_locale=de" });
+    const access = await client.request("GET", "/api/team-access", { jar: admin });
+
+    expect(plain.json).toMatchObject({ statusMessage: "Short code or PIN is incorrect" });
+    expect(french.json).toMatchObject({ statusMessage: "Short code or PIN is incorrect" });
+    expect(german.json).toMatchObject({ statusMessage: "Kürzel oder PIN stimmt nicht" });
+    expect(chosen.json).toMatchObject({ statusMessage: "Kürzel oder PIN stimmt nicht" });
+    expect(access.json).toMatchObject({ instanceName: "Shift planner" });
   });
 });

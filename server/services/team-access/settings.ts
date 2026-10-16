@@ -1,13 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "~/i18n/config";
+import type { AppLocale } from "~/i18n/config";
 import { t } from "~/i18n/server";
 import { getAdminDatabase } from "~/server/utils/database";
-import { instanceLocale } from "~/server/utils/locale";
+import { INSTANCE_LOCALE_SETTING, instanceLocale } from "~/server/utils/locale";
 
 const INSTANCE_NAME_SETTING = "instance_name";
 const INSTANCE_ID_SETTING = "instance_uid";
 const NEXT_WEEK_FROM_SATURDAY_SETTING = "next_week_from_saturday";
-const INSTANCE_LOCALE_SETTING = "instance_locale";
 
 export function getSetting(key: string): string | null {
   const row = getAdminDatabase()
@@ -57,12 +56,7 @@ export function setNextWeekFromSaturday(enabled: boolean): void {
     .run(NEXT_WEEK_FROM_SATURDAY_SETTING, enabled ? "1" : "0");
 }
 
-/** The instance's language: for visitors without a language of their own, the app, mails and pushes. */
-export function getInstanceLocale(): AppLocale {
-  const locale = getSetting(INSTANCE_LOCALE_SETTING);
-  return isAppLocale(locale) ? locale : DEFAULT_LOCALE;
-}
-
+/** The instance's language; instanceLocale() in server/utils/locale.ts reads it for every feature. */
 export function setInstanceLocale(locale: AppLocale): void {
   getAdminDatabase()
     .prepare(

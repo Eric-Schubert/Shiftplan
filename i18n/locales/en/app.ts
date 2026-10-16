@@ -57,6 +57,14 @@ export default {
     },
     changePassword: "Change password",
   },
+  // Shown and sent to the push relay while the planner has not named the instance; never stored.
+  instance: { defaultName: "Shift planner" },
+  // Name and description of the installed web app (server/routes/manifest.json.ts).
+  manifest: {
+    name: "Shiftplan",
+    shortName: "Shiftplan",
+    description: "Plan shifts in the browser, view them as a team in the app.",
+  },
   error: {
     title: { notFound: "Page not found · Shiftplan", other: "Error · Shiftplan" },
     code: "Error {code}",

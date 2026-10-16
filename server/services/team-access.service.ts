@@ -1,11 +1,11 @@
 import type { H3Event } from "h3";
 import { randomInt, timingSafeEqual } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
+import { instanceLocale } from "~/server/utils/locale";
 import { getSessionData, getSessionToken } from "~/server/utils/session";
 import { MemberAccessService } from "~/server/services/member-access.service";
 import {
   getInstanceId,
-  getInstanceLocale,
   getInstanceName,
   getNextWeekFromSaturday,
   getSetting,
@@ -41,7 +41,7 @@ export const TeamAccessService = {
   setInstanceName,
   getNextWeekFromSaturday,
   setNextWeekFromSaturday,
-  getInstanceLocale,
+  getInstanceLocale: instanceLocale,
   setInstanceLocale,
 
   getAccessCode(): string | null {
