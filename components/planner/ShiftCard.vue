@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import { useShiftCardInteractions } from "~/composables/useShiftCardInteractions";
-import { formatWeekdays, understaffedDates } from "~/utils/shift-coverage";
+import { formatWeekdays } from "~/shared/utils/format/day";
+import { understaffedDates } from "~/utils/shift-coverage";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
@@ -16,6 +17,7 @@ const props = defineProps<{
 const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
+const localeTag = useLocaleTag();
 
 const shift = toRef(props, "shift");
 const year = toRef(props, "year");
@@ -47,7 +49,7 @@ const {
 const understaffedNote = computed(() => {
   const short = understaffedDates(props.shift, props.coverageDates, props.dayChanges ?? [], []);
   if (short.length === 0) return "";
-  return short.length === props.coverageDates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(short)}`;
+  return short.length === props.coverageDates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(localeTag.value, short)}`;
 });
 </script>
 

@@ -1,5 +1,6 @@
 import type { ContactMessage } from "~/types/contact";
 import { getContactMailDefaults } from "~/server/config/contact-mail-config";
+import { formatTimestamp } from "~/shared/utils/format/time";
 
 const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
@@ -19,11 +20,8 @@ function formatMessageDate(value: string): string {
   const date = new Date(value.endsWith("Z") ? value : `${value}Z`);
   if (Number.isNaN(date.getTime())) return value;
 
-  return new Intl.DateTimeFormat(getContactMailDefaults().dateLocale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: getContactMailDefaults().timezone,
-  }).format(date);
+  const { dateLocale, timezone } = getContactMailDefaults();
+  return formatTimestamp(dateLocale, date, timezone);
 }
 
 export function buildSubject(message: ContactMessage, subjectPrefix: string): string {

@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { weekOfYearLabel } from "~/shared/utils/format/week";
+
 defineProps<{
   cycleLength: number;
   startWeek: number;
   startYear: number;
 }>();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -18,7 +21,7 @@ defineProps<{
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           <i class="pi pi-calendar mr-1" aria-hidden="true"></i>
-          Musterwoche 1 beginnt in KW {{ startWeek }}/{{ startYear }}
+          Musterwoche 1 beginnt in {{ weekOfYearLabel(localeTag, startYear, startWeek) }}
         </p>
       </div>
     </div>

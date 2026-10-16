@@ -1,6 +1,7 @@
 import type { Absence } from "~/server/services/absence/model";
 import { AuditService } from "~/server/services/audit.service";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { instanceLocaleTag } from "~/server/utils/locale";
+import { formatDayRange } from "~/shared/utils/format/day";
 import { weekOfDate } from "~/shared/utils/week";
 
 export type Actor = { userId: number; username: string; source: "web" | "app" };
@@ -27,10 +28,8 @@ export function logPerWeek(absences: Absence[], action: "absence" | "absence_can
       weekNumber: week,
       shiftId: shiftIds.size === 1 ? (first.shift_id ?? undefined) : undefined,
       staffId: first.staff_id,
-      reason:
-        days.length === 1
-          ? formatNoticeDay(first.absence_date)
-          : `${formatNoticeDay(first.absence_date)} – ${formatNoticeDay(last.absence_date)}`,
+      // Stored text, so in the instance language.
+      reason: formatDayRange(instanceLocaleTag(), first.absence_date, last.absence_date),
       source: actor.source,
     });
   }

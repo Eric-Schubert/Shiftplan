@@ -106,6 +106,23 @@ describe("boundary check rules", () => {
       "shared/utils/x.ts:9 shared code uses the runtime global ref",
     ]);
   });
+
+  it("lets app and server import i18n/, which imports only i18n/, shared/ and its packages", () => {
+    const contents = {
+      "i18n/server.ts": 'import { translate } from "@intlify/core";\nimport de from "./locales/de";\nimport "~/shared/utils/week";',
+      "i18n/locales/de/index.ts": "export default {};",
+      "i18n/x.ts": 'import { h } from "h3";\nimport "~/server/utils/y";\nimport "~/utils/z";\nconst config = useRuntimeConfig();',
+      "server/utils/locale.ts": 'import { t } from "~/i18n/server";',
+      "components/A.vue": '<script setup>import { LOCALES } from "~/i18n/config";</script>',
+    };
+    const rule = "i18n code imports outside i18n/, shared/ or its packages";
+    expect(check(contents)).toEqual([
+      `i18n/x.ts:1 ${rule}`,
+      `i18n/x.ts:2 ${rule}`,
+      `i18n/x.ts:3 ${rule}`,
+      "i18n/x.ts:4 i18n code uses the runtime global useRuntimeConfig",
+    ]);
+  });
 });
 
 describe("boundary check cycles", () => {

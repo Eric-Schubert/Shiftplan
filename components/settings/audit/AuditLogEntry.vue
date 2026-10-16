@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AuditEntry } from "~/types/auth";
+import { weekOfYearLabel } from "~/shared/utils/format/week";
 import { formatSqlTimestamp } from "~/utils/timestamp";
 
 const ACTIONS: Record<string, { label: string; icon: string; color: string; severity: string; separator: string }> = {
@@ -14,6 +15,7 @@ const ACTIONS: Record<string, { label: string; icon: string; color: string; seve
 };
 
 const props = defineProps<{ entry: AuditEntry }>();
+const localeTag = useLocaleTag();
 
 const info = computed(() => ACTIONS[props.entry.action] ?? ACTIONS.unassign!);
 /** Rollouts and imports touch many people at once; their summary sits in the reason. */
@@ -32,7 +34,7 @@ const isBulk = computed(() => !props.entry.staff_name && !props.entry.shift_name
       <div v-if="isBulk" class="text-sm text-gray-900 dark:text-white">
         <span class="font-medium">{{ entry.reason }}</span>
         <span class="text-gray-500 dark:text-gray-400">
-          · ab KW {{ entry.week_number }}/{{ entry.year }}
+          · ab {{ weekOfYearLabel(localeTag, entry.year, entry.week_number) }}
         </span>
       </div>
       <div v-else class="text-sm text-gray-900 dark:text-white">
@@ -42,7 +44,7 @@ const isBulk = computed(() => !props.entry.staff_name && !props.entry.shift_name
         </span>
         <span class="font-medium">{{ entry.shift_name }}</span>
         <span class="text-gray-500 dark:text-gray-400">
-          · KW {{ entry.week_number }}/{{ entry.year }}
+          · {{ weekOfYearLabel(localeTag, entry.year, entry.week_number) }}
         </span>
       </div>
 
@@ -53,7 +55,7 @@ const isBulk = computed(() => !props.entry.staff_name && !props.entry.shift_name
           <span>über App</span>
         </template>
         <span>·</span>
-        <span>{{ formatSqlTimestamp(entry.created_at) }}</span>
+        <span>{{ formatSqlTimestamp(localeTag, entry.created_at) }}</span>
         <template v-if="entry.reason && !isBulk">
           <span>·</span>
           <span class="italic">{{ entry.reason }}</span>

@@ -1,7 +1,8 @@
 import { AuditService } from "~/server/services/audit.service";
 import { DayChangeService } from "~/server/services/day-change/store";
 import { PushService } from "~/server/services/push.service";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { instanceLocaleTag } from "~/server/utils/locale";
+import { formatDay } from "~/shared/utils/format/day";
 import { weekOfDate } from "~/shared/utils/week";
 
 export type DayChangeActor = { userId: number; username: string; source: "web" | "app" };
@@ -33,7 +34,8 @@ export function applyDayChange(input: {
   if (!change) return false;
 
   const { year, week } = weekOfDate(input.date);
-  const day = formatNoticeDay(input.date);
+  // Stored text, so in the instance language.
+  const day = formatDay(instanceLocaleTag(), input.date);
   AuditService.log({
     userId: input.actor.userId,
     username: input.actor.username,

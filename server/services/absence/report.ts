@@ -1,3 +1,4 @@
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { logPerWeek, type Actor } from "~/server/services/absence/audit";
 import type { Absence, AbsenceReason } from "~/server/services/absence/model";
 import { buildAbsenceNotice } from "~/server/services/absence/notice";
@@ -70,6 +71,7 @@ export async function reportAbsence(input: {
     try {
       notified = await PushService.sendTeamNotice(
         buildAbsenceNotice({
+          locale: instanceLocaleTag(),
           staffName: first.staff_name,
           from: first.absence_date,
           to: last.absence_date,

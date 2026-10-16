@@ -25,18 +25,18 @@ function absence(staffId: number, date: string): Absence {
 describe("week grid", () => {
   it("shows the stand-in instead of the absent planned person", () => {
     const changes = week.flatMap((date) => [change(1, "RF", date, "remove"), change(2, "RZ", date, "add")]);
-    const row = weekGridRow(shift([[1, "RF"]]), week, changes, [absence(1, mon), absence(2, mon)], new Set());
+    const row = weekGridRow(shift([[1, "RF"]]), week, changes, [absence(1, mon), absence(2, mon)], new Set(), "de-DE");
     expect(row[0]).toEqual({ date: mon, people: [], status: "open" });
     expect(row[1]).toEqual({ date: tue, people: [{ staffId: 2, name: "RZ", guest: true }], status: "ok" });
   });
 
   it("marks days below the minimum as short", () => {
-    const row = weekGridRow(shift([[1, "AR"], [2, "KM"]], 2), week, [], [absence(2, tue)], new Set());
+    const row = weekGridRow(shift([[1, "AR"], [2, "KM"]], 2), week, [], [absence(2, tue)], new Set(), "de-DE");
     expect(row.map((cell) => cell.status)).toEqual(["ok", "short", "ok", "ok", "ok"]);
   });
 
   it("lets holidays win over coverage", () => {
-    const row = weekGridRow(shift([]), week, [], [], new Set([mon]));
+    const row = weekGridRow(shift([]), week, [], [], new Set([mon]), "de-DE");
     expect(row.map((cell) => cell.status)).toEqual(["holiday", "open", "open", "open", "open"]);
   });
 });

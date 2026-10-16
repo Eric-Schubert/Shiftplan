@@ -1,5 +1,5 @@
 import { parseISODate } from "~/shared/utils/iso-date";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { formatDayRange } from "~/shared/utils/format/day";
 import { toISOWeek } from "~/shared/utils/week";
 
 export const ABSENCE_MESSAGE_MAX_LENGTH = 160;
@@ -9,6 +9,7 @@ export const ABSENCE_MESSAGE_MAX_LENGTH = 160;
  * „Anna Weber fällt Mo. 12.10. – Fr. 23.10. aus“, never with the reason.
  */
 export function buildAbsenceNotice(input: {
+  locale: string;
   staffName: string;
   from: string;
   to?: string | null;
@@ -20,7 +21,7 @@ export function buildAbsenceNotice(input: {
   const to = input.to && input.to !== input.from ? input.to : null;
   const parsed = parseISODate(input.from)!;
   const { year, week } = toISOWeek(parsed.year, parsed.month, parsed.day);
-  const label = to ? `${formatNoticeDay(input.from)} – ${formatNoticeDay(to)}` : formatNoticeDay(input.from);
+  const label = formatDayRange(input.locale, input.from, to ?? input.from);
   const shift = !to && input.shiftName ? ` – ${input.shiftName} offen` : "";
   const extra = input.message?.trim();
 
