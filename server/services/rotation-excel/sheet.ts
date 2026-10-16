@@ -52,6 +52,11 @@ export function parseConfig(
   };
 }
 
+/** The normalized cells of a row; empty cells give "", so a row with gaps has no holes. */
+function headerTexts(row: XlsxCellValue[] | undefined): string[] {
+  return Array.from(row || [], (value) => normalizeLabel(toText(value)));
+}
+
 function findHeader(headers: string[], candidates: string[]): number {
   for (const candidate of candidates) {
     const exact = headers.findIndex((header) => header === candidate);
@@ -76,7 +81,7 @@ export type GridColumns = {
 /** The current template: one row per person, one "Woche N" column per pattern week. */
 export function findGridColumns(rows: XlsxCellValue[][]): GridColumns | null {
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const headers = (rows[rowIndex] || []).map((value) => normalizeLabel(toText(value)));
+    const headers = headerTexts(rows[rowIndex]);
     const staffName = headers.findIndex((header) => LABELS.staff.includes(header));
     const weeks = new Map<number, number>();
 
@@ -96,7 +101,7 @@ export function findGridColumns(rows: XlsxCellValue[][]): GridColumns | null {
 /** The earlier template: one row per pattern week and shift with comma-separated names. */
 export function findHeaderColumns(rows: XlsxCellValue[][]): HeaderColumns {
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-    const headers = (rows[rowIndex] || []).map((value) => normalizeLabel(toText(value)));
+    const headers = headerTexts(rows[rowIndex]);
     const patternWeek = findHeader(headers, LABELS.patternWeek);
     const shiftName = findHeader(headers, LABELS.shift);
     const staffNames = findHeader(headers, LABELS.staff);
