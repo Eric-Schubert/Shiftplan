@@ -43,7 +43,12 @@ describe("docs generator", () => {
     vi.resetModules();
     vi.doMock("~/server/config/route-policy", async (importOriginal) => {
       const original = await importOriginal<typeof import("~/server/config/route-policy")>();
-      return { ...original, ROUTE_POLICY: { ...original.ROUTE_POLICY, csrfMethods: ["POST"] } };
+      return {
+        ...original,
+        ROUTE_POLICY: { ...original.ROUTE_POLICY, csrfMethods: ["POST"] },
+        classifyRoute: (method: string, path: string) =>
+          path.startsWith("/api/holidays/") ? "teamRead" : original.classifyRoute(method, path),
+      };
     });
 
     try {
@@ -51,6 +56,7 @@ describe("docs generator", () => {
       const apiDocs = generateWithPolicy();
       expect(apiDocs).toContain("| `POST` | `/api/staff` | Admin | Yes |");
       expect(apiDocs).toContain("| `DELETE` | `/api/staff/:id` | Admin | No |");
+      expect(apiDocs).toContain("| `GET` | `/api/holidays/public` | Team | No |");
     } finally {
       vi.doUnmock("~/server/config/route-policy");
       vi.resetModules();

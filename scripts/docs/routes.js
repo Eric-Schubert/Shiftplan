@@ -34,12 +34,23 @@ const ACCESS_BY_CLASS = {
   session: "Login",
 };
 
+// Comments guard nothing: `// TODO requireAdmin(event)` must not count. A `//` after a colon is a URL.
+function stripComments(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
+/** The role a handler requires with requireAdmin, requirePlanner or requireMember, or null. */
+export function getGuard(content) {
+  const code = stripComments(content);
+  if (code.includes("requireAdmin(")) return "Admin";
+  if (code.includes("requirePlanner(")) return "Planner";
+  if (code.includes("requireMember(")) return "Member";
+  return null;
+}
+
 // Handler guards narrow access further than the route policy in server/config/route-policy.ts.
 export function getAccess(endpoint, content) {
-  if (content.includes("requireAdmin(") || content.includes('role !== "admin"')) return "Admin";
-  if (content.includes("requirePlanner(")) return "Planner";
-  if (content.includes("requireMember(")) return "Member";
-  return ACCESS_BY_CLASS[classifyRoute(endpoint.method, endpoint.route)];
+  return getGuard(content) ?? ACCESS_BY_CLASS[classifyRoute(endpoint.method, endpoint.route)];
 }
 
 // CSRF applies only where the middleware checks the planner session.
