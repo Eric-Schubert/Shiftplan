@@ -11,7 +11,8 @@ export type {
   PushPayload,
   PushSubscriptionInput,
 } from "~/server/services/push/types";
-export { buildChangePayload, buildNativeMessages } from "~/server/services/push/messages";
+export { buildChangePayload } from "~/server/services/push/messages";
+export { buildNativeMessages } from "~/server/services/push/native-messages";
 export { getNotifiableWeeks } from "~/server/services/push/weeks";
 
 export const PUSH_MESSAGE_MAX_LENGTH = 240;

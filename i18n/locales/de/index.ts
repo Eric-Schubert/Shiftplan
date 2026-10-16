@@ -8,6 +8,7 @@ import holidays from "./holidays";
 import member from "./member";
 import planner from "./planner";
 import primevue from "./primevue";
+import push from "./push";
 import requests from "./requests";
 import validation from "./validation";
 
@@ -18,6 +19,7 @@ const de = {
   errors,
   validation,
   excel,
+  push,
   app,
   changelog,
   member,

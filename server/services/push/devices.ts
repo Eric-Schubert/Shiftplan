@@ -1,7 +1,9 @@
+import { DEFAULT_LOCALE, type AppLocale } from "~/i18n/config";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access.service";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 import { apiError } from "~/server/utils/api-error";
+import { localeFromTag } from "~/server/utils/locale";
 import type { MessageKey } from "~/server/lib/i18n/translate";
 
 // Team devices without a personal sign-in share this cap; personal ones are capped per person.
@@ -13,7 +15,7 @@ const MAX_DEVICE_TOKEN_LENGTH = 4096;
 export function listDevices(): StoredDevice[] {
   purgeMemberAccess();
   return getAdminDatabase()
-    .prepare("SELECT token, staff_id, scope, member_session IS NOT NULL AS personal FROM push_devices")
+    .prepare("SELECT token, staff_id, scope, member_session IS NOT NULL AS personal, locale FROM push_devices")
     .all() as StoredDevice[];
 }
 
@@ -51,17 +53,23 @@ function trimDevicesOfPerson(staffId: number, personal: boolean, keepToken: stri
 }
 
 /**
- * Native app device with its FCM token. Re-registering updates staff and scope.
+ * Native app device with its FCM token. Re-registering updates staff, scope and language.
  * A device registered with a personal app session always belongs to that person;
  * the client cannot claim someone else. In team mode the chosen person only filters
  * "only mine" plan changes; personal messages need a personal sign-in.
+ * Pushes reach it in the app's `locale` when it sends a supported one, else in `requestLocale`.
  */
-export function registerDevice(input: unknown, member?: { sessionId: string; staffId: number }): void {
+export function registerDevice(
+  input: unknown,
+  member?: { sessionId: string; staffId: number },
+  requestLocale: AppLocale = DEFAULT_LOCALE
+): void {
   const device = input as {
     platform?: unknown;
     token?: unknown;
     staffId?: unknown;
     scope?: unknown;
+    locale?: unknown;
   } | null;
   const invalid = (key: MessageKey) => apiError(null, 400, key);
 
@@ -82,6 +90,7 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
     throw invalid("errors.push.invalidScope");
   }
   const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
+  const locale = localeFromTag(device.locale) ?? requestLocale;
 
   // Only active people: a deactivated person's app must not come back in their name.
   let staffId: number | null = member?.staffId ?? null;
@@ -105,16 +114,17 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
   db.transaction(() => {
     db.prepare(
       `
-        INSERT INTO push_devices (platform, token, staff_id, scope, member_session)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO push_devices (platform, token, staff_id, scope, member_session, locale)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(token) DO UPDATE SET
           platform = excluded.platform,
           staff_id = excluded.staff_id,
           scope = excluded.scope,
           member_session = excluded.member_session,
+          locale = excluded.locale,
           updated_at = datetime('now')
       `
-    ).run(device.platform, token, staffId, scope, member?.sessionId ?? null);
+    ).run(device.platform, token, staffId, scope, member?.sessionId ?? null, locale);
     if (staffId !== null) trimDevicesOfPerson(staffId, Boolean(member), token);
   })();
 }

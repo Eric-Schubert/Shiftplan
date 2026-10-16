@@ -1,9 +1,8 @@
-import { instanceLocaleTag } from "~/server/utils/locale";
 import { activeStaffName, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { revertRequest, revertableChanges, withCurrent } from "./apply";
-import { describeRequest, notifyStaff } from "./notify";
+import { notifyStaff } from "./notify";
 import { apiError } from "~/server/utils/api-error";
 
 type Member = { staffId: number; staffName: string; source?: "web" | "app" };
@@ -33,10 +32,6 @@ function checkUndo(request: ShiftRequest, other: { id: number; name: string }): 
   if (away) conflict("errors.requests.undoAbsent", { name: names.get(away.staffId) ?? "" });
 }
 
-function subject(request: ShiftRequest): string {
-  return request.kind === "takeover" ? "die Übernahme" : "den Tausch";
-}
-
 /** One of the two asks to undo; the plan stays as it is until the other one confirms. */
 export async function requestUndo(request: ShiftRequest, member: Member): Promise<ShiftRequest> {
   const other = otherOf(request, member.staffId);
@@ -45,11 +40,8 @@ export async function requestUndo(request: ShiftRequest, member: Member): Promis
     if (current.undo_requested_by !== null) conflict("errors.requests.undoAlreadyAsked");
     return ShiftRequestService.setUndoRequest(current.request_id, member.staffId, null);
   });
-  await notifyStaff(
-    [other.id],
-    "Storno angefragt",
-    `${member.staffName} möchte ${subject(request)} (${describeRequest(request, instanceLocaleTag())}) stornieren. Bitte bestätigen oder ablehnen.`
-  );
+  const text = request.kind === "takeover" ? "takeoverUndoAsked" : "swapUndoAsked";
+  await notifyStaff([other.id], request, text, member.staffName);
   return updated;
 }
 
@@ -63,11 +55,7 @@ export async function confirmUndo(request: ShiftRequest, member: Member, origin?
     revertRequest(current, { userId: 0, username: member.staffName, source: member.source ?? "app" }, PLAN_MOVED, origin);
     return ShiftRequestService.setStatus(current.request_id, "reverted", { expected: "done", decidedBy: member.staffName });
   });
-  await notifyStaff(
-    [other.id],
-    "Storno bestätigt",
-    `${member.staffName} hat den Storno bestätigt. ${describeRequest(request, instanceLocaleTag())} ist wieder wie vorher.`
-  );
+  await notifyStaff([other.id], request, "undoConfirmed", member.staffName);
   return updated;
 }
 
@@ -80,11 +68,7 @@ export async function declineUndo(request: ShiftRequest, member: Member): Promis
     return { updated: ShiftRequestService.setUndoRequest(current.request_id, null, asker), asker };
   });
   if (asker === other.id) {
-    await notifyStaff(
-      [other.id],
-      "Storno abgelehnt",
-      `${member.staffName} möchte ${describeRequest(request, instanceLocaleTag())} so lassen, wie es ist.`
-    );
+    await notifyStaff([other.id], request, "undoDeclined", member.staffName);
   }
   return updated;
 }

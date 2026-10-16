@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access.service";
+import { recipientLocale, render, type Localized } from "~/server/services/push/locales";
 import { isUndeliverable, markDelivered } from "~/server/services/push/undeliverable";
 import { getVapidDetails } from "~/server/services/push/vapid";
 import type { PushPayload, SendCounts, StoredSubscription } from "~/server/services/push/types";
@@ -10,15 +11,18 @@ const PUSH_TTL_SECONDS = 12 * 60 * 60;
 // web-push has no default timeout; a stalled push service would hold the request forever.
 const SEND_TIMEOUT_MS = 10_000;
 
-/** All browsers, only those of some people (`staffIds`) or all but one person's. */
+/**
+ * All browsers, only those of some people (`staffIds`) or all but one person's. Each gets the text
+ * in the language it subscribed with, rendered once per language.
+ */
 export async function sendWebPush(
-  payload: PushPayload,
+  payload: Localized<PushPayload>,
   filter: { staffIds?: number[]; excludeStaffId?: number } = {}
 ): Promise<SendCounts> {
   purgeMemberAccess();
   const subscriptions = (
     getAdminDatabase()
-      .prepare("SELECT subscription_id, endpoint, p256dh, auth, staff_id FROM push_subscriptions")
+      .prepare("SELECT subscription_id, endpoint, p256dh, auth, locale, staff_id FROM push_subscriptions")
       .all() as Array<StoredSubscription & { staff_id: number | null }>
   ).filter((subscription) =>
     filter.staffIds
@@ -28,7 +32,12 @@ export async function sendWebPush(
   if (subscriptions.length === 0) return { sent: 0, failed: 0 };
 
   const vapidDetails = getVapidDetails();
-  const body = JSON.stringify(payload);
+  const bodies = new Map<string, string>();
+  const bodyFor = (subscription: StoredSubscription) => {
+    const locale = recipientLocale(subscription.locale);
+    if (!bodies.has(locale)) bodies.set(locale, JSON.stringify(render(payload, locale)));
+    return bodies.get(locale)!;
+  };
   const expired: number[] = [];
   let sent = 0;
   let failed = 0;
@@ -42,7 +51,7 @@ export async function sendWebPush(
             endpoint: subscription.endpoint,
             keys: { p256dh: subscription.p256dh, auth: subscription.auth },
           },
-          body,
+          bodyFor(subscription),
           { vapidDetails, TTL: PUSH_TTL_SECONDS, urgency: "high", timeout: SEND_TIMEOUT_MS }
         )
       )
