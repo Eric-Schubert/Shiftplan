@@ -86,15 +86,15 @@ describe("client config", () => {
 
   it("keeps the default policy rules", () => {
     const policy = DEFAULT_CLIENT_CONFIG.passwordPolicy;
+    const rule = (password: string) => {
+      const broken = validatePasswordStrength(password, policy).rule;
+      return broken && t("de", `errors.auth.password.${broken}`, { min: policy.minLength, max: policy.maxLength });
+    };
 
-    expect(validatePasswordStrength("geheim12", policy).message).toBe(
-      "Passwort muss mindestens einen Großbuchstaben enthalten"
-    );
-    expect(validatePasswordStrength("GEHEIM12", policy).message).toBe(
-      "Passwort muss mindestens einen Kleinbuchstaben enthalten"
-    );
-    expect(validatePasswordStrength("Geheimnis", policy).message).toBe("Passwort muss mindestens eine Zahl enthalten");
-    expect(validatePasswordStrength("x".repeat(257), policy).message).toBe("Passwort darf maximal 256 Zeichen haben");
-    expect(validatePasswordStrength("Geheim12", policy)).toEqual({ valid: true, message: "" });
+    expect(rule("geheim12")).toBe("Passwort muss mindestens einen Großbuchstaben enthalten");
+    expect(rule("GEHEIM12")).toBe("Passwort muss mindestens einen Kleinbuchstaben enthalten");
+    expect(rule("Geheimnis")).toBe("Passwort muss mindestens eine Zahl enthalten");
+    expect(rule("x".repeat(257))).toBe("Passwort darf maximal 256 Zeichen haben");
+    expect(validatePasswordStrength("Geheim12", policy)).toEqual({ valid: true });
   });
 });

@@ -8,6 +8,7 @@ import {
   isWeakPin,
   validatePasswordStrength,
 } from "~/shared/utils/limits";
+import { passwordChangeProblem } from "~/utils/account-forms";
 import { pinProblem } from "~/utils/member-pin";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";
 
@@ -52,9 +53,11 @@ describe("shared PIN rules", () => {
 
 describe("shared password check", () => {
   it("gives the same texts as the server with the configured policy", () => {
+    const policy = DEFAULT_CLIENT_CONFIG.passwordPolicy;
     for (const password of ["kurz", "geheim12", "GEHEIM12", "Geheimnis", "x".repeat(257), "Geheim12"]) {
+      const problem = passwordChangeProblem("alt", password, password, policy);
       expect(passwordPolicyError(null, password)?.statusMessage ?? "").toBe(
-        validatePasswordStrength(password, DEFAULT_CLIENT_CONFIG.passwordPolicy).message
+        problem ? t("de", problem.key, problem.params) : ""
       );
     }
     expect(passwordPolicyError(null, "kurz")?.statusMessage).toBe("Passwort muss mindestens 8 Zeichen haben");
@@ -63,7 +66,7 @@ describe("shared password check", () => {
   it("skips the rules a policy switches off", () => {
     const loose = { minLength: 4, maxLength: 8, requireUppercase: false, requireLowercase: false, requireNumber: false };
 
-    expect(validatePasswordStrength("abcd", loose)).toEqual({ valid: true, message: "" });
-    expect(validatePasswordStrength("abcdefghi", loose).message).toBe("Passwort darf maximal 8 Zeichen haben");
+    expect(validatePasswordStrength("abcd", loose)).toEqual({ valid: true });
+    expect(validatePasswordStrength("abcdefghi", loose)).toEqual({ valid: false, rule: "maxLength" });
   });
 });

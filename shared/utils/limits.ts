@@ -39,29 +39,12 @@ export type PasswordRules = {
 
 export type PasswordRule = "minLength" | "maxLength" | "uppercase" | "lowercase" | "number";
 
-/** The first rule the password breaks, or valid with an empty message. The server words it from `rule`. */
-export function validatePasswordStrength(
-  password: string,
-  policy: PasswordRules
-): {
-  valid: boolean;
-  message: string;
-  rule?: PasswordRule;
-} {
-  if (password.length < policy.minLength) {
-    return { valid: false, message: `Passwort muss mindestens ${policy.minLength} Zeichen haben`, rule: "minLength" };
-  }
-  if (password.length > policy.maxLength) {
-    return { valid: false, message: `Passwort darf maximal ${policy.maxLength} Zeichen haben`, rule: "maxLength" };
-  }
-  if (policy.requireUppercase && !/[A-Z]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens einen Großbuchstaben enthalten", rule: "uppercase" };
-  }
-  if (policy.requireLowercase && !/[a-z]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens einen Kleinbuchstaben enthalten", rule: "lowercase" };
-  }
-  if (policy.requireNumber && !/[0-9]/.test(password)) {
-    return { valid: false, message: "Passwort muss mindestens eine Zahl enthalten", rule: "number" };
-  }
-  return { valid: true, message: "" };
+/** The first rule the password breaks, or valid. Server and app word it from `rule` (errors.auth.password.*). */
+export function validatePasswordStrength(password: string, policy: PasswordRules): { valid: boolean; rule?: PasswordRule } {
+  if (password.length < policy.minLength) return { valid: false, rule: "minLength" };
+  if (password.length > policy.maxLength) return { valid: false, rule: "maxLength" };
+  if (policy.requireUppercase && !/[A-Z]/.test(password)) return { valid: false, rule: "uppercase" };
+  if (policy.requireLowercase && !/[a-z]/.test(password)) return { valid: false, rule: "lowercase" };
+  if (policy.requireNumber && !/[0-9]/.test(password)) return { valid: false, rule: "number" };
+  return { valid: true };
 }
