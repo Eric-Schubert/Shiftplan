@@ -92,6 +92,13 @@ export async function createApiClient(
     (router as any)[method](route, await load(modulePath));
   }
   const app = createApp();
+  // A request's `ip` option arrives as context; Node would report it as the socket address.
+  app.use(
+    defineEventHandler((event) => {
+      const address = event.context.clientAddress;
+      if (typeof address === "string") Object.defineProperty(event.node.req.socket, "remoteAddress", { value: address });
+    })
+  );
   app.use(await load("server/middleware/auth"));
   app.use(router.handler);
   const request = requestWithCookies(toPlainHandler(app), defaultHeaders);

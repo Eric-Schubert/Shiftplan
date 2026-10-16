@@ -34,21 +34,31 @@ describe("sign-in with short code and PIN", () => {
     expect(client.adminDb.prepare("SELECT pin_hash FROM member_pins").get()).not.toMatchObject({ pin_hash: "482913" });
   });
 
-  it("gives the same answer for wrong PINs and unknown short codes and blocks guessing", async () => {
+  it("gives the same answer for wrong PINs and unknown short codes", async () => {
     const browser = await browserWithInvite(ANNA);
     await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "482913" } });
 
     const wrong = await pinLogin("AW", "000000");
     const unknown = await pinLogin("ZZ", "482913");
     const withoutPin = await pinLogin("MM", "482913");
-    for (let attempt = 0; attempt < 5; attempt += 1) await pinLogin("AW", "111111");
-    const blocked = await pinLogin("AW", "482913");
 
     expect(wrong.status).toBe(401);
     expect(unknown.status).toBe(401);
     expect(withoutPin.status).toBe(401);
     expect(wrong.json.statusMessage).toBe(unknown.json.statusMessage);
-    expect(blocked.status).toBe(429);
+  });
+
+  it("blocks guessing from one network for every short code, but not the person elsewhere", async () => {
+    const browser = await browserWithInvite(ANNA);
+    await client.request("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body: { pin: "482913" } });
+    const fromNetwork = (ip: string, shortCode: string, pin: string) =>
+      client.request("POST", "/api/member/login", { ip, headers: SAME_ORIGIN, body: { shortCode, pin } });
+
+    for (let attempt = 0; attempt < 5; attempt += 1) await fromNetwork("198.51.100.66", "AW", "111111");
+
+    // The network bucket is full; the short-code bucket allows more failures (member-pin-limits.e2e.test.ts).
+    expect((await fromNetwork("198.51.100.66", "MM", "482913")).status).toBe(429);
+    expect((await fromNetwork("198.51.100.7", "AW", "482913")).status).toBe(200);
   });
 
   it("rejects short or trivial PINs and needs the current PIN to change it", async () => {

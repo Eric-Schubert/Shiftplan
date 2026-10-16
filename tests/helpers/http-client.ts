@@ -10,6 +10,8 @@ export type RequestOptions = {
   jar?: CookieJar;
   csrf?: boolean;
   headers?: Record<string, string>;
+  /** Socket address of the client. Without it every request comes from "unknown" and shares one rate-limit bucket. */
+  ip?: string;
 };
 export type ApiRequest = <T = any>(method: string, path: string, options?: RequestOptions) => Promise<PlainResponse & { json: T | null }>;
 
@@ -65,6 +67,7 @@ export function requestWithCookies(handler: PlainHandler, defaultHeaders: Record
       path: requestPath,
       headers,
       body: options.form ? multipart(options.form) : options.body === undefined ? undefined : JSON.stringify(options.body),
+      context: options.ip ? { clientAddress: options.ip } : undefined,
     });
     updateCookieJar(options.jar, response);
     return { ...response, json: parseBody(response.body) };
