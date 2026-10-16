@@ -755,6 +755,7 @@ components:
           description: >-
             Password rules from the instance's backend.config.json, for early feedback in forms.
             The server checks them again when a password is set.
+          required: [minLength, maxLength, requireUppercase, requireLowercase, requireNumber, hint]
           properties:
             minLength:
               type: integer
@@ -769,20 +770,32 @@ components:
             hint:
               type: string
               description: Short German summary of the rules, for example as a placeholder
-        shiftDefaults:
+        shift:
           type: object
-          description: Defaults for new shifts in the web app
+          description: Defaults and limits for shifts in the web app, as the server validates them
+          required: [defaultColor, minStaff]
           properties:
-            color:
+            defaultColor:
               type: string
-              description: Hex color, also used for shifts without a color
+              pattern: '^#[0-9a-fA-F]{6}$'
+              description: Color of new shifts, also used for shifts without a color
             minStaff:
-              type: integer
+              type: object
+              description: Minimum staff per shift, default for new shifts and allowed range
+              required: [default, min, max]
+              properties:
+                default:
+                  type: integer
+                min:
+                  type: integer
+                max:
+                  type: integer
         csrf:
           type: object
           description: >-
             CSRF settings for cookie sessions in the browser. Requests with a bearer token need
             no CSRF token, so the app can ignore this.
+          required: [cookieName, methods]
           properties:
             cookieName:
               type: string
@@ -791,7 +804,7 @@ components:
               type: array
               items:
                 type: string
-              description: HTTP methods that need the `x-csrf-token` header
+              description: Upper-case HTTP methods that need the `x-csrf-token` header
 
     StaffRef:
       type: object
