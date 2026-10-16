@@ -9,8 +9,9 @@ const props = defineProps<{
 const localeTag = useLocaleTag();
 const { t } = useI18n();
 
-const maxDailyPageViews = computed(() => Math.max(1, ...props.daily.map((day) => day.pageViews)));
 const latestDaily = computed(() => props.daily.slice(-14));
+// Scaled to the days drawn: a spike outside them would flatten every bar.
+const maxDailyPageViews = computed(() => Math.max(1, ...latestDaily.value.map((day) => day.pageViews)));
 
 function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
   if (day.pageViews <= 0) return { height: "0.35rem" };

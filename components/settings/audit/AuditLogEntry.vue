@@ -4,6 +4,7 @@ import type { MessageKey } from "~/i18n/types";
 import { entryReason, type Translate } from "~/i18n/audit-reason";
 import { weekOfYearLabel } from "~/shared/utils/format/week";
 import { formatSqlTimestamp } from "~/utils/timestamp";
+import { entrySeparator } from "~/utils/audit-entry";
 
 type ActionStyle = { label: MessageKey; icon: string; color: string; severity: string; separator: MessageKey | null };
 
@@ -72,6 +73,9 @@ const isBulk = computed(() => !props.entry.staff_name && !props.entry.shift_name
 const translate: Translate = (key, params) => (typeof params.count === "number" ? t(key, params, params.count) : t(key, params));
 const reason = computed(() => entryReason(props.entry, localeTag.value, translate, (key) => te(key)));
 
+const hasShift = computed(() => Boolean(props.entry.shift_name || props.entry.shift_id));
+const separator = computed(() => entrySeparator(info.value.separator ? t(info.value.separator) : "", hasShift.value));
+
 /** Deleted people and shifts keep their id but no name. */
 function name(value: string | null, id: number | null): string {
   return value ?? (id ? t("audit.unknown") : "");
@@ -92,9 +96,9 @@ function name(value: string | null, id: number | null): string {
       <div v-else class="text-sm text-gray-900 dark:text-white">
         <span class="font-medium">{{ name(entry.staff_name, entry.staff_id) }}</span>
         <span class="text-gray-500 dark:text-gray-400">
-          {{ info.separator ? t(info.separator) : "" }}
+          {{ separator }}
         </span>
-        <span class="font-medium">{{ name(entry.shift_name, entry.shift_id) }}</span>
+        <span v-if="hasShift" class="font-medium">{{ name(entry.shift_name, entry.shift_id) }}</span>
         <span class="text-gray-500 dark:text-gray-400"> · {{ weekOfYearLabel(localeTag, entry.year, entry.week_number) }} </span>
       </div>
 

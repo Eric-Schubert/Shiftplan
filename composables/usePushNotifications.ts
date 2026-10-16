@@ -8,6 +8,14 @@ function urlBase64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+/** Whether a subscription was made with the server's current key; one made with an older key never receives anything. */
+export function subscribedWithKey(subscriptionKey: ArrayBuffer | null | undefined, publicKey: string): boolean {
+  if (!subscriptionKey) return true;
+  const current = urlBase64ToUint8Array(publicKey);
+  const subscribed = new Uint8Array(subscriptionKey);
+  return subscribed.length === current.length && subscribed.every((byte, index) => byte === current[index]);
+}
+
 function isIOS(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
@@ -48,11 +56,23 @@ export function usePushNotifications() {
     }
 
     const subscription = await getSubscription();
-    state.value = subscription ? "on" : "off";
+    if (!subscription) {
+      state.value = "off";
+      return;
+    }
 
-    // Re-register silently: a new access code removes all subscriptions on the server.
-    if (subscription && viewerStatus.value?.hasAccess !== false) {
-      await saveSubscription(subscription).catch(() => {});
+    const publicKey = viewerStatus.value?.pushPublicKey;
+    if (publicKey && !subscribedWithKey(subscription.options.applicationServerKey, publicKey)) {
+      // Dropped, so the bell offers to set up a new one instead of claiming pushes that never come.
+      await subscription.unsubscribe().catch(() => false);
+      state.value = "off";
+      return;
+    }
+
+    state.value = "on";
+    // Re-register: a new access code removes all subscriptions on the server. If the server refuses it, it is not on.
+    if (viewerStatus.value?.hasAccess !== false) {
+      await saveSubscription(subscription).catch(() => (state.value = "off"));
     }
   }
 

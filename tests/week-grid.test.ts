@@ -96,4 +96,17 @@ describe("shortNames", () => {
     const short = shortNames(["Anja Richter", "Alex Roth", "Kai Meyer"]);
     expect([...short.values()]).toEqual(["AnR", "AlR", "KM"]);
   });
+
+  it("never gives two people the same label, also for single names and longer clashes", () => {
+    expect([...shortNames(["Anna", "Andreas"]).values()]).toEqual(["Ann", "And"]);
+    expect([...shortNames(["Maria Müller", "Martin Meier"]).values()]).toEqual(["MariM", "MartM"]);
+    expect([...shortNames(["Ann", "Anna"]).values()]).toEqual(["Ann", "An"]);
+    for (const names of [
+      ["Anna Weber", "Anna Wolf"],
+      ["Anna Weber", "Anna  Weber", "AW"],
+    ]) {
+      const short = shortNames(names);
+      expect(new Set(short.values()).size).toBe(names.length);
+    }
+  });
 });
