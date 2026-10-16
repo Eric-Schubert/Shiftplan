@@ -73,4 +73,4 @@ docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SecureP
 | Backend config | `config/backend.config.json` |
 | Tests | `tests/` |
 | Release and docs scripts | `scripts/` |
-| App API spec | `docs/api/app-v1.yaml` |
+| App API spec | `docs/api/app-v1/` (parts), bundled into `docs/api/app-v1.yaml` by `npm run docs` |

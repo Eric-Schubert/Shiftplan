@@ -1,0 +1,5 @@
+post:
+  summary: End the token (for example when the instance is removed from the app)
+  responses:
+    "200":
+      $ref: "../components/responses.yaml#/Success"

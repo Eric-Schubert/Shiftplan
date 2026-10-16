@@ -1,0 +1,18 @@
+get:
+  summary: Check access
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [codeRequired, hasAccess]
+            properties:
+              codeRequired:
+                type: boolean
+              hasAccess:
+                type: boolean
+              pushPublicKey:
+                type: [string, "null"]
+                description: Only for web push in the browser, the app does not need it

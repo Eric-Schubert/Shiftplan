@@ -1,0 +1,37 @@
+get:
+  summary: Public holidays (public endpoint)
+  security: []
+  parameters:
+    - name: year
+      in: query
+      required: true
+      schema:
+        type: integer
+    - name: week
+      in: query
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [national, regional]
+                nationwide:
+                  type: boolean
+                states:
+                  type: array
+                  items:
+                    $ref: "../components/schemas.yaml#/Subdivision"

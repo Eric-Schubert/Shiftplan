@@ -1,0 +1,80 @@
+post:
+  summary: Report your own absence (one day or a period)
+  description: |
+    One entry per day from `from` to `to` (at most 56 days), also for days that are not
+    planned yet. `from` must not be before today (time zone of the instance), otherwise
+    400 „Ausfälle lassen sich nur ab heute melden“. Days that already have an absence are
+    skipped (`skipped`); only if all days are taken, the response is 409. If
+    `nextWeekFromSaturday` is on (the team does not work on weekends), Saturdays and Sundays
+    are left out; a period of weekend days only returns 400. The shift is taken from the
+    plan if the person is assigned to exactly one shift on that day. Several days share one
+    `batch_id`. Unless `notifyTeam` is `false`, the team gets a push „Anna Weber fällt
+    Do. 08.10. aus – Frühschicht offen“ or „… fällt Mo. 12.10. – Fr. 23.10. aus“, never
+    with the reason.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [from, reason]
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: [string, "null"]
+              format: date
+              description: Last day, defaults to `from`
+            date:
+              type: string
+              format: date
+              deprecated: true
+              description: Legacy name for `from` for a single day
+            shiftId:
+              type: [integer, "null"]
+            reason:
+              $ref: "../components/schemas.yaml#/AbsenceReason"
+            notifyTeam:
+              type: boolean
+              default: true
+            message:
+              type: string
+              maxLength: 160
+              description: Optional extra text in the team push
+  responses:
+    "200":
+      description: Reported
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              absences:
+                type: array
+                items:
+                  $ref: "../components/schemas.yaml#/Absence"
+              absence:
+                $ref: "../components/schemas.yaml#/Absence"
+                deprecated: true
+                description: First day, for older clients
+              skipped:
+                type: array
+                items:
+                  type: string
+                  format: date
+              notified:
+                type: [object, "null"]
+                properties:
+                  sent:
+                    type: integer
+                  failed:
+                    type: integer
+    "400":
+      $ref: "../components/responses.yaml#/Error"
+    "409":
+      description: All days already have an absence
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Error"

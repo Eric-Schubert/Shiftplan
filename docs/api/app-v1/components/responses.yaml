@@ -1,0 +1,16 @@
+Success:
+  description: OK
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          success:
+            type: boolean
+
+Error:
+  description: Error with a message in the request's language in `statusMessage` and its code in `data.code`
+  content:
+    application/json:
+      schema:
+        $ref: "schemas.yaml#/Error"

@@ -1,0 +1,328 @@
+Error:
+  type: object
+  properties:
+    statusCode:
+      type: integer
+    statusMessage:
+      type: string
+    data:
+      type: object
+      description: |
+        Present on every error the server words itself. Missing on unhandled 500 errors (for example
+        a broken Excel file) and on errors from the HTTP layer (for example an unknown route).
+        Unknown codes are shown by their `statusMessage`.
+      properties:
+        code:
+          type: string
+          description: Stable message key, for example `errors.requests.notFound`
+        params:
+          type: object
+          description: |
+            Values filled into the message. A value can itself be a message `{ key, params }`
+            or a day `{ date }` (YYYY-MM-DD).
+          additionalProperties: true
+
+Instance:
+  type: object
+  required: [instanceId, name, version, apiVersion, codeRequired]
+  properties:
+    instanceId:
+      type: string
+      description: Fixed random ID of the instance. Also included in every push to the app.
+    name:
+      type: string
+      description: Display name, editable in the web app under Einstellungen → Team-Zugang (Settings → Team access)
+    version:
+      type: string
+      description: Shiftplan version of the instance
+    apiVersion:
+      type: integer
+      const: 1
+    codeRequired:
+      type: boolean
+    nextWeekFromSaturday:
+      type: boolean
+      description: >-
+        true: from Saturday on, show the next week as the current week. false for teams with
+        weekend shifts. If the field is missing (older instance), treat it as true.
+    locale:
+      type: string
+      example: de
+      description: >-
+        The instance's default language as a language code (`de`, `en`), set by the admin.
+        Server texts for requests without a supported `Accept-Language` use it. If the field is
+        missing (older instance), treat it as `de`.
+    passwordPolicy:
+      type: object
+      description: >-
+        Password rules from the instance's backend.config.json, for early feedback in forms.
+        The server checks them again when a password is set.
+      required: [minLength, maxLength, requireUppercase, requireLowercase, requireNumber, hint]
+      properties:
+        minLength:
+          type: integer
+        maxLength:
+          type: integer
+        requireUppercase:
+          type: boolean
+        requireLowercase:
+          type: boolean
+        requireNumber:
+          type: boolean
+        hint:
+          type: string
+          description: Short German summary of the rules, for example as a placeholder
+    username:
+      allOf:
+        - $ref: "#/LengthLimits"
+      description: Allowed length of a planner's user name (auth.users), as the server validates it
+    contactForm:
+      type: object
+      description: >-
+        Allowed lengths of the contact form fields (contact.form). The web app checks the
+        minimum lengths early; the server checks both again.
+      required: [name, replyTo, subject, message]
+      properties:
+        name:
+          $ref: "#/LengthLimits"
+        replyTo:
+          $ref: "#/LengthLimits"
+        subject:
+          $ref: "#/LengthLimits"
+        message:
+          $ref: "#/LengthLimits"
+    shift:
+      type: object
+      description: Defaults and limits for shifts in the web app, as the server validates them
+      required: [defaultColor, minStaff]
+      properties:
+        defaultColor:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Color of new shifts, also used for shifts without a color
+        minStaff:
+          type: object
+          description: Minimum staff per shift, default for new shifts and allowed range
+          required: [default, min, max]
+          properties:
+            default:
+              type: integer
+            min:
+              type: integer
+            max:
+              type: integer
+    csrf:
+      type: object
+      description: >-
+        CSRF settings for cookie sessions in the browser. Requests with a bearer token need
+        no CSRF token, so the app can ignore this.
+      required: [cookieName, methods]
+      properties:
+        cookieName:
+          type: string
+          description: Readable cookie that holds the CSRF token
+        methods:
+          type: array
+          items:
+            type: string
+          description: Upper-case HTTP methods that need the `x-csrf-token` header
+
+LengthLimits:
+  type: object
+  required: [minLength, maxLength]
+  properties:
+    minLength:
+      type: integer
+    maxLength:
+      type: integer
+
+StaffRef:
+  type: object
+  properties:
+    id:
+      type: integer
+    name:
+      type: string
+
+AbsenceReason:
+  type: string
+  enum: [urlaub, privat, sonstiges]
+
+Absence:
+  type: object
+  properties:
+    absence_id:
+      type: integer
+    staff_id:
+      type: integer
+    staff_name:
+      type: string
+    absence_date:
+      type: string
+      format: date
+    shift_id:
+      type: [integer, "null"]
+      description: |
+        Shift in which the person is absent; `null` means the whole day. If the plan no longer
+        has the person in the shift copied from the plan when the absence was recorded, the
+        value is `null`.
+    shift_name:
+      type: [string, "null"]
+    reason:
+      $ref: "#/AbsenceReason"
+      description: Planners only, deleted after 90 days
+    batch_id:
+      type: [string, "null"]
+      description: Shared by all days of a period
+    range_from:
+      type: string
+      format: date
+      description: First day of the period that is still active
+    range_to:
+      type: string
+      format: date
+      description: Last day of the period that is still active
+    source:
+      type: string
+      enum: [web, app]
+    created_by:
+      type: string
+      description: Planners only
+    created_at:
+      type: string
+
+Subdivision:
+  type: object
+  properties:
+    code:
+      type: string
+      example: SN
+    name:
+      type: string
+      example: Sachsen
+
+Staff:
+  type: object
+  properties:
+    staff_id:
+      type: integer
+    name:
+      type: string
+    active:
+      type: integer
+      enum: [0, 1]
+    is_parttime:
+      type: integer
+      enum: [0, 1]
+
+Shift:
+  type: object
+  properties:
+    shift_id:
+      type: integer
+    name:
+      type: string
+    active:
+      type: integer
+      enum: [0, 1]
+    start_time:
+      type: string
+      example: "06:00"
+    end_time:
+      type: string
+      example: "14:00"
+    color:
+      type: string
+      example: "#22c55e"
+    min_staff:
+      type: integer
+    sort_order:
+      type: integer
+
+WeeklyPlan:
+  type: object
+  properties:
+    week:
+      type: object
+      properties:
+        week_id:
+          type: integer
+        year:
+          type: integer
+        week_number:
+          type: integer
+    pattern_week:
+      type: integer
+    shifts:
+      type: array
+      items:
+        allOf:
+          - $ref: "#/Shift"
+          - type: object
+            properties:
+              assigned_staff:
+                type: array
+                items:
+                  $ref: "#/Staff"
+    day_changes:
+      type: array
+      description: Per-day deviations from the weekly plan
+      items:
+        $ref: "#/DayChange"
+
+DayChange:
+  type: object
+  properties:
+    change_id:
+      type: integer
+    staff_id:
+      type: integer
+    staff_name:
+      type: string
+    shift_id:
+      type: integer
+    shift_name:
+      type: string
+    change_date:
+      type: string
+      format: date
+    kind:
+      type: string
+      enum: [add, remove]
+    source:
+      type: string
+      enum: [web, app]
+    created_by:
+      type: string
+      description: Planners only
+    created_at:
+      type: string
+
+GenerationResult:
+  type: object
+  required: [generated, skipped, overwritten, weeks]
+  properties:
+    generated:
+      type: integer
+      description: Weeks filled, the overwritten ones included
+    skipped:
+      type: integer
+      description: Weeks left as they were because `overwrite` was `false`
+    overwritten:
+      type: integer
+    weeks:
+      type: array
+      description: One entry per week of the range, in order
+      items:
+        type: object
+        required: [year, week, pattern_week, status]
+        properties:
+          year:
+            type: integer
+          week:
+            type: integer
+          pattern_week:
+            type: integer
+          status:
+            type: string
+            enum: [generated, overwritten, skipped]

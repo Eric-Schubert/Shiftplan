@@ -1,0 +1,5 @@
+post:
+  summary: Sign out this device (revokes the token)
+  responses:
+    "200":
+      $ref: "../components/responses.yaml#/Success"

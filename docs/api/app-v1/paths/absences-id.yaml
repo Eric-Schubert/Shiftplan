@@ -1,0 +1,20 @@
+delete:
+  summary: Delete an absence (planner)
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    - name: range
+      in: query
+      description: |
+        `1` deletes the whole period. If it has already started, only today and the
+        following days are deleted, so the absence ends yesterday. If it lies entirely in the
+        past, it is deleted completely (a correction by the planners).
+      schema:
+        type: string
+        enum: ["1"]
+  responses:
+    "200":
+      $ref: "../components/responses.yaml#/Success"

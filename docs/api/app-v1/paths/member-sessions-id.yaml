@@ -1,0 +1,11 @@
+delete:
+  summary: Revoke an app device (planner), also removes its push registration
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "../components/responses.yaml#/Success"

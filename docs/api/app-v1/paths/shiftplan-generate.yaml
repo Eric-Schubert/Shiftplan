@@ -1,0 +1,43 @@
+post:
+  summary: Fill weeks from the rotation pattern (planner)
+  description: |
+    Needs a planner's bearer token (`POST /api/auth/login` with `client: app`). Fills `weeks`
+    consecutive weeks from `year`/`week` on in one transaction, each from its week of the rotation
+    pattern. A week that is already planned is replaced unless `overwrite` is `false`; then it is
+    skipped and counted in `skipped`. One audit entry per call. `weeks` is capped by the instance's
+    `shiftplan.generateWeeksMax` (53 by default); more is a 400.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [year, week]
+          properties:
+            year:
+              type: integer
+            week:
+              type: integer
+              description: ISO calendar week to start with
+              minimum: 1
+              maximum: 53
+            weeks:
+              type: integer
+              minimum: 1
+              default: 1
+              description: How many consecutive weeks to fill, starting with `week`
+            overwrite:
+              type: boolean
+              default: true
+              description: Replace weeks that are already planned; `false` skips them
+  responses:
+    "200":
+      description: What happened to each week
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/GenerationResult"
+    "400":
+      $ref: "../components/responses.yaml#/Error"
+    "401":
+      $ref: "../components/responses.yaml#/Error"
