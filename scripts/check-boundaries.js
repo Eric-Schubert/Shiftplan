@@ -16,7 +16,11 @@ const IGNORED = [/\.d\.ts$/];
 const APP_CODE = /^(?:components|pages|composables|stores|utils|layouts|plugins|theme|assets)\/|^(?:app|error)\.vue$/;
 // Request entry points: they reach services only through their facades.
 const HANDLERS = ["server/api", "server/middleware", "server/plugins", "server/routes"];
-// shared/ runs in the browser and in Nitro, so it may not lean on h3, Nitro, Nuxt, Vue, browser or Node globals.
+// i18n/ holds the catalogs and the server translator. App and server import it; it imports only
+// i18n/, shared/ and these packages.
+const I18N_PACKAGES = new Set(["@intlify/core", "vue-i18n"]);
+// shared/ and i18n/ run in the browser and in Nitro, so they may not lean on h3, Nitro, Nuxt, Vue,
+// browser or Node globals.
 const RUNTIME_GLOBALS = new Set([
   "defineEventHandler", "eventHandler", "createError", "getQuery", "readBody", "getHeader", "getCookie",
   "setCookie", "deleteCookie", "getRouterParam", "getRequestIP", "setResponseStatus", "sendRedirect",
@@ -52,6 +56,11 @@ export const RULES = [
     (from, to, spec) => !inside(from, "shared") && inside(to, "shared") && !spec.startsWith("~/shared/"),
   ],
   ["shared code imports outside shared/", (from, to) => inside(from, "shared") && !inside(to, "shared")],
+  [
+    "i18n code imports outside i18n/, shared/ or its packages",
+    (from, to, spec) =>
+      inside(from, "i18n") && (to === null ? !I18N_PACKAGES.has(spec) : !inside(to, "i18n") && !inside(to, "shared")),
+  ],
   ["server/utils imports a service", (from, to) => inside(from, "server/utils") && inside(to, "server/services")],
   [
     "handler imports a service's internals instead of its facade",
@@ -75,13 +84,14 @@ export const RULES = [
 ];
 
 function runtimeGlobals(file, source) {
+  const area = file.split("/")[0];
   const tokens = tokenize(source).filter((token) => token.kind !== "comment");
   return tokens.flatMap((token, index) => {
     if (token.kind !== "word" || tokens[index - 1]?.text === ".") return [];
     const after = tokens[index + 1]?.text === "?" ? tokens[index + 2] : tokens[index + 1];
     if (after?.text === ":") return [];
-    if (token.text === "import" && tokens[index + 1]?.text === ".") return [{ file, line: token.line, rule: "shared code uses import.meta" }];
-    return RUNTIME_GLOBALS.has(token.text) ? [{ file, line: token.line, rule: `shared code uses the runtime global ${token.text}` }] : [];
+    if (token.text === "import" && tokens[index + 1]?.text === ".") return [{ file, line: token.line, rule: `${area} code uses import.meta` }];
+    return RUNTIME_GLOBALS.has(token.text) ? [{ file, line: token.line, rule: `${area} code uses the runtime global ${token.text}` }] : [];
   });
 }
 
@@ -97,7 +107,7 @@ export function findViolations(files, readFile = (file) => fs.readFileSync(file,
       if (to !== null && known.has(to)) edges.push({ from: file, to, line });
       for (const [rule, broken] of RULES) if (broken(file, to, spec)) violations.push({ file, line, rule, detail: spec });
     }
-    if (file.startsWith("shared/")) violations.push(...runtimeGlobals(file, source).map((found) => ({ ...found, detail: "" })));
+    if (/^(?:shared|i18n)\//.test(file)) violations.push(...runtimeGlobals(file, source).map((found) => ({ ...found, detail: "" })));
   }
   for (const group of findCycles(edges)) {
     const edge = edges.find(({ from, to }) => from === group[0] && group.includes(to));

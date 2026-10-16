@@ -1,15 +1,8 @@
 import type { NuxtConfig } from "nuxt/schema";
 
 export const appHead: NonNullable<NuxtConfig["app"]>["head"] = {
-  htmlAttrs: {
-    lang: "de",
-  },
   title: "Shiftplan",
   meta: [
-    {
-      name: "description",
-      content: "Shiftplan: Dienstplan im Browser planen, im Team per App ansehen.",
-    },
     { name: "theme-color", content: "#fafafa", media: "(prefers-color-scheme: light)" },
     { name: "theme-color", content: "#09090b", media: "(prefers-color-scheme: dark)" },
   ],

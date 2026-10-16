@@ -1,5 +1,7 @@
 import type { NativeMessage } from "~/server/services/push-relay.service";
 import type { PendingChange, PushPayload, StoredDevice } from "~/server/services/push/types";
+import { collator } from "~/shared/utils/format/number";
+import { weekLabel } from "~/shared/utils/format/week";
 
 const MAX_CHANGE_LINES = 4;
 const TEAM_TITLE = "Schichtplan geändert";
@@ -11,26 +13,26 @@ const MAX_PERSONAL_TEXTS = 8;
 const MAX_APP_BODY_LENGTH = 480;
 
 // Whole-week changes first, then day changes by date, each in shift order.
-function sortChanges(changes: PendingChange[]): PendingChange[] {
+function sortChanges(changes: PendingChange[], locale: string): PendingChange[] {
   return [...changes].sort(
     (a, b) =>
       a.year - b.year ||
       a.week - b.week ||
       (a.date ?? "").localeCompare(b.date ?? "") ||
       a.shiftOrder - b.shiftOrder ||
-      a.shiftName.localeCompare(b.shiftName, "de")
+      collator(locale).compare(a.shiftName, b.shiftName)
   );
 }
 
-export function buildChangePayload(changes: PendingChange[]): PushPayload | null {
-  const effective = sortChanges(changes.filter((change) => change.delta !== 0));
+export function buildChangePayload(changes: PendingChange[], locale: string): PushPayload | null {
+  const effective = sortChanges(changes.filter((change) => change.delta !== 0), locale);
   if (effective.length === 0) return null;
 
   const groups = new Map<string, { label: string; added: string[]; removed: string[] }>();
   for (const change of effective) {
     const key = `${change.year}-${change.week}|${change.shiftName}`;
     const group = groups.get(key) || {
-      label: `KW ${change.week} · ${change.shiftName}`,
+      label: `${weekLabel(locale, change.week)} · ${change.shiftName}`,
       added: [],
       removed: [],
     };
@@ -59,20 +61,20 @@ export function buildChangePayload(changes: PendingChange[]): PushPayload | null
 }
 
 /** "KW 41: Frühschicht, Spätschicht · KW 42: Nacht" without any staff names. */
-function summarizeShifts(changes: PendingChange[]): string {
+function summarizeShifts(changes: PendingChange[], locale: string): string {
   const weeks = new Map<string, { week: number; shifts: string[] }>();
-  for (const change of sortChanges(changes)) {
+  for (const change of sortChanges(changes, locale)) {
     const key = `${change.year}-${change.week}`;
     const entry = weeks.get(key) || { week: change.week, shifts: [] };
     if (!entry.shifts.includes(change.shiftName)) entry.shifts.push(change.shiftName);
     weeks.set(key, entry);
   }
-  return [...weeks.values()].map((entry) => `KW ${entry.week}: ${entry.shifts.join(", ")}`).join(" · ");
+  return [...weeks.values()].map((entry) => `${weekLabel(locale, entry.week)}: ${entry.shifts.join(", ")}`).join(" · ");
 }
 
 /** "Änderungen in KW 41 · KW 42", for when per-shift texts would be too many. */
-function summarizeWeeks(changes: PendingChange[]): string {
-  const weeks = new Set(sortChanges(changes).map((change) => `KW ${change.week}`));
+function summarizeWeeks(changes: PendingChange[], locale: string): string {
+  const weeks = new Set(sortChanges(changes, locale).map((change) => weekLabel(locale, change.week)));
   return `Änderungen in ${[...weeks].join(" · ")}`;
 }
 
@@ -86,13 +88,14 @@ function fitAppBody(text: string): string {
 function groupByText(
   title: string,
   recipients: Recipient[],
-  summarize: (changes: PendingChange[]) => string,
-  instanceId: string
+  summarize: (changes: PendingChange[], locale: string) => string,
+  instanceId: string,
+  locale: string
 ): NativeMessage[] {
   const messages = new Map<string, NativeMessage>();
   for (const { token, changes } of recipients) {
-    const body = fitAppBody(summarize(changes));
-    const first = sortChanges(changes)[0]!;
+    const body = fitAppBody(summarize(changes, locale));
+    const first = sortChanges(changes, locale)[0]!;
     const message: NativeMessage = messages.get(body) || {
       title,
       body,
@@ -112,7 +115,8 @@ function groupByText(
 export function buildNativeMessages(
   changes: PendingChange[],
   devices: StoredDevice[],
-  instanceId: string
+  instanceId: string,
+  locale: string
 ): NativeMessage[] {
   const effective = changes.filter((change) => change.delta !== 0);
   if (effective.length === 0 || devices.length === 0) return [];
@@ -125,7 +129,7 @@ export function buildNativeMessages(
     .map((device) => ({ token: device.token, changes: effective.filter((change) => change.staffId === device.staff_id) }))
     .filter((recipient) => recipient.changes.length > 0);
 
-  let own = groupByText(OWN_TITLE, personal, summarizeShifts, instanceId);
-  if (own.length > MAX_PERSONAL_TEXTS) own = groupByText(OWN_TITLE, personal, summarizeWeeks, instanceId);
-  return [...groupByText(TEAM_TITLE, team, summarizeShifts, instanceId), ...own];
+  let own = groupByText(OWN_TITLE, personal, summarizeShifts, instanceId, locale);
+  if (own.length > MAX_PERSONAL_TEXTS) own = groupByText(OWN_TITLE, personal, summarizeWeeks, instanceId, locale);
+  return [...groupByText(TEAM_TITLE, team, summarizeShifts, instanceId, locale), ...own];
 }

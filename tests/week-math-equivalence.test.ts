@@ -10,7 +10,6 @@ import {
   toISOWeek,
   weekOfDate,
 } from "~/shared/utils/week";
-import { getWeekDateRange } from "../stores/app/week";
 import * as legacy from "./helpers/legacy-week-math";
 
 // The shared week math replaced seven copies. This compares it with frozen copies of the old
@@ -87,15 +86,11 @@ describe.each(ZONES)("shared week math matches the old copies in %s", (zone) => 
   it("finds the same Monday, dates and range for every week", () => {
     const wrong = mismatches(weeks(), ({ year, week }) => {
       const dates = legacy.datesOfISOWeek(year, week);
-      const local = legacy.getWeekDateRange(week, year);
-      const range = getWeekDateRange(week, year);
       return (
         isoWeekMonday(year, week).getTime() === legacy.getISOWeekStartDate(year, week).getTime() &&
         datesOfISOWeek(year, week).join() === dates.join() &&
         isoWeekRange(year, week).start === dates[0] &&
-        isoWeekRange(year, week).end === dates[6] &&
-        range.start.getTime() === local.start.getTime() &&
-        range.end.getTime() === local.end.getTime()
+        isoWeekRange(year, week).end === dates[6]
       );
     });
     expect(wrong).toEqual([]);

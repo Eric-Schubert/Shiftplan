@@ -1,3 +1,4 @@
+import { formatDay } from "~/shared/utils/format/day";
 import type {
   HolidayBannerItem,
   PublicHoliday,
@@ -22,22 +23,14 @@ const shortHolidayNames: Record<string, string> = {
   Reformationstag: "Reformation",
 };
 
-export function formatHolidayDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("de-DE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-  });
+/** „Do., 08.10.“ */
+export function formatHolidayDate(locale: string, date: string): string {
+  return formatDay(locale, date, "intl");
 }
 
-export function formatHolidayPeriod(start: string, end: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-
-  return `${formatDate(startDate)} – ${formatDate(endDate)}`;
+/** „08.10. – 12.10.“, with both ends also for a one-day period. */
+export function formatHolidayPeriod(locale: string, start: string, end: string): string {
+  return `${formatDay(locale, start, "date")} – ${formatDay(locale, end, "date")}`;
 }
 
 export function shortenHolidayName(name: string): string {
@@ -45,13 +38,14 @@ export function shortenHolidayName(name: string): string {
 }
 
 export function buildHolidayBannerItems(
+  locale: string,
   holidays: PublicHoliday[],
   schoolHolidays: SchoolHolidayPeriod[]
 ): HolidayBannerItem[] {
   const holidayItems: HolidayBannerItem[] = holidays.map((holiday) => ({
     key: `holiday-${holiday.date}-${holiday.name}`,
     label: holiday.name,
-    meta: formatHolidayDate(holiday.date),
+    meta: formatHolidayDate(locale, holiday.date),
     tone: holiday.type === "national" ? "holiday" : "warning",
     states: holiday.states.map((state) => state.name),
   }));
@@ -59,7 +53,7 @@ export function buildHolidayBannerItems(
   const schoolItems: HolidayBannerItem[] = schoolHolidays.map((period) => ({
     key: `school-${period.name}-${period.start}`,
     label: period.name,
-    meta: formatHolidayPeriod(period.start, period.end),
+    meta: formatHolidayPeriod(locale, period.start, period.end),
     tone: "school",
     states: period.states.map((state) => state.name),
   }));

@@ -1,21 +1,6 @@
-import { isoWeekMonday, isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
+import { isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
 
-export type UpcomingWeek = { year: number; week: number; dateRange: string };
-
-/** Monday to Sunday of an ISO week, as local dates for display. */
-export function getWeekDateRange(week: number, year: number): { start: Date; end: Date } {
-  const monday = isoWeekMonday(year, week);
-  const start = new Date(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate());
-  const end = new Date(start);
-  end.setDate(end.getDate() + 6);
-  return { start, end };
-}
-
-/** „06.10. – 12.10.“ */
-export function formatWeekDateRange({ start, end }: { start: Date; end: Date }): string {
-  const formatDate = (date: Date) => date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-  return `${formatDate(start)} – ${formatDate(end)}`;
-}
+export type UpcomingWeek = { year: number; week: number };
 
 /** The `count` weeks after the given one, across year boundaries. */
 export function getUpcomingWeeks(year: number, week: number, count: number): UpcomingWeek[] {
@@ -27,7 +12,7 @@ export function getUpcomingWeeks(year: number, week: number, count: number): Upc
       week = 1;
       year++;
     }
-    weeks.push({ year, week, dateRange: formatWeekDateRange(getWeekDateRange(week, year)) });
+    weeks.push({ year, week });
   }
 
   return weeks;

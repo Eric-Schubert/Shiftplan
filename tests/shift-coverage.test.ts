@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Absence } from "../types/absence";
 import type { ShiftDayChange, ShiftWithStaff } from "../types/shiftplan";
-import { formatWeekdays, understaffedDates, workDates } from "../utils/shift-coverage";
+import { understaffedDates, workDates } from "../utils/shift-coverage";
 
 // Week 43/2026: Monday 19.10. to Sunday 25.10.
 const week = workDates(2026, 43, false);
@@ -48,14 +48,5 @@ describe("shift coverage", () => {
   it("ignores absences that belong to another shift", () => {
     expect(understaffedDates(shift(1, [7]), week, [], [absence(7, tue, 2)])).toEqual([]);
     expect(understaffedDates(shift(1, [7]), week, [], [absence(7, tue)])).toEqual([tue]);
-  });
-});
-
-describe("formatWeekdays", () => {
-  it("joins runs of three or more days", () => {
-    expect(formatWeekdays(week)).toBe("Mo–Fr");
-    expect(formatWeekdays(["2026-10-19", "2026-10-20"])).toBe("Mo, Di");
-    expect(formatWeekdays(["2026-10-19", "2026-10-21", "2026-10-22", "2026-10-23"])).toBe("Mo, Mi–Fr");
-    expect(formatWeekdays(["2026-10-23", "2026-10-19", "2026-10-19"])).toBe("Mo, Fr");
   });
 });

@@ -6,6 +6,7 @@ defineProps<{
   holidays: PublicHoliday[];
   schoolHolidays: SchoolHolidayPeriod[];
 }>();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -42,7 +43,7 @@ defineProps<{
             </div>
           </div>
           <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">
-            {{ formatHolidayDate(holiday.date) }}
+            {{ formatHolidayDate(localeTag, holiday.date) }}
           </span>
         </li>
       </ul>
@@ -63,7 +64,7 @@ defineProps<{
           <div class="flex items-start justify-between gap-3">
             <p class="text-sm font-medium leading-5 text-[var(--text-1)]">{{ period.name }}</p>
             <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">
-              {{ formatHolidayPeriod(period.start, period.end) }}
+              {{ formatHolidayPeriod(localeTag, period.start, period.end) }}
             </span>
           </div>
           <div class="mt-1 flex flex-wrap gap-1">

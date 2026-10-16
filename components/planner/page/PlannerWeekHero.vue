@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { formatWeekDates, weekLabel } from "~/shared/utils/format/week";
+
 defineProps<{
   selectedWeek: number;
   selectedYear: number;
-  formattedWeekRange: string;
   isCurrentWeek: boolean;
   currentWeekLabel: string | null;
   patternWeek?: number | null;
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   (e: "open-bulk"): void;
   (e: "notify-team"): void;
 }>();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const emit = defineEmits<{
     <div class="min-w-0 space-y-1.5">
       <div class="flex flex-wrap items-center gap-2.5">
         <h2 class="planner-headline text-[var(--text-1)]">
-          KW {{ selectedWeek }}
+          {{ weekLabel(localeTag, selectedWeek) }}
         </h2>
         <span class="planner-chip tabular-nums">{{ selectedYear }}</span>
         <span v-if="currentWeekLabel" class="planner-chip planner-chip--current">{{ currentWeekLabel }}</span>
@@ -35,7 +37,7 @@ const emit = defineEmits<{
         </span>
       </div>
       <p class="text-sm tabular-nums text-[var(--text-2)]">
-        {{ formattedWeekRange }}
+        {{ formatWeekDates(localeTag, selectedYear, selectedWeek) }}
       </p>
     </div>
 

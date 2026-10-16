@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { weekOfYearLabel } from "~/shared/utils/format/week";
+
 defineProps<{
   /** The wizard was left to edit the pattern and can pick up where it stopped. */
   resumable?: boolean;
@@ -9,6 +11,7 @@ const emit = defineEmits<{
 }>();
 
 const dataStore = useDataStore();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -20,8 +23,13 @@ const dataStore = useDataStore();
           <strong class="text-[var(--text-1)]">
             {{ dataStore.rotationPattern.config.cycle_length }}-Wochen-Zyklus
           </strong>
-          &middot; Start: KW {{ dataStore.rotationPattern.config.start_week }}/{{
-            dataStore.rotationPattern.config.start_year
+          &middot; Start:
+          {{
+            weekOfYearLabel(
+              localeTag,
+              dataStore.rotationPattern.config.start_year,
+              dataStore.rotationPattern.config.start_week
+            )
           }}
         </p>
       </div>

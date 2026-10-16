@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatTimestamp } from "~/utils/timestamp";
+import { formatTimestamp } from "~/shared/utils/format/time";
 
 // Personal QR code and fallback code for one person, shown right after it was created.
 defineProps<{
@@ -8,6 +8,7 @@ defineProps<{
 }>();
 const emit = defineEmits<{ (e: "done"): void }>();
 const visible = defineModel<boolean>("visible", { required: true });
+const localeTag = useLocaleTag();
 
 function done() {
   visible.value = false;
@@ -32,7 +33,7 @@ function done() {
       <p class="text-[var(--text-2)]">Mit der Shiftplan-App scannen oder im Browser öffnen. Ohne Kamera geht auch der Code:</p>
       <p class="font-mono text-xl font-semibold tracking-widest text-[var(--text-1)]">{{ invite.code }}</p>
       <p class="text-xs text-[var(--text-3)]">
-        Gültig bis {{ formatTimestamp(invite.expiresAt) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.
+        Gültig bis {{ formatTimestamp(localeTag, invite.expiresAt) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.
       </p>
     </div>
     <template #footer>

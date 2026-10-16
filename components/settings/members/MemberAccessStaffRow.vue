@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MemberDevice } from "~/types/absence";
 import type { Staff } from "~/types/staff";
-import { formatTimestamp } from "~/utils/timestamp";
+import { formatTimestamp } from "~/shared/utils/format/time";
 
 // One person in the app access list: PIN state, signed-in devices and the QR code button.
 defineProps<{
@@ -16,6 +16,7 @@ const emit = defineEmits<{
   (e: "revoke", device: MemberDevice): void;
   (e: "invite"): void;
 }>();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -48,7 +49,7 @@ const emit = defineEmits<{
         >
           <i class="pi pi-mobile text-[0.7rem]" aria-hidden="true"></i>
           <span>{{ device.deviceName || "Unbenanntes Gerät" }}</span>
-          <span class="text-[var(--text-3)]">· zuletzt {{ formatTimestamp(device.lastSeenAt) }}</span>
+          <span class="text-[var(--text-3)]">· zuletzt {{ formatTimestamp(localeTag, device.lastSeenAt) }}</span>
           <button
             type="button"
             class="ml-1 font-semibold text-[var(--danger-ink)] hover:underline"

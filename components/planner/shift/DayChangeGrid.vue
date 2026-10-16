@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
-import { formatAbsenceDay } from "~/types/absence";
+import { formatDay } from "~/shared/utils/format/day";
 import { isCellPresent } from "~/utils/day-change-cells";
 
 // Staff × weekday grid of one shift and its legend; the default slot renders between them.
@@ -14,6 +14,7 @@ const props = defineProps<{
   saved: Record<string, boolean>;
 }>();
 const emit = defineEmits<{ (e: "toggle", staffId: number, date: string, present: boolean): void }>();
+const localeTag = useLocaleTag();
 
 const assigned = computed(() => new Set(props.shift.assigned_staff.map((staff) => staff.staff_id)));
 
@@ -33,8 +34,8 @@ function isPresent(staffId: number, date: string): boolean {
         <tr>
           <th class="text-left font-medium text-[var(--text-3)]"></th>
           <th v-for="date in days" :key="date" class="w-12 text-center text-xs font-medium text-[var(--text-3)]">
-            {{ formatAbsenceDay(date, false) }}<br />
-            <span class="tabular-nums">{{ date.slice(8, 10) }}.{{ date.slice(5, 7) }}.</span>
+            {{ formatDay(localeTag, date, "weekday") }}<br />
+            <span class="tabular-nums">{{ formatDay(localeTag, date, "date") }}</span>
           </th>
         </tr>
       </thead>
@@ -54,7 +55,7 @@ function isPresent(staffId: number, date: string): boolean {
               }"
               :disabled="busyCell !== ''"
               :aria-pressed="isPresent(row.staff_id, date)"
-              :aria-label="`${row.name} am ${formatAbsenceDay(date)} ${isPresent(row.staff_id, date) ? 'austragen' : 'eintragen'}`"
+              :aria-label="`${row.name} am ${formatDay(localeTag, date)} ${isPresent(row.staff_id, date) ? 'austragen' : 'eintragen'}`"
               @click="emit('toggle', row.staff_id, date, !isPresent(row.staff_id, date))"
             >
               <i v-if="busyCell === `${row.staff_id}-${date}`" class="pi pi-spinner pi-spin text-[0.7rem]" aria-hidden="true"></i>

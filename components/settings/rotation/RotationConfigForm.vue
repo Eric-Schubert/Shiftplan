@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RotationConfig, RotationConfigPreviewItem } from "~/types/rotation";
 import { patternWeekFor } from "~/shared/utils/rotation-math";
+import { weekOfYearLabel } from "~/shared/utils/format/week";
 import { isoWeeksInYear } from "~/shared/utils/week";
 
 const emit = defineEmits<{
@@ -9,6 +10,7 @@ const emit = defineEmits<{
 }>();
 
 const dataStore = useDataStore();
+const localeTag = useLocaleTag();
 const saving = ref(false);
 const errorMessage = ref<string | null>(null);
 const configForm = ref<Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">>({
@@ -111,7 +113,7 @@ async function save() {
         class="planner-chip"
         :class="item.isStart ? 'planner-chip--accent' : ''"
       >
-        KW {{ item.week }}/{{ item.year }} → Muster {{ item.patternWeek }}
+        {{ weekOfYearLabel(localeTag, item.year, item.week) }} → Muster {{ item.patternWeek }}
       </span>
     </div>
 

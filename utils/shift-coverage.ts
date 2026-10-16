@@ -1,6 +1,5 @@
 import type { Absence } from "../types/absence";
 import type { ShiftDayChange, ShiftWithStaff } from "../types/shiftplan";
-import { formatAbsenceDay } from "../types/absence";
 import { datesOfISOWeek } from "~/shared/utils/week";
 
 /** Days the team works: Mo–Fr, or the whole week for teams with weekend shifts. */
@@ -42,27 +41,4 @@ export function understaffedDates(
   absences: Absence[]
 ): string[] {
   return dates.filter((date) => staffOnDay(shift, date, dayChanges, absences).length < shift.min_staff);
-}
-
-function nextDate(date: string): string {
-  const day = new Date(`${date}T00:00:00Z`);
-  day.setUTCDate(day.getUTCDate() + 1);
-  return day.toISOString().slice(0, 10);
-}
-
-/** „Mo–Fr“, „Mo, Di“ or „Mo, Mi–Fr“: runs of three or more days are joined. */
-export function formatWeekdays(dates: string[]): string {
-  const runs: string[][] = [];
-  for (const date of [...new Set(dates)].sort()) {
-    const run = runs.at(-1);
-    if (run && nextDate(run.at(-1)!) === date) run.push(date);
-    else runs.push([date]);
-  }
-  return runs
-    .map((run) =>
-      run.length >= 3
-        ? `${formatAbsenceDay(run[0]!, false)}–${formatAbsenceDay(run.at(-1)!, false)}`
-        : run.map((date) => formatAbsenceDay(date, false)).join(", ")
-    )
-    .join(", ");
 }

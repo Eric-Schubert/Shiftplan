@@ -1,13 +1,6 @@
 import { defineStore } from "pinia";
 import { isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
-import {
-  formatWeekDateRange,
-  getEffectiveCurrentWeek,
-  getEffectiveCurrentYear,
-  getUpcomingWeeks,
-  getWeekDateRange,
-  type UpcomingWeek,
-} from "./app/week";
+import { getEffectiveCurrentWeek, getEffectiveCurrentYear, getUpcomingWeeks, type UpcomingWeek } from "./app/week";
 
 export const useAppStore = defineStore("app", {
   state: () => ({
@@ -20,10 +13,6 @@ export const useAppStore = defineStore("app", {
   }),
 
   getters: {
-    weekDateRange(): { start: Date; end: Date } {
-      return getWeekDateRange(this.selectedWeek, this.selectedYear);
-    },
-
     /** The week „Heute“ jumps to (next week from Saturday on, unless the team works weekends). */
     isCurrentWeek(): boolean {
       return (
@@ -35,10 +24,6 @@ export const useAppStore = defineStore("app", {
     currentWeekLabel(): string | null {
       if (!this.isCurrentWeek) return null;
       return this.selectedWeek === isoWeekOfDate(new Date()).week ? "Diese Woche" : "Ab Montag";
-    },
-
-    formattedWeekRange(): string {
-      return formatWeekDateRange(this.weekDateRange);
     },
 
     getUpcomingWeeks(): (count: number) => UpcomingWeek[] {

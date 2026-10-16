@@ -1,15 +1,6 @@
-/** „09.10.2026, 14:30“ for a timestamp or date. */
-export function formatTimestamp(value: number | Date): string {
-  return new Date(value).toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { formatTimestamp } from "~/shared/utils/format/time";
 
-/** Same for SQLite's UTC text, which carries no zone marker. */
-export function formatSqlTimestamp(value: string): string {
-  return formatTimestamp(new Date(value + "Z"));
+/** „09.10.2026, 14:30“ for SQLite's UTC text, which carries no zone marker. */
+export function formatSqlTimestamp(locale: string, value: string): string {
+  return formatTimestamp(locale, new Date(value + "Z"));
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
-import { formatWeekdays } from "~/utils/shift-coverage";
+import { formatWeekdays } from "~/shared/utils/format/day";
 
 const props = defineProps<{
   shift: ShiftWithStaff;
@@ -11,11 +11,13 @@ const props = defineProps<{
   week?: number;
 }>();
 
+const localeTag = useLocaleTag();
 const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => change.shift_id === props.shift.shift_id));
 
 /** Weekdays on which an assigned person is taken out of this shift. */
 function removedDays(staffId: number): string {
   return formatWeekdays(
+    localeTag.value,
     shiftChanges.value
       .filter((change) => change.kind === "remove" && change.staff_id === staffId)
       .map((change) => change.change_date)
@@ -32,7 +34,7 @@ const dayGuests = computed(() => {
     guest.dates.push(change.change_date);
     guests.set(change.staff_id, guest);
   }
-  return [...guests.values()].map((guest) => ({ ...guest, days: formatWeekdays(guest.dates) }));
+  return [...guests.values()].map((guest) => ({ ...guest, days: formatWeekdays(localeTag.value, guest.dates) }));
 });
 
 const emit = defineEmits<{

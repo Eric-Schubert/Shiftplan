@@ -5,6 +5,7 @@ import { formatSqlTimestamp } from "~/utils/timestamp";
 // One message from the public contact form.
 defineProps<{ message: ContactMessage; updating: boolean }>();
 const emit = defineEmits<{ (e: "mark-read"): void }>();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -25,7 +26,7 @@ const emit = defineEmits<{ (e: "mark-read"): void }>();
         <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--text-3)]">
           <span>{{ message.name }}</span>
           <span aria-hidden="true">|</span>
-          <span>{{ formatSqlTimestamp(message.created_at) }}</span>
+          <span>{{ formatSqlTimestamp(localeTag, message.created_at) }}</span>
         </div>
       </div>
 

@@ -1,3 +1,4 @@
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { activeStaffName, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -47,7 +48,7 @@ export async function requestUndo(request: ShiftRequest, member: Member): Promis
   await notifyStaff(
     [other.id],
     "Storno angefragt",
-    `${member.staffName} möchte ${subject(request)} (${describeRequest(request)}) stornieren. Bitte bestätigen oder ablehnen.`
+    `${member.staffName} möchte ${subject(request)} (${describeRequest(request, instanceLocaleTag())}) stornieren. Bitte bestätigen oder ablehnen.`
   );
   return updated;
 }
@@ -65,7 +66,7 @@ export async function confirmUndo(request: ShiftRequest, member: Member, origin?
   await notifyStaff(
     [other.id],
     "Storno bestätigt",
-    `${member.staffName} hat den Storno bestätigt. ${describeRequest(request)} ist wieder wie vorher.`
+    `${member.staffName} hat den Storno bestätigt. ${describeRequest(request, instanceLocaleTag())} ist wieder wie vorher.`
   );
   return updated;
 }
@@ -82,7 +83,7 @@ export async function declineUndo(request: ShiftRequest, member: Member): Promis
     await notifyStaff(
       [other.id],
       "Storno abgelehnt",
-      `${member.staffName} möchte ${describeRequest(request)} so lassen, wie es ist.`
+      `${member.staffName} möchte ${describeRequest(request, instanceLocaleTag())} so lassen, wie es ist.`
     );
   }
   return updated;

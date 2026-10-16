@@ -1,3 +1,4 @@
+import { collator } from "~/shared/utils/format/number";
 import type { Absence } from "../types/absence";
 import type { ShiftDayChange, ShiftWithStaff } from "../types/shiftplan";
 import { staffOnDay } from "./shift-coverage";
@@ -24,7 +25,8 @@ export function weekGridRow(
   dates: string[],
   dayChanges: ShiftDayChange[],
   absences: Absence[],
-  holidays: Set<string>
+  holidays: Set<string>,
+  locale: string
 ): GridCell[] {
   const names = new Map(shift.assigned_staff.map((staff) => [staff.staff_id, staff.name]));
   for (const change of dayChanges) if (!names.has(change.staff_id)) names.set(change.staff_id, change.staff_name);
@@ -33,7 +35,7 @@ export function weekGridRow(
   return dates.map((date) => {
     const people = staffOnDay(shift, date, dayChanges, absences)
       .map((staffId) => ({ staffId, name: names.get(staffId) ?? "", guest: !planned.has(staffId) }))
-      .sort((a, b) => Number(a.guest) - Number(b.guest) || a.name.localeCompare(b.name, "de"));
+      .sort((a, b) => Number(a.guest) - Number(b.guest) || collator(locale).compare(a.name, b.name));
     const status: GridStatus = holidays.has(date)
       ? "holiday"
       : people.length === 0 && shift.min_staff > 0
