@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ANNA,
   EARLY,
+  FRIDAY,
   LATE,
   MAX,
   PAUL,
@@ -55,6 +56,24 @@ describe("requests decided twice or withdrawn", () => {
 
     expect(results.map((result) => result.status).sort()).toEqual([200, 409]);
     expect((await staffOn(EARLY, THURSDAY)).length).toBe(1);
+  });
+
+  it("refuses a second yes once the first went through, for takeovers and swaps", async () => {
+    const anna = await member(ANNA, "anna:tok");
+    const max = await member(MAX, "max:tok");
+    const paul = await member(PAUL, "paul:tok");
+    const takeover = (await create(anna, { kind: "takeover", date: THURSDAY })).json!.request.request_id;
+    const swap = (await create(anna, { kind: "swap", partnerStaffId: MAX, from: FRIDAY, to: FRIDAY })).json!.request.request_id;
+
+    const first = await act(max, takeover, "accept");
+    const second = await act(paul, takeover, "accept");
+    const swapFirst = await act(max, swap, "accept");
+    const swapSecond = await act(max, swap, "accept");
+
+    expect([first.status, second.status, swapFirst.status, swapSecond.status]).toEqual([200, 409, 200, 409]);
+    expect([second.json!.data.code, swapSecond.json!.data.code]).toEqual(["errors.requests.notOpen", "errors.requests.notOpen"]);
+    expect(await staffOn(EARLY, THURSDAY)).toEqual([MAX]);
+    expect(await staffOn(EARLY, FRIDAY)).toEqual([MAX]);
   });
 
   it("tells the colleague when the requester withdraws", async () => {

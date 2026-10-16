@@ -13,6 +13,12 @@ const MAIL_ENV = [
 
 let client: ApiClient;
 
+/** The server runs the purges at start and then hourly (server/plugins/housekeeping.ts); the harness has no plugins. */
+async function housekeeping() {
+  const { runHousekeeping } = await import("~/server/services/housekeeping.service");
+  runHousekeeping();
+}
+
 beforeEach(async () => {
   vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
   for (const name of MAIL_ENV) vi.stubEnv(name, "");
@@ -37,6 +43,7 @@ describe("retention", () => {
     );
     insert.run("2024-10-04 08:00:00");
     insert.run("2024-10-06 08:00:00");
+    await housekeeping();
     const admin = await client.loginAs("admin", "admin1234");
 
     const audit = await client.request<{ entries: { created_at: string }[] }>("GET", "/api/audit", { jar: admin });
@@ -50,6 +57,7 @@ describe("retention", () => {
     );
     insert.run("2026-07-06", "2026-07-06", "bin krank");
     insert.run("2026-07-07", "2026-07-07", "Arzttermin");
+    await housekeeping();
     const planner = await client.loginAs("planner", "planner1234");
 
     const list = await client.request<{ requests: { date_to: string; message: string | null }[] }>("GET", "/api/requests", { jar: planner });
@@ -66,6 +74,7 @@ describe("retention", () => {
     );
     insert.run("2025-10-04 07:00:00");
     insert.run("2025-10-06 08:00:00");
+    await housekeeping();
     const admin = await client.loginAs("admin", "admin1234");
 
     const list = await client.request<{ messages: { created_at: string }[] }>("GET", "/api/contact/messages", { jar: admin });

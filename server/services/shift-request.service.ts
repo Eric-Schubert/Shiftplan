@@ -11,3 +11,4 @@ export { requestSwap, requestTakeover } from "~/server/services/shift-request/fl
 export { decideRequest } from "~/server/services/shift-request/flow/decide";
 export { confirmUndo, declineUndo, requestUndo } from "~/server/services/shift-request/flow/undo";
 export { cancelRequest, declineRequest } from "~/server/services/shift-request/flow/withdraw";
+export { purgeOldMessages } from "~/server/services/shift-request/purge";

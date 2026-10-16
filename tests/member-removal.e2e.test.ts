@@ -83,6 +83,8 @@ describe("cleanup of personal access", () => {
     device.run("idle:APA91b", ANNA, "idle");
     device.run("deleted:APA91b", 99, null);
     client.adminDb.prepare("INSERT INTO member_pins (staff_id, pin_hash, updated_at) VALUES (99, 'hash', 0)").run();
+    const { runHousekeeping } = await import("~/server/services/housekeeping.service");
+    runHousekeeping();
     const planner = await client.loginAs("planner", "planner1234");
 
     const list = await client.request<Array<{ sessionId: string }>>("GET", "/api/member-sessions", { jar: planner });

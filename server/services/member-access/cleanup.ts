@@ -2,8 +2,6 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { MEMBER_IDLE_DAYS } from "~/shared/utils/retention";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const PURGE_INTERVAL_MS = 60 * 60 * 1000;
-let lastPurge = 0;
 
 // Everything in the admin database that belongs to one staff member.
 const STAFF_TABLES = ["member_sessions", "member_pins", "member_invites", "push_devices", "push_subscriptions"];
@@ -36,13 +34,10 @@ export function removeStaffAccess(staffId: number): void {
 }
 
 /**
- * At most hourly: drops idle or revoked sessions, used or expired QR codes and whatever is
- * left of people removed before this cleanup existed.
+ * Drops idle or revoked sessions, used or expired QR codes and whatever is left of people removed
+ * before this cleanup existed. Run by the housekeeping job.
  */
 export function purgeMemberAccess(now = Date.now()): void {
-  if (now - lastPurge < PURGE_INTERVAL_MS) return;
-  lastPurge = now;
-
   const db = getAdminDatabase();
   const stale = db
     .prepare("SELECT session_id FROM member_sessions WHERE revoked_at IS NOT NULL OR last_seen_at < ?")

@@ -102,6 +102,17 @@ describe("audit reasons", () => {
     expect(entryReason({ reason: "alt", reason_key: "audit.reason.day", reason_params: null }, TAG, appTranslate, known)).toBe("alt");
   });
 
+  it("shows the stored text when a value is missing, instead of a text with a hole", () => {
+    const shown = (reason_key: string, reason_params: Record<string, string | number>) =>
+      entryReason({ reason: "alt", reason_key, reason_params }, TAG, appTranslate, known);
+
+    expect(shown("audit.reason.takeover", { date: "2026-10-08" })).toBe("alt");
+    expect(shown("audit.reason.day", { day: "Do. 08.10." })).toBe("alt");
+    expect(shown("audit.reason.absence", { from: "2026-10-07" })).toBe("alt");
+    expect(shown("audit.reason.generatedSkipped", { count: 2, year: 2026, week: 42 })).toBe("alt");
+    expect(shown("audit.reason.takeover", { name: "Anna Weber", date: "2026-10-08" })).toBe("Übernahme für Anna Weber, Do. 08.10.");
+  });
+
   it("renders the same stored entry in the reader's language", () => {
     const english = createI18n({ legacy: false, locale: "en", fallbackLocale: DEFAULT_LOCALE, messages: { de, en } }).global;
     const translate: Translate = (key, params) => (typeof params.count === "number" ? english.t(key, params, params.count) : english.t(key, params));

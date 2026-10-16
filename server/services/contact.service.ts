@@ -1,7 +1,7 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getContactListConfig, getContactStorageConfig } from "~/server/config/contact-config";
-import { purgeOldContactMessages } from "~/server/services/contact/purge";
+export { purgeOldContactMessages } from "~/server/services/contact/purge";
 import type { ContactMessage, ContactMessagesResponse } from "~/types/contact";
 import { apiError } from "~/server/utils/api-error";
 
@@ -54,7 +54,6 @@ function hashContactSource(ip: string, userAgent: string): string {
 
 export class ContactService {
   static createMessage(params: ContactCreateInput): ContactMessage {
-    purgeOldContactMessages();
     const db = getAdminDatabase();
     const storageConfig = getContactStorageConfig();
     const result = db
@@ -102,7 +101,6 @@ export class ContactService {
   }
 
   static getMessages(options?: { limit?: number; offset?: number }): ContactMessagesResponse {
-    purgeOldContactMessages();
     const db = getAdminDatabase();
     const limit = normalizeLimit(options?.limit);
     const offset = normalizeOffset(options?.offset);

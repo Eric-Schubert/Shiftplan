@@ -1,7 +1,7 @@
 import type { H3Event } from "h3";
 import { randomBytes } from "node:crypto";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
-import { deleteSessions, purgeMemberAccess } from "~/server/services/member-access/cleanup";
+import { deleteSessions } from "~/server/services/member-access/cleanup";
 import { sha256, staffName } from "~/server/services/member-access/common";
 import { getMemberToken } from "~/server/services/member-access/token";
 import { apiError } from "~/server/utils/api-error";
@@ -43,7 +43,6 @@ export function getMember(event: H3Event): Member | null {
   const token = getMemberToken(event)?.token;
   if (!token) return null;
 
-  purgeMemberAccess();
   const db = getAdminDatabase();
   const session = db
     .prepare("SELECT session_id, staff_id, last_seen_at FROM member_sessions WHERE token_hash = ? AND revoked_at IS NULL")
@@ -69,7 +68,6 @@ export function requireMember(event: H3Event): Member {
 }
 
 export function listSessions(staffId?: number): MemberSession[] {
-  purgeMemberAccess();
   const rows = getAdminDatabase()
     .prepare(
       `

@@ -56,7 +56,7 @@ describe("plan change texts", () => {
       change({ date: `2026-10-${String(index + 1).padStart(2, "0")}`, shiftName: `Frühschicht Tag ${index + 1}` })
     );
 
-    const [message] = buildNativeMessages(changes, [{ token: "team", staff_id: null, scope: "all", personal: 0 }], "instance", "de-DE");
+    const [message] = buildNativeMessages(changes, [{ token: "team", staff_id: null, scope: "all", personal: 0 }], "instance");
 
     expect(message!.body).toHaveLength(480);
     expect(message!.body.endsWith("…")).toBe(true);
@@ -72,8 +72,7 @@ describe("plan change texts", () => {
           { token: "team", staff_id: null, scope: "all", personal: 0 },
           ...people(count).map((staffId) => ({ token: `mine-${staffId}`, staff_id: staffId, scope: "mine" as const, personal: 1 as const })),
         ],
-        "instance",
-        "de-DE"
+        "instance"
       );
 
     const few = build(3);
@@ -91,5 +90,42 @@ describe("plan change texts", () => {
       ["Deine Schicht hat sich geändert", "Änderungen in KW 42", 15],
     ]);
     expect(many[2]!.data).toMatchObject({ url: "/?year=2026&week=42", week: "42" });
+  });
+
+  it("shares the relay budget between languages", async () => {
+    const { buildNativeMessages } = await messages();
+    const people = (count: number) => Array.from({ length: count }, (_, index) => index + 1);
+    // Odd staff ids use the app in German, even ones in English; each person has their own shift.
+    const build = (count: number) =>
+      buildNativeMessages(
+        people(count).map((staffId) => change({ staffId, shiftName: `Schicht ${staffId}` })),
+        people(count).map((staffId) => ({
+          token: `mine-${staffId}`,
+          staff_id: staffId,
+          scope: "mine" as const,
+          personal: 1 as const,
+          locale: staffId % 2 ? "de" : "en",
+        })),
+        "instance"
+      );
+
+    const eight = build(8);
+    const ten = build(10);
+
+    expect(eight.map((message) => message.body)).toEqual([
+      "KW 41: Schicht 1",
+      "KW 41: Schicht 3",
+      "KW 41: Schicht 5",
+      "KW 41: Schicht 7",
+      "Week 41: Schicht 2",
+      "Week 41: Schicht 4",
+      "Week 41: Schicht 6",
+      "Week 41: Schicht 8",
+    ]);
+    // Five texts per language would pass a cap per language; together they go over it.
+    expect(ten.map((message) => [message.title, message.body, message.tokens.length])).toEqual([
+      ["Deine Schicht hat sich geändert", "Änderungen in KW 41", 5],
+      ["Your shift has changed", "Changes in Week 41", 5],
+    ]);
   });
 });

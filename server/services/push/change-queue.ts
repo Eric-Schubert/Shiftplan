@@ -1,7 +1,6 @@
 import { getDatabase } from "~/server/utils/database";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { listDevices } from "~/server/services/push/devices";
-import { groupByLocale } from "~/server/services/push/locales";
 import { buildChangePayload } from "~/server/services/push/messages";
 import { buildNativeMessages } from "~/server/services/push/native-messages";
 import { rememberOrigin } from "~/server/services/push/origin";
@@ -73,11 +72,7 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
   // Each gets the texts in the language it registered with.
   const results = await Promise.allSettled([
     sendWebPush((locale) => buildChangePayload(changes, locale)!),
-    (async () => {
-      const instanceId = TeamAccessService.getInstanceId();
-      const groups = [...groupByLocale(listDevices())];
-      return sendNative(groups.flatMap(([locale, devices]) => buildNativeMessages(changes, devices, instanceId, locale)));
-    })(),
+    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())))(),
   ]);
   const counts: SendCounts = { sent: 0, failed: 0 };
   for (const result of results) {
