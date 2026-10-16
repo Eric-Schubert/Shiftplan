@@ -61,7 +61,7 @@ describe("boundary check server rules", () => {
       "~/layouts/default.vue",
       "~/plugins/x",
       "~/theme/primevue-theme",
-      "~/assets/theme.css",
+      "~/assets/css/tokens.css",
       "~/app.vue",
       "~/error.vue",
     ];

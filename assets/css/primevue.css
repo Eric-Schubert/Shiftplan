@@ -1,0 +1,146 @@
+/* PrimeVue overrides */
+
+.p-button {
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.p-button.p-button-rounded {
+  border-radius: var(--radius-md);
+}
+
+.p-button.p-button-text {
+  color: var(--text-2);
+}
+
+.p-button.p-button-text:not(:disabled):hover {
+  background: var(--surface-muted);
+  color: var(--text-1);
+}
+
+.p-tabs,
+.p-tabpanels,
+.p-tabpanel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p-tablist,
+.p-tablist-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.p-tablist-content {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.p-tablist-tab-list {
+  min-width: max-content;
+  background: transparent !important;
+}
+
+.p-tablist-active-bar {
+  background: var(--accent) !important;
+}
+
+.p-tab {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.p-tab.p-tab-active {
+  color: var(--text-1) !important;
+}
+
+.p-tabpanels {
+  background: transparent !important;
+}
+
+.p-inputtext,
+.p-inputnumber-input,
+.p-password-input,
+.p-select,
+.p-textarea {
+  border-color: var(--border-soft) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  color: var(--text-1) !important;
+}
+
+.p-inputtext:enabled:hover,
+.p-select:not(.p-disabled):hover,
+.p-textarea:enabled:hover {
+  border-color: var(--border-strong) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-inputnumber-input:enabled:focus,
+.p-password-input:enabled:focus,
+.p-select.p-focus,
+.p-textarea:enabled:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent) !important;
+}
+
+.p-select-label,
+.p-select-dropdown {
+  background: transparent !important;
+  color: var(--text-1) !important;
+}
+
+.p-dialog {
+  overflow: hidden;
+  border: 1px solid var(--border-soft) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.p-dialog-header,
+.p-dialog-content,
+.p-dialog-footer {
+  background: var(--surface) !important;
+  color: var(--text-1) !important;
+}
+
+.p-dialog-title {
+  font-size: 1.0625rem !important;
+  font-weight: 650 !important;
+}
+
+.p-dialog-mask {
+  background: rgba(9, 9, 11, 0.5) !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: var(--surface-muted) !important;
+  color: var(--text-3) !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: var(--surface) !important;
+  color: var(--text-1) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr.p-row-odd {
+  background: var(--panel-strong) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td,
+.p-datatable .p-datatable-thead > tr > th {
+  border-color: var(--border-soft) !important;
+}
+
+.p-tag {
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}

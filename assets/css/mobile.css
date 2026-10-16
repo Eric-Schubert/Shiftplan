@@ -1,0 +1,42 @@
+@media (max-width: 640px) {
+  .planner-shell {
+    gap: 1rem;
+  }
+
+  .planner-slab {
+    padding: 1rem;
+  }
+
+  .planner-shift-card {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-header {
+    padding: 1rem 1rem 0.625rem !important;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-content {
+    padding: 0 1rem 0.875rem !important;
+  }
+
+  .p-dialog.changelog-dialog .p-dialog-footer {
+    padding: 0.75rem 1rem 1rem !important;
+  }
+
+  .changelog-release {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .changelog-release__cta {
+    justify-self: flex-start;
+  }
+
+  .changelog-footer {
+    flex-direction: column-reverse;
+  }
+
+  .changelog-footer > * {
+    width: 100%;
+  }
+}

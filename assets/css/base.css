@@ -1,0 +1,125 @@
+/* Base */
+
+html {
+  background: var(--app-bg);
+  font-family: var(--font-body);
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--app-bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--text-1);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tabular-nums,
+.planner-time-badge {
+  font-variant-numeric: tabular-nums;
+}
+
+/* App shell */
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.app-header {
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--app-bg);
+}
+
+.app-main {
+  position: relative;
+  width: 100%;
+  flex: 1 0 auto;
+}
+
+.app-main:focus {
+  outline: none;
+}
+
+.app-skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 60;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  padding: 0.5rem 0.875rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.app-skip-link:focus-visible {
+  transform: none;
+}
+
+.app-icon-button {
+  display: inline-flex;
+  height: 2.25rem;
+  min-width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  padding: 0 0.6rem;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.app-icon-button:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-muted);
+  color: var(--text-1);
+}

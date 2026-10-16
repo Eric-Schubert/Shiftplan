@@ -1,0 +1,46 @@
+/* Motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  a,
+  button,
+  .p-button,
+  .planner-preview-card,
+  .planner-shift-card,
+  .changelog-release,
+  .changelog-link-button,
+  .app-icon-button {
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease,
+      box-shadow 120ms ease,
+      color 120ms ease,
+      opacity 120ms ease,
+      transform 120ms ease;
+  }
+
+  .app-icon-button:active,
+  .planner-segmented > button:active,
+  .planner-pill-button:active,
+  .changelog-link-button:active,
+  .p-button:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  .planner-preview-card:active {
+    transform: scale(0.995);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

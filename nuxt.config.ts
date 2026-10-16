@@ -62,7 +62,18 @@ export default defineNuxtConfig({
     },
   ],
 
-  css: ["~/assets/primeicons-subset.css", "~/assets/theme.css"],
+  // Split by area; the order is the cascade order of the former theme.css.
+  css: [
+    "~/assets/primeicons-subset.css",
+    "~/assets/css/tokens.css",
+    "~/assets/css/base.css",
+    "~/assets/css/layout.css",
+    "~/assets/css/planner.css",
+    "~/assets/css/primevue.css",
+    "~/assets/css/changelog.css",
+    "~/assets/css/motion.css",
+    "~/assets/css/mobile.css",
+  ],
 
   primevue: {
     autoImport: true,
