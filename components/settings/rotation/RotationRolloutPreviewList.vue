@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
 import { weekOfYearLabel } from "~/shared/utils/format/week";
 import type { GenerationPreviewWeek } from "~/types/shiftplan";
 
@@ -11,16 +12,17 @@ const props = defineProps<{
 }>();
 
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 const lastPreviewWeek = computed(() => props.preview.at(-1));
 
-function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string } {
+function weekStatus(week: GenerationPreviewWeek): { label: MessageKey; tone: string } {
   if (week.existing_assignments === 0) {
-    return { label: "Neu", tone: "bg-[var(--positive-soft)] text-[var(--positive-ink)]" };
+    return { label: "settings.rollout.preview.new", tone: "bg-[var(--positive-soft)] text-[var(--positive-ink)]" };
   }
   if (props.overwrite) {
-    return { label: "Wird überschrieben", tone: "bg-[var(--danger-soft)] text-[var(--danger-ink)]" };
+    return { label: "settings.rollout.preview.overwritten", tone: "bg-[var(--danger-soft)] text-[var(--danger-ink)]" };
   }
-  return { label: "Bleibt wie geplant", tone: "bg-[var(--surface-muted)] text-[var(--text-2)]" };
+  return { label: "settings.rollout.preview.kept", tone: "bg-[var(--surface-muted)] text-[var(--text-2)]" };
 }
 </script>
 
@@ -30,9 +32,15 @@ function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string 
       class="flex items-center justify-between bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-1)]"
     >
       <span>
-        Vorschau
+        {{ t("settings.rollout.preview.title") }}
         <template v-if="lastPreviewWeek">
-          · {{ weekOfYearLabel(localeTag, startYear, startWeek) }} bis {{ weekOfYearLabel(localeTag, lastPreviewWeek.year, lastPreviewWeek.week) }}
+          ·
+          {{
+            t("settings.rotation.weekRange", {
+              from: weekOfYearLabel(localeTag, startYear, startWeek),
+              to: weekOfYearLabel(localeTag, lastPreviewWeek.year, lastPreviewWeek.week),
+            })
+          }}
         </template>
       </span>
       <i v-if="loading" class="pi pi-spinner pi-spin text-[var(--text-3)]" aria-hidden="true"></i>
@@ -45,10 +53,10 @@ function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string 
       >
         <span class="text-[var(--text-1)]">
           {{ weekOfYearLabel(localeTag, week.year, week.week) }}
-          <span class="text-[var(--text-3)]">· Musterwoche {{ week.pattern_week }}</span>
+          <span class="text-[var(--text-3)]">· {{ t("settings.rotation.patternWeek", { week: week.pattern_week }) }}</span>
         </span>
         <span class="rounded-md px-2 py-0.5 text-xs font-semibold" :class="weekStatus(week).tone">
-          {{ weekStatus(week).label }}
+          {{ t(weekStatus(week).label) }}
         </span>
       </li>
     </ul>

@@ -3,6 +3,7 @@ import type { RotationYearCopyPreview, RotationYearCopyResult } from "~/types/ro
 /** Copies all shift assignments of one year into another; the preview follows the source year. */
 export function useYearCopy(isVisible: () => boolean) {
   const { authFetch } = useAuthFetch();
+  const { t } = useI18n();
 
   const sourceYear = ref(new Date().getFullYear());
   const targetYear = ref(new Date().getFullYear() + 1);
@@ -48,7 +49,7 @@ export function useYearCopy(isVisible: () => boolean) {
         query: { year: sourceYear.value },
       });
     } catch (requestError: any) {
-      error.value = requestError.data?.statusMessage || "Fehler beim Laden der Vorschau";
+      error.value = requestError.data?.statusMessage || t("settings.yearCopy.loadFailed");
     } finally {
       loading.value = false;
     }
@@ -68,7 +69,7 @@ export function useYearCopy(isVisible: () => boolean) {
         },
       });
     } catch (requestError: any) {
-      error.value = requestError.data?.statusMessage || "Fehler beim Kopieren";
+      error.value = requestError.data?.statusMessage || t("settings.yearCopy.copyFailed");
     } finally {
       copying.value = false;
     }

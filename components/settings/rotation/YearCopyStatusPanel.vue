@@ -12,13 +12,14 @@ defineProps<{
   overwrite: boolean;
 }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 </script>
 
 <template>
   <div class="space-y-4">
     <div v-if="loading" class="flex items-center gap-2 text-sm text-gray-500">
       <i class="pi pi-spin pi-spinner"></i>
-      Lade Vorschau...
+      {{ t("settings.yearCopy.loading") }}
     </div>
 
     <div
@@ -27,10 +28,21 @@ const localeTag = useLocaleTag();
     >
       <div class="text-sm text-gray-700 dark:text-gray-300">
         <p class="mb-1 font-medium">
-          {{ preview.totalWeeks }} Wochen mit {{ preview.totalAssignments }} Zuweisungen in {{ sourceYear }}
+          {{
+            t("settings.yearCopy.summary", {
+              weeks: preview.totalWeeks,
+              assignments: preview.totalAssignments,
+              year: sourceYear,
+            })
+          }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ weekLabel(localeTag, preview.weeks[0]?.week ?? 0) }} bis {{ weekLabel(localeTag, preview.weeks.at(-1)?.week ?? 0) }}
+          {{
+            t("settings.rotation.weekRange", {
+              from: weekLabel(localeTag, preview.weeks[0]?.week ?? 0),
+              to: weekLabel(localeTag, preview.weeks.at(-1)?.week ?? 0),
+            })
+          }}
         </p>
       </div>
     </div>
@@ -40,7 +52,7 @@ const localeTag = useLocaleTag();
       class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20"
     >
       <p class="text-sm text-yellow-700 dark:text-yellow-300">
-        Keine Schichtpläne in {{ sourceYear }} vorhanden.
+        {{ t("settings.yearCopy.empty", { year: sourceYear }) }}
       </p>
     </div>
 
@@ -48,12 +60,7 @@ const localeTag = useLocaleTag();
       class="-mt-2 ml-7 text-xs"
       :class="overwrite ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'"
     >
-      <template v-if="overwrite">
-        ⚠ Bestehende Zuweisungen in {{ targetYear }} werden gelöscht und ersetzt.
-      </template>
-      <template v-else>
-        Wochen, die in {{ targetYear }} bereits Zuweisungen haben, werden übersprungen.
-      </template>
+      {{ t(overwrite ? "settings.yearCopy.overwriteWarning" : "settings.yearCopy.skipNote", { year: targetYear }) }}
     </div>
 
     <div
@@ -68,12 +75,12 @@ const localeTag = useLocaleTag();
       class="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20"
     >
       <p class="mb-1 text-sm font-medium text-green-700 dark:text-green-400">
-        ✓ Erfolgreich kopiert!
+        {{ t("settings.yearCopy.done") }}
       </p>
       <div class="space-y-0.5 text-xs text-green-600 dark:text-green-300">
-        <p>{{ result.copiedWeeks }} Wochen kopiert ({{ result.copiedAssignments }} Zuweisungen)</p>
+        <p>{{ t("settings.yearCopy.copied", { weeks: result.copiedWeeks, assignments: result.copiedAssignments }) }}</p>
         <p v-if="result.skippedWeeks > 0">
-          {{ result.skippedWeeks }} Wochen übersprungen (bereits befüllt)
+          {{ t("settings.yearCopy.skipped", { weeks: result.skippedWeeks }) }}
         </p>
       </div>
     </div>

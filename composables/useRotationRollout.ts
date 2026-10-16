@@ -8,6 +8,7 @@ export function useRotationRollout(
   onGenerated: (result: GenerationResult) => void
 ) {
   const { authFetch } = useAuthFetch();
+  const { t } = useI18n();
 
   const startYear = ref(initialYear);
   const startWeek = ref(initialWeek);
@@ -68,7 +69,7 @@ export function useRotationRollout(
     } catch (error: any) {
       if (request === previewRequest) {
         preview.value = [];
-        errorMessage.value = error.data?.statusMessage || "Vorschau konnte nicht geladen werden";
+        errorMessage.value = error.data?.statusMessage || t("settings.rollout.previewFailed");
       }
     } finally {
       if (request === previewRequest) loadingPreview.value = false;
@@ -94,8 +95,7 @@ export function useRotationRollout(
       onGenerated(result.value);
       await loadPreview();
     } catch (error: any) {
-      errorMessage.value =
-        error.data?.statusMessage || "Ausrollen fehlgeschlagen. Es wurde nichts verändert.";
+      errorMessage.value = error.data?.statusMessage || t("settings.rollout.failed");
     } finally {
       generating.value = false;
     }

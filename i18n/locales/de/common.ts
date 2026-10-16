@@ -7,6 +7,7 @@ export default {
   // Buttons and placeholders that read the same in every feature.
   actions: {
     activate: "Aktivieren",
+    back: "Zurück",
     cancel: "Abbrechen",
     close: "Schließen",
     create: "Erstellen",
@@ -15,6 +16,7 @@ export default {
     delete: "Löschen",
     done: "Fertig",
     edit: "Bearbeiten",
+    next: "Weiter",
     save: "Speichern",
     signIn: "Anmelden",
     signOut: "Abmelden",

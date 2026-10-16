@@ -1,9 +1,13 @@
 import auth from "./settings-auth";
 import members from "./settings-members";
+import rollout from "./settings-rollout";
+import rotation from "./settings-rotation";
 import shifts from "./settings-shifts";
 import staff from "./settings-staff";
 import team from "./settings-team";
 import users from "./settings-users";
+import wizard from "./settings-wizard";
+import yearCopy from "./settings-year-copy";
 
 // The settings page: tabs and what several tabs share. Each tab has its own file, read as settings.<tab>.*.
 export default {
@@ -30,4 +34,8 @@ export default {
   users,
   members,
   team,
+  rotation,
+  wizard,
+  rollout,
+  yearCopy,
 };

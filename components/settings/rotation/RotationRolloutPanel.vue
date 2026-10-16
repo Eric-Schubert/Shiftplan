@@ -27,17 +27,18 @@ const {
   generate,
 } = useRotationRollout(props.initialYear, props.initialWeek, (generated) => emit("generated", generated));
 
+const { t } = useI18n();
 const dayChangesInAffectedWeeks = computed(() =>
   affectedWeeks.value.reduce((total, week) => total + week.day_changes, 0)
 );
 
 const submitLabel = computed(() => {
-  if (loadingPreview.value && preview.value.length === 0) return "Vorschau wird geladen …";
+  if (loadingPreview.value && preview.value.length === 0) return t("settings.rollout.submit.loading");
   const count = affectedWeeks.value.length;
-  if (count === 0) return "Nichts zu tun";
-  const label = count === 1 ? "1 Woche ausrollen" : `${count} Wochen ausrollen`;
+  if (count === 0) return t("settings.rollout.submit.nothing");
+  const label = t("settings.rollout.submit.weeks", count);
   return overwrite.value && plannedWeeks.value.length > 0
-    ? `${label} (${plannedWeeks.value.length} überschreiben)`
+    ? t("settings.rollout.submit.overwriting", { label, count: plannedWeeks.value.length })
     : label;
 });
 </script>
@@ -64,9 +65,7 @@ const submitLabel = computed(() => {
       class="rounded-xl bg-[var(--info-soft)] px-4 py-3 text-sm leading-6 text-[var(--info-ink)]"
     >
       <i class="pi pi-info-circle mr-1" aria-hidden="true"></i>
-      Im Zeitraum gibt es {{ dayChangesInAffectedWeeks }}
-      {{ dayChangesInAffectedWeeks === 1 ? "Tagesänderung" : "Tagesänderungen" }} (z. B. Tausch oder
-      Übernahme). Sie bleiben erhalten und gelten weiter zusätzlich zum Wochenplan.
+      {{ t("settings.rollout.dayChanges", dayChangesInAffectedWeeks) }}
     </p>
 
     <RotationRolloutPreviewList
@@ -83,12 +82,13 @@ const submitLabel = computed(() => {
     >
       <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>
       <template v-if="result.generated > 0">
-        {{ result.generated }} {{ result.generated === 1 ? "Woche" : "Wochen" }} erzeugt<template
-          v-if="result.overwritten > 0"
-        >, davon {{ result.overwritten }} überschrieben</template><template v-if="result.skipped > 0"
-        >, {{ result.skipped }} geplante übersprungen</template>.
+        {{ t("settings.rollout.result.generated", result.generated) }}<template v-if="result.overwritten > 0">{{
+          t("settings.rollout.result.overwritten", { count: result.overwritten })
+        }}</template><template v-if="result.skipped > 0">{{
+          t("settings.rollout.result.skipped", { count: result.skipped })
+        }}</template>.
       </template>
-      <template v-else>Alle Wochen waren schon geplant, nichts verändert.</template>
+      <template v-else>{{ t("settings.rollout.result.nothing") }}</template>
     </div>
 
     <div
