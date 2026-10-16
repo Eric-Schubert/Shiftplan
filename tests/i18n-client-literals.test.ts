@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { repoFiles } from "../scripts/repo-files.js";
 import { germanLiterals } from "./helpers/german-literals";
+import { isGermanText } from "./helpers/german-text";
 import { LEGAL_TEXTS, PENDING_LEGAL } from "./helpers/i18n-pending";
 
 // All app code takes its texts from the catalog (i18n/locales). German here is a text that missed it.
@@ -26,7 +27,9 @@ describe("app code", () => {
   it("keeps the German legal texts in their folder, so the exemption covers nothing else", () => {
     const germanLegal = files.filter((file) => LEGAL_TEXTS.test(file) && file.includes("/legal/de/"));
     expect(germanLegal.length).toBeGreaterThan(10);
-    expect(germanLegal.filter((file) => german(file).length === 0)).toEqual([]);
+    // germanLiterals counts every markup word, English too; only German prose proves a file belongs here.
+    const holdsGerman = (file: string) => german(file).some((found) => isGermanText(found.replace(/^\d+: /, "")));
+    expect(germanLegal.filter((file) => !holdsGerman(file))).toEqual([]);
   });
 });
 
