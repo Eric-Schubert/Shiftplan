@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { XlsxError } from "./error";
 import { MAX_WORKSHEET_COUNT } from "./limits";
 import type { XlsxSheet, XlsxWorkbook } from "./types";
 import { parseWorksheetRows } from "./worksheet-read";
@@ -31,7 +32,7 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
     const xml = readXml(zip, path);
 
     if (sheets.length >= MAX_WORKSHEET_COUNT) {
-      throw new Error("Die Excel-Datei enthält zu viele Arbeitsblätter");
+      throw new XlsxError("excel.file.tooManySheets");
     }
 
     sheets.push({
@@ -43,7 +44,7 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
   if (sheets.length === 0) {
     const firstSheet = zip.get("xl/worksheets/sheet1.xml");
     if (!firstSheet) {
-      throw new Error("Keine Arbeitsblaetter in der Excel-Datei gefunden");
+      throw new XlsxError("excel.file.noSheets");
     }
 
     sheets.push({
@@ -58,7 +59,7 @@ export function parseXlsx(buffer: Buffer): XlsxWorkbook {
 function readXml(zip: Map<string, Buffer>, path: string): string {
   const entry = zip.get(path);
   if (!entry) {
-    throw new Error(`Excel-Datei ist unvollständig: ${path} fehlt`);
+    throw new XlsxError("excel.file.incomplete", { path });
   }
 
   return entry.toString("utf-8");

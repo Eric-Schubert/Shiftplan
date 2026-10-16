@@ -1,6 +1,7 @@
 import type { XlsxCellValue } from "~/server/utils/xlsx";
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
+import { messageRef, type MessageRef } from "~/server/utils/api-error";
 import { badRequest, normalizeName, toInteger, toText } from "~/server/services/rotation-excel/cells";
 
 export function makeNameLookup<T extends Staff | Shift>(items: T[], label: string): Map<string, T[]> {
@@ -26,28 +27,28 @@ export function makeNameLookup<T extends Staff | Shift>(items: T[], label: strin
 export function resolveByName<T extends Staff | Shift>(
   lookup: Map<string, T[]>,
   name: string,
-  label: string,
-  location: string
+  label: MessageRef,
+  location: MessageRef
 ): T {
   const normalized = normalizeName(name);
 
   if (!normalized) {
-    badRequest(`${label} in ${location} fehlt`);
+    badRequest("excel.nameMissing", { label, location });
   }
 
   const matches = lookup.get(normalized) || [];
 
   if (matches.length === 0) {
-    badRequest(`${label} '${name}' in ${location} ist unbekannt oder inaktiv`);
+    badRequest("excel.nameUnknown", { label, name, location });
   }
 
   if (matches.length > 1) {
-    badRequest(`${label} '${name}' in ${location} ist mehrfach vorhanden`);
+    badRequest("excel.nameAmbiguous", { label, name, location });
   }
 
   const match = matches[0];
   if (!match) {
-    badRequest(`${label} '${name}' in ${location} ist unbekannt oder inaktiv`);
+    badRequest("excel.nameUnknown", { label, name, location });
   }
 
   return match;
@@ -63,16 +64,17 @@ export function resolveShift(options: {
   const shiftIdText = toText(options.shiftIdValue);
 
   if (shiftIdText !== "") {
-    const shiftId = toInteger(options.shiftIdValue, `Schicht-ID in Zeile ${options.rowNumber}`);
+    const shiftId = toInteger(options.shiftIdValue, messageRef("excel.labels.shiftIdInRow", { row: options.rowNumber }));
     const shift = options.shiftsById.get(shiftId);
 
     if (!shift) {
-      badRequest(`Schicht-ID ${shiftId} in Zeile ${options.rowNumber} ist unbekannt oder inaktiv`);
+      badRequest("excel.shiftIdUnknown", { id: shiftId, row: options.rowNumber });
     }
 
     return shift;
   }
 
   const shiftName = toText(options.shiftNameValue);
-  return resolveByName(options.shiftsByName, shiftName, "Schicht", `Zeile ${options.rowNumber}`);
+  const location = messageRef("excel.locations.row", { row: options.rowNumber });
+  return resolveByName(options.shiftsByName, shiftName, messageRef("excel.labels.shift"), location);
 }

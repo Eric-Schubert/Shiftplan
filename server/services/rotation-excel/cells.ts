@@ -1,11 +1,9 @@
-import { createError } from "h3";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError, type ErrorParams, type MessageRef } from "~/server/utils/api-error";
 import type { XlsxCellValue } from "~/server/utils/xlsx";
 
-export function badRequest(message: string): never {
-  throw createError({
-    statusCode: 400,
-    statusMessage: message,
-  });
+export function badRequest(key: MessageKey, params?: ErrorParams): never {
+  throw apiError(null, 400, key, params);
 }
 
 export function toText(value: XlsxCellValue): string {
@@ -30,7 +28,7 @@ export function readCell(rows: XlsxCellValue[][], rowIndex: number, colIndex: nu
   return rows[rowIndex]?.[colIndex];
 }
 
-export function toInteger(value: XlsxCellValue, label: string): number {
+export function toInteger(value: XlsxCellValue, label: MessageRef): number {
   if (typeof value === "number" && Number.isInteger(value)) {
     return value;
   }
@@ -40,14 +38,14 @@ export function toInteger(value: XlsxCellValue, label: string): number {
     return Number(text);
   }
 
-  badRequest(`${label} muss eine ganze Zahl sein`);
+  badRequest("excel.integer", { label });
 }
 
-export function integerInRange(value: XlsxCellValue, label: string, min: number, max: number): number {
+export function integerInRange(value: XlsxCellValue, label: MessageRef, min: number, max: number): number {
   const number = toInteger(value, label);
 
   if (number < min || number > max) {
-    badRequest(`${label} muss zwischen ${min} und ${max} liegen`);
+    badRequest("excel.between", { label, min, max });
   }
 
   return number;
