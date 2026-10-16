@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { PRIVACY_SECTIONS, type PrivacySectionId } from "~/utils/legal/privacy";
+import type { AppLocale } from "~/i18n/config";
+import { PRIVACY_SECTIONS as GERMAN } from "~/utils/legal/de/privacy";
+import { PRIVACY_SECTIONS as ENGLISH } from "~/utils/legal/en/privacy";
+import type { PrivacySection, PrivacySectionId } from "~/utils/legal/privacy";
 
 const props = defineProps<{
   id: PrivacySectionId;
 }>();
 
-const index = computed(() => PRIVACY_SECTIONS.findIndex((section) => section.id === props.id));
+// The page shows the German or the English sections by the same locale.
+const SECTIONS: Record<AppLocale, PrivacySection[]> = { de: GERMAN, en: ENGLISH };
+const { locale } = useI18n();
+const sections = computed(() => SECTIONS[locale.value]);
+const index = computed(() => sections.value.findIndex((section) => section.id === props.id));
 </script>
 
 <template>
   <section :id="id">
     <h3>
       <span>{{ index + 1 }}</span
-      >{{ PRIVACY_SECTIONS[index]!.title }}
+      >{{ sections[index]!.title }}
     </h3>
     <slot />
   </section>
