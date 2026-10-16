@@ -10,7 +10,7 @@ Part of the [self-hosting guide](README.md). A complete `.env` example is in [In
 | `SHIFTPLAN_PUSH_RELAY_URL` | relay for app pushes; `off` or an empty value switches them off | not set: `https://push.shiftplan.info` |
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID contact for web push | `mailto:` + imprint email |
 | `SHIFTPLAN_PUBLIC_URL` | public HTTPS address for the push relay and the VAPID contact | address of the last plan change |
-| `SHIFTPLAN_BACKEND_CONFIG_PATH` | different path for `backend.config.json` | `/app/config/backend.config.json` |
+| `SHIFTPLAN_BACKEND_CONFIG_PATH` | different path for the optional `backend.config.json`, which only needs the keys that differ from the built-in defaults; the file must exist | `/app/config/backend.config.json` if mounted, otherwise the built-in defaults |
 | `TZ` | time zone | `UTC` |
 | `NUXT_PUBLIC_IMPRINT_*` | imprint and controller. Required: name, street, postal code, city and email; for a GmbH, UG etc. also the authorized representatives and the register. If the name, address or email is missing, `/impressum` shows a warning | empty |
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | list Cloudflare in the privacy policy | `false` |

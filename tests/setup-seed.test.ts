@@ -4,17 +4,17 @@ import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { afterAll, describe, expect, it } from "vitest";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 
 const dirs: string[] = [];
 
-// Runs setup.js against a fresh database folder and counts the seeded rows.
+// Runs setup.js against a fresh database folder (a partial config file over the defaults) and counts the seeded rows.
 function runSetup(env: Record<string, string> = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-setup-"));
   dirs.push(dir);
   const configPath = path.join(dir, "backend.config.json");
   const database = { ...backendConfig.database, directory: path.join(dir, "db") };
-  fs.writeFileSync(configPath, JSON.stringify({ ...backendConfig, database }));
+  fs.writeFileSync(configPath, JSON.stringify({ database: { directory: database.directory } }));
 
   const childEnv: NodeJS.ProcessEnv = { ...process.env };
   delete childEnv.SHIFTPLAN_SEED_DEMO_DATA;

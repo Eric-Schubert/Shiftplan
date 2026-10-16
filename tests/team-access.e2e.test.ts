@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import type { CookieJar } from "./helpers/api-harness";
 import { APPLE_ENDPOINT, FCM_ENDPOINT, client, closePushClient, openPushClient, stubPushRelay } from "./helpers/push-client";
 import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";

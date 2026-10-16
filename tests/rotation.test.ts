@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RotationService } from "~/server/services/rotation.service";
 import { StaffService } from "~/server/services/staff.service";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import { closeDatabase } from "./helpers/memory-database";
 import { seedTeam, type Team } from "./helpers/service-team";
 

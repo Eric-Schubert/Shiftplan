@@ -70,7 +70,8 @@ docker run --rm -p 3000:3000 --env-file .env -e SHIFTPLAN_ADMIN_PASSWORD=SecureP
 | Server infrastructure (auto-imported) | `server/utils/` |
 | Server libraries and migrations | `server/lib/` |
 | Auth middleware | `server/middleware/auth.ts` |
-| Backend config | `config/backend.config.json` |
+| Backend config defaults and loader | `server/lib/config/` |
+| Backend config example override | `config/backend.config.json` |
 | Tests | `tests/` |
 | Release and docs scripts | `scripts/` |
 | App API spec | `docs/api/app-v1/` (parts), bundled into `docs/api/app-v1.yaml` by `npm run docs` |

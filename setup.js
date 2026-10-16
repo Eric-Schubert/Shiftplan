@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import * as fs from "node:fs";
 import path from "node:path";
+import { loadBackendConfig } from "./server/lib/config/load.js";
 import { migrateAdminDatabase, migrateMainDatabase } from "./server/utils/database-migrations.js";
 
 const backendConfig = loadBackendConfig();
@@ -51,13 +52,6 @@ db.close();
 
 function shouldSeedDemoData() {
   return process.env.SHIFTPLAN_SEED_DEMO_DATA?.trim() === "true" || Boolean(process.env.NUXT_PUBLIC_DEMO_LOGIN_USERNAME?.trim());
-}
-
-function loadBackendConfig() {
-  const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();
-  const configPath = configuredPath ? path.resolve(configuredPath) : path.resolve(process.cwd(), "config", "backend.config.json");
-
-  return JSON.parse(fs.readFileSync(configPath, "utf-8"));
 }
 
 function applyConfiguredPragmas(database) {

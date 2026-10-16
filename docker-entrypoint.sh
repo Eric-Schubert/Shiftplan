@@ -1,12 +1,12 @@
 #!/bin/sh
 set -e
 
-# Same config lookup as setup.js; prints the main and admin DB path, one per line.
+# Same config loader as setup.js and the server (defaults plus the optional mounted file);
+# prints the main and admin DB path, one per line.
 DB_PATHS="$(node --input-type=module -e "
-import fs from 'node:fs';
 import path from 'node:path';
-const configPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim() || '/app/config/backend.config.json';
-const db = JSON.parse(fs.readFileSync(path.resolve(configPath), 'utf-8')).database;
+import { loadBackendConfig } from '/app/server/lib/config/load.js';
+const db = loadBackendConfig({ cwd: '/app' }).database;
 const dir = path.resolve('/app', db.directory);
 console.log(path.join(dir, db.mainFile));
 console.log(path.join(dir, db.adminFile));

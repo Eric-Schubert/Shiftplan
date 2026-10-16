@@ -4,24 +4,26 @@ Shiftplan reads non-secret settings from a JSON file and secrets from environmen
 
 ## Backend Config File
 
-Non-secret backend settings live in `config/backend.config.json`. This includes holiday regions, school holiday regions, session duration, rate limits, validation limits, shift defaults, analytics retention, XLSX limits, and proxy-header trust.
+Non-secret backend settings have built-in defaults in `server/lib/config/defaults.js`: holiday regions, school holiday regions, session duration, rate limits, validation limits, shift defaults, analytics retention, XLSX limits, and proxy-header trust. The server, `setup.js` and the Docker entrypoint read the same defaults, so an instance runs without any config file.
 
-Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or Microsoft Graph credentials. Use `SHIFTPLAN_BACKEND_CONFIG_PATH` to load a different backend config file.
+An optional file `config/backend.config.json` overrides them. It only needs the keys that differ: objects are merged key by key, lists and single values from the file replace the default. `holidays.subdivisionNames` is the one object the file replaces as a whole, because it is also the list of states the holiday API accepts. The merged result is validated at startup, so a wrong value stops the server with the same message a complete file produced. `SHIFTPLAN_BACKEND_CONFIG_PATH` names a different file; a path set there must exist. The file in the repository is an example that only names the holiday states (Saxony, the default); proxy-header trust comes from the environment variable `SHIFTPLAN_TRUST_PROXY_HEADERS`, see [Proxy Headers](#proxy-headers).
 
-The Compose file mounts `./config/backend.config.json` to `/app/config/backend.config.json`, so backend settings can be changed without rebuilding the image.
+Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or Microsoft Graph credentials.
+
+The Compose file mounts `./config/backend.config.json` to `/app/config/backend.config.json`, so backend settings can be changed without rebuilding the image. The image itself ships no file. A complete copy of the file from an older release keeps working unchanged: the merge gives every key the value from the file. Trimming such a copy down to the changed keys is still worth it, because a complete copy pins every value, so changed defaults of a new release do not reach the instance.
 
 The web client follows the same file. It loads the password policy (`auth.passwordPolicy`, including `hint`), the user name length (`auth.users`), the contact form lengths (`contact.form`), the shift color and minimum staff range (`validation.shift.defaultColor`, `validation.shift.minStaff`) and the CSRF settings (`auth.session.cookies.csrfName`, `auth.routes.csrfMethods`, upper-cased on load) from `GET /api/instance` when the page loads. The privacy policy names the statistics period (`analytics.retentionDays`), the session duration (`auth.session.durationMinutes`) and the cookie names (`auth.session.cookies`) from `GET /api/legal/privacy`; the other retention periods are fixed in `shared/utils/retention.ts`. A restart after editing the mounted file is enough; the prebuilt image does not need a rebuild.
 
-Holiday example:
+Holiday example, a complete file for Bavaria (every other setting keeps its default):
 
 ```json
 {
   "holidays": {
     "public": {
-      "subdivisionCodes": ["SN"]
+      "subdivisionCodes": ["BY"]
     },
     "school": {
-      "defaultSubdivisionCodes": ["SN", "BB"]
+      "defaultSubdivisionCodes": ["BY"]
     }
   }
 }
