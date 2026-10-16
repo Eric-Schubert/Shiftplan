@@ -67,8 +67,8 @@ A QR code is valid for 7 days and only once. Create a new one under **App-Zugän
    docker compose logs shiftplan | grep "\[push\]"
    ```
 
-   - `Relay-Registrierung fehlgeschlagen` (relay registration failed): the instance cannot reach `push.shiftplan.info` (outbound firewall, DNS, proxy) or has hit the registration limit. Test: `docker compose exec shiftplan wget -qO- https://push.shiftplan.info/healthz`
-   - `Relay-Versand fehlgeschlagen: Relay responded with 429` (relay send failed): limit reached; try again later or contact support@es-software.eu.
+   - `[push] Relay registration failed:` the instance cannot reach `push.shiftplan.info` (outbound firewall, DNS, proxy) or has hit the registration limit. Test: `docker compose exec shiftplan wget -qO- https://push.shiftplan.info/healthz`
+   - `[push] Relay send failed: Relay responded with 429`: limit reached; try again later or contact support@es-software.eu.
    - `Relay responded with 403`: the instance is blocked at the relay; contact support@es-software.eu.
 5. Pushes are only sent for changes in the current and the next week.
 

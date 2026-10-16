@@ -5,6 +5,7 @@ Part of the [self-hosting guide](README.md). A complete `.env` example is in [In
 | Variable | Purpose | Default |
 |---|---|---|
 | `SHIFTPLAN_ADMIN_PASSWORD` | initial password for `admin`, only read on the first start | – (required on the first start) |
+| `SHIFTPLAN_SEED_DEMO_DATA` | `true` adds five sample employees and three shifts on start, but only while the staff list is empty; a public demo instance gets them without it | not set: a new instance starts without staff and shifts |
 | `SHIFTPLAN_TRUST_PROXY_HEADERS` | take the client IP from the proxy: `true` (last entry in `X-Forwarded-For`) or `cloudflare` (`CF-Connecting-IP`) | `false` |
 | `SHIFTPLAN_PUSH_RELAY_URL` | relay for app pushes; `off` or an empty value switches them off | not set: `https://push.shiftplan.info` |
 | `SHIFTPLAN_PUSH_SUBJECT` | VAPID contact for web push | `mailto:` + imprint email |

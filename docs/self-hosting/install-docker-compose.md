@@ -128,7 +128,7 @@ services:
       retries: 3
 ```
 
-Instead of `latest` you can pin a version, for example `ghcr.io/eric-schubert/shiftplan:3.10.3`. Image tags have no `v` prefix, unlike the Git tags and GitHub releases (`v3.10.3`). With a pinned version you decide when to update; see [Updates](operations.md#updates).
+Instead of `latest` you can pin a version, for example `ghcr.io/eric-schubert/shiftplan:3.10.4`. Image tags have no `v` prefix, unlike the Git tags and GitHub releases (`v3.10.4`). With a pinned version you decide when to update; see [Updates](operations.md#updates).
 
 ## 4. Start
 
