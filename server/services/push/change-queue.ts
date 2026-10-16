@@ -1,4 +1,3 @@
-import { formatNoticeDay } from "~/server/utils/absence-notice";
 import { getDatabase } from "~/server/utils/database";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { listDevices } from "~/server/services/push/devices";
@@ -9,6 +8,7 @@ import { sendWebPush } from "~/server/services/push/web";
 import { getNotifiableWeeks } from "~/server/services/push/weeks";
 import { planningToday } from "~/server/utils/planning-date";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
+import { formatNoticeDay } from "~/shared/utils/notice-day";
 
 // Changes are bundled so a planner editing several slots sends one push.
 const CHANGE_QUIET_MS = 60 * 1000;

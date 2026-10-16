@@ -1,7 +1,7 @@
 import { AuditService } from "~/server/services/audit.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
-import { requestSource } from "~/server/utils/absence-flow";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { readGenerationRange } from "~/server/utils/generation-range";
 import { validateBoolean, validateYear, validateWeek } from "~/server/utils/validation";
 

@@ -1,7 +1,7 @@
 import { AuditService } from "~/server/services/audit.service";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { PushService } from "~/server/services/push.service";
-import { formatNoticeDay } from "~/server/utils/absence-notice";
+import { formatNoticeDay } from "~/shared/utils/notice-day";
 import { weekOfDate } from "~/shared/utils/week";
 
 export type DayChangeActor = { userId: number; username: string; source: "web" | "app" };

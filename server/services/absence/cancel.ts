@@ -1,7 +1,8 @@
-import { AbsenceService, type Absence } from "~/server/services/absence.service";
+import { logPerWeek, type Actor } from "~/server/services/absence/audit";
+import type { Absence } from "~/server/services/absence/model";
+import { AbsenceService } from "~/server/services/absence/store";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
 import { planningToday } from "~/server/utils/planning-date";
-import { logPerWeek, type Actor } from "./audit";
 
 /**
  * Withdraws one day, or the range when `wholeRange` is set. A range that already began is cut back

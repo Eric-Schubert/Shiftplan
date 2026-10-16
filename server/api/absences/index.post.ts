@@ -1,7 +1,12 @@
-import { ABSENCE_ADMIN_MAX_DAYS, ABSENCE_REASONS, type AbsenceReason } from "~/server/services/absence.service";
-import { reportAbsence, requestSource } from "~/server/utils/absence-flow";
-import { ABSENCE_MESSAGE_MAX_LENGTH } from "~/server/utils/absence-notice";
+import {
+  ABSENCE_ADMIN_MAX_DAYS,
+  ABSENCE_MESSAGE_MAX_LENGTH,
+  ABSENCE_REASONS,
+  reportAbsence,
+  type AbsenceReason,
+} from "~/server/services/absence.service";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { validateId, validateString } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {

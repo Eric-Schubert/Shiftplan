@@ -1,11 +1,10 @@
-import { logPerWeek, type Actor } from "~/server/lib/absences/audit";
-import { AbsenceService, type Absence, type AbsenceReason } from "~/server/services/absence.service";
+import { logPerWeek, type Actor } from "~/server/services/absence/audit";
+import type { Absence, AbsenceReason } from "~/server/services/absence/model";
+import { buildAbsenceNotice } from "~/server/services/absence/notice";
+import { AbsenceService } from "~/server/services/absence/store";
 import { createTakeover } from "~/server/utils/shift-request-flow";
 import { PushService } from "~/server/services/push.service";
-import { buildAbsenceNotice } from "~/server/utils/absence-notice";
 import { planningToday } from "~/server/utils/planning-date";
-
-export { cancelAbsence } from "~/server/lib/absences/cancel";
 
 /** Creates the absence days, logs them and tells the team. A failed push never undoes the absence. */
 export async function reportAbsence(input: {
@@ -87,9 +86,4 @@ export async function reportAbsence(input: {
   }
 
   return { absences, skipped, notified };
-}
-
-/** Planners use cookies in the browser and a Bearer token in the app. */
-export function requestSource(event: any): "web" | "app" {
-  return getHeader(event, "authorization")?.startsWith("Bearer ") ? "app" : "web";
 }

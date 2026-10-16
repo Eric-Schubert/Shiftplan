@@ -1,6 +1,6 @@
 import { ShiftRequestService } from "~/server/services/shift-request.service";
-import { requestSource } from "~/server/utils/absence-flow";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { decideRequest } from "~/server/utils/shift-request-flow";
 import { validateId } from "~/server/utils/validation";
 
