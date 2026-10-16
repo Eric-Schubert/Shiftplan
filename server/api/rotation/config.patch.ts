@@ -18,6 +18,12 @@ export default defineEventHandler(async (event) => {
   const startYear = validateYear(body.start_year, "startYear");
   const startWeek = validateWeek(body.start_week, "startWeek");
 
+  // The start week has to exist in the start year, also when only one of them changes.
+  if (startYear !== undefined || startWeek !== undefined) {
+    const current = RotationService.getConfig();
+    validateWeek(startWeek ?? current.start_week, "startWeek", { year: startYear ?? current.start_year });
+  }
+
   if (cycleLength === undefined && startYear === undefined && startWeek === undefined) {
     throw apiError(event, 400, "errors.common.noChanges");
   }

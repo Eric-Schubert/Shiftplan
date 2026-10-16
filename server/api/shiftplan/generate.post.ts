@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   if (!hasWeeksParameter) {
     const year = validateYear(body.year, "year", { required: true });
-    const week = validateWeek(body.week, "week", { required: true });
+    const week = validateWeek(body.week, "week", { required: true, year });
     return ShiftplanService.generateFromPattern(year, week);
   }
 

@@ -18,6 +18,12 @@ export default {
       "1 Woche bis {weekOfYear} aus dem Rotationsmuster erzeugt, {skipped} bereits geplante übersprungen | {count} Wochen bis {weekOfYear} aus dem Rotationsmuster erzeugt, {skipped} bereits geplante übersprungen",
     patternImported:
       "Rotationsmuster aus Excel ersetzt: {cycle}-Wochen-Zyklus, {count} Zuweisung | Rotationsmuster aus Excel ersetzt: {cycle}-Wochen-Zyklus, {count} Zuweisungen",
+    // Copying a year: like a rollout, overwriting and skipping exclude each other.
+    yearCopied: "1 Woche aus {sourceYear} nach {targetYear} kopiert | {count} Wochen aus {sourceYear} nach {targetYear} kopiert",
+    yearCopiedOverwritten:
+      "1 Woche aus {sourceYear} nach {targetYear} kopiert, {overwritten} davon überschrieben | {count} Wochen aus {sourceYear} nach {targetYear} kopiert, {overwritten} davon überschrieben",
+    yearCopiedSkipped:
+      "1 Woche aus {sourceYear} nach {targetYear} kopiert, {skipped} bereits geplante übersprungen | {count} Wochen aus {sourceYear} nach {targetYear} kopiert, {skipped} bereits geplante übersprungen",
   },
   action: {
     assign: "Zugewiesen",

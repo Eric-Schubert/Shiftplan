@@ -1,11 +1,13 @@
-import { getDatabase } from "~/server/utils/database";
+import { AuditService } from "~/server/services/audit.service";
+import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { validateYear, validateBoolean } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
 import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
-  requirePlanner(event);
+  const user = requirePlanner(event);
 
   const body = await readObjectBody(event);
 
@@ -17,80 +19,45 @@ export default defineEventHandler(async (event) => {
     throw apiError(event, 400, "errors.shiftplan.sameYears");
   }
 
-  const db = getDatabase();
-
-  const sourceWeeks = db
-    .prepare(
-      `
-      SELECT w.week_id, w.week_number
-      FROM weeks w
-      WHERE w.year = ?
-      ORDER BY w.week_number
-    `
-    )
-    .all(sourceYear) as Array<{ week_id: number; week_number: number }>;
-
+  const sourceWeeks = ShiftplanService.plannedWeeks(sourceYear);
   if (sourceWeeks.length === 0) {
     throw apiError(event, 404, "errors.shiftplan.noPlans", { year: sourceYear });
   }
 
-  const weeksWithAssignments = sourceWeeks.filter((w) => {
-    const count = db.prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?").get(w.week_id) as { cnt: number };
-    return count.cnt > 0;
-  });
-
+  const weeksWithAssignments = sourceWeeks.filter((week) => week.assignments > 0);
   if (weeksWithAssignments.length === 0) {
     throw apiError(event, 404, "errors.shiftplan.noAssignments", { year: sourceYear });
   }
 
-  let copiedWeeks = 0;
-  let skippedWeeks = 0;
-  let copiedAssignments = 0;
+  const result = ShiftplanService.copyYear(weeksWithAssignments, targetYear, overwrite);
 
-  const copyTransaction = db.transaction(() => {
-    for (const sourceWeek of weeksWithAssignments) {
-      db.prepare("INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)").run(targetYear, sourceWeek.week_number);
-
-      const targetWeek = db.prepare("SELECT week_id FROM weeks WHERE year = ? AND week_number = ?").get(targetYear, sourceWeek.week_number) as {
-        week_id: number;
-      };
-
-      const existingCount = db.prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?").get(targetWeek.week_id) as { cnt: number };
-
-      if (existingCount.cnt > 0 && !overwrite) {
-        skippedWeeks++;
-        continue;
-      }
-
-      if (existingCount.cnt > 0 && overwrite) {
-        db.prepare("DELETE FROM shift_assignments WHERE week_id = ?").run(targetWeek.week_id);
-      }
-
-      const assignments = db.prepare("SELECT staff_id, shift_id FROM shift_assignments WHERE week_id = ?").all(sourceWeek.week_id) as Array<{
-        staff_id: number;
-        shift_id: number;
-      }>;
-
-      const insertStmt = db.prepare("INSERT OR IGNORE INTO shift_assignments (staff_id, shift_id, week_id) VALUES (?, ?, ?)");
-
-      for (const assignment of assignments) {
-        insertStmt.run(assignment.staff_id, assignment.shift_id, targetWeek.week_id);
-        copiedAssignments++;
-      }
-
-      copiedWeeks++;
-    }
-  });
-
-  copyTransaction();
+  // Like a rollout: one entry for the whole copy. Copies go out without a push, as rollouts do.
+  if (result.copiedWeeks > 0) {
+    AuditService.log({
+      userId: user.userId,
+      username: user.username,
+      action: "generate",
+      year: targetYear,
+      weekNumber: weeksWithAssignments[0]!.week_number,
+      reason: {
+        // Overwriting and skipping exclude each other: the overwrite flag decides.
+        key:
+          result.overwrittenWeeks > 0
+            ? "audit.reason.yearCopiedOverwritten"
+            : result.skippedWeeks > 0
+              ? "audit.reason.yearCopiedSkipped"
+              : "audit.reason.yearCopied",
+        params: { count: result.copiedWeeks, sourceYear, targetYear, overwritten: result.overwrittenWeeks, skipped: result.skippedWeeks },
+      },
+      source: requestSource(event),
+    });
+  }
 
   return {
     success: true,
     sourceYear,
     targetYear,
-    copiedWeeks,
-    skippedWeeks,
-    copiedAssignments,
+    ...result,
     totalSourceWeeks: weeksWithAssignments.length,
   };
 });

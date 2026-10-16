@@ -4,6 +4,7 @@ import { RotationService } from "~/server/services/rotation.service";
 import { assignStaff, getOrCreateWeek, getWeek, hasAssignment, unassignStaff } from "~/server/services/shiftplan/weeks";
 import { getWeeklyPlan, getWeeklyPlanReadOnly, type PlanWithPatternWeek } from "~/server/services/shiftplan/weekly-plan";
 import { listWeeks, previewGeneration } from "~/server/services/shiftplan/generation";
+import { copyYear, plannedWeeks } from "~/server/services/shiftplan/copy-year";
 
 export { readGenerationRange } from "~/server/services/shiftplan/generation-range";
 
@@ -71,4 +72,6 @@ export const ShiftplanService = {
   },
 
   listWeeks,
+  plannedWeeks,
+  copyYear,
 };
