@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findViolations } from "../scripts/check-boundaries.js";
-
-type Violation = { file: string; line: number; rule: string; detail: string };
-
-const check = (contents: Record<string, string>) =>
-  findViolations(Object.keys(contents), (file: string) => contents[file] ?? "").map(
-    ({ file, line, rule }: Violation) => `${file}:${line} ${rule}`
-  );
+import { checkBoundaries as check } from "./helpers/boundaries";
 
 describe("boundary check server rules", () => {
   it("reports server/utils and server/lib importing services", () => {
@@ -51,10 +44,15 @@ describe("boundary check server rules", () => {
     ]);
   });
 
-  it("keeps app code out of the server, types/ and shared/ stay open", () => {
-    const app = ["~/components/A.vue", "~/composables/useX", "~/stores/auth", "~/utils/legal/durations", "~/pages/index.vue", "~/layouts/default.vue", "~/plugins/x", "~/app.vue"];
+  it("keeps app code out of all server code, types/ and shared/ stay open", () => {
+    const app = ["~/components/A.vue", "~/composables/useX", "~/stores/auth", "~/utils/legal/durations", "~/pages/index.vue", "~/layouts/default.vue", "~/plugins/x", "~/theme/primevue-theme", "~/assets/theme.css", "~/app.vue", "~/error.vue"];
     const open = ["~/types/privacy", "~/shared/utils/retention", "~/server/utils/database", "~/server/plugins/x", "h3"];
     const source = [...app, ...open].map((spec) => `import "${spec}";`).join("\n");
-    expect(check({ "server/api/x.get.ts": source })).toEqual(app.map((_, index) => `server/api/x.get.ts:${index + 1} server code imports app code`));
+    const rule = "server code imports app code";
+    expect(check({ "server/api/x.get.ts": source })).toEqual(app.map((_, index) => `server/api/x.get.ts:${index + 1} ${rule}`));
+    expect(check({ "server/lib/x.ts": 'import "~/utils/x";', "server/services/a/x.ts": 'import "../../../composables/useX";' })).toEqual([
+      `server/lib/x.ts:1 ${rule}`,
+      `server/services/a/x.ts:1 ${rule}`,
+    ]);
   });
 });

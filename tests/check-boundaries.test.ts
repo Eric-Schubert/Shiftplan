@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { findCycles } from "../scripts/boundaries/cycles.js";
 import { findImports, resolveImport } from "../scripts/boundaries/imports.js";
-import { findViolations, serviceFeature } from "../scripts/check-boundaries.js";
-
-type Violation = { file: string; line: number; rule: string; detail: string };
-
-const check = (contents: Record<string, string>) =>
-  findViolations(Object.keys(contents), (file: string) => contents[file] ?? "").map(
-    ({ file, line, rule }: Violation) => `${file}:${line} ${rule}`
-  );
+import { serviceFeature } from "../scripts/check-boundaries.js";
+import { checkBoundaries as check } from "./helpers/boundaries";
 
 describe("boundary check imports", () => {
   it("finds static, type, side-effect, re-export, dynamic and require imports with their line", () => {

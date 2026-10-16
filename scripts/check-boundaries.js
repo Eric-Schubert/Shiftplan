@@ -12,8 +12,8 @@ import { tokenize } from "./english/tokenize.js";
 // `npm run typecheck` also checks shared/ against .nuxt/tsconfig.shared.json, which has no auto-imports.
 const CHECKED = /\.(vue|ts|js|mjs)$/;
 const IGNORED = [/\.d\.ts$/];
-// App code; types/ counts as app code for the server import rule only, the server may use it.
-const APP_CODE = /^(?:components|pages|composables|stores|utils|layouts|plugins)\/|^(?:app|error)\.vue$/;
+// App code. types/ is not part of it: types/ may not import server code; server code may import types/.
+const APP_CODE = /^(?:components|pages|composables|stores|utils|layouts|plugins|theme|assets)\/|^(?:app|error)\.vue$/;
 // Request entry points: they reach services only through their facades.
 const HANDLERS = ["server/api", "server/middleware", "server/plugins", "server/routes"];
 // shared/ runs in the browser and in Nitro, so it may not lean on h3, Nitro, Nuxt, Vue, browser or Node globals.
