@@ -1,6 +1,8 @@
 import auth from "./settings-auth";
+import members from "./settings-members";
 import shifts from "./settings-shifts";
 import staff from "./settings-staff";
+import team from "./settings-team";
 import users from "./settings-users";
 
 // The settings page: tabs and what several tabs share. Each tab has its own file, read as settings.<tab>.*.
@@ -21,8 +23,11 @@ export default {
   // Columns and states of the staff, shift and user lists.
   list: { status: "Status", actions: "Aktionen", active: "Aktiv", inactive: "Inaktiv" },
   loading: "Wird geladen.",
+  settingFailed: "Die Einstellung konnte nicht gespeichert werden",
   staff,
   shifts,
   auth,
   users,
+  members,
+  team,
 };

@@ -8,21 +8,21 @@ const code = defineModel<string>("code", { required: true });
 <template>
   <form class="max-w-md space-y-1.5" @submit.prevent="emit('submit')">
     <label for="team-custom-code" class="block text-sm font-medium text-[var(--text-2)]">
-      Eigenen Code festlegen (optional)
+      {{ $t("settings.team.customCode.label") }}
     </label>
     <div class="flex gap-2">
       <PrimeInputText
         id="team-custom-code"
         v-model="code"
         class="min-w-0 flex-1 font-mono uppercase placeholder:normal-case"
-        placeholder="mind. 6 Zeichen"
+        :placeholder="$t('settings.team.customCode.placeholder')"
         autocomplete="off"
         spellcheck="false"
         :disabled="saving"
       />
       <PrimeButton
         type="submit"
-        label="Speichern"
+        :label="$t('common.actions.save')"
         severity="secondary"
         outlined
         class="min-h-11"

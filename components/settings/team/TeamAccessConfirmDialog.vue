@@ -4,21 +4,15 @@ const props = defineProps<{ removing: boolean; firstCode: boolean; saving: boole
 const emit = defineEmits<{ (e: "confirm"): void }>();
 const visible = defineModel<boolean>("visible", { required: true });
 
-const KEEPS_PERSONAL = "Persönliche Zugänge bleiben angemeldet und behalten ihre Benachrichtigungen.";
+const { t } = useI18n();
 
-const confirmText = computed(() => {
-  if (props.removing) {
-    return "Der Schichtplan ist danach wieder für alle mit dem Link lesbar. Bestehende Benachrichtigungen bleiben aktiv.";
-  }
-  if (props.firstCode) {
-    return `Benachrichtigungen, die ohne persönlichen Zugang aktiviert wurden, werden gelöscht. Das Team gibt den Code einmal ein und aktiviert sie erneut. ${KEEPS_PERSONAL}`;
-  }
-  return `Alle Geräte mit dem alten Code werden abgemeldet und ihre Benachrichtigungen gelöscht. Das Team muss den neuen Code einmal eingeben und Benachrichtigungen erneut aktivieren. ${KEEPS_PERSONAL}`;
-});
-const header = computed(() =>
-  props.removing ? "Zugangscode entfernen" : props.firstCode ? "Zugangscode setzen" : "Zugangscode ändern"
+// Text keys of the three cases: remove, first code, change.
+const mode = computed(() => (props.removing ? "remove" : props.firstCode ? "first" : "change"));
+const confirmText = computed(() =>
+  t(`settings.team.confirm.${mode.value}Text`, { keepsPersonal: t("settings.team.confirm.keepsPersonal") })
 );
-const confirmLabel = computed(() => (props.removing ? "Entfernen" : props.firstCode ? "Code setzen" : "Code ändern"));
+const header = computed(() => t(`settings.team.confirm.${mode.value}Header`));
+const confirmLabel = computed(() => t(`settings.team.confirm.${mode.value}`));
 </script>
 
 <template>
@@ -30,7 +24,7 @@ const confirmLabel = computed(() => (props.removing ? "Entfernen" : props.firstC
   >
     <p class="text-sm leading-6">{{ confirmText }}</p>
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="visible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="visible = false" />
       <PrimeButton
         :label="confirmLabel"
         :severity="removing ? 'danger' : undefined"

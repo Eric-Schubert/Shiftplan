@@ -13,6 +13,7 @@ export default {
     deactivate: "Deaktivieren",
     decline: "Ablehnen",
     delete: "Löschen",
+    done: "Fertig",
     edit: "Bearbeiten",
     save: "Speichern",
     signIn: "Anmelden",

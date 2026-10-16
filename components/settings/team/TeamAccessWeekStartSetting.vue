@@ -6,6 +6,7 @@ const enabled = defineModel<boolean>({ required: true });
 const { authFetch } = useAuthFetch();
 const appStore = useAppStore();
 const saving = ref(false);
+const { t } = useI18n();
 
 async function save(value: boolean) {
   saving.value = true;
@@ -18,7 +19,7 @@ async function save(value: boolean) {
     enabled.value = result.nextWeekFromSaturday;
     appStore.setNextWeekFromSaturday(result.nextWeekFromSaturday);
   } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || "Die Einstellung konnte nicht gespeichert werden");
+    emit("error", cause?.data?.statusMessage || t("settings.settingFailed"));
     enabled.value = !value;
   } finally {
     saving.value = false;
@@ -36,11 +37,8 @@ async function save(value: boolean) {
       @update:model-value="save"
     />
     <span>
-      <span class="block font-medium text-[var(--text-1)]">Ab Samstag die nächste Woche zeigen</span>
-      <span class="text-[var(--text-2)]">
-        Passt für Teams ohne Wochenendschichten. Arbeitet ihr am Samstag oder Sonntag, schalte es aus. Dann zeigen
-        der Plan und „Heute“ bis Sonntag die laufende Woche.
-      </span>
+      <span class="block font-medium text-[var(--text-1)]">{{ t("settings.team.weekStart.label") }}</span>
+      <span class="text-[var(--text-2)]">{{ t("settings.team.weekStart.hint") }}</span>
     </span>
   </label>
 </template>
