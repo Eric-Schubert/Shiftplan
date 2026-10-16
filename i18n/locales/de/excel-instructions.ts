@@ -1,4 +1,5 @@
-// The instruction sheet of the rotation template. {sheet} is a sheet name, {week} a calendar week („KW 43“).
+// The instruction sheet of the rotation template. {sheet} is a sheet name; {firstWeek}, {secondWeek} and
+// {repeatWeek} are calendar weeks („KW 43“).
 export default {
   title: "Anleitung: Rotation in Excel ausfüllen",
   sections: {
