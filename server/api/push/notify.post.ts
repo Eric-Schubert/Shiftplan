@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const message = validateString(body?.message, "message", {
     required: true,
     maxLength: PUSH_MESSAGE_MAX_LENGTH,
-  })!;
+  });
 
   // The planner's own words go out as written; only the title follows each recipient's language.
   return PushService.sendToAll((locale) => ({
