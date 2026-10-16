@@ -4,14 +4,10 @@ import { repoFiles } from "../scripts/repo-files.js";
 import { isGermanText, stringTexts } from "./helpers/german-text";
 
 // Audit reasons are stored as keys of i18n/locales/de/audit.ts with plain values and rendered when shown.
-// This covers the audit service and every file that writes an entry, also ones added later.
-const AUDIT_CODE = [
-  /^server\/services\/audit(?:\.service\.ts$|\/)/,
-  /^server\/services\/absence\/audit\.ts$/,
-  /^server\/services\/day-change\/apply\.ts$/,
-  /^server\/services\/shift-request\/flow\/apply\.ts$/,
-  /^server\/api\/audit\//,
-];
+// This covers the audit service, its readers and every file that writes an entry, also ones added later:
+// a producer imports the facade, for AuditService.log() or the AuditReason type of its reason.
+const AUDIT_CODE = [/^server\/services\/audit(?:\.service\.ts$|\/)/, /^server\/api\/audit\//];
+const IMPORTS_AUDIT = /from\s+["']~\/server\/services\/audit\.service["']/;
 // Reasons the shared detector misses: „nur Do. 08.10.“, „12 Zuweisungen“, „Rotationsmuster ersetzt“.
 const AUDIT_WORDS = /\bnur\b|\b(?:zuweisung|rotationsmuster)/i;
 
@@ -20,7 +16,7 @@ function auditFiles(): string[] {
     (file: string) =>
       /\.(?:ts|js)$/.test(file) &&
       !file.startsWith("tests/") &&
-      (AUDIT_CODE.some((pattern) => pattern.test(file)) || fs.readFileSync(file, "utf-8").includes("AuditService.log("))
+      (AUDIT_CODE.some((pattern) => pattern.test(file)) || IMPORTS_AUDIT.test(fs.readFileSync(file, "utf-8")))
   );
 }
 
@@ -45,6 +41,7 @@ describe("audit text catalog guard", () => {
         "server/services/shift-request/flow/apply.ts",
         "server/api/shiftplan/generate.post.ts",
         "server/api/rotation/excel-import.post.ts",
+        "server/services/staff.service.ts",
       ])
     );
     expect(found).toEqual([]);
