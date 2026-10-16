@@ -18,7 +18,7 @@ export default {
       "Notifications are blocked for this site. Allow them in your browser settings (iPhone: Settings → Notifications → Shiftplan) and reload the page.",
     intro: "You get a notification when shifts change this week or next week, or when your planners message the team directly.",
     active: "Active on this device.",
-    failed: "The server did not accept this device's registration for notifications, so nothing arrives here. Try again.",
+    failed: "Registering this device for notifications did not work, so nothing arrives here. Try again.",
     disable: "Turn off",
     noAccess: "No access to the shift plan",
   },

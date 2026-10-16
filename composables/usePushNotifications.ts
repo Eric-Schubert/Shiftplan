@@ -52,6 +52,9 @@ export function usePushNotifications() {
       return;
     }
 
+    // Only the plan page loads the viewer status; the legal and settings pages need it here for the gate and the key.
+    if (!viewerStatus.value) await loadViewerStatus().catch(() => null);
+
     // Registered again on every visit, as a new access code removes all subscriptions on the server. The bell
     // says "on" only once the server took it; a subscription made with an older server key is replaced once.
     state.value = await confirmedPushState({
