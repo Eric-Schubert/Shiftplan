@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ABSENCE_REASON_LABELS, type AbsenceReason } from "~/types/absence";
+import { datesOfISOWeek } from "~/shared/utils/week";
 
 const props = defineProps<{
   visible: boolean;
