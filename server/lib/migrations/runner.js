@@ -12,8 +12,8 @@
  * @typedef {object} Migration
  * @property {string} id
  * @property {string} description
- * @property {(database: Database, options: MigrationOptions) => boolean} shouldRun
- * @property {(database: Database, options: MigrationOptions) => void} up
+ * @property {(database: Database, options?: MigrationOptions) => boolean} shouldRun
+ * @property {(database: Database, options?: MigrationOptions) => void} up
  */
 
 /** @param {Database} database */
