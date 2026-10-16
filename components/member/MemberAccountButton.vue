@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PIN_MAX_LENGTH } from "~/shared/utils/limits";
+
 // Header entry for the personal sign-in: "Anmelden" or the signed-in person with PIN and sign-out.
 const { member, setPin, logout } = useMember();
 const { load: loadViewerStatus } = useViewerAccess();
@@ -116,7 +118,7 @@ async function onSignedIn() {
             type="password"
             inputmode="numeric"
             autocomplete="current-password"
-            maxlength="12"
+            :maxlength="PIN_MAX_LENGTH"
             class="w-full font-mono tracking-widest"
             :disabled="busy"
           />

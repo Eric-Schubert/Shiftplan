@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from "~/shared/utils/limits";
+
 // New PIN twice; the parent reads `pin` once both match.
 const props = defineProps<{ disabled?: boolean; idPrefix: string }>();
 const pin = defineModel<string>("pin", { default: "" });
@@ -15,7 +17,7 @@ const repeat = defineModel<string>("repeat", { default: "" });
         type="password"
         inputmode="numeric"
         autocomplete="new-password"
-        maxlength="12"
+        :maxlength="PIN_MAX_LENGTH"
         class="w-full font-mono tracking-widest"
         :disabled="disabled"
       />
@@ -28,11 +30,13 @@ const repeat = defineModel<string>("repeat", { default: "" });
         type="password"
         inputmode="numeric"
         autocomplete="new-password"
-        maxlength="12"
+        :maxlength="PIN_MAX_LENGTH"
         class="w-full font-mono tracking-widest"
         :disabled="disabled"
       />
     </div>
-    <p class="col-span-2 text-xs text-[var(--text-3)]">6 bis 12 Ziffern. Damit meldest du dich auf jedem Gerät an.</p>
+    <p class="col-span-2 text-xs text-[var(--text-3)]">
+      {{ PIN_MIN_LENGTH }} bis {{ PIN_MAX_LENGTH }} Ziffern. Damit meldest du dich auf jedem Gerät an.
+    </p>
   </div>
 </template>

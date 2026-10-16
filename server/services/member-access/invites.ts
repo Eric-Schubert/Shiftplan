@@ -6,7 +6,6 @@ import { INVITE_VALID_DAYS } from "~/shared/utils/retention";
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 10;
-export { INVITE_VALID_DAYS };
 const INVITE_VALID_MS = INVITE_VALID_DAYS * 24 * 60 * 60 * 1000;
 
 function normalizeCode(code: string): string {
