@@ -1,55 +1,80 @@
 name: Auto Version & Release
 
+# Releases only commits that passed CI on a master push. CI skips docs-only pushes,
+# so those never get a release either. Docker Build & Push waits for the tag.
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: ["master"]
-    paths-ignore:
-      - "*.md"
-      - "docs/**"
-      - "LICENSE"
-      - ".gitignore"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  version-and-release:
+  rules:
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      !contains(github.event.workflow_run.head_commit.message, '[skip ci]')
+    outputs:
+      release: ${{ steps.release_rules.outputs.release }}
+      type: ${{ steps.release_rules.outputs.type }}
+      breaking: ${{ steps.release_rules.outputs.breaking }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Check release rules
+        id: release_rules
+        env:
+          HEAD_MESSAGE: ${{ github.event.workflow_run.head_commit.message || '' }}
+        run: node scripts/release-rules.js github-output
+
+      - name: Skip non-release commit
+        if: steps.release_rules.outputs.release != 'true'
+        env:
+          COMMIT_TYPE: ${{ steps.release_rules.outputs.type }}
+        run: echo "No release expected for commit type '$COMMIT_TYPE'."
+
+  # One release at a time: overlapping runs would compute the same next tag. GitHub
+  # keeps only one pending run per group, so only release commits may queue here.
+  release:
+    runs-on: ubuntu-latest
+    needs: rules
+    if: needs.rules.outputs.release == 'true'
+    permissions:
+      contents: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check release rules
-        id: release_rules
-        env:
-          HEAD_MESSAGE: ${{ github.event.head_commit.message || '' }}
-        run: node scripts/release-rules.js github-output
-
-      - name: Skip non-release commit
-        if: steps.release_rules.outputs.release != 'true'
-        run: echo "No release expected for commit type '${{ steps.release_rules.outputs.type }}'."
-
-
       - name: Determine next version
-        if: steps.release_rules.outputs.release == 'true'
         id: version
         env:
-          RELEASE_TYPE: ${{ steps.release_rules.outputs.type }}
-          RELEASE_BREAKING: ${{ steps.release_rules.outputs.breaking }}
+          RELEASE_TYPE: ${{ needs.rules.outputs.type }}
+          RELEASE_BREAKING: ${{ needs.rules.outputs.breaking }}
         run: node scripts/create-release-tag.js
 
       - name: Fetch new tag
-        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
+        if: steps.version.outputs.new_tag
         run: git fetch --tags --force
 
 
       - name: Generate release notes
-        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
+        if: steps.version.outputs.new_tag
         uses: orhun/git-cliff-action@v4
         id: changelog
         with:
@@ -58,7 +83,7 @@ jobs:
 
 
       - name: Create GitHub Release
-        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
+        if: steps.version.outputs.new_tag
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
@@ -68,13 +93,21 @@ jobs:
           prerelease: false
 
 
+      # Values go through env, never into the script: commit text may contain quotes or $(...).
       - name: Summary
-        if: steps.release_rules.outputs.release == 'true' && steps.version.outputs.new_tag
+        if: steps.version.outputs.new_tag
+        env:
+          PREVIOUS_TAG: ${{ steps.version.outputs.previous_tag }}
+          NEW_TAG: ${{ steps.version.outputs.new_tag }}
+          RELEASE_TYPE: ${{ steps.version.outputs.release_type }}
+          CHANGELOG: ${{ steps.changelog.outputs.content }}
         run: |
-          echo "### 🏷️ New Release" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Previous:** ${{ steps.version.outputs.previous_tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "**New:** ${{ steps.version.outputs.new_tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Bump:** ${{ steps.version.outputs.release_type }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.changelog.outputs.content }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "### 🏷️ New Release"
+            echo ""
+            echo "**Previous:** $PREVIOUS_TAG"
+            echo "**New:** $NEW_TAG"
+            echo "**Bump:** $RELEASE_TYPE"
+            echo ""
+            printf '%s\n' "$CHANGELOG"
+          } >> "$GITHUB_STEP_SUMMARY"

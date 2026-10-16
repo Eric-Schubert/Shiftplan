@@ -13,10 +13,9 @@ env:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-  build-and-push:
+  rules:
     runs-on: ubuntu-latest
     if: >-
       github.event_name == 'workflow_dispatch' ||
@@ -25,13 +24,15 @@ jobs:
         github.event.workflow_run.event == 'push' &&
         !contains(github.event.workflow_run.head_commit.message, '[skip ci]')
       )
+    outputs:
+      deploy: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.release_rules.outputs.deploy }}
 
     steps:
       - name: Checkout
+        if: github.event_name == 'workflow_run'
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Check release rules
         id: release_rules
@@ -42,28 +43,58 @@ jobs:
 
       - name: Skip non-deploy commit
         if: github.event_name == 'workflow_run' && steps.release_rules.outputs.deploy != 'true'
-        run: echo "No Docker image expected for commit type '${{ steps.release_rules.outputs.type }}'."
+        env:
+          COMMIT_TYPE: ${{ steps.release_rules.outputs.type }}
+        run: echo "No Docker image expected for commit type '$COMMIT_TYPE'."
+
+  # One publish at a time, so an older image never lands on latest after a newer one.
+  # GitHub keeps only one pending run per group, so only deploy commits may queue here.
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: rules
+    if: needs.rules.outputs.deploy == 'true'
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: docker-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Fetch latest tags
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
         run: git fetch --tags --force
 
+      # Auto Version & Release starts together with this job once CI passed, so allow up
+      # to five minutes for the tag. A commit that a newer release already contains gets
+      # no tag and no image. Only the newest release tag moves latest.
       - name: Wait for release tag
-        if: >-
-          github.event_name == 'workflow_run' &&
-          steps.release_rules.outputs.deploy == 'true' &&
-          github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch == 'master'
+        id: release_tag
+        if: github.event_name == 'workflow_run'
         run: |
-          for attempt in {1..24}; do
+          for attempt in {1..60}; do
             git fetch --tags --force
-            TAG=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
+            TAG=$(git tag --points-at HEAD --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+            NEWEST=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
             if [[ -n "$TAG" ]]; then
-              echo "Found release tag: $TAG"
+              echo "Found release tag: $TAG (newest: $NEWEST)"
+              if [[ "$TAG" == "$NEWEST" ]]; then
+                echo "latest=true" >> "$GITHUB_OUTPUT"
+              fi
+              exit 0
+            fi
+            if [[ -n "$NEWEST" ]] && git merge-base --is-ancestor HEAD "$NEWEST"; then
+              echo "Already part of $NEWEST, no image for this commit."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
 
-            echo "Waiting for auto-version tag ($attempt/24)..."
+            echo "Waiting for auto-version tag ($attempt/60)..."
             sleep 5
           done
 
@@ -72,7 +103,7 @@ jobs:
 
       - name: Resolve version from Git
         id: version
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         run: |
           RAW=$(git describe --tags --always 2>/dev/null || echo "0.0.0")
           if [[ "$RAW" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)(-([0-9]+)-g[a-f0-9]+)?$ ]]; then
@@ -82,18 +113,18 @@ jobs:
           else
             VERSION="0.0.0"
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Resolved version: $VERSION"
 
       - name: Generate changelog from git tags
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
           args: --context --output __cliff_context.json
 
       - name: Transform changelog to app format
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -103,11 +134,7 @@ jobs:
           cat utils/changelog.generated.json | head -20
 
       - name: Verify generated changelog
-        if: >-
-          github.event_name == 'workflow_run' &&
-          steps.release_rules.outputs.deploy == 'true' &&
-          github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch == 'master'
+        if: github.event_name == 'workflow_run' && steps.release_tag.outputs.skip != 'true'
         run: |
           COUNT=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('utils/changelog.generated.json','utf8')); console.log(Array.isArray(data) ? data.length : 0)")
           if [[ "$COUNT" -eq 0 ]]; then
@@ -118,11 +145,11 @@ jobs:
           echo "Generated changelog contains $COUNT release entries."
 
       - name: Set up Docker Buildx
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -131,17 +158,17 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable=${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'master') }}
+            type=raw,value=latest,enable=${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') || steps.release_tag.outputs.latest == 'true' }}
             type=sha,prefix=
             type=raw,value=${{ steps.version.outputs.version }}
 
       - name: Build and push
-        if: github.event_name == 'workflow_dispatch' || steps.release_rules.outputs.deploy == 'true'
+        if: steps.release_tag.outputs.skip != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .

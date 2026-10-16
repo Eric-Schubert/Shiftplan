@@ -35,8 +35,10 @@ migrateAdminDatabase(adminDb, { logger: console.log });
 adminDb.close();
 
 
+// Sample staff and shifts only on request. A public demo (demo login set) gets them too.
+// The rotation config is created on first use with the current year.
 const staffCount = db.prepare("SELECT COUNT(*) as count FROM staff").get();
-if (staffCount.count === 0) {
+if (staffCount.count === 0 && shouldSeedDemoData()) {
   console.log("[setup.js] => inserting demo data...");
 
 
@@ -56,25 +58,16 @@ if (staffCount.count === 0) {
   insertShift.run("Früh", "06:00", "14:00", "#22c55e", 2, 1);
   insertShift.run("Spät", "14:00", "22:00", "#3b82f6", 2, 2);
   insertShift.run("Nacht", "22:00", "06:00", "#8b5cf6", 1, 3);
-
-
-  const rotationConfigCount = db
-    .prepare("SELECT COUNT(*) as count FROM rotation_config")
-    .get();
-  if (rotationConfigCount.count === 0) {
-    db.prepare(
-      "INSERT INTO rotation_config (cycle_length, start_year, start_week) VALUES (?, ?, ?)"
-    ).run(
-      backendConfig.rotation.defaultCycleLength,
-      2025,
-      backendConfig.rotation.defaultStartWeek
-    );
-  }
 }
 
 console.log("[setup.js] => setup finished!");
 
 db.close();
+
+function shouldSeedDemoData() {
+  return process.env.SHIFTPLAN_SEED_DEMO_DATA?.trim() === "true"
+    || Boolean(process.env.NUXT_PUBLIC_DEMO_LOGIN_USERNAME?.trim());
+}
 
 function loadBackendConfig() {
   const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();

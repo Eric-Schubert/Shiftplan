@@ -12,16 +12,14 @@ RUN npm ci
 
 FROM node:24-alpine AS builder
 
-
-ARG APP_VERSION=0.0.0
-
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-
+# Declared after the cacheable layers, so a new version does not rebuild them.
+ARG APP_VERSION=0.0.0
 RUN echo "${APP_VERSION}" > .version
 
 RUN npm run build

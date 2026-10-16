@@ -17,8 +17,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[smoke] Building Docker image ${IMAGE_NAME}"
-docker build --build-arg APP_VERSION=smoke -t "$IMAGE_NAME" .
+# CI builds the image with the layer cache first and sets SMOKE_SKIP_BUILD=1.
+if [ "${SMOKE_SKIP_BUILD:-0}" = "1" ]; then
+  echo "[smoke] Using existing Docker image ${IMAGE_NAME}"
+else
+  echo "[smoke] Building Docker image ${IMAGE_NAME}"
+  docker build --build-arg APP_VERSION=smoke -t "$IMAGE_NAME" .
+fi
 
 echo "[smoke] Starting container ${CONTAINER_NAME}"
 docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
