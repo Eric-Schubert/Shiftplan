@@ -1,12 +1,12 @@
 import { getDatabase } from "~/server/utils/database";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { datesBetween, parseISODate } from "~/shared/utils/iso-date";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
 import { activeStaffName, badRequest, conflict, today } from "~/server/services/shift-request/common";
 import { isOffDay, requestDays } from "~/server/services/shift-request/days";
 import { getById } from "~/server/services/shift-request/queries";
 import { absentInChanges, swapChanges } from "~/server/services/shift-request/rules";
 import { SWAP_MAX_DAYS, type ShiftRequest } from "~/server/services/shift-request/types";
+import { dateParam } from "~/server/utils/api-error";
 
 export function createTakeover(input: {
   staffId: number;
@@ -76,7 +76,7 @@ export function createSwap(input: {
   const absent = absentInChanges(changes);
   if (absent) {
     const name = absent.staffId === input.partnerStaffId ? partnerName : (activeStaffName(input.staffId) ?? "");
-    badRequest("errors.requests.absent", { name, day: formatNoticeDay(absent.date) });
+    badRequest("errors.requests.absent", { name, day: dateParam(absent.date) });
   }
   if (overlappingSwap(input.staffId, input.partnerStaffId, input.from, input.to)) {
     conflict("errors.requests.duplicateSwap");

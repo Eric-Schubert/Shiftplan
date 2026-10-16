@@ -2,8 +2,7 @@ import { DayChangeService } from "~/server/services/day-change.service";
 import { activeStaffName, badRequest, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import { requestDays } from "~/server/services/shift-request/days";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
-import { apiError } from "~/server/utils/api-error";
+import { apiError, dateParam } from "~/server/utils/api-error";
 
 export type PlannedChange = Omit<AppliedChange, "before" | "inPlan">;
 
@@ -74,7 +73,7 @@ export function checkApplicable(request: ShiftRequest, partnerId: number): void 
   const absent = absentInChanges(changes);
   if (absent) {
     const name = absent.staffId === partnerId ? partnerName : request.requester_name;
-    conflict("errors.requests.absent", { name, day: formatNoticeDay(absent.date) });
+    conflict("errors.requests.absent", { name, day: dateParam(absent.date) });
   }
 }
 

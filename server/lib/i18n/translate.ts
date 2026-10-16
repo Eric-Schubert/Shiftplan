@@ -25,5 +25,5 @@ function lookup(locale: Locale, key: string): unknown {
 export function t(locale: Locale, key: MessageKey, params: MessageValues = {}): string {
   const message = lookup(locale, key) ?? lookup(DEFAULT_LOCALE, key);
   if (typeof message !== "string") return key;
-  return message.replace(/\{(\w+)\}/g, (placeholder, name: string) => (name in params ? String(params[name]) : placeholder));
+  return message.replace(/\{(\w+)\}/g, (placeholder, name: string) => (Object.hasOwn(params, name) ? String(params[name]) : placeholder));
 }

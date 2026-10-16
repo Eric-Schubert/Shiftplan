@@ -2,10 +2,10 @@ import { H3Event } from "h3";
 import { IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
 import { describe, expect, it } from "vitest";
-import { passwordPolicyError, validateConfiguredPasswordStrength } from "~/server/config/auth-config";
+import { passwordPolicyError } from "~/server/config/auth-config";
 import { t } from "~/server/lib/i18n/translate";
 import { XlsxError } from "~/server/lib/xlsx/error";
-import { apiError, messageRef } from "~/server/utils/api-error";
+import { apiError, dateParam, messageRef } from "~/server/utils/api-error";
 import { validateInteger, validateString, validateTime } from "~/server/utils/validation";
 import { PIN_LENGTH_MESSAGE, PIN_MAX_LENGTH, PIN_MIN_LENGTH, WEAK_PIN_MESSAGE } from "~/shared/utils/limits";
 
@@ -42,6 +42,12 @@ describe("apiError", () => {
     });
   });
 
+  it("formats date params in the message and keeps the ISO date in data", () => {
+    const error = apiError(null, 409, "errors.requests.absent", { name: "Anna Weber", day: dateParam("2026-10-08") });
+    expect(error.statusMessage).toBe("Anna Weber hat am Do. 08.10. einen Ausfall eingetragen");
+    expect(error.data).toEqual({ code: "errors.requests.absent", params: { name: "Anna Weber", day: { date: "2026-10-08" } } });
+  });
+
   it("leaves params out of data when there are none", () => {
     expect(apiError(null, 404, "errors.common.notFound").data).toEqual({ code: "errors.common.notFound" });
   });
@@ -52,6 +58,7 @@ describe("translate", () => {
     expect(t("de", "errors.shiftplan.noSuchWeek", { year: 2026, week: 53 })).toBe("2026 hat keine KW 53");
     expect(t("de", "errors.shiftplan.noSuchWeek", { year: 2026 })).toBe("2026 hat keine KW {week}");
     expect(t("de", "errors.missing" as never)).toBe("errors.missing");
+    expect(t("de", "errors.staff.shortCodeTaken", Object.create({ code: "AW" }))).toBe("Das Kürzel {code} ist schon vergeben");
   });
 });
 
@@ -63,20 +70,18 @@ describe("validation errors", () => {
     expect(thrown(() => validateString("a".repeat(9), "accessCode", { maxLength: 8 })).statusMessage).toBe(
       "Zugangscode darf maximal 8 Zeichen haben"
     );
-    expect(thrown(() => validateTime("8 Uhr", "startTime")).statusMessage).toBe(
-      "Startzeit muss im Format HH:MM sein (z.B. 08:00)"
-    );
+    const time = thrown(() => validateTime("8 Uhr", "startTime"));
+    expect(time.statusMessage).toBe("Startzeit muss im Format HH:MM sein (z.B. 08:00)");
+    expect(time.data).toEqual({ code: "validation.time", params: { field: { key: "validation.fields.startTime" } } });
   });
 });
 
 describe("texts the web forms share with the server", () => {
-  it("stay byte-identical for PINs and passwords", () => {
+  it("stay byte-identical for PINs and send only the limit a password rule needs", () => {
     expect(t("de", "errors.member.pinLength", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH })).toBe(PIN_LENGTH_MESSAGE);
     expect(t("de", "errors.member.pinWeak")).toBe(WEAK_PIN_MESSAGE);
-    for (const password of ["kurz", "x".repeat(300), "alles klein 123", "ALLES GROSS 123", "OhneZahlen"]) {
-      const expected = validateConfiguredPasswordStrength(password).message;
-      expect(passwordPolicyError(fakeEvent(), password)?.statusMessage ?? "").toBe(expected);
-    }
+    expect(passwordPolicyError(fakeEvent(), "kurz")?.data).toEqual({ code: "errors.auth.password.minLength", params: { min: 8 } });
+    expect(passwordPolicyError(fakeEvent(), "kurzweilig1")?.data).toEqual({ code: "errors.auth.password.uppercase" });
   });
 
   it("keep the German message on xlsx reader errors", () => {

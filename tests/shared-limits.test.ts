@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateConfiguredPasswordStrength } from "~/server/config/auth-config";
+import { passwordPolicyError } from "~/server/config/auth-config";
 import {
   PIN_LENGTH_MESSAGE,
   PIN_MAX_LENGTH,
@@ -48,13 +48,13 @@ describe("shared PIN rules", () => {
 });
 
 describe("shared password check", () => {
-  it("is the one the server runs with the configured policy", () => {
+  it("gives the same texts as the server with the configured policy", () => {
     for (const password of ["kurz", "geheim12", "GEHEIM12", "Geheimnis", "x".repeat(257), "Geheim12"]) {
-      expect(validateConfiguredPasswordStrength(password)).toEqual(
-        validatePasswordStrength(password, DEFAULT_CLIENT_CONFIG.passwordPolicy)
+      expect(passwordPolicyError(null, password)?.statusMessage ?? "").toBe(
+        validatePasswordStrength(password, DEFAULT_CLIENT_CONFIG.passwordPolicy).message
       );
     }
-    expect(validateConfiguredPasswordStrength("kurz").message).toBe("Passwort muss mindestens 8 Zeichen haben");
+    expect(passwordPolicyError(null, "kurz")?.statusMessage).toBe("Passwort muss mindestens 8 Zeichen haben");
   });
 
   it("skips the rules a policy switches off", () => {

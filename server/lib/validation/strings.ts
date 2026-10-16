@@ -1,6 +1,6 @@
 import { getValidationConfig } from "~/server/config/domain-config";
-import { messageRef, type MessageRef } from "~/server/utils/api-error";
-import { createValidationError, fieldError, type FieldKey } from "./error";
+import { apiError, messageRef, type MessageRef } from "~/server/utils/api-error";
+import { createValidationError, fieldLabel, type FieldKey } from "./error";
 
 export function validateString(
   value: unknown,
@@ -51,7 +51,7 @@ export function validateString(
 
   if (options.pattern && !options.pattern.test(trimmed)) {
     const custom = options.patternMessage;
-    throw custom ? fieldError(custom.key, field, custom.params) : createValidationError("pattern", field);
+    throw custom ? apiError(null, 400, custom.key, custom.params) : createValidationError("pattern", field);
   }
 
   return trimmed;
@@ -90,7 +90,7 @@ export function validateTime(
   return validateString(value, field, {
     ...options,
     pattern: /^([01]\d|2[0-3]):[0-5]\d$/,
-    patternMessage: messageRef("validation.time"),
+    patternMessage: messageRef("validation.time", { field: fieldLabel(field) }),
     maxLength: 5,
   });
 }
@@ -105,7 +105,7 @@ export function validateColor(
   return validateString(value, field, {
     ...options,
     pattern: /^#[0-9a-fA-F]{6}$/,
-    patternMessage: messageRef("validation.color", { example: defaultColor }),
+    patternMessage: messageRef("validation.color", { field: fieldLabel(field), example: defaultColor }),
     maxLength: 7,
   });
 }
