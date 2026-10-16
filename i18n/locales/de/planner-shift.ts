@@ -4,6 +4,8 @@ export default {
   understaffed: "Unterbesetzt",
   understaffedOn: "Unterbesetzt {days}",
   open: "offen",
+  // A change on the plan that failed without a reason from the server.
+  changeFailed: "Die Änderung am Plan konnte nicht gespeichert werden",
   grid: {
     shift: "Schicht",
     substitute: "{name} (Vertretung)",

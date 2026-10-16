@@ -2,6 +2,7 @@
 import type { Shift } from "~/types/shift";
 
 const dataStore = useDataStore();
+const { notify } = useErrorNotices();
 
 const showFormDialog = ref(false);
 const editingShift = ref<Shift | null>(null);
@@ -24,7 +25,7 @@ function openDeleteDialog(shift: Shift) {
 }
 
 async function toggleActive(shift: Shift) {
-  await dataStore.toggleShiftActive(shift.shift_id);
+  await dataStore.toggleShiftActive(shift.shift_id).catch((error) => notify(error, "settings.saveFailed"));
 }
 </script>
 

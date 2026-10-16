@@ -12,20 +12,29 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const saving = ref(false);
+const error = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const dialogVisible = computed({
   get: () => props.visible,
   set: (value: boolean) => emit("update:visible", value),
 });
+watch(
+  () => props.visible,
+  () => (error.value = "")
+);
 
 async function deactivate() {
   if (!props.staff) return;
 
   saving.value = true;
+  error.value = "";
   try {
     await dataStore.toggleStaffActive(props.staff.staff_id);
     dialogVisible.value = false;
+  } catch (cause) {
+    error.value = requestError(cause, "settings.saveFailed");
   } finally {
     saving.value = false;
   }
@@ -40,6 +49,8 @@ async function deactivate() {
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <p>{{ t("settings.staff.deactivateText", { name: staff?.name ?? "" }) }}</p>
+
+    <small v-if="error" class="mt-3 block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />

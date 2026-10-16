@@ -12,6 +12,7 @@ interface ShiftCardInteractionOptions {
 export function useShiftCardInteractions({ shift, year, week, onUpdated }: ShiftCardInteractionOptions) {
   const dataStore = useDataStore();
   const { authFetch } = useAuthFetch();
+  const { notify } = useErrorNotices();
 
   const showAssignDialog = ref(false);
   const assigning = ref(false);
@@ -37,31 +38,36 @@ export function useShiftCardInteractions({ shift, year, week, onUpdated }: Shift
     });
   }
 
-  async function assignStaff(staffId: number) {
-    assigning.value = true;
+  /** Runs a change and reloads the week either way, so a failed change shows what was really saved. */
+  async function change(run: () => Promise<unknown>): Promise<boolean> {
     try {
-      await sendAssignment("assign", staffId, shift.value.shift_id);
-
-      onUpdated();
-      showAssignDialog.value = false;
+      await run();
+      return true;
+    } catch (error) {
+      notify(error, "planner.shift.changeFailed");
+      return false;
     } finally {
-      assigning.value = false;
+      onUpdated();
     }
   }
 
-  async function unassignStaff(staffId: number) {
-    await sendAssignment("unassign", staffId, shift.value.shift_id);
+  async function assignStaff(staffId: number) {
+    assigning.value = true;
+    if (await change(() => sendAssignment("assign", staffId, shift.value.shift_id))) showAssignDialog.value = false;
+    assigning.value = false;
+  }
 
-    onUpdated();
+  async function unassignStaff(staffId: number) {
+    await change(() => sendAssignment("unassign", staffId, shift.value.shift_id));
   }
 
   const dragDrop = useShiftCardDragDrop({
     shift,
     onMove: async (staffId, sourceShiftId) => {
-      await sendAssignment("unassign", staffId, sourceShiftId);
-      await sendAssignment("assign", staffId, shift.value.shift_id);
-
-      onUpdated();
+      await change(async () => {
+        await sendAssignment("unassign", staffId, sourceShiftId);
+        await sendAssignment("assign", staffId, shift.value.shift_id);
+      });
     },
   });
 

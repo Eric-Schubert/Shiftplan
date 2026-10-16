@@ -32,6 +32,8 @@ export default {
   list: { status: "Status", actions: "Actions", active: "Active", inactive: "Inactive" },
   loading: "Loading.",
   settingFailed: "The setting could not be saved",
+  saveFailed: "The change could not be saved",
+  loadFailed: "Could not be loaded.",
   range: "{from} – {to}",
   staff,
   shifts,

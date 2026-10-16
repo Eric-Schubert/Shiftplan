@@ -35,6 +35,7 @@ export default {
   account: {
     signedInAs: "Signed in as {name}",
     title: "My account",
+    signOutFailed: "Signing out did not work",
   },
   panel: {
     marked: "Your shifts are highlighted in the plan.",

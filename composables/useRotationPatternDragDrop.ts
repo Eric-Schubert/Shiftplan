@@ -4,6 +4,7 @@ import type { RotationDropPayload, RotationStaffDragPayload } from "~/types/rota
 /** Drag and drop of staff from the pool or between shifts and pattern weeks of the rotation board. */
 export function useRotationPatternDragDrop() {
   const dataStore = useDataStore();
+  const { notify } = useErrorNotices();
 
   const dragOverTarget = ref<string | null>(null);
 
@@ -76,7 +77,8 @@ export function useRotationPatternDragDrop() {
 
       await dataStore.assignToRotation(patternWeek, data.staffId, shiftId);
     } catch (error) {
-      console.error("Drop failed:", error);
+      notify(error, "settings.saveFailed");
+      await dataStore.fetchRotation().catch(() => {});
     }
   }
 

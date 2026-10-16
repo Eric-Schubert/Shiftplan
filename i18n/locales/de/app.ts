@@ -39,6 +39,7 @@ export default {
     imprint: "Impressum",
     privacy: "Datenschutz",
     language: "Sprache",
+    dataFailed: "Mitarbeiter, Schichten und Rotationsmuster konnten nicht geladen werden.",
   },
   settingsPage: {
     checking: "Session wird geprüft.",

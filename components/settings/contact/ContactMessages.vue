@@ -8,18 +8,24 @@ const loading = ref(true);
 const updatingId = ref<number | null>(null);
 const page = ref(0);
 const limit = 10;
+const loadError = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
+const { notify } = useErrorNotices();
 
 const totalPages = computed(() => Math.ceil(total.value / limit));
 
 async function fetchMessages() {
   loading.value = true;
+  loadError.value = "";
   try {
     const result = await $fetch<ContactMessagesResponse>("/api/contact/messages", {
       query: { limit, offset: page.value * limit },
     });
     messages.value = result.messages;
     total.value = result.total;
+  } catch (cause) {
+    loadError.value = requestError(cause, "settings.loadFailed");
   } finally {
     loading.value = false;
   }
@@ -32,6 +38,8 @@ async function markRead(message: ContactMessage) {
   try {
     const updated = await authFetch<ContactMessage>(`/api/contact/messages/${message.contact_id}`, { method: "PATCH" });
     messages.value = messages.value.map((item) => (item.contact_id === updated.contact_id ? updated : item));
+  } catch (error) {
+    notify(error, "settings.saveFailed");
   } finally {
     updatingId.value = null;
   }
@@ -74,6 +82,8 @@ onMounted(fetchMessages);
     <div v-if="loading" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
+
+    <AppRetryNotice v-else-if="loadError" :message="loadError" @retry="fetchMessages" />
 
     <template v-else>
       <div v-if="messages.length > 0" class="space-y-3">

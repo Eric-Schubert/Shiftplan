@@ -17,6 +17,8 @@ export const useDataStore = defineStore("data", {
     loadingRotation: false,
 
     initialized: false,
+    /** The last init failed; the layout offers to try again. */
+    loadError: false,
   }),
 
   getters: {
@@ -38,12 +40,18 @@ export const useDataStore = defineStore("data", {
   },
 
   actions: {
-    async init() {
-      if (this.initialized) return;
+    /** Loads staff, shifts and the rotation once; a failure is kept in `loadError` instead of thrown. */
+    async init(): Promise<boolean> {
+      if (this.initialized) return true;
 
-      await Promise.all([this.fetchStaff(), this.fetchShifts(), this.fetchRotation()]);
-
-      this.initialized = true;
+      this.loadError = false;
+      try {
+        await Promise.all([this.fetchStaff(), this.fetchShifts(), this.fetchRotation()]);
+        this.initialized = true;
+      } catch {
+        this.loadError = true;
+      }
+      return this.initialized;
     },
 
     async fetchStaff() {

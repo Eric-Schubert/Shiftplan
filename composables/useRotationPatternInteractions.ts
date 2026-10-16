@@ -3,6 +3,7 @@ import { useRotationPatternDragDrop } from "~/composables/useRotationPatternDrag
 
 export function useRotationPatternInteractions() {
   const dataStore = useDataStore();
+  const { notify } = useErrorNotices();
 
   const showAssignDialog = ref(false);
   const assignContext = ref<RotationAssignContext | null>(null);
@@ -35,13 +36,19 @@ export function useRotationPatternInteractions() {
     try {
       await dataStore.assignToRotation(assignContext.value.patternWeek, staffId, assignContext.value.shiftId);
       showAssignDialog.value = false;
+    } catch (error) {
+      notify(error, "settings.saveFailed");
     } finally {
       assigning.value = false;
     }
   }
 
   async function unassignStaff(patternWeek: number, staffId: number, shiftId: number) {
-    await dataStore.unassignFromRotation(patternWeek, staffId, shiftId);
+    try {
+      await dataStore.unassignFromRotation(patternWeek, staffId, shiftId);
+    } catch (error) {
+      notify(error, "settings.saveFailed");
+    }
   }
 
   return {

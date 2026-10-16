@@ -2,6 +2,7 @@
 import type { Staff } from "~/types/staff";
 
 const dataStore = useDataStore();
+const { notify } = useErrorNotices();
 
 const showFormDialog = ref(false);
 const editingStaff = ref<Staff | null>(null);
@@ -32,7 +33,7 @@ async function toggleActive(staff: Staff) {
     showDeactivateDialog.value = true;
     return;
   }
-  await dataStore.toggleStaffActive(staff.staff_id);
+  await dataStore.toggleStaffActive(staff.staff_id).catch((error) => notify(error, "settings.saveFailed"));
 }
 </script>
 
