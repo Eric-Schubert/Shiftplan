@@ -37,5 +37,11 @@ export default {
     preview: "{week} → Muster {pattern}",
     save: "Startpunkt speichern",
     failed: "Startpunkt konnte nicht gespeichert werden",
+    shrink: {
+      header: "Zyklus verkürzen?",
+      cycleWeeks: "1 Woche | {count} Wochen",
+      text: "Der Zyklus wird von {from} auf {to} verkürzt. Musterwoche {first} und ihre {assignments} werden dabei endgültig gelöscht. | Der Zyklus wird von {from} auf {to} verkürzt. Die Musterwochen {first} bis {last} und ihre {assignments} werden dabei endgültig gelöscht.",
+      confirm: "Zyklus verkürzen",
+    },
   },
 };
