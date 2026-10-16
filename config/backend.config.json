@@ -41,23 +41,6 @@
       "maxAttempts": 5,
       "windowMinutes": 15,
       "blockMinutes": 15
-    },
-    "routes": {
-      "public": [
-        "/api/auth/login",
-        "/api/auth/session",
-        "/api/analytics/visit",
-        "/api/contact"
-      ],
-      "publicGetPrefixes": [
-        "/api/_nuxt_icon",
-        "/api/staff",
-        "/api/shift",
-        "/api/shiftplan",
-        "/api/rotation",
-        "/api/holidays"
-      ],
-      "csrfMethods": ["POST", "PATCH", "PUT", "DELETE"]
     }
   },
   "validation": {
