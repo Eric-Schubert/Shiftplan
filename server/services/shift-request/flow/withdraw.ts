@@ -1,9 +1,8 @@
-import { instanceLocaleTag } from "~/server/utils/locale";
 import { conflict } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { withCurrent } from "./apply";
-import { describeRequest, notifyStaff } from "./notify";
+import { notifyStaff } from "./notify";
 import { apiError } from "~/server/utils/api-error";
 
 type Member = { staffId: number; staffName: string };
@@ -19,7 +18,7 @@ export async function declineRequest(request: ShiftRequest, staffId: number, sta
     if (current.status !== "open") conflict("errors.requests.notOpen");
     return ShiftRequestService.setStatus(current.request_id, "declined", { expected: "open" });
   });
-  await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request, instanceLocaleTag())} nicht tauschen.`);
+  await notifyStaff([request.requester_staff_id], request, "swapDeclined", staffName);
   return updated;
 }
 
@@ -33,13 +32,7 @@ async function withdrawAcceptance(request: ShiftRequest, member: Member): Promis
       takeover ? { expected: "pending_approval", partnerStaffId: null } : { expected: "pending_approval" }
     )
   );
-  await notifyStaff(
-    [request.requester_staff_id],
-    "Zusage zurückgezogen",
-    takeover
-      ? `${member.staffName} übernimmt ${describeRequest(request, instanceLocaleTag())} doch nicht. Die Übernahme ist wieder offen.`
-      : `${member.staffName} möchte ${describeRequest(request, instanceLocaleTag())} doch nicht tauschen.`
-  );
+  await notifyStaff([request.requester_staff_id], request, takeover ? "takeoverWithdrawn" : "swapWithdrawn", member.staffName);
   return updated;
 }
 
@@ -56,7 +49,7 @@ export async function cancelRequest(request: ShiftRequest, member: Member): Prom
   });
   // The colleague who agreed, or who was asked to swap, should not wait for it any more.
   if (partner !== null) {
-    await notifyStaff([partner], "Anfrage zurückgezogen", `${member.staffName} hat die Anfrage (${describeRequest(request, instanceLocaleTag())}) zurückgezogen.`);
+    await notifyStaff([partner], request, "cancelled", member.staffName);
   }
   return updated;
 }

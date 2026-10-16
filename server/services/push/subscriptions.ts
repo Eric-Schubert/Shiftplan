@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type AppLocale } from "~/i18n/config";
 import { getAdminDatabase } from "~/server/utils/database";
 import { hasValidKeys } from "~/server/services/push/keys";
 import type { PushSubscriptionInput } from "~/server/services/push/types";
@@ -41,8 +42,13 @@ export function countSubscriptions(): number {
 /**
  * A browser signed in as a person also gets that person's own messages. The subscription is
  * bound to that sign-in, so signing out or revoking it removes the subscription too.
+ * Pushes reach it in `locale`, the language of the request that subscribed or renewed it.
  */
-export function subscribe(input: unknown, member: { sessionId: string; staffId: number } | null = null): void {
+export function subscribe(
+  input: unknown,
+  member: { sessionId: string; staffId: number } | null = null,
+  locale: AppLocale = DEFAULT_LOCALE
+): void {
   const subscription = input as Partial<PushSubscriptionInput> | null;
   const endpoint = subscription?.endpoint;
 
@@ -67,15 +73,23 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
 
   db.prepare(
     `
-      INSERT INTO push_subscriptions (endpoint, p256dh, auth, staff_id, member_session)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO push_subscriptions (endpoint, p256dh, auth, staff_id, member_session, locale)
+      VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(endpoint) DO UPDATE SET
         p256dh = excluded.p256dh,
         auth = excluded.auth,
         staff_id = excluded.staff_id,
-        member_session = excluded.member_session
+        member_session = excluded.member_session,
+        locale = excluded.locale
     `
-  ).run(endpoint, subscription!.keys!.p256dh, subscription!.keys!.auth, member?.staffId ?? null, member?.sessionId ?? null);
+  ).run(
+    endpoint,
+    subscription!.keys!.p256dh,
+    subscription!.keys!.auth,
+    member?.staffId ?? null,
+    member?.sessionId ?? null,
+    locale
+  );
 }
 
 export function unsubscribe(endpoint: unknown): void {

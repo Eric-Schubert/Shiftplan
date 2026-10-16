@@ -17,6 +17,8 @@ export type StoredSubscription = {
   endpoint: string;
   p256dh: string;
   auth: string;
+  /** Language the pushes are written in. */
+  locale: string;
 };
 
 export type ShiftChange = {
@@ -34,6 +36,7 @@ export type PendingChange = {
   week: number;
   /** YYYY-MM-DD for a change of a single day. */
   date?: string;
+  /** The shift's name; the push adds the date of a day change in the recipient's language. */
   shiftName: string;
   shiftOrder: number;
   staffId: number;
@@ -47,6 +50,8 @@ export type StoredDevice = {
   scope: DeviceScope;
   /** 1 when registered with a personal app sign-in, 0 for a team device. */
   personal: 0 | 1;
+  /** Language the pushes are written in; without one, German. */
+  locale?: string;
 };
 
 export type SendCounts = { sent: number; failed: number };

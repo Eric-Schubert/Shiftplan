@@ -659,6 +659,9 @@ paths:
         acceptances and rejections) only go to devices registered with a personal token.
 
         Each person keeps the ten most recently registered devices, older ones are dropped.
+
+        Pushes reach the device in its `locale`. Without a supported value the server takes the
+        language of the request (`Accept-Language`), else German. Registering again updates it.
       requestBody:
         required: true
         content:
@@ -679,6 +682,13 @@ paths:
                   type: string
                   enum: [all, mine]
                   default: all
+                locale:
+                  type: string
+                  description: |
+                    Language of the pushes for this device, as a language code (`de`). Region suffixes
+                    are dropped, so `de-DE` and `de_DE` count as `de`. Unsupported values are ignored,
+                    not rejected.
+                  example: de
       responses:
         "200":
           $ref: "#/components/responses/Success"
