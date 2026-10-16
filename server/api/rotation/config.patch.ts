@@ -3,11 +3,12 @@ import { requirePlanner } from "~/server/utils/auth";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
 import { validateInteger, validateYear, validateWeek } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
   const rotationConfig = getRotationValidationConfig();
 
   const cycleLength = validateInteger(body.cycle_length, "cycleLength", {

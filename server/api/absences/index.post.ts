@@ -9,10 +9,11 @@ import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId, validateString } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   if (!ABSENCE_REASONS.includes(body?.reason)) {
     throw apiError(event, 400, "errors.absences.invalidReason");

@@ -4,6 +4,7 @@ import type de from "../de/errors-common";
 export default {
   badOrigin: "Invalid request origin",
   jsonRequired: "Request must contain JSON",
+  bodyObject: "The request must contain a JSON object",
   tooLarge: "The request is too large",
   tooManyAttempts: "Too many attempts. Please wait.",
   notFound: "Not found",

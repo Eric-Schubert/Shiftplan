@@ -3,6 +3,14 @@ import { createValidationError, type FieldKey } from "./error";
 
 type IntegerOptions = { required?: boolean; min?: number; max?: number };
 
+/** A whole number, or its plain digits as text (route and query values). "12abc", "1e3", "5.9", true and [5] are not. */
+function toInteger(value: unknown): number | null {
+  if (typeof value === "number") return Number.isSafeInteger(value) ? value : null;
+  if (typeof value !== "string" || !/^-?\d+$/.test(value)) return null;
+  const num = Number(value);
+  return Number.isSafeInteger(num) ? num : null;
+}
+
 // With `required: true` the validators throw instead of returning undefined.
 export function validateInteger(value: unknown, field: FieldKey, options: IntegerOptions & { required: true }): number;
 export function validateInteger(value: unknown, field: FieldKey, options?: IntegerOptions): number | undefined;
@@ -16,9 +24,9 @@ export function validateInteger(value: unknown, field: FieldKey, options: Intege
     return undefined;
   }
 
-  const num = typeof value === "string" ? parseInt(value, 10) : Number(value);
+  const num = toInteger(value);
 
-  if (!Number.isInteger(num) || isNaN(num)) {
+  if (num === null) {
     throw createValidationError("integer", field);
   }
 

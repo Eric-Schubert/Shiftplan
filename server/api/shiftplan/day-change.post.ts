@@ -3,11 +3,12 @@ import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 /** Puts someone into or out of a shift for a single day, on top of the weekly plan. */
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   if (typeof body?.present !== "boolean") {
     throw apiError(event, 400, "errors.shiftplan.presentBoolean");

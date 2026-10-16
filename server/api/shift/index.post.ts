@@ -2,11 +2,12 @@ import { ShiftService } from "~/server/services/shift.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateName, validateTime, validateColor, validateInteger } from "~/server/utils/validation";
 import { getShiftDefaults, getShiftValidationConfig } from "~/server/config/domain-config";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
   const shiftConfig = getShiftValidationConfig();
   const shiftDefaults = getShiftDefaults();
 

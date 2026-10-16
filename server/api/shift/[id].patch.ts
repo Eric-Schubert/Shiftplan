@@ -3,12 +3,13 @@ import { requireAdmin } from "~/server/utils/auth";
 import { validateId, validateName, validateTime, validateColor, validateInteger, validateBoolean } from "~/server/utils/validation";
 import { getShiftValidationConfig } from "~/server/config/domain-config";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
   const id = validateId(getRouterParam(event, "id"), "recordId");
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
   const shiftConfig = getShiftValidationConfig();
 
   const name = validateName(body.name, "name", { maxLength: 100 });

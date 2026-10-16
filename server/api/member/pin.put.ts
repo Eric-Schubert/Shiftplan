@@ -1,11 +1,12 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
 import { limitAttempt } from "~/server/utils/session";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 /** Sets the personal PIN. Changing an existing PIN needs the current one. */
 export default defineEventHandler(async (event) => {
   // Body first, so a person deactivated in the meantime is no longer accepted.
-  const body = await readBody<{ pin?: unknown; currentPin?: unknown }>(event);
+  const body = await readObjectBody<{ pin?: unknown; currentPin?: unknown }>(event);
   const member = MemberAccessService.requireMember(event);
 
   if (MemberAccessService.hasPin(member.staffId)) {

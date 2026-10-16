@@ -2,11 +2,12 @@ import { t } from "~/i18n/server";
 import { PUSH_MESSAGE_MAX_LENGTH, PushService } from "~/server/services/push.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
   const message = validateString(body?.message, "message", {
     required: true,
     maxLength: PUSH_MESSAGE_MAX_LENGTH,

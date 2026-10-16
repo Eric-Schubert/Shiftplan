@@ -10,6 +10,7 @@ import {
 } from "~/server/services/shift-request.service";
 import { validateId } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 /**
  * accept (take over / agree to swap), decline (swap partner), cancel (own request or a yes waiting for approval)
@@ -18,7 +19,7 @@ import { apiError } from "~/server/utils/api-error";
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
   // Body first: the request is read after the last await, so it is never a stale copy.
-  const { action } = (await readBody(event)) ?? {};
+  const { action } = await readObjectBody(event);
   const request = ShiftRequestService.getById(validateId(getRouterParam(event, "id"), "id"));
   if (!request) throw apiError(event, 404, "errors.requests.notFound");
   const actor = { ...member, source: memberSource(event) };

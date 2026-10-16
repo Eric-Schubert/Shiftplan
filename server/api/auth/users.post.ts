@@ -4,17 +4,23 @@ import { requireAdmin } from "~/server/utils/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getPasswordHashCost, getUserValidationConfig, passwordPolicyError } from "~/server/config/auth-config";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
+
+function isFilledText(value: unknown): value is string {
+  return typeof value === "string" && value !== "";
+}
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const body = await readBody<{
+  const body = await readObjectBody<{
     username: string;
     password: string;
     role: UserRole;
   }>(event);
 
-  if (!body.username || !body.password || !body.role) {
+  // Text only: a number or list here would pass the checks below and fail later as a 500.
+  if (!isFilledText(body.username) || !isFilledText(body.password) || !isFilledText(body.role)) {
     throw apiError(event, 400, "errors.auth.userFieldsRequired");
   }
 

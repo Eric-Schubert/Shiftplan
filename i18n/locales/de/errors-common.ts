@@ -2,6 +2,7 @@
 export default {
   badOrigin: "Ungültige Herkunft der Anfrage",
   jsonRequired: "Anfrage muss JSON enthalten",
+  bodyObject: "Die Anfrage muss ein JSON-Objekt enthalten",
   tooLarge: "Die Anfrage ist zu groß",
   tooManyAttempts: "Zu viele Versuche. Bitte warten.",
   notFound: "Nicht gefunden",

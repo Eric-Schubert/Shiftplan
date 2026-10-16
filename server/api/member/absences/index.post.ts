@@ -4,10 +4,11 @@ import { ABSENCE_MESSAGE_MAX_LENGTH, ABSENCE_REASONS, reportAbsence, type Absenc
 import { planningToday } from "~/server/utils/planning-date";
 import { validateString } from "~/server/utils/validation";
 import { apiError } from "~/server/utils/api-error";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   if (!ABSENCE_REASONS.includes(body?.reason)) {
     throw apiError(event, 400, "errors.absences.invalidReason");

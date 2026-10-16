@@ -3,11 +3,12 @@ import { ShiftplanService, readGenerationRange } from "~/server/services/shiftpl
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateBoolean, validateYear, validateWeek } from "~/server/utils/validation";
+import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
 
-  const body = await readBody(event);
+  const body = await readObjectBody(event);
 
   const hasWeeksParameter = body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
 
