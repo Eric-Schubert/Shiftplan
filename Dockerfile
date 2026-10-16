@@ -35,8 +35,10 @@ WORKDIR /app
 COPY --from=builder /app/.output ./.output
 
 
+# setup.js and the entrypoint run without the Nitro bundle: they need the config loader (built-in
+# defaults) and the migrations as plain JS. The optional config file is mounted to /app/config.
 COPY --from=builder /app/setup.js ./setup.js
-COPY --from=builder /app/config ./config
+COPY --from=builder /app/server/lib/config ./server/lib/config
 COPY --from=builder /app/server/utils/database-migrations.js ./server/utils/database-migrations.js
 COPY --from=builder /app/server/lib/migrations ./server/lib/migrations
 COPY --from=builder /app/package.json ./package.json
@@ -50,7 +52,7 @@ COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-RUN mkdir -p /app/db && chown -R node:node /app
+RUN mkdir -p /app/db /app/config && chown -R node:node /app
 
 USER node
 

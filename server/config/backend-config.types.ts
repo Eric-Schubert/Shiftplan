@@ -20,3 +20,9 @@ export type BackendConfig = {
   audit: AuditSettings;
   contactMail: ContactMailSettings;
 };
+
+/**
+ * What the built-in defaults (server/lib/config/defaults.js) and a complete config file hold: everything
+ * except auth.routes, which route-config.ts resolves after validation.
+ */
+export type BackendConfigFile = Omit<BackendConfig, "auth"> & { auth: Omit<AuthSettings, "routes"> };

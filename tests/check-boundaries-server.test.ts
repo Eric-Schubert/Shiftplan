@@ -25,10 +25,22 @@ describe("boundary check server rules", () => {
     expect(check(contents)).toEqual(["server/services/a/x.ts:3 service imports another service's internals instead of its facade"]);
   });
 
-  it("keeps migrations inside server/lib/migrations", () => {
-    const migration = ['import fs from "node:fs";', 'import { up } from "../schema.js";', 'import { x } from "../../../utils/x.js";'].join("\n");
+  it("keeps migrations inside server/lib/migrations, with the config loader as their only other import", () => {
+    const migration = [
+      'import fs from "node:fs";',
+      'import { up } from "../schema.js";',
+      'import { loadBackendConfig } from "../../config/load.js";',
+      'import { x } from "../../../utils/x.js";',
+    ].join("\n");
     expect(check({ "server/lib/migrations/main/001.js": migration })).toEqual([
-      "server/lib/migrations/main/001.js:3 migration imports outside server/lib/migrations (setup.js runs it without the Nitro bundle)",
+      "server/lib/migrations/main/001.js:4 migration imports outside server/lib/migrations or server/lib/config (setup.js runs it without the Nitro bundle)",
+    ]);
+  });
+
+  it("keeps the config loader inside server/lib/config", () => {
+    const loader = ['import fs from "node:fs";', 'import { DEFAULTS } from "./defaults.js";', 'import { x } from "../migrations/schema.js";'].join("\n");
+    expect(check({ "server/lib/config/load.js": loader })).toEqual([
+      "server/lib/config/load.js:3 config loader imports outside server/lib/config (setup.js and the entrypoint run it without the Nitro bundle)",
     ]);
   });
 

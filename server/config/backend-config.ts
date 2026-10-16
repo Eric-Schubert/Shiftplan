@@ -1,15 +1,14 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { loadBackendConfig } from "~/server/lib/config/load.js";
 import { validateBackendConfig } from "./backend-config.schema";
 import type { BackendConfig } from "./backend-config.types";
 import { resolveRouteConfig } from "./route-config";
 
 let cachedConfig: BackendConfig | null = null;
 
+// Defaults from server/lib/config/defaults.js with the optional config file merged over them, then validated.
 export function getBackendConfig(): BackendConfig {
   if (!cachedConfig) {
-    cachedConfig = applyEnvOverrides(normalize(validateBackendConfig(readBackendConfig())));
+    cachedConfig = applyEnvOverrides(normalize(validateBackendConfig(loadBackendConfig())));
   }
 
   return cachedConfig;
@@ -21,7 +20,7 @@ function normalize(config: BackendConfig): BackendConfig {
   return config;
 }
 
-// Deployment-specific switches that should not require a full config file copy.
+// Deployment-specific switches that should not require a config file.
 function applyEnvOverrides(config: BackendConfig): BackendConfig {
   const trustProxyHeaders = parseTrustProxyEnv("SHIFTPLAN_TRUST_PROXY_HEADERS");
   if (trustProxyHeaders !== undefined) {
@@ -43,24 +42,4 @@ function parseTrustProxyEnv(name: string): boolean | "cloudflare" | undefined {
 
 export function resetBackendConfigForTests(): void {
   cachedConfig = null;
-}
-
-function readBackendConfig(): unknown {
-  const configPath = resolveConfigPath();
-  const raw = fs.readFileSync(configPath, "utf-8");
-  return JSON.parse(raw);
-}
-
-function resolveConfigPath(): string {
-  const configuredPath = process.env.SHIFTPLAN_BACKEND_CONFIG_PATH?.trim();
-  if (configuredPath) {
-    return path.resolve(configuredPath);
-  }
-
-  const cwdPath = path.resolve(process.cwd(), "config", "backend.config.json");
-  if (fs.existsSync(cwdPath)) {
-    return cwdPath;
-  }
-
-  return fileURLToPath(new URL("../../config/backend.config.json", import.meta.url));
 }

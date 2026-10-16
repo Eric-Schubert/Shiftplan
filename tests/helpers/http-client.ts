@@ -1,5 +1,5 @@
 import type { PlainHandler, PlainResponse } from "h3";
-import backendConfig from "../../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 
 export type CookieJar = Map<string, string>;
 export type FormFile = { filename: string; data: Buffer };

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import { t } from "~/i18n/server";
 import type { ClientConfig } from "~/types/instance";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";

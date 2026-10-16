@@ -2,13 +2,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import { validateBackendConfig } from "~/server/config/backend-config.schema";
 import { getBackendConfig, resetBackendConfigForTests } from "~/server/config/backend-config";
 
 describe("backend config", () => {
-  it("validates the checked-in backend config", () => {
-    expect(() => validateBackendConfig(backendConfig)).not.toThrow();
+  it("validates the built-in defaults", () => {
+    expect(() => validateBackendConfig(structuredClone(backendConfig))).not.toThrow();
   });
 
   it("rejects holiday states without a configured name", () => {

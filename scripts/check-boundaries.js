@@ -70,9 +70,14 @@ export const RULES = [
     },
   ],
   ["server/lib imports a service", (from, to) => inside(from, "server/lib") && inside(to, "server/services")],
+  // setup.js and the Docker entrypoint run these as plain JS without the Nitro bundle; the Dockerfile copies only them.
   [
-    "migration imports outside server/lib/migrations (setup.js runs it without the Nitro bundle)",
-    (from, to) => inside(from, "server/lib/migrations") && to !== null && !inside(to, "server/lib/migrations"),
+    "migration imports outside server/lib/migrations or server/lib/config (setup.js runs it without the Nitro bundle)",
+    (from, to) => inside(from, "server/lib/migrations") && to !== null && !inside(to, "server/lib/migrations") && !inside(to, "server/lib/config"),
+  ],
+  [
+    "config loader imports outside server/lib/config (setup.js and the entrypoint run it without the Nitro bundle)",
+    (from, to) => inside(from, "server/lib/config") && to !== null && !inside(to, "server/lib/config"),
   ],
 ];
 

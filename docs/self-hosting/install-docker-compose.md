@@ -150,7 +150,7 @@ Expected: `HTTP/1.1 200 OK`.
 
 ## Optional: backend settings
 
-The German state for public and school holidays, the session duration, rate limits and other non-secret settings live in `config/backend.config.json`. The defaults are built into the image (holidays: Saxony). To change them, download the file from the repository and mount it:
+The German state for public and school holidays, the session duration, rate limits and other non-secret settings have built-in defaults (holidays: Saxony). To change them, mount a `config/backend.config.json` with the keys you want to change; everything else keeps its default. The example file from the repository holds the keys self-hosters typically change:
 
 ```bash
 mkdir -p /opt/stacks/shiftplan/config
@@ -175,6 +175,6 @@ Example: Bavaria instead of Saxony:
 }
 ```
 
-Only change the keys you need and leave the rest of the file as it is. Then run `docker compose up -d`. More settings and examples are in [Configuration](../configuration.md).
+The file only needs the keys you change. Then run `docker compose up -d`. More settings and examples are in [Configuration](../configuration.md).
 
 Next: [HTTPS through a reverse proxy](reverse-proxy.md).

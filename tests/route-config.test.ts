@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import backendConfig from "../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import { getBackendConfig, resetBackendConfigForTests } from "~/server/config/backend-config";
 import { ROUTE_POLICY } from "~/server/config/route-policy";
 

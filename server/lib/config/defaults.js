@@ -1,0 +1,144 @@
+// @ts-check
+// Built-in backend settings. config/backend.config.json only overrides the keys it names (see load.js).
+// Plain JS, so setup.js, the migrations and the Docker entrypoint read it without the Nitro build.
+// The type in server/config/types/*.ts is the truth: tsc checks that every key is here.
+
+/** @typedef {import("../../config/backend-config.types").BackendConfigFile} BackendConfigFile */
+
+/** @type {BackendConfigFile} */
+export const BACKEND_CONFIG_DEFAULTS = deepFreeze({
+  database: {
+    directory: "db",
+    mainFile: "db.sqlite",
+    adminFile: "admin.sqlite",
+    pragmas: { foreignKeys: true, journalMode: "WAL" },
+  },
+  auth: {
+    passwordPolicy: {
+      minLength: 8,
+      maxLength: 256,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumber: true,
+      hint: "Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl",
+    },
+    passwordHashCost: 12,
+    bootstrapPasswordHashCost: 10,
+    trustProxyHeaders: false,
+    users: { usernameMinLength: 3, usernameMaxLength: 100 },
+    session: {
+      durationMinutes: 30,
+      extendOnActivity: true,
+      tokenBytes: 32,
+      csrfTokenBytes: 32,
+      cookies: { sessionName: "session_token", csrfName: "csrf_token", sameSite: "strict", path: "/", secureInProduction: true },
+    },
+    loginRateLimit: { maxAttempts: 5, windowMinutes: 15, blockMinutes: 15 },
+  },
+  validation: {
+    string: { defaultMinLength: 1, defaultMaxLength: 255 },
+    name: { defaultMaxLength: 100 },
+    year: { min: 2020, max: 2100 },
+    week: { min: 1, max: 53 },
+    id: { min: 1, max: 2147483647 },
+    shift: {
+      defaultColor: "#6366f1",
+      minStaff: { default: 1, min: 0, max: 50 },
+      sortOrder: { default: 0, min: 0, max: 999 },
+    },
+  },
+  rotation: { defaultCycleLength: 4, defaultStartWeek: 1, cycleLengthMin: 1, cycleLengthMax: 52, excelImportMaxBytes: 2097152 },
+  shiftplan: { generateWeeksMin: 1, generateWeeksMax: 53 },
+  xlsx: {
+    maxZipEntryCount: 128,
+    maxZipEntryUncompressedBytes: 4194304,
+    maxZipTotalUncompressedBytes: 16777216,
+    maxZipExpansionRatio: 40,
+    maxWorksheetCount: 16,
+    maxWorksheetRows: 10000,
+    maxWorksheetColumns: 128,
+  },
+  holidays: {
+    timezone: "Europe/Berlin",
+    provider: "openHolidays",
+    apiBaseUrl: "https://openholidaysapi.org",
+    countryIsoCode: "DE",
+    languageIsoCode: "DE",
+    cacheHours: 24,
+    public: { includeNationwide: true, subdivisionCodes: ["SN"], regionalType: "regional" },
+    school: {
+      defaultSubdivisionCodes: ["SN", "BB"],
+      lookupWindow: { startYearOffset: -1, startMonth: 7, startDay: 1, endYearOffset: 1, endMonth: 6, endDay: 30 },
+    },
+    subdivisionNames: {
+      BW: "Baden-Württemberg",
+      BY: "Bayern",
+      BE: "Berlin",
+      BB: "Brandenburg",
+      HB: "Bremen",
+      HH: "Hamburg",
+      HE: "Hessen",
+      MV: "Mecklenburg-Vorpommern",
+      NI: "Niedersachsen",
+      NW: "Nordrhein-Westfalen",
+      RP: "Rheinland-Pfalz",
+      SL: "Saarland",
+      SN: "Sachsen",
+      ST: "Sachsen-Anhalt",
+      SH: "Schleswig-Holstein",
+      TH: "Thüringen",
+    },
+  },
+  contact: {
+    rateLimit: { windowMinutes: 15, maxMessages: 5 },
+    list: { defaultLimit: 20, maxLimit: 100 },
+    storage: { subjectMaxLength: 160, userAgentMaxLength: 280 },
+    form: {
+      name: { minLength: 2, maxLength: 120 },
+      replyTo: { minLength: 5, maxLength: 180 },
+      subject: { minLength: 2, maxLength: 160 },
+      message: { minLength: 10, maxLength: 4000 },
+    },
+  },
+  analytics: {
+    timezone: "Europe/Berlin",
+    retentionDays: 90,
+    summary: { defaultDays: 30, maxDays: 90 },
+    topPagesLimit: 8,
+    locationsLimit: 8,
+    text: {
+      pathMaxLength: 180,
+      userAgentMaxLength: 280,
+      referrerMaxLength: 300,
+      referrerHostMaxLength: 160,
+      countryCodeMaxLength: 12,
+      regionMaxLength: 120,
+      cityMaxLength: 120,
+    },
+  },
+  audit: { defaultLimit: 50, maxLimit: 200 },
+  contactMail: {
+    provider: "graph",
+    subjectPrefix: "[Shiftplan]",
+    saveToSentItemsDefault: false,
+    tokenSkewSeconds: 60,
+    graphScope: "https://graph.microsoft.com/.default",
+    timezone: "Europe/Berlin",
+    subjectMaxLength: 240,
+    errorBodyMaxLength: 800,
+  },
+});
+
+/**
+ * Nothing may change the defaults in place; load.js hands out copies.
+ * @template T
+ * @param {T} value
+ * @returns {T}
+ */
+function deepFreeze(value) {
+  if (value && typeof value === "object") {
+    for (const entry of Object.values(value)) deepFreeze(entry);
+    Object.freeze(value);
+  }
+  return value;
+}

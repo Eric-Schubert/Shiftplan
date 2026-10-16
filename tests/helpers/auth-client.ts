@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { afterEach, beforeEach } from "vitest";
-import backendConfig from "../../config/backend.config.json";
+import { BACKEND_CONFIG_DEFAULTS as backendConfig } from "~/server/lib/config/defaults.js";
 import { createApiClient, type ApiClient } from "./api-harness";
 import { apiRoutes } from "./routes";
 
