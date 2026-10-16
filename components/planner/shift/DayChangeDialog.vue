@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
+import { usePlannerWeek } from "~/composables/usePlannerWeek";
 import { cellKey, pruneSaved } from "~/utils/day-change-cells";
 import { weekLabel } from "~/shared/utils/format/week";
 import { datesOfISOWeek } from "~/shared/utils/week";
@@ -15,10 +16,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update:visible", value: boolean): void;
-  (e: "updated"): void;
 }>();
 
 const dataStore = useDataStore();
+const { refreshWeek } = usePlannerWeek();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
@@ -72,7 +73,7 @@ async function toggle(staffId: number, date: string, present: boolean) {
       body: { staff_id: staffId, shift_id: props.shift.shift_id, date, present },
     });
     saved.value = { ...saved.value, [cellKey(staffId, date)]: present };
-    emit("updated");
+    void refreshWeek();
   } catch (cause) {
     error.value = requestError(cause, "planner.shift.dayChange.failed");
   } finally {

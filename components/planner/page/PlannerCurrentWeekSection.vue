@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
+import { usePlannerWeek } from "~/composables/usePlannerWeek";
 
 const props = defineProps<{
   absences: Absence[];
@@ -22,10 +23,7 @@ const props = defineProps<{
   myStaffId?: number | null;
 }>();
 
-const emit = defineEmits<{
-  (e: "updated"): void;
-  (e: "generate"): void;
-}>();
+const { refreshWeek, requestFill } = usePlannerWeek();
 
 // Everyone reads the week grid; planners switch to the cards to edit the plan.
 const view = ref<"week" | "plan">("week");
@@ -91,7 +89,6 @@ const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum 
           :coverage-dates="coverageDates"
           :day-changes="dayChanges"
           :my-staff-id="myStaffId"
-          @updated="emit('updated')"
           @edit-days="dayShiftId = $event"
         />
       </div>
@@ -103,7 +100,6 @@ const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum 
         :my-staff-id="myStaffId"
         :year="year"
         :week="week"
-        @updated="emit('updated')"
       />
 
       <div
@@ -114,7 +110,7 @@ const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum 
           {{ $t("planner.week.section.unassigned") }}
         </span>
         <span>{{ $t("planner.week.section.unassignedText") }}</span>
-        <button v-if="canEditShifts" type="button" class="font-semibold text-[var(--accent-strong)] hover:underline" @click="emit('generate')">
+        <button v-if="canEditShifts" type="button" class="font-semibold text-[var(--accent-strong)] hover:underline" @click="requestFill()">
           {{ $t("planner.week.section.generateNow") }}
         </button>
       </div>
@@ -126,7 +122,7 @@ const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum 
         <h4 class="text-base font-semibold text-[var(--text-1)]">{{ $t("planner.week.section.loadFailed") }}</h4>
         <p class="mx-auto max-w-[36rem] text-sm leading-6">{{ $t("planner.week.section.loadFailedText") }}</p>
       </div>
-      <PrimeButton :label="$t('planner.week.section.reload')" icon="pi pi-refresh" size="small" class="min-h-9" @click="emit('updated')" />
+      <PrimeButton :label="$t('planner.week.section.reload')" icon="pi pi-refresh" size="small" class="min-h-9" @click="refreshWeek()" />
     </div>
 
     <LazyDayChangeDialog
@@ -136,7 +132,6 @@ const totalAssigned = computed(() => props.shiftList.reduce((sum, shift) => sum 
       :year="year"
       :week="week"
       :day-changes="dayChanges.filter((change) => change.shift_id === dayShift!.shift_id)"
-      @updated="emit('updated')"
     />
   </section>
 </template>

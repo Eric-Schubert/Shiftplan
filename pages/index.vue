@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import type { WeeklyShiftplanWithPattern } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
-import { assignmentsReplacedByFill, planShowsWeek } from "~/utils/plan-week";
+import { providePlannerWeek } from "~/composables/usePlannerWeek";
 import { requestErrorStatus } from "~/utils/request-error";
 
 const appStore = useAppStore();
-const dataStore = useDataStore();
-const { authFetch } = useAuthFetch();
-const { notify } = useErrorNotices();
 const { status: viewerStatus, load: loadViewerStatus, login: viewerLogin } = useViewerAccess();
 const { detect: detectPush } = usePushNotifications();
 const { inviteCode } = usePlannerDeepLinks(redeemAccessCode);
@@ -43,26 +40,15 @@ const { data: absences, refresh: refreshAbsences } = await useFetch<Absence[]>("
   immediate: !needsAccessCode.value,
   default: () => [],
 });
-const generating = ref(false);
-const confirmFill = ref(false);
 const { weekPreviewSentinel, showWeekPreview } = useWeekPreviewReveal();
-// Counts saved changes, so the preview of the next weeks reloads with the plan.
-const planRevision = ref(0);
-// The skeleton only covers a week whose plan is not there yet, not a reload after a change.
-const showSkeleton = computed(() => pending.value && !planShowsWeek(shiftplan.value, appStore.selectedYear, appStore.selectedWeek));
-// Unknown (null) while the selected week's plan loads or failed: the hero button waits, any other trigger asks.
-const replacedByFill = computed(() =>
-  assignmentsReplacedByFill(shiftplan.value, dataStore.rotationPattern, {
-    year: appStore.selectedYear,
-    week: appStore.selectedWeek,
-    loading: pending.value,
-  })
-);
-
-async function refreshWeek() {
-  await Promise.all([refresh(), refreshAbsences()]);
-  planRevision.value++;
-}
+// Everything under the shell reaches the week through usePlannerWeek().
+const { generating, confirmFill, planRevision, replacedByFill, refreshWeek, generateFromPattern } = providePlannerWeek({
+  shiftplan,
+  pending,
+  absences,
+  refresh,
+  refreshAbsences,
+});
 
 // An expired or changed team code refuses the plan; then the code gate is what helps, not a network error.
 watch(planError, (error) => {
@@ -91,23 +77,6 @@ async function redeemAccessCode(code: string) {
     accessError.value = t("app.teamAccess.linkExpired");
   }
 }
-
-function requestFill() {
-  if (replacedByFill.value === 0) void generateFromPattern();
-  else confirmFill.value = true;
-}
-
-async function generateFromPattern() {
-  generating.value = true;
-  try {
-    await authFetch("/api/shiftplan/generate", { method: "POST", body: { year: appStore.selectedYear, week: appStore.selectedWeek } });
-  } catch (error) {
-    notify(error, "planner.week.fill.failed");
-  }
-  confirmFill.value = false;
-  await refreshWeek();
-  generating.value = false;
-}
 </script>
 
 <template>
@@ -116,18 +85,7 @@ async function generateFromPattern() {
 
     <TeamAccessGate v-if="needsAccessCode" :key="accessError" :initial-error="accessError" />
 
-    <PlannerWeekShell
-      v-else
-      :shiftplan="shiftplan"
-      :pending="showSkeleton"
-      :absences="absences ?? []"
-      :member="member"
-      :generating="generating"
-      :fill-ready="replacedByFill !== null"
-      @updated="refreshWeek"
-      @generate="requestFill"
-      @generated="refreshWeek"
-    >
+    <PlannerWeekShell v-else :member="member">
       <div ref="weekPreviewSentinel">
         <LazyWeekPreview v-if="showWeekPreview" :revision="planRevision" />
       </div>

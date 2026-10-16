@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
+import { usePlannerWeek } from "~/composables/usePlannerWeek";
 import { useShiftCardInteractions } from "~/composables/useShiftCardInteractions";
 import { formatWeekdays } from "~/shared/utils/format/day";
 import { understaffedDates } from "~/utils/shift-coverage";
@@ -14,9 +15,10 @@ const props = defineProps<{
   myStaffId?: number | null;
 }>();
 
-const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
+const emit = defineEmits<{ "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
+const { refreshWeek } = usePlannerWeek();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
 
@@ -43,7 +45,7 @@ const {
   shift,
   year,
   week,
-  onUpdated: () => emit("updated"),
+  onUpdated: () => void refreshWeek(),
 });
 
 // Gaps in the plan itself; absences show up in the week grid. All days short reads as plain „Unterbesetzt“.
