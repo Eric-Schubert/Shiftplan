@@ -19,9 +19,10 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
+const { t } = useI18n();
 const dialogHeader = computed(() => {
-  if (!props.context) return "Mitarbeiter zuweisen";
-  return `Mitarbeiter zu '${props.context.shiftName}' (Woche ${props.context.patternWeek}) hinzufügen`;
+  if (!props.context) return t("settings.rotation.assign.header");
+  return t("settings.rotation.assign.headerFor", { shift: props.context.shiftName, week: props.context.patternWeek });
 });
 </script>
 
@@ -34,7 +35,7 @@ const dialogHeader = computed(() => {
   >
     <div class="space-y-2">
       <p v-if="availableStaff.length === 0" class="text-gray-500 dark:text-gray-400">
-        Alle aktiven Mitarbeiter sind bereits zugewiesen.
+        {{ t("settings.rotation.assign.allAssigned") }}
       </p>
 
       <button
@@ -48,7 +49,7 @@ const dialogHeader = computed(() => {
         <span class="text-gray-900 dark:text-white">{{ staff.name }}</span>
         <PrimeTag
           v-if="staff.is_parttime"
-          value="Teilzeit"
+          :value="t('settings.staff.partTime')"
           severity="secondary"
           class="text-xs"
         />

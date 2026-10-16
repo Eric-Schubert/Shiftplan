@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (e: "staff-drag-start", payload: RotationStaffDragPayload): void;
   (e: "unassign-staff", patternWeek: number, staffId: number, shiftId: number): void;
 }>();
+const { t } = useI18n();
 
 function isDragTarget(shiftId: number) {
   return props.activeDropTarget === `${props.weekData.pattern_week}-${shiftId}`;
@@ -37,7 +38,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
   <div class="overflow-hidden rounded-lg border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
     <div class="border-b bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-700/50">
       <h3 class="font-semibold text-gray-900 dark:text-white">
-        Musterwoche {{ weekData.pattern_week }}
+        {{ t("settings.rotation.patternWeek", { week: weekData.pattern_week }) }}
       </h3>
     </div>
 
@@ -78,7 +79,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             <button
               type="button"
               class="ml-0.5 text-xs text-gray-400 hover:text-red-500"
-              :aria-label="`${staff.name} aus Musterwoche ${weekData.pattern_week} und Schicht ${assignment.shift.name} entfernen`"
+              :aria-label="t('settings.rotation.week.remove', { name: staff.name, week: weekData.pattern_week, shift: assignment.shift.name })"
               @click="emit('unassign-staff', weekData.pattern_week, staff.staff_id, assignment.shift.shift_id)"
             >
               &times;
@@ -89,7 +90,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             v-if="isDragTarget(assignment.shift.shift_id) && assignment.staff.length === 0"
             class="text-xs italic text-blue-500 dark:text-blue-400"
           >
-            Hier ablegen
+            {{ t("settings.rotation.week.dropHere") }}
           </span>
 
           <PrimeButton
@@ -97,8 +98,8 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             text
             rounded
             class="!h-11 !w-11"
-            :aria-label="`Mitarbeiter zu ${assignment.shift.name} in Musterwoche ${weekData.pattern_week} hinzufügen`"
-            title="Mitarbeiter hinzufuegen"
+            :aria-label="t('settings.rotation.week.add', { shift: assignment.shift.name, week: weekData.pattern_week })"
+            :title="t('settings.rotation.week.addTitle')"
             @click="handleOpenAssign(assignment.shift.shift_id, assignment.shift.name)"
           />
         </div>
@@ -108,7 +109,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
           class="flex items-center gap-1 text-yellow-600 dark:text-yellow-400"
         >
           <span class="text-lg" aria-hidden="true">!</span>
-          <span class="text-sm">{{ assignment.shift.min_staff - assignment.staff.length }} fehlt</span>
+          <span class="text-sm">{{ t("settings.rotation.week.missing", { count: assignment.shift.min_staff - assignment.staff.length }) }}</span>
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ const { authFetch } = useAuthFetch();
 
 const deleting = ref(false);
 const deleteError = ref("");
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -39,7 +40,7 @@ async function deleteUser() {
     dialogVisible.value = false;
     emit("deleted");
   } catch (error: any) {
-    deleteError.value = error.data?.statusMessage || "Benutzer konnte nicht gelöscht werden.";
+    deleteError.value = error.data?.statusMessage || t("settings.users.deleteFailed");
   } finally {
     deleting.value = false;
   }
@@ -50,14 +51,13 @@ async function deleteUser() {
   <PrimeDialog
     v-model:visible="dialogVisible"
     modal
-    header="Benutzer löschen"
+    :header="t('settings.users.delete')"
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div class="space-y-3">
-      <p class="text-sm text-gray-700 dark:text-gray-300">
-        Benutzer <strong>{{ user?.username }}</strong> wirklich löschen?
-        Dieser Schritt kann nicht rückgängig gemacht werden.
-      </p>
+      <i18n-t keypath="settings.users.deleteText" tag="p" class="text-sm text-gray-700 dark:text-gray-300">
+        <template #name><strong>{{ user?.username }}</strong></template>
+      </i18n-t>
 
       <small
         v-if="deleteError"
@@ -70,13 +70,13 @@ async function deleteUser() {
 
     <template #footer>
       <PrimeButton
-        label="Abbrechen"
+        :label="t('common.actions.cancel')"
         severity="secondary"
         text
         @click="dialogVisible = false"
       />
       <PrimeButton
-        label="Benutzer löschen"
+        :label="t('settings.users.delete')"
         severity="danger"
         class="min-h-11"
         :loading="deleting"

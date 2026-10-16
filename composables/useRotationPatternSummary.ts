@@ -36,10 +36,5 @@ export function useRotationPatternSummary(today = isoWeekOfDate(new Date())) {
     assignmentCount,
     currentPatternWeek,
     understaffedCount,
-    assignmentsLabel,
   };
-}
-
-function assignmentsLabel(count: number): string {
-  return count === 1 ? "1 Zuweisung" : `${count} Zuweisungen`;
 }

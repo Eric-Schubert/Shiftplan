@@ -8,7 +8,8 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfig = {
     requireUppercase: true,
     requireLowercase: true,
     requireNumber: true,
-    hint: "Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl",
+    // Empty: the forms show the catalog's settings.auth.passwordHint until the instance sends its own.
+    hint: "",
   },
   username: { minLength: 3, maxLength: 100 },
   contactForm: {

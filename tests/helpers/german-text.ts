@@ -7,7 +7,9 @@ type Token = { kind: string; text: string; line: number };
 // Stems also catch compounds („Tauschanfrage“); the whole words would match English or code as prefixes.
 const WORD_STEMS = /\b(?:anfrage|tausch|schicht|storno|ausfall|planung|zusage|nachricht|ersatz)/i;
 const WORDS =
-  /\b(?:abbrechen|abmelden|aktivieren|aktuell|alle|anmelden|ansicht|austragen|bearbeiten|benutzer|bitte|eintragen|einstellungen|entfernen|erneut|fehler|fehlgeschlagen|feiertage?|ferien|fertig|generieren|geladen|gespeichert|grund|heute|hinweis|kalender|laden|mitarbeiter\w*|muster|neue?[rs]?|notiz|offen|passwort|planer|schulferien|senden|speichern|tage|unbekannt\w*|unbesetzt|unterbesetzt|vertretung|weiter|wochen?|zeitraum|zugangscode|zuweisen)\b/i;
+  /\b(?:abbrechen|abmelden|aktivieren|aktuell|alle|anmelden|ansicht|austragen|bearbeiten|benutzer|bitte|eintragen|einstellungen|ende|entfernen|erneut|fehler|fehlgeschlagen|feiertage?|ferien|fertig|generieren|geladen|gespeichert|grund|heute|hinweis|(?:in)?aktiv|kalender|kopiert|laden|mitarbeiter\w*|muster|neue?[rs]?|notiz|offen|passwort|planer|rolle|schulferien|seite|senden|speichern|sperren|tage|teilzeit|unbekannt\w*|unbesetzt|unterbesetzt|vertretung|vollzeit|vorschau|weiter|wochen?|zeit|zeitraum|zugangscode|zuweisen)\b/i;
+// German UI words that are also English or code words, so only capitalized as a label: „Start“.
+const CAPITALIZED_WORDS = /\bStart\b/;
 // Paths, query strings, catalog keys and identifiers are not texts:
 // "/?anfragen=1", "push.requests.cancelled.title", "schichtplaner_pushPromptDismissed".
 const NOT_TEXT = /^[/?#]|^[a-z]\w*(?:\.\w+)+$|^\w+_\w+$/;
@@ -18,12 +20,12 @@ const UMLAUTS = /[äöüß]|\\u00[c-f][0-9a-f]/i;
 export function isGermanText(text: string): boolean {
   // isGermanProse skips quoted parts (fine for comments); in a UI text the quotes are part of it.
   const unquoted = text.replace(/[„“”"'`]/g, "");
-  return UMLAUTS.test(text) || isGermanProse(unquoted) || (!NOT_TEXT.test(text) && (WORD_STEMS.test(text) || WORDS.test(text)));
+  return UMLAUTS.test(text) || isGermanProse(unquoted) || (!NOT_TEXT.test(text) && hasGermanWord(text));
 }
 
 /** One German UI word or stem, without the umlaut and stopword checks: for regex literals, where „ä“ may be fine. */
 export function hasGermanWord(text: string): boolean {
-  return WORD_STEMS.test(text) || WORDS.test(text);
+  return WORD_STEMS.test(text) || WORDS.test(text) || CAPITALIZED_WORDS.test(text);
 }
 
 /**

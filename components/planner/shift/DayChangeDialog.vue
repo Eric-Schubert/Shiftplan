@@ -118,7 +118,7 @@ watch(addStaffId, (staffId) => {
     </div>
 
     <template #footer>
-      <PrimeButton :label="t('planner.shift.dayChange.done')" @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.done')" @click="dialogVisible = false" />
     </template>
   </PrimeDialog>
 </template>

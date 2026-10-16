@@ -33,7 +33,6 @@ export default {
   dayChange: {
     intro: "Tippe auf einen Tag, um jemanden nur an diesem Tag ein- oder auszutragen. Der Wochenplan bleibt die Grundlage.",
     addPerson: "Weitere Person für einzelne Tage",
-    done: "Fertig",
     failed: "Änderung konnte nicht gespeichert werden",
     notInPlan: "nicht im Wochenplan",
     signOut: "{name} am {day} austragen",

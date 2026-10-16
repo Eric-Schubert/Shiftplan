@@ -60,7 +60,7 @@ watch(isVisible, (visible) => {
       <div class="changelog-footer">
         <PrimeButton
           v-if="selectedEntry"
-          :label="t('changelog.back')"
+          :label="t('common.actions.back')"
           icon="pi pi-arrow-left"
           severity="secondary"
           outlined

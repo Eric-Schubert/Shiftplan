@@ -11,6 +11,7 @@ const emit = defineEmits<{
 
 const copied = ref(false);
 const qrSvg = ref("");
+const { t } = useI18n();
 
 const accessLink = computed(() =>
   import.meta.client ? `${window.location.origin}/?zugang=${encodeURIComponent(props.code)}` : ""
@@ -30,7 +31,7 @@ async function copyLink() {
     copied.value = true;
     setTimeout(() => (copied.value = false), 2000);
   } catch {
-    emit("error", "Link konnte nicht kopiert werden");
+    emit("error", t("settings.team.card.copyFailed"));
   }
 }
 </script>
@@ -40,29 +41,29 @@ async function copyLink() {
     <div
       class="h-44 w-44 flex-shrink-0 rounded-xl border border-[var(--border-soft)] bg-white p-2 [&_svg]:h-full [&_svg]:w-full"
       role="img"
-      :aria-label="`QR-Code für ${accessLink}`"
+      :aria-label="t('settings.team.card.qrLabel', { link: accessLink })"
       v-html="qrSvg"
     ></div>
 
     <div class="min-w-0 space-y-3">
       <div>
-        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">Zugangscode</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">{{ t("app.teamAccess.code") }}</p>
         <p class="font-mono text-2xl font-semibold tracking-wider text-[var(--text-1)]">{{ code }}</p>
       </div>
       <div>
-        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">Direktlink</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-[var(--text-3)]">{{ t("settings.team.card.link") }}</p>
         <p class="break-all font-mono text-sm text-[var(--text-2)]">{{ accessLink }}</p>
       </div>
       <div class="flex flex-wrap gap-2">
         <PrimeButton
-          :label="copied ? 'Kopiert' : 'Link kopieren'"
+          :label="copied ? t('settings.team.card.copied') : t('settings.team.card.copy')"
           :icon="copied ? 'pi pi-check' : 'pi pi-copy'"
           size="small"
           class="min-h-9"
           @click="copyLink"
         />
         <PrimeButton
-          label="Neuen Code erzeugen"
+          :label="t('settings.team.card.generate')"
           icon="pi pi-refresh"
           severity="secondary"
           size="small"
@@ -72,7 +73,7 @@ async function copyLink() {
           @click="emit('generate')"
         />
         <PrimeButton
-          label="Code entfernen"
+          :label="t('settings.team.card.remove')"
           icon="pi pi-lock-open"
           severity="danger"
           size="small"

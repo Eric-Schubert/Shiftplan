@@ -5,7 +5,7 @@ const showDialog = ref(false);
 <template>
   <div>
     <PrimeButton
-      label="Jahr kopieren"
+      :label="$t('settings.yearCopy.button')"
       icon="pi pi-copy"
       severity="secondary"
       class="min-h-11"

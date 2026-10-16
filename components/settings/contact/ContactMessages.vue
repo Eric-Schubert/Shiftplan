@@ -8,6 +8,7 @@ const loading = ref(true);
 const updatingId = ref<number | null>(null);
 const page = ref(0);
 const limit = 10;
+const { t } = useI18n();
 
 const totalPages = computed(() => Math.ceil(total.value / limit));
 
@@ -62,11 +63,11 @@ onMounted(fetchMessages);
   <div>
     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p class="text-sm leading-6 text-[var(--text-2)]">
-        Eingegangene Nachrichten aus dem öffentlichen Kontaktformular.
+        {{ t("settings.contact.intro") }}
       </p>
       <PrimeButton
         icon="pi pi-refresh"
-        label="Aktualisieren"
+        :label="t('settings.contact.refresh')"
         severity="secondary"
         outlined
         class="min-h-11"
@@ -91,7 +92,7 @@ onMounted(fetchMessages);
       </div>
 
       <div v-else class="rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-8 text-center text-sm text-[var(--text-3)]">
-        Noch keine Kontaktanfragen vorhanden.
+        {{ t("settings.contact.empty") }}
       </div>
 
       <SettingsPager
@@ -103,7 +104,7 @@ onMounted(fetchMessages);
         @next="nextPage"
       >
         <span class="text-sm text-[var(--text-2)]">
-          Seite {{ page + 1 }} von {{ totalPages }} ({{ total }} Nachrichten)
+          {{ t("settings.contact.page", { page: page + 1, pages: totalPages, count: total }) }}
         </span>
       </SettingsPager>
     </template>

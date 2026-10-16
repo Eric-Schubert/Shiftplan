@@ -13,11 +13,11 @@ const activeStep = defineModel<number>("activeStep", { required: true });
 
 <template>
   <div class="flex w-full items-center justify-between gap-2">
-    <PrimeButton label="Schließen" text class="min-h-11" @click="emit('close')" />
+    <PrimeButton :label="$t('common.actions.close')" text class="min-h-11" @click="emit('close')" />
     <div class="flex gap-2">
       <PrimeButton
         v-if="activeStep > 0"
-        label="Zurück"
+        :label="$t('common.actions.back')"
         severity="secondary"
         text
         class="min-h-11"
@@ -25,7 +25,7 @@ const activeStep = defineModel<number>("activeStep", { required: true });
       />
       <PrimeButton
         v-if="activeStep < stepCount - 1"
-        label="Weiter"
+        :label="$t('common.actions.next')"
         icon="pi pi-arrow-right"
         icon-pos="right"
         class="min-h-11"
@@ -33,7 +33,7 @@ const activeStep = defineModel<number>("activeStep", { required: true });
       />
       <PrimeButton
         v-else-if="rolledOut"
-        label="Fertig"
+        :label="$t('common.actions.done')"
         icon="pi pi-check"
         class="min-h-11"
         @click="emit('close')"

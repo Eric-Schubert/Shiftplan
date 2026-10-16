@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
 import { isoWeekOfDate } from "~/shared/utils/week";
 
 const props = defineProps<{
@@ -14,12 +15,14 @@ const emit = defineEmits<{
 }>();
 
 const dataStore = useDataStore();
+const { t } = useI18n();
 
-const steps = [
-  { title: "Muster", text: "Übernehmen oder per Excel importieren" },
-  { title: "Prüfen", text: "Besetzung je Musterwoche ansehen" },
-  { title: "Ausrollen", text: "Wochenpläne erzeugen" },
-];
+const STEPS = [
+  { title: "settings.wizard.steps.pattern.title", text: "settings.wizard.steps.pattern.text" },
+  { title: "settings.wizard.steps.review.title", text: "settings.wizard.steps.review.text" },
+  { title: "settings.wizard.steps.rollout.title", text: "settings.wizard.steps.rollout.text" },
+] as const satisfies readonly { title: MessageKey; text: MessageKey }[];
+const steps = computed(() => STEPS.map((step) => ({ title: t(step.title), text: t(step.text) })));
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -68,7 +71,7 @@ watch(activeStep, () => {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Rotations-Assistent"
+    :header="t('settings.wizard.header')"
     modal
     :style="{ width: '52rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
@@ -106,10 +109,7 @@ watch(activeStep, () => {
       />
 
       <section v-else class="space-y-4">
-        <p class="max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-          Erzeugt die Wochenpläne aus dem Muster. Wochen, die schon geplant sind, bleiben
-          unangetastet, außer du wählst ausdrücklich „überschreiben“.
-        </p>
+        <p class="max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">{{ t("settings.wizard.rolloutIntro") }}</p>
         <RotationRolloutPanel
           :initial-year="today.year"
           :initial-week="today.week"

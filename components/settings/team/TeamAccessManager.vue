@@ -16,6 +16,7 @@ const customCode = ref("");
 const pendingAction = ref<PendingAction | null>(null);
 const instanceName = ref("");
 const nextWeekFromSaturday = ref(true);
+const { t } = useI18n();
 
 const confirmVisible = computed({
   get: () => pendingAction.value !== null,
@@ -59,7 +60,7 @@ async function applyChange(action: PendingAction) {
     pendingAction.value = null;
     await load();
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Zugangscode konnte nicht gespeichert werden";
+    error.value = cause?.data?.statusMessage || t("settings.team.saveFailed");
     pendingAction.value = null;
   } finally {
     saving.value = false;
@@ -71,26 +72,22 @@ onMounted(load);
 
 <template>
   <div class="space-y-5">
-    <p class="max-w-[46rem] text-sm leading-6 text-[var(--text-2)]">
-      Mit einem Zugangscode sieht nur dein Team den Schichtplan. Mitarbeitende brauchen kein eigenes
-      Konto: Sie scannen den QR-Code, sehen den Plan und können Benachrichtigungen aktivieren. Ändern
-      können Schichten weiterhin nur Planer und Admins.
-    </p>
+    <p class="max-w-[46rem] text-sm leading-6 text-[var(--text-2)]">{{ t("settings.team.intro") }}</p>
 
     <div v-if="loading && !access" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
       <PrimeProgressSpinner class="!h-5 !w-5" />
-      Wird geladen.
+      {{ t("settings.loading") }}
     </div>
 
     <template v-else-if="access">
       <div class="flex flex-wrap items-center gap-2 text-sm">
         <span class="planner-chip">
           <i :class="access.code ? 'pi pi-lock' : 'pi pi-lock-open'" class="text-[0.7rem]" aria-hidden="true"></i>
-          {{ access.code ? "Zugangscode aktiv" : "Plan öffentlich lesbar" }}
+          {{ access.code ? t("settings.team.codeActive") : t("settings.team.public") }}
         </span>
         <span class="planner-chip">
           <i class="pi pi-bell text-[0.7rem]" aria-hidden="true"></i>
-          {{ access.subscriberCount === 1 ? "1 Gerät mit Push" : `${access.subscriberCount} Geräte mit Push` }}
+          {{ t("settings.team.subscribers", access.subscriberCount) }}
         </span>
       </div>
 
@@ -104,7 +101,7 @@ onMounted(load);
       />
       <PrimeButton
         v-else
-        label="Zugangscode einrichten"
+        :label="t('settings.team.setUp')"
         icon="pi pi-lock"
         class="min-h-11"
         :loading="saving"

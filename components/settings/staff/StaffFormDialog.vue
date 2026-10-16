@@ -13,6 +13,7 @@ const emit = defineEmits<{
 const dataStore = useDataStore();
 const saving = ref(false);
 const error = ref("");
+const { t } = useI18n();
 const form = ref<StaffCreateDTO>(createDefaultForm());
 
 const dialogVisible = computed({
@@ -59,7 +60,7 @@ async function saveStaff() {
 
     dialogVisible.value = false;
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Speichern fehlgeschlagen";
+    error.value = cause?.data?.statusMessage || t("settings.staff.form.saveFailed");
   } finally {
     saving.value = false;
   }
@@ -69,30 +70,30 @@ async function saveStaff() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    :header="isEditing ? 'Mitarbeiter bearbeiten' : 'Mitarbeiter anlegen'"
+    :header="isEditing ? t('settings.staff.edit') : t('settings.staff.form.createHeader')"
     modal
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div class="space-y-4">
       <div class="flex flex-col gap-2">
-        <label for="staff-name" class="font-medium">Name</label>
+        <label for="staff-name" class="font-medium">{{ t("validation.fields.name") }}</label>
         <PrimeInputText
           id="staff-name"
           v-model="form.name"
-          placeholder="Vollständigen Namen eingeben"
+          :placeholder="t('settings.staff.form.namePlaceholder')"
         />
       </div>
 
       <div class="flex flex-col gap-2">
-        <label for="staff-short-code" class="font-medium">Kürzel</label>
+        <label for="staff-short-code" class="font-medium">{{ t("member.shortCode") }}</label>
         <PrimeInputText
           id="staff-short-code"
           v-model="form.short_code"
           maxlength="8"
           class="font-mono uppercase"
-          :placeholder="isEditing ? '' : 'Leer lassen für Initialen'"
+          :placeholder="isEditing ? '' : t('settings.staff.form.shortCodePlaceholder')"
         />
-        <small class="text-xs text-[var(--text-3)]">Zum Anmelden mit PIN, 2 bis 8 Buchstaben oder Ziffern.</small>
+        <small class="text-xs text-[var(--text-3)]">{{ t("settings.staff.form.shortCodeHint") }}</small>
       </div>
 
       <div class="flex items-center gap-2">
@@ -103,16 +104,16 @@ async function saveStaff() {
           :true-value="1"
           :false-value="0"
         />
-        <label for="parttime">Teilzeit</label>
+        <label for="parttime">{{ t("settings.staff.partTime") }}</label>
       </div>
 
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </div>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        :label="isEditing ? 'Speichern' : 'Erstellen'"
+        :label="isEditing ? t('common.actions.save') : t('common.actions.create')"
         :loading="saving"
         :disabled="!form.name.trim()"
         @click="saveStaff"

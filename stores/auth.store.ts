@@ -101,11 +101,11 @@ export const useAuthStore = defineStore("auth", {
           return { success: true };
         }
         this._signOutLocally();
-        return { success: false, message: "Login fehlgeschlagen" };
+        return { success: false };
       } catch (error: any) {
         this._signOutLocally();
-        const message = error.data?.statusMessage || error.data?.message || "Login fehlgeschlagen";
-        return { success: false, message };
+        // Without a server message the sign-in form words the failure itself.
+        return { success: false, message: error.data?.statusMessage || error.data?.message };
       }
     },
 

@@ -14,7 +14,7 @@ const colorOptions = [
 
 <template>
   <div class="flex flex-col gap-2">
-    <label class="font-medium">Farbe</label>
+    <label class="font-medium">{{ $t("validation.fields.color") }}</label>
     <div class="flex flex-wrap gap-2">
       <button
         v-for="option in colorOptions"
@@ -26,7 +26,7 @@ const colorOptions = [
           'border-transparent': color !== option.value,
         }"
         :style="{ backgroundColor: option.value }"
-        :aria-label="`Farbe ${option.value} auswählen`"
+        :aria-label="$t('settings.shifts.form.chooseColor', { color: option.value })"
         @click="color = option.value"
       />
     </div>

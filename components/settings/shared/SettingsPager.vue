@@ -10,7 +10,7 @@ const emit = defineEmits<{ (e: "prev"): void; (e: "next"): void }>();
       icon="pi pi-chevron-left"
       text
       class="!h-11 !w-11"
-      aria-label="Vorherige Seite"
+      :aria-label="$t('settings.pager.previous')"
       :disabled="page === 0"
       @click="emit('prev')"
     />
@@ -19,7 +19,7 @@ const emit = defineEmits<{ (e: "prev"): void; (e: "next"): void }>();
       icon="pi pi-chevron-right"
       text
       class="!h-11 !w-11"
-      aria-label="Nächste Seite"
+      :aria-label="$t('settings.pager.next')"
       :disabled="page >= totalPages - 1"
       @click="emit('next')"
     />

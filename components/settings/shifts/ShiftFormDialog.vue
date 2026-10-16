@@ -15,6 +15,7 @@ const dataStore = useDataStore();
 const configStore = useConfigStore();
 
 const saving = ref(false);
+const { t } = useI18n();
 const form = ref<ShiftCreateDTO>(createDefaultForm(props.nextSortOrder));
 
 const dialogVisible = computed({
@@ -76,28 +77,28 @@ async function saveShift() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    :header="isEditing ? 'Schicht bearbeiten' : 'Schicht anlegen'"
+    :header="isEditing ? t('settings.shifts.edit') : t('settings.shifts.form.createHeader')"
     modal
     :style="{ width: '30rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div class="space-y-4">
       <div class="flex flex-col gap-2">
-        <label for="shift-name" class="font-medium">Name</label>
+        <label for="shift-name" class="font-medium">{{ t("validation.fields.name") }}</label>
         <PrimeInputText
           id="shift-name"
           v-model="form.name"
-          placeholder="z. B. Frühschicht"
+          :placeholder="t('settings.shifts.form.namePlaceholder')"
         />
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="flex flex-col gap-2">
-          <label for="shift-start" class="font-medium">Start</label>
+          <label for="shift-start" class="font-medium">{{ t("settings.shifts.form.start") }}</label>
           <PrimeInputText id="shift-start" v-model="form.start_time" type="time" />
         </div>
 
         <div class="flex flex-col gap-2">
-          <label for="shift-end" class="font-medium">Ende</label>
+          <label for="shift-end" class="font-medium">{{ t("settings.shifts.form.end") }}</label>
           <PrimeInputText id="shift-end" v-model="form.end_time" type="time" />
         </div>
       </div>
@@ -105,7 +106,7 @@ async function saveShift() {
       <ShiftColorPicker v-model="form.color" />
 
       <div class="flex flex-col gap-2">
-        <label for="shift-min-staff" class="font-medium">Min. Mitarbeiter</label>
+        <label for="shift-min-staff" class="font-medium">{{ t("validation.fields.minStaff") }}</label>
         <PrimeInputNumber
           v-model="form.min_staff"
           input-id="shift-min-staff"
@@ -117,9 +118,9 @@ async function saveShift() {
     </div>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        :label="isEditing ? 'Speichern' : 'Erstellen'"
+        :label="isEditing ? t('common.actions.save') : t('common.actions.create')"
         :loading="saving"
         :disabled="!form.name.trim()"
         @click="saveShift"
