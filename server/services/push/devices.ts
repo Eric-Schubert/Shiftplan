@@ -1,6 +1,5 @@
 import { DEFAULT_LOCALE, type AppLocale } from "~/i18n/config";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
-import { purgeMemberAccess } from "~/server/services/member-access.service";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 import { apiError } from "~/server/utils/api-error";
 import { localeFromTag } from "~/server/utils/locale";
@@ -11,9 +10,8 @@ const MAX_TEAM_DEVICES = 5000;
 const MAX_DEVICES_PER_PERSON = 10;
 const MAX_DEVICE_TOKEN_LENGTH = 4096;
 
-/** App devices that get pushes. Leftovers of removed people are purged first. */
+/** App devices that get pushes. */
 export function listDevices(): StoredDevice[] {
-  purgeMemberAccess();
   return getAdminDatabase()
     .prepare("SELECT token, staff_id, scope, member_session IS NOT NULL AS personal, locale FROM push_devices")
     .all() as StoredDevice[];

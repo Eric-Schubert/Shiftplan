@@ -110,11 +110,12 @@ describe("absences", () => {
       )
       .run(ANNA);
     const date = client.mainDb.prepare("SELECT absence_date FROM absences").get() as { absence_date: string };
-    const { AbsenceService } = await import("../server/services/absence.service");
+    const { AbsenceService, purgeOldReasons } = await import("../server/services/absence.service");
     const { toISOWeek } = await import("~/shared/utils/week");
     const [year, month, day] = date.absence_date.split("-").map(Number) as [number, number, number];
     const week = toISOWeek(year, month, day);
 
+    purgeOldReasons();
     const rows = AbsenceService.listForWeek(week.year, week.week, true);
 
     expect(rows).toEqual([expect.objectContaining({ staff_name: "Anna Weber", reason: null, note: null })]);
@@ -128,9 +129,9 @@ describe("absences", () => {
     insert.run(ANNA, "-100 days", "2026-01-01 08:00:00");
     insert.run(ANNA, "-100 days", null);
     insert.run(ANNA, "-10 days", "2026-01-01 08:00:00");
-    const { AbsenceService } = await import("../server/services/absence.service");
+    const { purgeOldReasons } = await import("../server/services/absence.service");
 
-    AbsenceService.listForWeek(2026, 41, true);
+    purgeOldReasons();
 
     const rows = client.mainDb.prepare("SELECT cancelled_at IS NOT NULL AS removed FROM absences ORDER BY absence_date").all();
     expect(rows).toEqual([{ removed: 0 }, { removed: 1 }]);

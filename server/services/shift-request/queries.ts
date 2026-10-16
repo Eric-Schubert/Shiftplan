@@ -1,6 +1,5 @@
 import { getDatabase } from "~/server/utils/database";
 import { today } from "~/server/services/shift-request/common";
-import { purgeOldMessages } from "~/server/services/shift-request/purge";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 
 // Finished requests stay in the planner list this long after the decision, or until their last day.
@@ -24,7 +23,6 @@ export function getById(requestId: number): ShiftRequest | undefined {
 
 /** What a staff member sees: open takeovers of the team plus everything they are part of. */
 export function listForMember(staffId: number): ShiftRequest[] {
-  purgeOldMessages();
   clearStaleUndoAsks();
   return getDatabase()
     .prepare(
@@ -39,7 +37,6 @@ export function listForMember(staffId: number): ShiftRequest[] {
 
 /** Everything not over yet, plus what was decided recently. Expired open requests can no longer be taken up. */
 export function listForPlanner(now = Date.now()): ShiftRequest[] {
-  purgeOldMessages();
   clearStaleUndoAsks();
   const recent = new Date(now - RECENT_DAYS * DAY_MS).toISOString().replace("T", " ").slice(0, 19);
   return getDatabase()

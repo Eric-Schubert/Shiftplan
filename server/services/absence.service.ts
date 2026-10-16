@@ -11,3 +11,4 @@ export {
 export { ABSENCE_MESSAGE_MAX_LENGTH } from "~/server/services/absence/notice";
 export { cancelAbsence } from "~/server/services/absence/cancel";
 export { reportAbsence } from "~/server/services/absence/report";
+export { purgeOldReasons } from "~/server/services/absence/purge";

@@ -2,7 +2,6 @@ import { getDatabase } from "~/server/utils/database";
 import { datesOfISOWeek } from "~/shared/utils/week";
 import { insertAbsences, type CreateInput } from "~/server/services/absence/create";
 import type { Absence, PublicAbsence } from "~/server/services/absence/model";
-import { purgeOldReasons } from "~/server/services/absence/purge";
 import { resolveShifts } from "~/server/services/absence/resolve";
 
 const SELECT_ABSENCE = `
@@ -19,10 +18,7 @@ const SELECT_ABSENCE = `
 `;
 
 export const AbsenceService = {
-  purgeOldReasons,
-
   listForWeek(year: number, week: number, includeReason: boolean): Array<Absence | PublicAbsence> {
-    this.purgeOldReasons();
     const dates = datesOfISOWeek(year, week);
     const stored = getDatabase()
       .prepare(
@@ -47,7 +43,6 @@ export const AbsenceService = {
   },
 
   create(input: CreateInput): { absences: Absence[]; skipped: string[] } {
-    this.purgeOldReasons();
     const { ids, skipped } = insertAbsences(input);
     return { absences: ids.map((id) => this.getById(id)!), skipped };
   },

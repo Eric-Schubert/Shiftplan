@@ -1,6 +1,5 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
-import { purgeMemberAccess } from "~/server/services/member-access.service";
 import { recipientLocale, render, type Localized } from "~/server/services/push/locales";
 import { isUndeliverable, markDelivered } from "~/server/services/push/undeliverable";
 import { getVapidDetails } from "~/server/services/push/vapid";
@@ -16,7 +15,6 @@ const SEND_TIMEOUT_MS = 10_000;
  * in the language it subscribed with, rendered once per language.
  */
 export async function sendWebPush(payload: Localized<PushPayload>, filter: { staffIds?: number[]; excludeStaffId?: number } = {}): Promise<SendCounts> {
-  purgeMemberAccess();
   const subscriptions = (
     getAdminDatabase().prepare("SELECT subscription_id, endpoint, p256dh, auth, locale, staff_id FROM push_subscriptions").all() as Array<
       StoredSubscription & { staff_id: number | null }
