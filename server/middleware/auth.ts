@@ -6,33 +6,9 @@ import {
   refreshSessionCookies,
 } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
+import { classifyRoute } from "~/server/config/route-policy";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { getMemberToken } from "~/server/services/member-access.service";
-
-// Employee routes without a planner login. They check the team access code themselves.
-const TEAM_ROUTES = [
-  "/api/instance",
-  "/api/viewer/login",
-  "/api/viewer/logout",
-  "/api/viewer/status",
-  "/api/push/subscribe",
-  "/api/push/unsubscribe",
-  "/api/push/devices",
-];
-
-// Personal app access: these handlers authenticate the staff member themselves.
-const MEMBER_PREFIX = "/api/member/";
-
-// Plan data read by employees, gated like the configured plan routes.
-const BUILTIN_READ_PREFIXES = ["/api/absences"];
-
-// Facts for /datenschutz. Open in code, so instances with their own backend.config.json keep them public.
-const LEGAL_PREFIX = "/api/legal/";
-
-// Signing out needs no session and no CSRF token, so a stale tab can always end its session.
-// The strict session cookie never comes along on cross-site posts anyway.
-const LOGOUT_ROUTE = "/api/auth/logout";
-
 
 /**
  * A browser signed in with short code and PIN authenticates with a cookie. Writes must then come
@@ -49,12 +25,7 @@ function isSameOriginRequest(event: any): boolean {
   }
 }
 
-function isPublicGetRoute(path: string): boolean {
-  return getAuthConfig().routes.publicGetPrefixes.some(
-    (prefix) => path === prefix || path.startsWith(prefix + "/")
-  );
-}
-
+// Which class a route belongs to is decided in server/config/route-policy.ts.
 export default defineEventHandler((event) => {
   const path = getRequestURL(event).pathname;
   const method = getMethod(event);
@@ -64,18 +35,15 @@ export default defineEventHandler((event) => {
     return;
   }
 
+  const routeClass = classifyRoute(method, path);
 
-  if (getAuthConfig().routes.public.includes(path) || path === LOGOUT_ROUTE) {
+
+  if (routeClass === "public" || routeClass === "publicRead") {
     return;
   }
 
 
-  if (method === "GET" && path.startsWith(LEGAL_PREFIX)) {
-    return;
-  }
-
-
-  if (TEAM_ROUTES.includes(path) || path.startsWith(MEMBER_PREFIX)) {
+  if (routeClass === "team" || routeClass === "member") {
     if (method !== "GET" && getMemberToken(event)?.viaCookie && !isSameOriginRequest(event)) {
       throw createError({ statusCode: 403, statusMessage: "Ungültige Herkunft der Anfrage" });
     }
@@ -83,14 +51,8 @@ export default defineEventHandler((event) => {
   }
 
 
-  const isBuiltinRead = BUILTIN_READ_PREFIXES.some(
-    (prefix) => path === prefix || path.startsWith(prefix + "/")
-  );
-  if (method === "GET" && (isPublicGetRoute(path) || isBuiltinRead)) {
-    if (
-      (isBuiltinRead || TeamAccessService.isProtectedReadRoute(path)) &&
-      !TeamAccessService.hasReadAccess(event)
-    ) {
+  if (routeClass === "teamRead") {
+    if (!TeamAccessService.hasReadAccess(event)) {
       throw createError({
         statusCode: 401,
         statusMessage: "Zugangscode erforderlich",

@@ -1,7 +1,7 @@
 import path from "path";
 import { getDescription } from "./descriptions.js";
 import { listFilesRecursive, readText } from "./files.js";
-import { getAccess, getCsrfRequirement, loadRouteRules, routeFromApiFile } from "./routes.js";
+import { getAccess, getCsrfRequirement, routeFromApiFile } from "./routes.js";
 
 // Field names read as `body.x` or `query.x` in a route file.
 function getFields(content, objectName) {
@@ -13,8 +13,6 @@ function getFields(content, objectName) {
 }
 
 export function getApiEndpoints() {
-  const rules = loadRouteRules();
-
   return listFilesRecursive(path.join("server", "api"))
     .filter((file) => file.endsWith(".ts"))
     .map((file) => {
@@ -25,8 +23,8 @@ export function getApiEndpoints() {
         ...endpoint,
         file,
         group: endpoint.route.split("/")[2] || "root",
-        access: getAccess(endpoint, content, rules),
-        csrf: getCsrfRequirement(endpoint, rules),
+        access: getAccess(endpoint, content),
+        csrf: getCsrfRequirement(endpoint),
         query: getFields(content, "query"),
         body: getFields(content, "body"),
         description: getDescription(endpoint),

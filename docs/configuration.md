@@ -27,6 +27,17 @@ Holiday example:
 }
 ```
 
+## API Route Access
+
+Which API routes work without a planner login is built in (`server/config/route-policy.ts`); [API](api.md) lists the access level of every endpoint. The config file cannot open or close routes. To keep the plan private, set a team access code in the settings.
+
+Older copies of `backend.config.json` contain `auth.routes.public` and `auth.routes.publicGetPrefixes`. A mounted file with these keys still starts, but the lists are no longer read. Remove both keys from the mounted file. If a list was edited:
+
+- Extra entries are ignored, so they no longer open routes. The server logs `auth.routes.public is ignored` (or `publicGetPrefixes`) at startup.
+- If a list leaves out an entry that every release shipped (for example `/api/staff`), that route needed a planner login on this instance. The built-in policy would open it, so the server refuses to start and names the entry. Remove the keys; to keep the plan private, set a team access code instead.
+
+`auth.routes.csrfMethods` stays optional: the HTTP methods that need the CSRF token with a cookie session, `POST`, `PATCH`, `PUT` and `DELETE` by default. An empty list is rejected, because it would turn CSRF protection off. Requests with a Bearer token from the app never need it.
+
 ## Admin Password
 
 Set a bootstrap password before the first start:

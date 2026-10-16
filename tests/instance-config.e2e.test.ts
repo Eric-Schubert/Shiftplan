@@ -62,7 +62,7 @@ describe("instance config for the web client", () => {
       hint: "Mindestens 12 Zeichen mit Zahl",
     };
     custom.auth.session.cookies.csrfName = "team_csrf";
-    custom.auth.routes.csrfMethods = ["post", "DELETE"];
+    Object.assign(custom.auth, { routes: { csrfMethods: ["post", "DELETE"] } });
     custom.validation.shift.defaultColor = "#0ea5e9";
     custom.validation.shift.minStaff = { default: 2, min: 1, max: 20 };
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-config-"));
