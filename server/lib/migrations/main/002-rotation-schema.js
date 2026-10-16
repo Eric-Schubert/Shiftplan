@@ -1,6 +1,8 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, indexExists, tableExists } from "../schema.js";
 import { DEFAULT_ROTATION_CYCLE_LENGTH, DEFAULT_ROTATION_START_WEEK } from "../config.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "002_main_rotation_schema",
   description: "Create and normalize rotation tables",

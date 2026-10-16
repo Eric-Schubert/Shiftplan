@@ -10,7 +10,7 @@ const repeat = defineModel<string>("repeat", { default: "" });
 <template>
   <div class="grid grid-cols-2 gap-3">
     <div class="space-y-1.5">
-      <label :for="`${props.idPrefix}-pin`" class="block font-medium text-[var(--text-2)]">Neue PIN</label>
+      <label :for="`${props.idPrefix}-pin`" class="block font-medium text-[var(--text-2)]">{{ $t("member.pin.new") }}</label>
       <PrimeInputText
         :id="`${props.idPrefix}-pin`"
         v-model="pin"
@@ -23,7 +23,7 @@ const repeat = defineModel<string>("repeat", { default: "" });
       />
     </div>
     <div class="space-y-1.5">
-      <label :for="`${props.idPrefix}-repeat`" class="block font-medium text-[var(--text-2)]">Wiederholen</label>
+      <label :for="`${props.idPrefix}-repeat`" class="block font-medium text-[var(--text-2)]">{{ $t("member.pin.repeat") }}</label>
       <PrimeInputText
         :id="`${props.idPrefix}-repeat`"
         v-model="repeat"
@@ -36,7 +36,7 @@ const repeat = defineModel<string>("repeat", { default: "" });
       />
     </div>
     <p class="col-span-2 text-xs text-[var(--text-3)]">
-      {{ PIN_MIN_LENGTH }} bis {{ PIN_MAX_LENGTH }} Ziffern. Damit meldest du dich auf jedem Gerät an.
+      {{ $t("member.pin.hint", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH }) }}
     </p>
   </div>
 </template>

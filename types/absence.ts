@@ -1,3 +1,5 @@
+import type { MessageKey } from "~/i18n/types";
+
 export type AbsenceReason = "urlaub" | "privat" | "sonstiges";
 
 export interface Absence {
@@ -28,8 +30,9 @@ export interface MemberDevice {
   lastSeenAt: number;
 }
 
-export const ABSENCE_REASON_LABELS: Record<AbsenceReason, string> = {
-  urlaub: "Urlaub",
-  privat: "Privat",
-  sonstiges: "Sonstiges",
-};
+/** Catalog keys of the reason labels; the reasons themselves are wire values. */
+export const ABSENCE_REASON_KEYS = {
+  urlaub: "absence.reasons.urlaub",
+  privat: "absence.reasons.privat",
+  sonstiges: "absence.reasons.sonstiges",
+} as const satisfies Record<AbsenceReason, MessageKey>;

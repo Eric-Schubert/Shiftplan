@@ -1,7 +1,3 @@
-
-
-
-
 import { ref, watch, onUnmounted, type Ref } from "vue";
 
 interface SwipeOptions {
@@ -54,13 +50,11 @@ export function useSwipe(
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);
 
-
     if (diffY > maxVerticalDistance) {
       isSwiping.value = false;
       swipeOffset.value = 0;
       return;
     }
-
 
     if (Math.abs(diffX) > 20) {
       isSwiping.value = true;

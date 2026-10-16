@@ -8,9 +8,8 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-
-  const sourceYear = validateYear(body.sourceYear, "sourceYear", { required: true })!;
-  const targetYear = validateYear(body.targetYear, "targetYear", { required: true })!;
+  const sourceYear = validateYear(body.sourceYear, "sourceYear", { required: true });
+  const targetYear = validateYear(body.targetYear, "targetYear", { required: true });
   const overwrite = validateBoolean(body.overwrite, "overwrite") === 1;
 
   if (sourceYear === targetYear) {
@@ -18,7 +17,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = getDatabase();
-
 
   const sourceWeeks = db
     .prepare(`
@@ -43,7 +41,6 @@ export default defineEventHandler(async (event) => {
   if (weeksWithAssignments.length === 0) {
     throw apiError(event, 404, "errors.shiftplan.noAssignments", { year: sourceYear });
   }
-
 
   let copiedWeeks = 0;
   let skippedWeeks = 0;

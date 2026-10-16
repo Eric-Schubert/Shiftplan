@@ -4,14 +4,15 @@ type RequestKind = "takeover" | "swap";
 // Segmented switch between giving one shift away and swapping all shifts for a period.
 const kind = defineModel<RequestKind>({ required: true });
 
-const kindOptions: Array<{ label: string; value: RequestKind }> = [
-  { label: "Schicht abgeben", value: "takeover" },
-  { label: "Schichten tauschen", value: "swap" },
-];
+const { t } = useI18n();
+const kindOptions = computed<Array<{ label: string; value: RequestKind }>>(() => [
+  { label: t("requests.dialog.takeover"), value: "takeover" },
+  { label: t("requests.dialog.swap"), value: "swap" },
+]);
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-1 rounded-lg bg-[var(--surface-muted)] p-1" role="radiogroup" aria-label="Art der Anfrage">
+  <div class="grid grid-cols-2 gap-1 rounded-lg bg-[var(--surface-muted)] p-1" role="radiogroup" :aria-label="t('requests.dialog.kind')">
     <button
       v-for="option in kindOptions"
       :key="option.value"

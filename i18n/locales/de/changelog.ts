@@ -1,0 +1,21 @@
+// Chrome of the version history dialog. The release notes themselves come from GitHub as they are.
+export default {
+  title: "Versionsverlauf",
+  eyebrow: { history: "Versionsarchiv", detail: "Änderungsprotokoll" },
+  releaseTitle: "Release {version}",
+  installed: "Installiert {version}",
+  development: "Entwicklungsstand",
+  publishedOn: "Veröffentlicht am {date}",
+  changeCount: "{count} Änderungen in diesem Stand.",
+  currentInstalled: "Aktuell installiert",
+  onGithub: "Release auf GitHub",
+  overview: "Überblick",
+  whatsNew: "Was neu ist",
+  points: "{count} Punkte",
+  latest: "Neueste Version",
+  current: "Aktuell",
+  morePoints: "+{count} weitere Punkte",
+  view: "Ansehen",
+  back: "Zurück",
+  close: "Schliessen",
+};

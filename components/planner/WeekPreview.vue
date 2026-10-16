@@ -53,7 +53,7 @@ function goToWeek(year: number, week: number) {
 <template>
   <section>
     <div class="planner-section-heading !mb-3">
-      <h3 class="text-sm font-semibold text-[var(--text-1)]">Nächste Wochen</h3>
+      <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ $t("planner.week.preview.title") }}</h3>
     </div>
 
     <div class="grid grid-cols-1 gap-3 md:grid-cols-3">

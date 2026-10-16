@@ -18,17 +18,16 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const shiftConfig = getShiftValidationConfig();
 
-
   const name = validateName(body.name, "name", { maxLength: 100 });
   const active = validateBoolean(body.active, "active");
-  const start_time = validateTime(body.start_time, "startTime");
-  const end_time = validateTime(body.end_time, "endTime");
+  const startTime = validateTime(body.start_time, "startTime");
+  const endTime = validateTime(body.end_time, "endTime");
   const color = validateColor(body.color, "color");
-  const min_staff = validateInteger(body.min_staff, "minStaff", {
+  const minStaff = validateInteger(body.min_staff, "minStaff", {
     min: shiftConfig.minStaff.min,
     max: shiftConfig.minStaff.max,
   });
-  const sort_order = validateInteger(body.sort_order, "sortOrder", {
+  const sortOrder = validateInteger(body.sort_order, "sortOrder", {
     min: shiftConfig.sortOrder.min,
     max: shiftConfig.sortOrder.max,
   });
@@ -36,11 +35,11 @@ export default defineEventHandler(async (event) => {
   const updated = ShiftService.update(id, {
     ...(name !== undefined && { name }),
     ...(active !== undefined && { active }),
-    ...(start_time !== undefined && { start_time }),
-    ...(end_time !== undefined && { end_time }),
+    ...(startTime !== undefined && { start_time: startTime }),
+    ...(endTime !== undefined && { end_time: endTime }),
     ...(color !== undefined && { color }),
-    ...(min_staff !== undefined && { min_staff }),
-    ...(sort_order !== undefined && { sort_order }),
+    ...(minStaff !== undefined && { min_staff: minStaff }),
+    ...(sortOrder !== undefined && { sort_order: sortOrder }),
   });
 
   if (!updated) {

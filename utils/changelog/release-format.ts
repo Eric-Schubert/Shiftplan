@@ -16,11 +16,6 @@ function normalizeVersion(value: string): string | null {
   return version ? version.replace(/\+.*$/, '') : null
 }
 
-export function formatReleaseTitle(entry: ChangelogEntry): string {
-  const version = extractVersion(entry.title)
-  return version ? `Release ${version}` : entry.title
-}
-
 /** Whether the entry belongs to the installed version (build metadata ignored). */
 export function isCurrentRelease(entry: ChangelogEntry, currentVersion: string): boolean {
   return normalizeVersion(entry.title) === normalizeVersion(currentVersion)

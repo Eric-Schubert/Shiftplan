@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "012_admin_push_subscription_session",
   description: "Bind personal browser push subscriptions to their sign-in",

@@ -136,7 +136,7 @@ jobs:
       - name: Verify generated changelog
         if: github.event_name == 'workflow_run' && steps.release_tag.outputs.skip != 'true'
         run: |
-          COUNT=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('utils/changelog.generated.json','utf8')); console.log(Array.isArray(data) ? data.length : 0)")
+          COUNT=$(node --input-type=module -e "import fs from 'node:fs'; const data=JSON.parse(fs.readFileSync('utils/changelog.generated.json','utf8')); console.log(Array.isArray(data) ? data.length : 0)")
           if [[ "$COUNT" -eq 0 ]]; then
             echo "::error::Generated changelog is empty for a changelog-visible commit."
             exit 1

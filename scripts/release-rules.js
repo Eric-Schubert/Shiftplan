@@ -1,11 +1,8 @@
-
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const CONFIG_PATH = path.join(__dirname, "release-prefixes.json");
+const CONFIG_PATH = path.join(import.meta.dirname, "release-prefixes.json");
 
 export function loadReleaseRules() {
   return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));

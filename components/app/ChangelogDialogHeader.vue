@@ -26,13 +26,13 @@ defineProps<{
       </h2>
       <div class="changelog-dialog__meta">
         <span class="changelog-badge changelog-badge--accent">
-          Installiert {{ version }}
+          {{ $t("changelog.installed", { version }) }}
         </span>
         <span
           v-if="hasBuildMetadata"
           class="changelog-badge"
         >
-          Entwicklungsstand
+          {{ $t("changelog.development") }}
         </span>
       </div>
     </div>

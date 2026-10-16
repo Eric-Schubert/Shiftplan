@@ -1,4 +1,4 @@
-import { randomInt } from "crypto";
+import { randomInt } from "node:crypto";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { sha256, staffName } from "~/server/services/member-access/common";
 import { createSession, type Member } from "~/server/services/member-access/sessions";

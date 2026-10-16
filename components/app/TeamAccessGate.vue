@@ -9,10 +9,11 @@ const code = ref("");
 const error = ref(props.initialError || "");
 const loading = ref(false);
 const errorId = "team-access-error";
+const { t } = useI18n();
 
 async function submit() {
   if (!code.value.trim()) {
-    error.value = "Bitte Zugangscode eingeben";
+    error.value = t("app.teamAccess.codeMissing");
     return;
   }
 
@@ -22,7 +23,7 @@ async function submit() {
     // The page notices the granted access itself; this gate is gone by then.
     await login(code.value);
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Zugangscode ist falsch";
+    error.value = cause?.data?.statusMessage || t("errors.team.codeWrong");
   } finally {
     loading.value = false;
   }
@@ -36,17 +37,16 @@ async function submit() {
         <div class="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-strong)]">
           <i class="pi pi-lock text-lg" aria-hidden="true"></i>
         </div>
-        <h2 class="text-xl font-semibold text-[var(--text-1)]">Schichtplan öffnen</h2>
+        <h2 class="text-xl font-semibold text-[var(--text-1)]">{{ t("app.teamAccess.title") }}</h2>
         <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
-          Gib den Zugangscode ein, den du von deiner Schichtplanung bekommen hast. Mit dem QR-Code
-          geht es ohne Eintippen.
+          {{ t("app.teamAccess.intro") }}
         </p>
       </div>
 
       <form class="space-y-4" @submit.prevent="submit">
         <div class="space-y-1.5">
           <label for="team-access-code" class="block text-sm font-medium text-[var(--text-2)]">
-            Zugangscode
+            {{ t("app.teamAccess.code") }}
           </label>
           <PrimeInputText
             id="team-access-code"
@@ -67,7 +67,7 @@ async function submit() {
 
         <PrimeButton
           type="submit"
-          label="Plan öffnen"
+          :label="t('app.teamAccess.open')"
           icon="pi pi-lock-open"
           class="min-h-11 w-full"
           :loading="loading"
@@ -79,14 +79,14 @@ async function submit() {
             class="text-sm font-medium text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
             @click="showMemberLogin = true"
           >
-            Mit Kürzel und PIN anmelden
+            {{ t("app.teamAccess.memberLogin") }}
           </button>
           <NuxtLink
             to="/settings"
             :prefetch="false"
             class="text-sm font-medium text-[var(--text-2)] underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
           >
-            Als Planer anmelden
+            {{ t("app.teamAccess.plannerLogin") }}
           </NuxtLink>
         </div>
       </form>

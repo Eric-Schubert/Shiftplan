@@ -1,5 +1,7 @@
+// @ts-check
 import { indexExists, tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "008_admin_team_access_push_schema",
   description: "Create team viewer sessions and push subscriptions",

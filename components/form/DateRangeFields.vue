@@ -12,11 +12,11 @@ watch(from, (value) => {
 <template>
   <div class="grid grid-cols-2 gap-3">
     <div class="space-y-1.5">
-      <label :for="`${idPrefix}-from`" class="block font-medium text-[var(--text-2)]">Von</label>
+      <label :for="`${idPrefix}-from`" class="block font-medium text-[var(--text-2)]">{{ $t("common.period.from") }}</label>
       <input :id="`${idPrefix}-from`" v-model="from" type="date" :min="min" required class="p-inputtext p-component w-full" />
     </div>
     <div class="space-y-1.5">
-      <label :for="`${idPrefix}-to`" class="block font-medium text-[var(--text-2)]">Bis</label>
+      <label :for="`${idPrefix}-to`" class="block font-medium text-[var(--text-2)]">{{ $t("common.period.to") }}</label>
       <input :id="`${idPrefix}-to`" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
     </div>
   </div>

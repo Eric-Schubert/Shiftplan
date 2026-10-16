@@ -7,10 +7,11 @@ const props = defineProps<{
   schoolHolidays: SchoolHolidayPeriod[];
 }>();
 
+const { t } = useI18n();
 const bannerTitle = computed(() => {
-  if (props.holidays.length > 0 && props.schoolHolidays.length > 0) return "Kalenderlage";
-  if (props.holidays.length > 0) return "Feiertage";
-  return "Schulferien";
+  if (props.holidays.length > 0 && props.schoolHolidays.length > 0) return t("holidays.both");
+  if (props.holidays.length > 0) return t("holidays.public");
+  return t("holidays.school");
 });
 
 const bannerTone = computed(() => {
@@ -36,7 +37,7 @@ const bannerItems = computed(() => buildHolidayBannerItems(localeTag.value, prop
         </span>
         <p class="text-sm font-semibold text-[var(--text-1)]">{{ bannerTitle }}</p>
       </div>
-      <span class="text-xs text-[var(--text-3)]">Diese Woche</span>
+      <span class="text-xs text-[var(--text-3)]">{{ t("holidays.thisWeek") }}</span>
     </div>
 
     <div>

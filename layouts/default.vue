@@ -9,6 +9,7 @@ const { status: viewerStatus } = useViewerAccess();
 const { ensureLoaded: loadMember } = useMember();
 const { state: pushState, dialogOpen: pushDialogOpen, detect: detectPush } = usePushNotifications();
 const showPushButton = computed(() => viewerStatus.value?.hasAccess !== false);
+const { t } = useI18n();
 
 const isSettingsPage = computed(() => route.path === "/settings");
 const currentVersion = String(runtimeConfig.public.appVersion || "").trim();
@@ -48,7 +49,7 @@ function onActivity() {
 
 <template>
   <div class="app-shell" @click="onActivity" @keydown="onActivity">
-    <a href="#main" class="app-skip-link">Zum Inhalt springen</a>
+    <a href="#main" class="app-skip-link">{{ t("app.layout.skipToContent") }}</a>
     <header class="app-header sticky top-0 z-50">
       <div class="mx-auto flex h-14 max-w-[80rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <NuxtLink to="/" class="flex min-w-0 items-center gap-2.5 rounded-lg">
@@ -62,7 +63,7 @@ function onActivity() {
             class="planner-chip !hidden sm:!inline-flex"
           >
             <i class="pi pi-shield text-[0.7rem]" aria-hidden="true"></i>
-            <span>{{ authStore.isAdmin ? "Admin" : "Planer" }}</span>
+            <span>{{ authStore.isAdmin ? t("app.layout.roles.admin") : t("app.layout.roles.planner") }}</span>
           </span>
 
           <MemberAccountButton v-if="!isSettingsPage" />
@@ -70,8 +71,8 @@ function onActivity() {
           <button
             type="button"
             class="app-icon-button"
-            title="Versionsverlauf anzeigen"
-            aria-label="Versionsverlauf anzeigen"
+            :title="t('app.layout.changelog')"
+            :aria-label="t('app.layout.changelog')"
             @click="openVersionHistory"
           >
             <i class="pi pi-history text-[0.8rem]" aria-hidden="true"></i>
@@ -83,8 +84,8 @@ function onActivity() {
             type="button"
             class="app-icon-button"
             :class="{ 'text-[var(--accent-strong)]': pushState === 'on' }"
-            :aria-label="pushState === 'on' ? 'Benachrichtigungen aktiv' : 'Benachrichtigungen einrichten'"
-            :title="pushState === 'on' ? 'Benachrichtigungen aktiv' : 'Benachrichtigungen einrichten'"
+            :aria-label="pushState === 'on' ? t('app.layout.push.on') : t('app.layout.push.off')"
+            :title="pushState === 'on' ? t('app.layout.push.on') : t('app.layout.push.off')"
             @click="pushDialogOpen = true"
           >
             <i :class="pushState === 'on' ? 'pi pi-bell' : 'pi pi-bell-slash'" class="text-[0.8rem]" aria-hidden="true"></i>
@@ -93,8 +94,8 @@ function onActivity() {
           <button
             type="button"
             class="app-icon-button"
-            :aria-label="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
-            :title="appStore.isDarkMode ? 'Hellen Modus aktivieren' : 'Dunklen Modus aktivieren'"
+            :aria-label="appStore.isDarkMode ? t('app.layout.theme.light') : t('app.layout.theme.dark')"
+            :title="appStore.isDarkMode ? t('app.layout.theme.light') : t('app.layout.theme.dark')"
             @click="appStore.toggleDarkMode"
           >
             <i :class="appStore.isDarkMode ? 'pi pi-sun' : 'pi pi-moon'" class="text-[0.8rem]" aria-hidden="true"></i>
@@ -104,8 +105,8 @@ function onActivity() {
             :to="isSettingsPage ? '/' : '/settings'"
             :prefetch="false"
             class="app-icon-button"
-            :aria-label="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
-            :title="isSettingsPage ? 'Zurück zum Schichtplan' : 'Einstellungen öffnen'"
+            :aria-label="isSettingsPage ? t('app.layout.settings.back') : t('app.layout.settings.open')"
+            :title="isSettingsPage ? t('app.layout.settings.back') : t('app.layout.settings.open')"
           >
             <i :class="isSettingsPage ? 'pi pi-arrow-left' : 'pi pi-cog'" class="text-[0.8rem]" aria-hidden="true"></i>
           </NuxtLink>
@@ -120,10 +121,10 @@ function onActivity() {
     <footer class="border-t border-[var(--border-soft)]">
       <div class="mx-auto flex max-w-[80rem] items-center justify-center gap-4 px-4 py-5 text-[0.8125rem] text-[var(--text-3)] sm:px-6 lg:px-8">
         <NuxtLink to="/impressum" class="transition hover:text-[var(--text-1)]">
-          Impressum
+          {{ t("app.layout.imprint") }}
         </NuxtLink>
         <NuxtLink to="/datenschutz" class="transition hover:text-[var(--text-1)]">
-          Datenschutz
+          {{ t("app.layout.privacy") }}
         </NuxtLink>
       </div>
     </footer>

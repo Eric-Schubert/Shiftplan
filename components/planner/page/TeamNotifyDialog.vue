@@ -15,6 +15,7 @@ const subscriberCount = ref<number | null>(null);
 const sending = ref(false);
 const error = ref("");
 const result = ref("");
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -39,7 +40,7 @@ watch(
 
 async function send() {
   if (!message.value.trim()) {
-    error.value = "Bitte eine Nachricht eingeben";
+    error.value = t("planner.week.notify.empty");
     return;
   }
 
@@ -50,11 +51,10 @@ async function send() {
       method: "POST",
       body: { message: message.value },
     });
-    result.value =
-      response.sent === 1 ? "An 1 Gerät gesendet." : `An ${response.sent} Geräte gesendet.`;
+    result.value = t("planner.week.notify.sent", response.sent);
     message.value = "";
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Nachricht konnte nicht gesendet werden";
+    error.value = cause?.data?.statusMessage || t("planner.week.notify.failed");
   } finally {
     sending.value = false;
   }
@@ -64,33 +64,33 @@ async function send() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Team benachrichtigen"
+    :header="t('planner.week.hero.notifyTeam')"
     modal
     :style="{ width: '30rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div class="space-y-3 text-sm text-[var(--text-2)]">
       <p v-if="subscriberCount !== null">
         <template v-if="subscriberCount === 0">
-          Noch hat niemand Benachrichtigungen aktiviert.
+          {{ t("planner.week.notify.nobody") }}
         </template>
         <template v-else>
-          Geht als Push an {{ subscriberCount === 1 ? "1 Gerät" : `${subscriberCount} Geräte` }}.
+          {{ t("planner.week.notify.reach", subscriberCount) }}
         </template>
       </p>
 
       <div class="space-y-1.5">
-        <label for="team-notify-message" class="block font-medium">Nachricht</label>
+        <label for="team-notify-message" class="block font-medium">{{ t("planner.week.notify.message") }}</label>
         <PrimeTextarea
           id="team-notify-message"
           v-model="message"
           rows="3"
           :maxlength="MAX_LENGTH"
           class="w-full"
-          placeholder="z. B. Wer kann Samstag die Frühschicht übernehmen?"
+          :placeholder="t('planner.week.notify.placeholder')"
           :disabled="sending"
         />
         <div class="flex justify-between gap-3 text-xs text-[var(--text-3)]">
-          <span>Keine Krankheitsgründe oder andere Gesundheitsdaten nennen.</span>
+          <span>{{ t("planner.week.notify.noHealthData") }}</span>
           <span class="tabular-nums">{{ message.length }}/{{ MAX_LENGTH }}</span>
         </div>
       </div>
@@ -103,9 +103,9 @@ async function send() {
     </div>
 
     <template #footer>
-      <PrimeButton label="Schließen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.close')" text @click="dialogVisible = false" />
       <PrimeButton
-        label="Senden"
+        :label="t('planner.week.notify.send')"
         icon="pi pi-send"
         class="min-h-11"
         :loading="sending"

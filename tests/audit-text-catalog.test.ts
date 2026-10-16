@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { repoFiles } from "../scripts/repo-files.js";
-import { germanTextFindings } from "./helpers/push-texts";
+import { isGermanText, stringTexts } from "./helpers/german-text";
 
 // Audit reasons are stored as keys of i18n/locales/de/audit.ts with plain values and rendered when shown.
 // This covers the audit service and every file that writes an entry, also ones added later.
@@ -12,8 +12,8 @@ const AUDIT_CODE = [
   /^server\/services\/shift-request\/flow\/apply\.ts$/,
   /^server\/api\/audit\//,
 ];
-// Reasons without umlauts or two stopwords: „nur Do. 08.10.“, „4-Wochen-Zyklus, 12 Zuweisungen“.
-const AUDIT_WORDS = /\b(?:nur|unbekannt)\b|\b(?:woche|zuweisung|rotationsmuster|tausch|anfrage|muster)/i;
+// Reasons the shared detector misses: „nur Do. 08.10.“, „12 Zuweisungen“, „Rotationsmuster ersetzt“.
+const AUDIT_WORDS = /\bnur\b|\b(?:zuweisung|rotationsmuster)/i;
 
 function auditFiles(): string[] {
   return repoFiles().filter(
@@ -24,7 +24,12 @@ function auditFiles(): string[] {
   );
 }
 
-const findings = (file: string, source: string) => germanTextFindings(file, source, AUDIT_WORDS);
+/** German text in audit code, as "file:line text". */
+function findings(file: string, source: string): string[] {
+  return stringTexts(source)
+    .filter(([, text]) => isGermanText(text) || AUDIT_WORDS.test(text))
+    .map(([line, text]) => `${file}:${line} ${text}`);
+}
 
 describe("audit text catalog guard", () => {
   it("finds no German text in code that writes audit entries", () => {

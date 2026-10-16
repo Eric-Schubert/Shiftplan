@@ -1,12 +1,20 @@
+import type { H3Event } from "h3";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { networkOf } from "~/server/lib/session/network";
 
+// Only what getClientIP reads: the headers (through the stubbed getHeader) and the socket address.
+function fakeEvent(headers: Record<string, string>): H3Event {
+  return { headers, node: { req: { socket: { remoteAddress: "203.0.113.5" } } } } as unknown as H3Event;
+}
+
+const stubGetHeader = (event: { headers?: Record<string, string> }, name: string) => event.headers?.[name.toLowerCase()];
+
 async function clientIP(trust: string, headers: Record<string, string>) {
   vi.stubEnv("SHIFTPLAN_TRUST_PROXY_HEADERS", trust);
-  vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
+  vi.stubGlobal("getHeader", stubGetHeader);
   vi.resetModules();
   const { getClientIP } = await import("~/server/lib/session/request");
-  return getClientIP({ headers, node: { req: { socket: { remoteAddress: "203.0.113.5" } } } });
+  return getClientIP(fakeEvent(headers));
 }
 
 const SPOOFED = {
@@ -40,10 +48,10 @@ describe("client address", () => {
   it("warns once when Cloudflare sends its header but only true is set", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.stubEnv("SHIFTPLAN_TRUST_PROXY_HEADERS", "true");
-    vi.stubGlobal("getHeader", (event: any, name: string) => event.headers?.[name.toLowerCase()]);
+    vi.stubGlobal("getHeader", stubGetHeader);
     vi.resetModules();
     const { getClientIP } = await import("~/server/lib/session/request");
-    const event = { headers: SPOOFED, node: { req: { socket: { remoteAddress: "203.0.113.5" } } } };
+    const event = fakeEvent(SPOOFED);
 
     getClientIP(event);
     getClientIP(event);

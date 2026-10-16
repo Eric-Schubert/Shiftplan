@@ -9,22 +9,20 @@ export default defineEventHandler(async (event) => {
   const id = validateId(getRouterParam(event, "id"), "recordId");
   const body = await readBody(event);
 
-
   const name = validateName(body.name, "name", { maxLength: 100 });
   const active = validateBoolean(body.active, "active");
-  const is_parttime = validateBoolean(body.is_parttime, "partTime");
-  const short_code = typeof body.short_code === "string" ? body.short_code : undefined;
+  const isPartTime = validateBoolean(body.is_parttime, "partTime");
+  const shortCode = typeof body.short_code === "string" ? body.short_code : undefined;
 
-
-  if (name === undefined && active === undefined && is_parttime === undefined && short_code === undefined) {
+  if (name === undefined && active === undefined && isPartTime === undefined && shortCode === undefined) {
     throw apiError(event, 400, "errors.common.noChanges");
   }
 
   const updated = StaffService.update(id, {
     ...(name !== undefined && { name }),
     ...(active !== undefined && { active }),
-    ...(is_parttime !== undefined && { is_parttime }),
-    ...(short_code !== undefined && { short_code }),
+    ...(isPartTime !== undefined && { is_parttime: isPartTime }),
+    ...(shortCode !== undefined && { short_code: shortCode }),
   });
 
   if (!updated) {

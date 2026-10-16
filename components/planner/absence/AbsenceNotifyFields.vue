@@ -8,16 +8,16 @@ const message = defineModel<string>("message", { required: true });
   <div class="space-y-2 rounded-lg border border-[var(--border-soft)] p-3">
     <label class="flex items-center gap-2 font-medium text-[var(--text-1)]">
       <PrimeCheckbox v-model="notifyTeam" binary input-id="absence-notify" />
-      Team per Push informieren
+      {{ $t("absence.notify.label") }}
     </label>
     <template v-if="notifyTeam">
       <PrimeInputText
         v-model="message"
         maxlength="160"
-        placeholder="Zusatztext, z. B. Wer kann übernehmen?"
+        :placeholder="$t('absence.notify.placeholder')"
         class="w-full"
       />
-      <p class="text-xs text-[var(--text-3)]">Das Team sieht Name und Zeitraum, nie den Grund.</p>
+      <p class="text-xs text-[var(--text-3)]">{{ $t("absence.teamSeesHint") }}</p>
     </template>
   </div>
 </template>

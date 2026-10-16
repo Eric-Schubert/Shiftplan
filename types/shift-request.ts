@@ -1,3 +1,5 @@
+import type { MessageKey } from "~/i18n/types";
+
 export type ShiftRequestStatus =
   | "open"
   | "pending_approval"
@@ -27,12 +29,13 @@ export interface ShiftRequest {
   undo_requested_by: number | null;
 }
 
-export const REQUEST_STATUS_LABELS: Record<ShiftRequestStatus, string> = {
-  open: "Offen",
-  pending_approval: "Wartet auf Freigabe",
-  done: "Durchgeführt",
-  declined: "Abgelehnt (Kollegin/Kollege)",
-  rejected: "Abgelehnt (Planung)",
-  cancelled: "Zurückgezogen",
-  reverted: "Zurückgenommen",
-};
+/** Catalog keys of the status labels. */
+export const REQUEST_STATUS_KEYS = {
+  open: "requests.status.open",
+  pending_approval: "requests.status.pending_approval",
+  done: "requests.status.done",
+  declined: "requests.status.declined",
+  rejected: "requests.status.rejected",
+  cancelled: "requests.status.cancelled",
+  reverted: "requests.status.reverted",
+} as const satisfies Record<ShiftRequestStatus, MessageKey>;

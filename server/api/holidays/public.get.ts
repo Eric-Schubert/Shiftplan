@@ -16,8 +16,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     return await PublicHolidayService.list(year, week);
-  } catch (error: any) {
+  } catch (error) {
     console.error("[holidays] Fetching public holidays failed:", error);
-    throw apiError(event, 500, "errors.holidays.publicFailed", { detail: error.message });
+    const detail = error instanceof Error ? error.message : String(error);
+    throw apiError(event, 500, "errors.holidays.publicFailed", { detail });
   }
 });

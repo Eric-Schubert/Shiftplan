@@ -1,4 +1,5 @@
-const colors = require("tailwindcss/colors");
+import colors from "tailwindcss/colors";
+import primeui from "tailwindcss-primeui";
 
 export default {
   content: [
@@ -20,5 +21,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-primeui")],
+  plugins: [primeui],
 };

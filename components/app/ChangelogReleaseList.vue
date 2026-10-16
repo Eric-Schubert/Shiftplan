@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatRelativeChangelogDate, type ChangelogEntry } from "~/utils/changelog";
-import { formatReleaseTitle, isCurrentRelease } from "~/utils/changelog/release-format";
+import { isCurrentRelease } from "~/utils/changelog/release-format";
 
 const props = defineProps<{
   entries: ChangelogEntry[];
@@ -11,6 +11,8 @@ const emit = defineEmits<{
   (e: "open", entry: ChangelogEntry): void;
 }>();
 const localeTag = useLocaleTag();
+const releaseTitle = useReleaseTitle();
+const { t } = useI18n();
 
 function isLatest(entry: ChangelogEntry): boolean {
   return props.entries[0] === entry;
@@ -46,20 +48,20 @@ function remainingChangeCount(entry: ChangelogEntry): number {
       <div class="changelog-release__body">
         <div class="changelog-release__header">
           <h3 class="changelog-release__title">
-            {{ formatReleaseTitle(entry) }}
+            {{ releaseTitle(entry) }}
           </h3>
           <div class="changelog-release__badges">
             <span
               v-if="isLatest(entry)"
               class="changelog-badge changelog-badge--success"
             >
-              Neueste Version
+              {{ t("changelog.latest") }}
             </span>
             <span
               v-if="isCurrentRelease(entry, currentVersion)"
               class="changelog-badge changelog-badge--accent"
             >
-              Aktuell
+              {{ t("changelog.current") }}
             </span>
           </div>
         </div>
@@ -80,13 +82,13 @@ function remainingChangeCount(entry: ChangelogEntry): number {
             v-if="remainingChangeCount(entry)"
             class="changelog-release__preview-more"
           >
-            +{{ remainingChangeCount(entry) }} weitere Punkte
+            {{ t("changelog.morePoints", { count: remainingChangeCount(entry) }) }}
           </li>
         </ul>
       </div>
 
       <span class="changelog-release__cta">
-        <span>Ansehen</span>
+        <span>{{ t("changelog.view") }}</span>
         <i class="pi pi-arrow-right text-base" aria-hidden="true"></i>
       </span>
     </button>

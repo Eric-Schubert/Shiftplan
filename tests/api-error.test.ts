@@ -7,7 +7,7 @@ import { t } from "~/server/lib/i18n/translate";
 import { XlsxError } from "~/server/lib/xlsx/error";
 import { apiError, dateParam, messageRef } from "~/server/utils/api-error";
 import { validateInteger, validateString, validateTime } from "~/server/utils/validation";
-import { PIN_LENGTH_MESSAGE, PIN_MAX_LENGTH, PIN_MIN_LENGTH, WEAK_PIN_MESSAGE } from "~/shared/utils/limits";
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from "~/shared/utils/limits";
 
 function fakeEvent(): H3Event {
   const request = new IncomingMessage(new Socket());
@@ -77,8 +77,8 @@ describe("validation errors", () => {
 
 describe("texts the web forms share with the server", () => {
   it("stay byte-identical for PINs and send only the limit a password rule needs", () => {
-    expect(t("de", "errors.member.pinLength", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH })).toBe(PIN_LENGTH_MESSAGE);
-    expect(t("de", "errors.member.pinWeak")).toBe(WEAK_PIN_MESSAGE);
+    expect(t("de", "errors.member.pinLength", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH })).toBe("Die PIN braucht 6 bis 12 Ziffern");
+    expect(t("de", "errors.member.pinWeak")).toBe("Diese PIN ist zu leicht zu erraten");
     expect(passwordPolicyError(fakeEvent(), "kurz")?.data).toEqual({ code: "errors.auth.password.minLength", params: { min: 8 } });
     expect(passwordPolicyError(fakeEvent(), "kurzweilig1")?.data).toEqual({ code: "errors.auth.password.uppercase" });
   });

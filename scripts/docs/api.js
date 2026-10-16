@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { getDescription } from "./descriptions.js";
 import { listFilesRecursive, readText } from "./files.js";
 import { getAccess, getCsrfRequirement, routeFromApiFile } from "./routes.js";

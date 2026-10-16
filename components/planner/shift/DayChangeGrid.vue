@@ -15,6 +15,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ (e: "toggle", staffId: number, date: string, present: boolean): void }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 const assigned = computed(() => new Set(props.shift.assigned_staff.map((staff) => staff.staff_id)));
 
@@ -24,6 +25,11 @@ function change(staffId: number, date: string): ShiftDayChange | undefined {
 
 function isPresent(staffId: number, date: string): boolean {
   return isCellPresent(staffId, date, assigned.value, props.dayChanges, props.saved);
+}
+
+function toggleLabel(staffId: number, name: string, date: string): string {
+  const key = isPresent(staffId, date) ? "planner.shift.dayChange.signOut" : "planner.shift.dayChange.signIn";
+  return t(key, { name, day: formatDay(localeTag.value, date) });
 }
 </script>
 
@@ -43,7 +49,7 @@ function isPresent(staffId: number, date: string): boolean {
         <tr v-for="row in rows" :key="row.staff_id">
           <th class="max-w-[10rem] truncate pr-2 text-left font-medium text-[var(--text-1)]" scope="row">
             {{ row.name }}
-            <span v-if="!assigned.has(row.staff_id)" class="block text-xs font-normal text-[var(--text-3)]">nicht im Wochenplan</span>
+            <span v-if="!assigned.has(row.staff_id)" class="block text-xs font-normal text-[var(--text-3)]">{{ t("planner.shift.dayChange.notInPlan") }}</span>
           </th>
           <td v-for="date in days" :key="date" class="text-center">
             <button
@@ -55,7 +61,7 @@ function isPresent(staffId: number, date: string): boolean {
               }"
               :disabled="busyCell !== ''"
               :aria-pressed="isPresent(row.staff_id, date)"
-              :aria-label="`${row.name} am ${formatDay(localeTag, date)} ${isPresent(row.staff_id, date) ? 'austragen' : 'eintragen'}`"
+              :aria-label="toggleLabel(row.staff_id, row.name, date)"
               @click="emit('toggle', row.staff_id, date, !isPresent(row.staff_id, date))"
             >
               <i v-if="busyCell === `${row.staff_id}-${date}`" class="pi pi-spinner pi-spin text-[0.7rem]" aria-hidden="true"></i>
@@ -70,9 +76,9 @@ function isPresent(staffId: number, date: string): boolean {
   <slot />
 
   <p class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-3)]">
-    <span><span class="legend is-present"></span> eingeteilt</span>
-    <span><span class="legend is-present is-changed"></span> nur an diesem Tag</span>
-    <span><span class="legend is-changed"></span> an diesem Tag ausgetragen</span>
+    <span><span class="legend is-present"></span> {{ t("planner.shift.dayChange.legendAssigned") }}</span>
+    <span><span class="legend is-present is-changed"></span> {{ t("planner.shift.dayChange.legendOnlyDay") }}</span>
+    <span><span class="legend is-changed"></span> {{ t("planner.shift.dayChange.legendRemoved") }}</span>
   </p>
 </template>
 

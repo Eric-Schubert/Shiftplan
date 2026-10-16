@@ -12,19 +12,24 @@ const localeTag = useLocaleTag();
 <template>
   <PrimeDialog
     :visible="request != null"
-    header="Schicht übernehmen?"
+    :header="$t('requests.takeoverConfirm.header')"
     modal
     :style="{ width: '24rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     @update:visible="!$event && (request = null)"
   >
     <p v-if="request" class="text-sm text-[var(--text-2)]">
-      Du übernimmst {{ request.shift_name }} am {{ formatRequestPeriod(localeTag, request) }} für {{ request.requester_name }}. Hast du an
-      dem Tag eine eigene Schicht, wirst du dort ausgetragen.
+      {{
+        $t("requests.takeoverConfirm.text", {
+          shift: request.shift_name ?? "",
+          period: formatRequestPeriod(localeTag, request),
+          name: request.requester_name,
+        })
+      }}
     </p>
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="request = null" />
+      <PrimeButton :label="$t('common.actions.cancel')" text @click="request = null" />
       <PrimeButton
-        label="Übernehmen"
+        :label="$t('requests.list.take')"
         icon="pi pi-check"
         :loading="busy"
         @click="request && emit('confirm', request)"

@@ -4,9 +4,10 @@ import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
 import { isoWeekOfDate } from "~/shared/utils/week";
-import { formatCalendarWeeks, upcomingCalendarWeeks } from "~/server/services/rotation-excel/calendar";
+import { upcomingCalendarWeeks } from "~/server/services/rotation-excel/calendar";
 import { shiftDropdown } from "~/server/services/rotation-excel/dropdown";
 import { createInstructionRows } from "~/server/services/rotation-excel/instructions";
+import { patternCellValue, rotationRows } from "~/server/services/rotation-excel/template-rows";
 
 const SHIFTS_SHEET = "Schichten";
 const CALENDAR_WEEKS_SHOWN = 3;
@@ -23,69 +24,7 @@ export function createRotationTemplate(): Buffer {
   const thisWeek = isoWeekOfDate(new Date());
   const current = { week: thisWeek, patternWeek: RotationService.calculatePatternWeek(thisWeek.year, thisWeek.week) };
   const weeks = pattern.weeks.map((week) => week.pattern_week);
-  const shiftsByCell = new Map<string, string[]>();
-
-  for (const week of pattern.weeks) {
-    for (const assignment of week.assignments) {
-      for (const member of assignment.staff) {
-        const key = `${week.pattern_week}:${member.staff_id}`;
-        shiftsByCell.set(key, [...(shiftsByCell.get(key) || []), assignment.shift.name]);
-      }
-    }
-  }
-
-  const cellValue = (week: number, staffId: number) =>
-    (shiftsByCell.get(`${week}:${staffId}`) || []).join(", ");
-
-  const staffRows: XlsxCell[][] = staff.map((entry) => [
-    { value: entry.name, style: "label" },
-    ...weeks.map((week): XlsxCell => ({ value: cellValue(week, entry.staff_id), style: "input" })),
-  ]);
-
-  const rotationRows: XlsxCell[][] = [
-    [{ value: "Rotation: Wer arbeitet in welcher Woche welche Schicht?", style: "title" }],
-    [
-      {
-        value:
-          "Gelbe Zellen ausfüllen: Zelle anklicken und über den kleinen Pfeil die Schicht wählen. Leer lassen = frei. Mehr dazu im Blatt „Anleitung“.",
-        style: "hint",
-      },
-    ],
-    [
-      { value: "Startjahr", style: "label" },
-      config.start_year,
-      { value: "Jahr, in dem Woche 1 zum ersten Mal gilt", style: "hint" },
-    ],
-    [
-      { value: "Startwoche", style: "label" },
-      config.start_week,
-      { value: "Kalenderwoche, in der Woche 1 zum ersten Mal gilt", style: "hint" },
-    ],
-    [
-      { value: "Zykluslänge", style: "label" },
-      config.cycle_length,
-      { value: "Nach so vielen Wochen beginnt der Plan wieder bei Woche 1", style: "hint" },
-    ],
-    [
-      {
-        value:
-          staff.length === 0 || shifts.length === 0
-            ? "Noch nicht alles angelegt: erst Mitarbeitende und Schichten in der App anlegen, dann die Vorlage neu herunterladen."
-            : `Gerade (KW ${thisWeek.week}/${thisWeek.year}) läuft Woche ${current.patternWeek}.`,
-        style: "hint",
-      },
-    ],
-    [
-      { value: "Mitarbeiter", style: "headerWrap" },
-      ...weeks.map(
-        (week): XlsxCell => ({
-          value: `Woche ${week}\n(${formatCalendarWeeks(calendarWeeks[week - 1] || [])})`,
-          style: "headerWrap",
-        })
-      ),
-    ],
-    ...staffRows,
-  ];
+  const cellValue = patternCellValue(pattern);
 
   const example = staff
     .map((entry) => ({ name: entry.name, values: weeks.map((week) => cellValue(week, entry.staff_id)) }))
@@ -116,7 +55,7 @@ export function createRotationTemplate(): Buffer {
       },
       {
         name: "Rotation",
-        rows: rotationRows,
+        rows: rotationRows({ config, staff, shifts, weeks, calendarWeeks, current, cellValue }),
         columnWidths: [28, ...weeks.map(() => 20)],
         rowHeights: { [HEADER_ROW]: 34 },
         freeze: { rows: HEADER_ROW, cols: 1 },

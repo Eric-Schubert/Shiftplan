@@ -13,19 +13,14 @@ const ADMIN_DB_PATH = path.join(DATABASE_FOLDER, backendConfig.database.adminFil
 
 console.log(`[setup.js] => setting up databases...`);
 
-
 if (!fs.existsSync(DATABASE_FOLDER)) {
   fs.mkdirSync(DATABASE_FOLDER);
 }
-
-
 
 console.log(`[setup.js] => creating '${DATABASE_PATH}'...`);
 const db = new Database(DATABASE_PATH);
 applyConfiguredPragmas(db);
 migrateMainDatabase(db, { logger: console.log });
-
-
 
 console.log(`[setup.js] => creating '${ADMIN_DB_PATH}'...`);
 const adminDb = new Database(ADMIN_DB_PATH);
@@ -34,13 +29,11 @@ migrateAdminDatabase(adminDb, { logger: console.log });
 
 adminDb.close();
 
-
 // Sample staff and shifts only on request. A public demo (demo login set) gets them too.
 // The rotation config is created on first use with the current year.
 const staffCount = db.prepare("SELECT COUNT(*) as count FROM staff").get();
 if (staffCount.count === 0 && shouldSeedDemoData()) {
   console.log("[setup.js] => inserting demo data...");
-
 
   const insertStaff = db.prepare(
     "INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)"
@@ -50,7 +43,6 @@ if (staffCount.count === 0 && shouldSeedDemoData()) {
   insertStaff.run("Hans Schmidt", 1, 1);
   insertStaff.run("Anna Weber", 1, 0);
   insertStaff.run("Peter Müller", 1, 1);
-
 
   const insertShift = db.prepare(
     "INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)"

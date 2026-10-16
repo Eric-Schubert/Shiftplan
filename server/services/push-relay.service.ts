@@ -15,6 +15,7 @@ export type NativeMessage = {
 };
 
 export type RelayResult = { sent: number; failed: number; invalidTokens: string[] };
+type RelayRegistration = { instanceId: string; secret: string };
 
 class RelayUnauthorizedError extends Error {}
 
@@ -48,7 +49,7 @@ export function getRelayUrl(): string | null {
   return value.replace(/\/+$/, "");
 }
 
-async function relayFetch(url: string, init: RequestInit): Promise<any> {
+async function relayFetch<T>(url: string, init: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
     headers: { "content-type": "application/json", ...init.headers },
@@ -58,7 +59,7 @@ async function relayFetch(url: string, init: RequestInit): Promise<any> {
   if (!response.ok) {
     throw new Error(`Relay responded with ${response.status}`);
   }
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 export const PushRelayService = {
@@ -74,7 +75,7 @@ export const PushRelayService = {
     const secret = getSetting(RELAY_SECRET_SETTING);
     if (id && secret && getSetting(RELAY_URL_SETTING) === relayUrl) return `${id}.${secret}`;
 
-    const registered = await relayFetch(`${relayUrl}/v1/instances`, {
+    const registered = await relayFetch<RelayRegistration>(`${relayUrl}/v1/instances`, {
       method: "POST",
       body: JSON.stringify(instance),
     });
@@ -105,7 +106,7 @@ export const PushRelayService = {
       for (let index = 0; index < message.tokens.length; index += MAX_TOKENS_PER_REQUEST) {
         const tokens = message.tokens.slice(index, index + MAX_TOKENS_PER_REQUEST);
         const request = (auth: string) =>
-          relayFetch(`${relayUrl}/v1/send`, {
+          relayFetch<RelayResult>(`${relayUrl}/v1/send`, {
             method: "POST",
             headers: { authorization: `Bearer ${auth}` },
             body: JSON.stringify({

@@ -4,7 +4,7 @@ withDefaults(defineProps<{ rows?: number }>(), { rows: 3 });
 </script>
 
 <template>
-  <div class="planner-shift-list" aria-busy="true" aria-label="Schichten werden geladen">
+  <div class="planner-shift-list" aria-busy="true" :aria-label="$t('planner.week.section.loading')">
     <div
       v-for="row in rows"
       :key="row"

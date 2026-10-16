@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "003_main_audit_schema",
   description: "Create and normalize audit log table",

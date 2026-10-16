@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
-import { pathToFileURL } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { generateApiDocs } from "./docs/api.js";
 import { ROOT } from "./docs/files.js";
 import { generateWorkflowDocs } from "./docs/workflows.js";

@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "013_admin_push_locale",
   description: "Remember the language of push subscriptions and app devices",

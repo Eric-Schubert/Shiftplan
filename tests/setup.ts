@@ -4,18 +4,13 @@ import backendConfig from "../config/backend.config.json";
 
 let testDb: DatabaseType | null = null;
 
-
-
-
 export function setupTestDatabase(): DatabaseType {
 
   if (testDb) {
     testDb.close();
   }
 
-
   testDb = new Database(":memory:");
-
 
   testDb.exec(`
     CREATE TABLE IF NOT EXISTS staff (
@@ -102,18 +97,12 @@ export function setupTestDatabase(): DatabaseType {
   return testDb;
 }
 
-
-
-
 export function getTestDatabase(): DatabaseType {
   if (!testDb) {
     throw new Error("Test database not initialized. Call setupTestDatabase() first.");
   }
   return testDb;
 }
-
-
-
 
 export function cleanupTestDatabase(): void {
   if (testDb) {
@@ -122,18 +111,14 @@ export function cleanupTestDatabase(): void {
   }
 }
 
-
-
 export function insertTestData(db: DatabaseType): void {
 
   db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Max Mustermann", 1, 0);
   db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Erika Musterfrau", 1, 0);
   db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, ?, ?)").run("Hans Schmidt", 1, 1);
 
-
   db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Frühschicht", "06:00", "14:00", "#22c55e", 2, 1);
   db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)").run("Spätschicht", "14:00", "22:00", "#3b82f6", 2, 2);
-
 
   db.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 4, 2025, 1)").run();
 }

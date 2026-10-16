@@ -10,15 +10,15 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const rotationConfig = getRotationValidationConfig();
 
-  const pattern_week = validateInteger(body.pattern_week, "patternWeek", {
+  const patternWeek = validateInteger(body.pattern_week, "patternWeek", {
     required: true,
     min: rotationConfig.cycleLengthMin,
     max: rotationConfig.cycleLengthMax,
-  })!;
-  const staff_id = validateId(body.staff_id, "staff_id");
-  const shift_id = validateId(body.shift_id, "shift_id");
+  });
+  const staffId = validateId(body.staff_id, "staff_id");
+  const shiftId = validateId(body.shift_id, "shift_id");
 
-  const success = RotationService.assignToPattern(pattern_week, staff_id, shift_id);
+  const success = RotationService.assignToPattern(patternWeek, staffId, shiftId);
 
   if (!success) {
     throw apiError(event, 400, "errors.common.assignFailed");

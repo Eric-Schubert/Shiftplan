@@ -1,3 +1,22 @@
+// @ts-check
+
+/** @typedef {import("better-sqlite3").Database} Database */
+
+/**
+ * @typedef {object} MigrationOptions
+ * @property {(message: string) => void} [logger] Prints which migrations ran.
+ * @property {string} [bootstrapAdminPassword] First admin password, instead of SHIFTPLAN_ADMIN_PASSWORD.
+ */
+
+/**
+ * @typedef {object} Migration
+ * @property {string} id
+ * @property {string} description
+ * @property {(database: Database, options?: MigrationOptions) => boolean} shouldRun
+ * @property {(database: Database, options?: MigrationOptions) => void} up
+ */
+
+/** @param {Database} database */
 function ensureSchemaMigrationsTable(database) {
   database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -8,6 +27,10 @@ function ensureSchemaMigrationsTable(database) {
   `);
 }
 
+/**
+ * @param {Database} database
+ * @param {Migration} migration
+ */
 function recordMigration(database, migration) {
   database
     .prepare(
@@ -16,6 +39,12 @@ function recordMigration(database, migration) {
     .run(migration.id, migration.description);
 }
 
+/**
+ * @param {Database} database
+ * @param {string} databaseName
+ * @param {Migration[]} migrations
+ * @param {MigrationOptions} [options]
+ */
 export function runMigrations(database, databaseName, migrations, options = {}) {
   ensureSchemaMigrationsTable(database);
 

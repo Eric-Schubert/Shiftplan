@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { REQUEST_STATUS_LABELS, type ShiftRequest } from "~/types/shift-request";
+import type { MessageKey } from "~/i18n/types";
+import { REQUEST_STATUS_KEYS, type ShiftRequest } from "~/types/shift-request";
 import { ownRequestAction, type RequestAction } from "~/utils/request-actions";
 import { formatRequestPeriod } from "~/utils/request-period";
 
@@ -10,6 +11,7 @@ const emit = defineEmits<{
   (e: "act", request: ShiftRequest, action: RequestAction): void;
 }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 const openTakeovers = computed(() =>
   props.requests.filter((r) => r.kind === "takeover" && r.status === "open" && r.requester_staff_id !== props.memberId)
@@ -35,60 +37,60 @@ function title(request: ShiftRequest): string {
 
 function detail(request: ShiftRequest): string {
   const parts = [formatRequestPeriod(localeTag.value, request)];
-  if (request.kind === "takeover" && request.partner_name) parts.push(`übernimmt: ${request.partner_name}`);
-  parts.push(request.status === "done" && request.undo_requested_by !== null ? "Storno angefragt" : REQUEST_STATUS_LABELS[request.status]);
+  if (request.kind === "takeover" && request.partner_name) parts.push(t("requests.list.takenBy", { name: request.partner_name }));
+  parts.push(t(request.status === "done" && request.undo_requested_by !== null ? "requests.list.undoAsked" : REQUEST_STATUS_KEYS[request.status]));
   return parts.join(" · ");
 }
 
-function ownAction(request: ShiftRequest): { label: string; action: RequestAction } | null {
+function ownAction(request: ShiftRequest): { label: MessageKey; action: RequestAction } | null {
   return ownRequestAction(request, props.memberId);
 }
 </script>
 
 <template>
   <div v-if="undoForMe.length > 0" class="space-y-2">
-    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">Storno-Anfragen an dich</h4>
+    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{{ t("requests.list.undoForMe") }}</h4>
     <div v-for="request in undoForMe" :key="request.request_id" class="member-request">
       <div class="min-w-0 flex-1">
         <p class="font-medium text-[var(--text-1)]">{{ title(request) }}</p>
-        <p class="text-[var(--text-2)]">{{ formatRequestPeriod(localeTag, request) }} · soll wieder wie vorher werden</p>
+        <p class="text-[var(--text-2)]">{{ t("requests.list.undoDetail", { period: formatRequestPeriod(localeTag, request) }) }}</p>
       </div>
       <div class="flex gap-1.5">
-        <PrimeButton label="Ablehnen" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline_undo')" />
-        <PrimeButton label="Storno bestätigen" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'confirm_undo')" />
+        <PrimeButton :label="t('common.actions.decline')" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline_undo')" />
+        <PrimeButton :label="t('requests.list.confirmUndo')" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'confirm_undo')" />
       </div>
     </div>
   </div>
 
   <div v-if="openTakeovers.length > 0" class="space-y-2">
-    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">Übernahme gesucht</h4>
+    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{{ t("requests.list.takeoversOpen") }}</h4>
     <div v-for="request in openTakeovers" :key="request.request_id" class="member-request">
       <div class="min-w-0 flex-1">
         <p class="font-medium text-[var(--text-1)]">{{ title(request) }}</p>
         <p class="text-[var(--text-2)]">{{ formatRequestPeriod(localeTag, request) }}</p>
         <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
       </div>
-      <PrimeButton label="Übernehmen" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('take', request)" />
+      <PrimeButton :label="t('requests.list.take')" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('take', request)" />
     </div>
   </div>
 
   <div v-if="swapsForMe.length > 0" class="space-y-2">
-    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">Tauschanfragen an dich</h4>
+    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{{ t("requests.list.swapsForMe") }}</h4>
     <div v-for="request in swapsForMe" :key="request.request_id" class="member-request">
       <div class="min-w-0 flex-1">
-        <p class="font-medium text-[var(--text-1)]">{{ request.requester_name }} möchte tauschen</p>
-        <p class="text-[var(--text-2)]">Alle Schichten, {{ formatRequestPeriod(localeTag, request) }}</p>
+        <p class="font-medium text-[var(--text-1)]">{{ t("requests.list.wantsToSwap", { name: request.requester_name }) }}</p>
+        <p class="text-[var(--text-2)]">{{ t("requests.list.allShifts", { period: formatRequestPeriod(localeTag, request) }) }}</p>
         <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
       </div>
       <div class="flex gap-1.5">
-        <PrimeButton label="Ablehnen" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline')" />
-        <PrimeButton label="Zusagen" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'accept')" />
+        <PrimeButton :label="t('common.actions.decline')" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline')" />
+        <PrimeButton :label="t('requests.list.accept')" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'accept')" />
       </div>
     </div>
   </div>
 
   <div v-if="mine.length > 0" class="space-y-2">
-    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">Deine Anfragen und Zusagen</h4>
+    <h4 class="text-xs font-semibold uppercase tracking-wide text-[var(--text-3)]">{{ t("requests.list.mine") }}</h4>
     <div v-for="request in mine" :key="request.request_id" class="member-request">
       <div class="min-w-0 flex-1">
         <p class="font-medium text-[var(--text-1)]">{{ title(request) }}</p>
@@ -96,7 +98,7 @@ function ownAction(request: ShiftRequest): { label: string; action: RequestActio
       </div>
       <PrimeButton
         v-if="ownAction(request)"
-        :label="ownAction(request)!.label"
+        :label="t(ownAction(request)!.label)"
         size="small"
         text
         severity="secondary"

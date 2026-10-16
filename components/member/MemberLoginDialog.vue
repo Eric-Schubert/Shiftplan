@@ -11,6 +11,7 @@ const emit = defineEmits<{
 }>();
 
 const { member, login, redeem, setPin } = useMember();
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -28,7 +29,7 @@ const busy = ref(false);
 const error = ref("");
 
 const title = computed(() =>
-  step.value === "set-pin" ? `Hallo ${member.value?.name ?? ""}` : "Persönlich anmelden"
+  step.value === "set-pin" ? t("member.hello", { name: member.value?.name ?? "" }) : t("member.login.title")
 );
 
 async function run(action: () => Promise<void>, fallback: string) {
@@ -50,37 +51,37 @@ function finish() {
 
 function submitPin() {
   if (!shortCode.value.trim() || !pin.value.trim()) {
-    error.value = "Bitte Kürzel und PIN eingeben";
+    error.value = t("member.login.missingPin");
     return;
   }
   void run(async () => {
     await login(shortCode.value, pin.value);
     finish();
-  }, "Anmeldung fehlgeschlagen");
+  }, t("errors.auth.loginFailed"));
 }
 
 function submitCode() {
   if (!code.value.trim()) {
-    error.value = "Bitte den Code eingeben";
+    error.value = t("member.login.missingCode");
     return;
   }
   void run(async () => {
     const profile = await redeem(code.value);
     if (profile.hasPin) finish();
     else step.value = "set-pin";
-  }, "Der Code ist ungültig");
+  }, t("member.login.codeInvalid"));
 }
 
 function submitNewPin() {
   const problem = pinProblem(newPin.value, repeatPin.value);
   if (problem) {
-    error.value = problem;
+    error.value = t(problem.key, problem.params ?? {});
     return;
   }
   void run(async () => {
     await setPin(newPin.value);
     finish();
-  }, "PIN konnte nicht gespeichert werden");
+  }, t("member.pin.saveFailed"));
 }
 
 function switchTo(next: Step) {
