@@ -12,7 +12,6 @@ export default {
     codeIntro:
       "Den persönlichen Code bekommst du von deiner Schichtplanung (Einstellungen → App-Zugänge). Danach legst du deine PIN fest.",
     code: "Persönlicher Code",
-    next: "Weiter",
     havePin: "Ich habe schon eine PIN",
     setPinIntro:
       "Du bist angemeldet. Lege jetzt eine PIN fest, dann kannst du dich auf jedem Gerät mit deinem Kürzel {code} anmelden.",

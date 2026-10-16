@@ -16,6 +16,5 @@ export default {
   current: "Aktuell",
   morePoints: "+{count} weitere Punkte",
   view: "Ansehen",
-  back: "Zurück",
   close: "Schliessen",
 };
