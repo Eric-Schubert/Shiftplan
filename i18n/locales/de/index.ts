@@ -1,5 +1,6 @@
 import absence from "./absence";
 import app from "./app";
+import audit from "./audit";
 import changelog from "./changelog";
 import common from "./common";
 import errors from "./errors";
@@ -29,6 +30,7 @@ const de = {
   absence,
   planner,
   holidays,
+  audit,
 };
 
 export default de;
