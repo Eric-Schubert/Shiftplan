@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getIsoWeekOfDate } from "~/utils/rotation";
+import { isoWeekOfDate } from "~/shared/utils/week";
 
 defineProps<{
   maxWeekInStartYear: number;
@@ -10,7 +10,7 @@ const startYear = defineModel<number>("startYear", { required: true });
 const untilYearEnd = defineModel<boolean>("untilYearEnd", { required: true });
 const weekCount = defineModel<number>("weekCount", { required: true });
 
-const today = getIsoWeekOfDate(new Date());
+const today = isoWeekOfDate(new Date());
 const startsInPast = computed(
   () => startYear.value < today.year || (startYear.value === today.year && startWeek.value < today.week)
 );

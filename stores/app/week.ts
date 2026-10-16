@@ -1,34 +1,11 @@
+import { isoWeekMonday, isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
+
 export type UpcomingWeek = { year: number; week: number; dateRange: string };
 
-export function getISOWeek(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
-
-export function getDateOfISOWeek(week: number, year: number): Date {
-  const simple = new Date(year, 0, 1 + (week - 1) * 7);
-  const dow = simple.getDay();
-  const ISOweekStart = simple;
-  if (dow <= 4) {
-    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-  } else {
-    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-  }
-  return ISOweekStart;
-}
-
-export function getISOWeeksInYear(year: number): number {
-  const d = new Date(year, 11, 31);
-  const week = getISOWeek(d);
-  return week === 1 ? 52 : week;
-}
-
-/** Monday to Sunday of an ISO week. */
+/** Monday to Sunday of an ISO week, as local dates for display. */
 export function getWeekDateRange(week: number, year: number): { start: Date; end: Date } {
-  const start = getDateOfISOWeek(week, year);
+  const monday = isoWeekMonday(year, week);
+  const start = new Date(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate());
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
   return { start, end };
@@ -46,7 +23,7 @@ export function getUpcomingWeeks(year: number, week: number, count: number): Upc
 
   for (let i = 0; i < count; i++) {
     week++;
-    if (week > getISOWeeksInYear(year)) {
+    if (week > isoWeeksInYear(year)) {
       week = 1;
       year++;
     }
@@ -54,13 +31,6 @@ export function getUpcomingWeeks(year: number, week: number, count: number): Upc
   }
 
   return weeks;
-}
-
-/** ISO week-numbering year: Monday 29.12.2025 already belongs to week 1 of 2026. */
-export function getISOWeekYear(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  return d.getUTCFullYear();
 }
 
 /** Today, or next Monday on Saturday and Sunday when the team does not work weekends. */
@@ -74,9 +44,10 @@ function plannerDate(nextWeekFromSaturday: boolean): Date {
 }
 
 export function getEffectiveCurrentWeek(nextWeekFromSaturday = true): number {
-  return getISOWeek(plannerDate(nextWeekFromSaturday));
+  return isoWeekOfDate(plannerDate(nextWeekFromSaturday)).week;
 }
 
+/** ISO week-numbering year: Monday 29.12.2025 already belongs to week 1 of 2026. */
 export function getEffectiveCurrentYear(nextWeekFromSaturday = true): number {
-  return getISOWeekYear(plannerDate(nextWeekFromSaturday));
+  return isoWeekOfDate(plannerDate(nextWeekFromSaturday)).year;
 }

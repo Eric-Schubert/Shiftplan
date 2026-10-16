@@ -24,7 +24,7 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
-const days = computed(() => weekDates(props.year, props.week));
+const days = computed(() => datesOfISOWeek(props.year, props.week));
 const extraRows = ref<Array<{ staff_id: number; name: string }>>([]);
 const addStaffId = ref<number | null>(null);
 const busyCell = ref("");
