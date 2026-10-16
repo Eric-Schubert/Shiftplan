@@ -1,16 +1,14 @@
 <script setup lang="ts">
+import { toPrivacyFacts } from "~/utils/legal/privacy-facts";
+
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
 const hoster = String(privacy?.hoster || "").trim();
 
-// Microsoft and the push relay are named as this instance is set up. Without an answer both
-// stay listed: one recipient too many is better than one missing.
-const { data: facts } = await useFetch("/api/legal/privacy");
-const usesMicrosoft = computed(() => facts.value?.microsoft ?? true);
-const appPush = computed(() => facts.value?.appPush ?? true);
-const defaultRelay = computed(() => facts.value?.defaultRelay ?? true);
-const relayHost = computed(() => facts.value?.relayHost ?? null);
+// Microsoft, the push relay, periods and cookie names as this instance is set up.
+const { data } = await useFetch("/api/legal/privacy");
+const facts = computed(() => toPrivacyFacts(data.value));
 
 useSeoMeta({
   title: "Datenschutz | Shiftplan",
@@ -23,23 +21,27 @@ useSeoMeta({
   <div class="privacy mx-auto max-w-[72rem] pb-16 pt-2 sm:pt-6">
     <LegalPrivacyHeader :is-demo="isDemo" />
 
-    <LegalPrivacySummary />
+    <LegalPrivacySummary :retention="facts.retentionDays" />
 
     <div class="mt-12 grid gap-10 lg:grid-cols-[15rem_minmax(0,44rem)] lg:gap-16">
       <LegalPrivacySidebar />
 
       <article class="privacy-body">
-        <LegalPrivacyPurpose />
-        <LegalPrivacyProcessing :uses-microsoft="usesMicrosoft" />
+        <LegalPrivacyPurpose :retention="facts.retentionDays" />
+        <LegalPrivacyProcessing
+          :uses-microsoft="facts.microsoft"
+          :retention="facts.retentionDays"
+          :session="facts.session"
+        />
         <LegalPrivacyServices
           :hoster="hoster"
           :uses-cloudflare="usesCloudflare"
-          :uses-microsoft="usesMicrosoft"
-          :app-push="appPush"
-          :default-relay="defaultRelay"
-          :relay-host="relayHost"
+          :uses-microsoft="facts.microsoft"
+          :app-push="facts.appPush"
+          :default-relay="facts.defaultRelay"
+          :relay-host="facts.relayHost"
         />
-        <LegalPrivacyRetention />
+        <LegalPrivacyRetention :retention="facts.retentionDays" :session="facts.session" />
         <LegalPrivacyRights />
       </article>
     </div>

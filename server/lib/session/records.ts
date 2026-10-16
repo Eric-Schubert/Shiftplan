@@ -1,6 +1,7 @@
 import type { SessionUser } from "~/types/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getSessionDurationMs } from "~/server/config/auth-config";
+import { PLANNER_APP_SESSION_DAYS } from "~/shared/utils/retention";
 
 export type SessionClient = "web" | "app";
 
@@ -16,7 +17,7 @@ export type PersistedSession = {
 };
 
 // Planners stay signed in on their phone; the device lock protects the app.
-const APP_SESSION_MS = 14 * 24 * 60 * 60 * 1000;
+const APP_SESSION_MS = PLANNER_APP_SESSION_DAYS * 24 * 60 * 60 * 1000;
 
 export function sessionDurationMs(client: SessionClient): number {
   return client === "app" ? APP_SESSION_MS : getSessionDurationMs();

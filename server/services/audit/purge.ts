@@ -1,7 +1,6 @@
 import { getDatabase } from "~/server/utils/database";
+import { AUDIT_RETENTION_DAYS } from "~/shared/utils/retention";
 
-// The change log explains past plans. After two years nobody needs it, the names in it go too.
-export const AUDIT_RETENTION_DAYS = 730;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;
 let lastPurge = 0;

@@ -1,7 +1,6 @@
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
+import { MEMBER_IDLE_DAYS } from "~/shared/utils/retention";
 
-// A personal access nobody used for a year goes. The browser cookie ends after 365 days anyway.
-export const MEMBER_IDLE_DAYS = 365;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;
 let lastPurge = 0;
