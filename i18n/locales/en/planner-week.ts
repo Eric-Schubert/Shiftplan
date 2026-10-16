@@ -42,6 +42,7 @@ export default {
     title: "Coming weeks",
     assignments: "1 assignment | {count} assignments",
     notPlanned: "Not planned yet.",
+    failed: "Could not be loaded.",
   },
   bulk: { header: "Generate several weeks" },
   notify: {

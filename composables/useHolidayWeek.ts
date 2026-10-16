@@ -1,4 +1,4 @@
-import type { Ref } from "vue";
+import { reactive, type Ref } from "vue";
 import type { PublicHoliday, SchoolHolidayPeriod } from "~/types/holiday";
 
 interface HolidayWeekEntry {
@@ -16,18 +16,29 @@ function getCacheKey(year: number, week: number) {
   return `${year}-${week}`;
 }
 
+function emptyEntry(): HolidayWeekEntry {
+  return { holidays: [], schoolHolidays: [], loading: true, loaded: false, error: null };
+}
+
 function ensureCacheEntry(key: string): HolidayWeekEntry {
   if (!holidayWeekCache[key]) {
-    holidayWeekCache[key] = {
-      holidays: [],
-      schoolHolidays: [],
-      loading: true,
-      loaded: false,
-      error: null,
-    };
+    holidayWeekCache[key] = emptyEntry();
   }
 
   return holidayWeekCache[key];
+}
+
+/**
+ * The entry a component shows. The server renders without holidays (they load in the browser) and
+ * must not cache anything: the cache lives as long as the process and every deep-linked week would stay in it.
+ */
+export function holidayWeekEntry(key: string, server = import.meta.server): HolidayWeekEntry {
+  return server ? emptyEntry() : ensureCacheEntry(key);
+}
+
+/** Weeks in the cache; for tests. */
+export function cachedHolidayWeeks(): string[] {
+  return Object.keys(holidayWeekCache);
 }
 
 async function loadHolidayWeek(year: number, week: number) {
@@ -82,7 +93,7 @@ export function useHolidayWeek(year: number | Ref<number>, week: number | Ref<nu
   const resolvedYear = computed(() => unref(year));
   const resolvedWeek = computed(() => unref(week));
   const cacheKey = computed(() => getCacheKey(resolvedYear.value, resolvedWeek.value));
-  const entry = computed(() => ensureCacheEntry(cacheKey.value));
+  const entry = computed(() => holidayWeekEntry(cacheKey.value));
   const { t } = useI18n();
 
   watch(

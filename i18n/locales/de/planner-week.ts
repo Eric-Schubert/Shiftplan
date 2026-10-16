@@ -40,6 +40,7 @@ export default {
     title: "Nächste Wochen",
     assignments: "{count} Zuweisungen",
     notPlanned: "Noch nicht geplant.",
+    failed: "Konnte nicht geladen werden.",
   },
   bulk: { header: "Mehrere Wochen generieren" },
   notify: {

@@ -1,47 +1,16 @@
 <script setup lang="ts">
 import { useAppStore } from "~/stores/app.store";
-import type { WeeklyShiftplan } from "~/types/shiftplan";
+import { previewKey, useWeekPreviewData } from "~/composables/useWeekPreviewData";
 
+// `revision` counts saved changes on the plan page, so the next weeks reload with them.
+const props = withDefaults(defineProps<{ revision?: number }>(), { revision: 0 });
 const appStore = useAppStore();
 
 const previewWeekCount = 3;
 const upcomingWeeks = computed(() => appStore.getUpcomingWeeks(previewWeekCount));
-
-type PreviewWeekData = WeeklyShiftplan | null;
-
-const previewData = ref<Record<string, PreviewWeekData>>({});
-const loading = ref(true);
-
-async function loadPreviewWeeks() {
-  loading.value = true;
-
-  const responses = await Promise.all(
-    upcomingWeeks.value.map(async (week) => {
-      const key = `${week.year}-${week.week}`;
-
-      try {
-        const response = await $fetch<WeeklyShiftplan>("/api/shiftplan", {
-          query: {
-            year: week.year,
-            week: week.week,
-          },
-        });
-
-        return [key, response] as const;
-      } catch {
-        return [key, null] as const;
-      }
-    })
-  );
-
-  previewData.value = Object.fromEntries(responses);
-  loading.value = false;
-}
-
-watch(
-  () => [appStore.selectedYear, appStore.selectedWeek],
-  () => loadPreviewWeeks(),
-  { immediate: true }
+const { plans, loading } = useWeekPreviewData(
+  upcomingWeeks,
+  computed(() => props.revision)
 );
 
 function goToWeek(year: number, week: number) {
@@ -59,9 +28,9 @@ function goToWeek(year: number, week: number) {
     <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
       <WeekPreviewCard
         v-for="week in upcomingWeeks"
-        :key="`${week.year}-${week.week}`"
+        :key="previewKey(week)"
         :week="week"
-        :plan="previewData[`${week.year}-${week.week}`]"
+        :plan="plans[previewKey(week)]"
         :loading="loading"
         @select="goToWeek(week.year, week.week)"
       />

@@ -41,10 +41,8 @@ export async function updateShiftRecord(store: ShiftStoreContext, id: number, da
     store.shifts[index] = updated;
   }
 
-  if (data.active !== undefined) {
-    await store.fetchRotation();
-  }
-
+  // The rotation board carries name, colour and minimum staff, so it reloads with every change.
+  await store.fetchRotation();
   return updated;
 }
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { WeeklyShiftplanWithPattern } from "~/types/shiftplan";
 import type { Absence } from "~/types/absence";
+import { planShowsWeek } from "~/utils/plan-week";
+import { requestErrorStatus } from "~/utils/request-error";
 
 const appStore = useAppStore();
 const { authFetch } = useAuthFetch();
@@ -18,14 +20,17 @@ watchAccessGranted(needsAccessCode, onAccessGranted);
 const {
   data: shiftplan,
   pending,
+  error: planError,
   refresh,
-} = await useFetch<WeeklyShiftplanWithPattern>("/api/shiftplan", {
+} = await useFetch<WeeklyShiftplanWithPattern | null>("/api/shiftplan", {
   query: {
     year: computed(() => appStore.selectedYear),
     week: computed(() => appStore.selectedWeek),
   },
   watch: [() => appStore.selectedYear, () => appStore.selectedWeek],
   immediate: !needsAccessCode.value,
+  // A failed first load leaves this, not undefined; with undefined, later week switches would not load at all.
+  default: () => null,
 });
 const { data: absences, refresh: refreshAbsences } = await useFetch<Absence[]>("/api/absences", {
   query: {
@@ -38,10 +43,20 @@ const { data: absences, refresh: refreshAbsences } = await useFetch<Absence[]>("
 });
 const generating = ref(false);
 const { weekPreviewSentinel, showWeekPreview } = useWeekPreviewReveal();
+// Counts saved changes, so the preview of the next weeks reloads with the plan.
+const planRevision = ref(0);
+// The skeleton only covers a week whose plan is not there yet, not a reload after a change.
+const showSkeleton = computed(() => pending.value && !planShowsWeek(shiftplan.value, appStore.selectedYear, appStore.selectedWeek));
 
 async function refreshWeek() {
   await Promise.all([refresh(), refreshAbsences()]);
+  planRevision.value++;
 }
+
+// An expired or changed team code refuses the plan; then the code gate is what helps, not a network error.
+watch(planError, (error) => {
+  if (requestErrorStatus(error) === 401) loadViewerStatus().catch(() => {});
+});
 
 async function onMemberSignedIn() {
   inviteCode.value = null;
@@ -69,14 +84,8 @@ async function redeemAccessCode(code: string) {
 async function generateFromPattern() {
   generating.value = true;
   try {
-    await authFetch("/api/shiftplan/generate", {
-      method: "POST",
-      body: {
-        year: appStore.selectedYear,
-        week: appStore.selectedWeek,
-      },
-    });
-    await refresh();
+    await authFetch("/api/shiftplan/generate", { method: "POST", body: { year: appStore.selectedYear, week: appStore.selectedWeek } });
+    await refreshWeek();
   } finally {
     generating.value = false;
   }
@@ -92,17 +101,18 @@ async function generateFromPattern() {
     <PlannerWeekShell
       v-else
       :shiftplan="shiftplan"
-      :pending="pending"
+      :pending="showSkeleton"
       :absences="absences ?? []"
       :member="member"
       :generating="generating"
       @updated="refreshWeek"
       @generate="generateFromPattern"
-      @generated="refresh"
+      @generated="refreshWeek"
     >
       <div ref="weekPreviewSentinel">
-        <LazyWeekPreview v-if="showWeekPreview" />
+        <LazyWeekPreview v-if="showWeekPreview" :revision="planRevision" />
       </div>
     </PlannerWeekShell>
+
   </div>
 </template>

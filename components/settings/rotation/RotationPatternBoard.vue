@@ -30,7 +30,8 @@ const {
 
     <RotationStaffPool :staff="dataStore.activeStaff" @drag-start="onPoolDragStart" />
 
-    <div v-if="dataStore.loadingRotation" class="flex justify-center py-8">
+    <!-- Only the first load: reloading after each edit keeps the board, so the page does not jump. -->
+    <div v-if="dataStore.loadingRotation && !dataStore.rotationPattern" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
 
