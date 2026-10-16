@@ -5,7 +5,7 @@ import { germanLiterals } from "./helpers/german-literals";
 import { PENDING_LEGAL } from "./helpers/i18n-pending";
 
 // All app code takes its texts from the catalog (i18n/locales). German here is a text that missed it.
-const APP_CODE = /^(?:components|layouts|pages|composables|stores|types|utils|plugins)\/.*\.(?:vue|ts|js)$|^(?:app|error)\.vue$/;
+const APP_CODE = /^(?:components|layouts|pages|composables|stores|types|utils|plugins|shared)\/.*\.(?:vue|ts|js)$|^(?:app|error)\.vue$/;
 const PENDING = new Set(PENDING_LEGAL);
 
 describe("app code", () => {
@@ -30,6 +30,14 @@ describe("German text guard", () => {
       '<PrimeToggleButton on-label="An" off-label="Aus" id="anfragen" /><!-- Kommentar für Entwickler --></template>',
     ].join("\n");
     expect(germanLiterals("components/A.vue", source)).toEqual(["1: Woche", "1: Heute", "1: Keine Daten", "2: An", "2: Aus"]);
+  });
+
+  it("checks value-like attributes as code: a shown value counts, a field name does not", () => {
+    const source = [
+      '<template><PrimeTag value="Inaktiv" /><PrimeTag value="Teilzeit" severity="info" /><PrimeColumn field="name" />',
+      '<PrimeSelect option-label="label" name="role" /><PrimeTab value="Vorschau" /><PrimeTag value="Start" /></template>',
+    ].join("\n");
+    expect(germanLiterals("components/E.vue", source)).toEqual(["1: Inaktiv", "1: Teilzeit", "2: Vorschau", "2: Start"]);
   });
 
   it("finds German words in scripts and bindings without umlauts or two stopwords", () => {
