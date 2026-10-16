@@ -1,4 +1,4 @@
-import type { ChangelogEntry } from '../changelog'
+import type { ChangelogEntry } from './types'
 
 /** Releases from before the generated changelog; merged in unless a generated entry covers them. */
 export const LEGACY_CHANGELOG: ChangelogEntry[] = [

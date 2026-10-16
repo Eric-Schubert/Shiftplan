@@ -1,4 +1,4 @@
-import type { ChangelogEntry } from '../changelog'
+import type { ChangelogEntry } from './types'
 
 export function formatVersion(value: string): string {
   const trimmed = value.trim()

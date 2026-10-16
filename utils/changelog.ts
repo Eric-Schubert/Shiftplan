@@ -1,13 +1,9 @@
 import generatedChangelog from './changelog.generated.json'
 import { LEGACY_CHANGELOG } from './changelog/legacy-entries'
+import type { ChangelogEntry } from './changelog/types'
 
 export { formatRelativeChangelogDate, getCalendarDayDiff } from './changelog/relative-date'
-
-export interface ChangelogEntry {
-  date: string
-  title: string
-  changes: string[]
-}
+export type { ChangelogEntry } from './changelog/types'
 
 const generatedEntries: ChangelogEntry[] = Array.isArray(generatedChangelog)
   ? generatedChangelog as ChangelogEntry[]
