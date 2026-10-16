@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import backendConfig from "../config/backend.config.json";
+import { t } from "~/i18n/server";
 import type { ClientConfig } from "~/types/instance";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";
 import { createApiClient, type ApiClient, type Route } from "./helpers/api-harness";
@@ -47,6 +48,8 @@ describe("instance config for the web client", () => {
 
   it("serves the checked-in config, which matches the client's code defaults", async () => {
     const instance = await readInstance();
+    // The client has no hint of its own; until the instance answers, the forms show the catalog's.
+    const passwordPolicy = { ...DEFAULT_CLIENT_CONFIG.passwordPolicy, hint: t("de", "settings.auth.passwordHint") };
 
     expect(Object.keys(instance).sort()).toEqual(INSTANCE_KEYS);
     expect({
@@ -55,7 +58,7 @@ describe("instance config for the web client", () => {
       contactForm: instance.contactForm,
       shift: instance.shift,
       csrf: instance.csrf,
-    }).toEqual(DEFAULT_CLIENT_CONFIG);
+    }).toEqual({ ...DEFAULT_CLIENT_CONFIG, passwordPolicy });
   });
 
   it("follows a mounted config without a rebuild", async () => {

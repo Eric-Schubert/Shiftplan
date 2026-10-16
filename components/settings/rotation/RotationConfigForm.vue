@@ -11,6 +11,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 const saving = ref(false);
 const errorMessage = ref<string | null>(null);
 const configForm = ref<Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">>({
@@ -57,7 +58,7 @@ async function save() {
     await dataStore.updateRotationConfig(configForm.value);
     emit("saved");
   } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || "Startpunkt konnte nicht gespeichert werden";
+    errorMessage.value = error.data?.statusMessage || t("settings.rotation.config.failed");
   } finally {
     saving.value = false;
   }
@@ -68,7 +69,7 @@ async function save() {
   <div class="space-y-4">
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <div class="flex flex-col gap-2">
-        <label for="rotation-cycle-length" class="text-sm font-medium text-[var(--text-1)]">Zykluslänge</label>
+        <label for="rotation-cycle-length" class="text-sm font-medium text-[var(--text-1)]">{{ t("validation.fields.cycleLength") }}</label>
         <PrimeInputNumber
           v-model="configForm.cycle_length"
           input-id="rotation-cycle-length"
@@ -76,12 +77,12 @@ async function save() {
           :min="1"
           :max="52"
           show-buttons
-          suffix=" Wochen"
+          :suffix="t('settings.rotation.config.weeksSuffix')"
         />
       </div>
       <div class="flex flex-col gap-2">
         <label for="rotation-start-week" class="text-sm font-medium text-[var(--text-1)]">
-          Musterwoche 1 ist KW
+          {{ t("settings.rotation.config.startWeek") }}
         </label>
         <PrimeInputNumber
           v-model="configForm.start_week"
@@ -93,7 +94,7 @@ async function save() {
         />
       </div>
       <div class="flex flex-col gap-2">
-        <label for="rotation-start-year" class="text-sm font-medium text-[var(--text-1)]">im Jahr</label>
+        <label for="rotation-start-year" class="text-sm font-medium text-[var(--text-1)]">{{ t("settings.rotation.config.inYear") }}</label>
         <PrimeInputNumber
           v-model="configForm.start_year"
           input-id="rotation-start-year"
@@ -113,15 +114,15 @@ async function save() {
         class="planner-chip"
         :class="item.isStart ? 'planner-chip--accent' : ''"
       >
-        {{ weekOfYearLabel(localeTag, item.year, item.week) }} → Muster {{ item.patternWeek }}
+        {{ t("settings.rotation.config.preview", { week: weekOfYearLabel(localeTag, item.year, item.week), pattern: item.patternWeek }) }}
       </span>
     </div>
 
     <p v-if="errorMessage" class="text-sm text-[var(--danger-ink)]">{{ errorMessage }}</p>
 
     <div class="flex flex-wrap gap-2">
-      <PrimeButton label="Startpunkt speichern" class="min-h-11" :loading="saving" @click="save" />
-      <PrimeButton label="Abbrechen" severity="secondary" text class="min-h-11" @click="emit('cancel')" />
+      <PrimeButton :label="t('settings.rotation.config.save')" class="min-h-11" :loading="saving" @click="save" />
+      <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text class="min-h-11" @click="emit('cancel')" />
     </div>
   </div>
 </template>

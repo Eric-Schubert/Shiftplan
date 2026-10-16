@@ -18,6 +18,7 @@ const withPin = ref<Set<number>>(new Set());
 const resettingPin = ref<number | null>(null);
 const revoking = ref(false);
 const error = ref("");
+const { t } = useI18n();
 
 const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => collator(localeTag.value).compare(a.name, b.name)));
 const devicesByStaff = computed(() => {
@@ -61,7 +62,7 @@ async function createInvite(staffId: number, staffName: string) {
     qrSvg.value = await renderQrSvg(link);
     invite.value = { staffId, staffName, code: result.code, link, expiresAt: result.expiresAt };
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "QR-Code konnte nicht erzeugt werden";
+    error.value = cause?.data?.statusMessage || t("settings.members.inviteFailed");
   } finally {
     creatingFor.value = null;
   }
@@ -75,7 +76,7 @@ async function revoke() {
     deviceToRevoke.value = null;
     await loadDevices();
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Gerät konnte nicht gesperrt werden";
+    error.value = cause?.data?.statusMessage || t("settings.members.revokeFailed");
   } finally {
     revoking.value = false;
   }
@@ -88,7 +89,7 @@ async function resetPin(staffId: number) {
     await authFetch(`/api/staff/${staffId}/pin`, { method: "DELETE" });
     await loadDevices();
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "PIN konnte nicht zurückgesetzt werden";
+    error.value = cause?.data?.statusMessage || t("settings.members.resetPinFailed");
   } finally {
     resettingPin.value = null;
   }
@@ -101,16 +102,11 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-4">
-    <p class="max-w-[46rem] text-sm leading-6 text-[var(--text-2)]">
-      Jede Person bekommt einen eigenen QR-Code für die Shiftplan-App oder den Browser. Bei der ersten Anmeldung
-      legt sie eine PIN fest und meldet sich danach auf jedem Gerät mit Kürzel und PIN an. Ein Code ist 7 Tage
-      gültig und nur einmal nutzbar. Verliert jemand sein Handy, sperrst du hier das Gerät. PIN vergessen: PIN
-      zurücksetzen und einen neuen QR-Code erzeugen.
-    </p>
+    <p class="max-w-[46rem] text-sm leading-6 text-[var(--text-2)]">{{ t("settings.members.intro") }}</p>
 
     <div v-if="loading" class="flex items-center gap-3 text-sm text-[var(--text-2)]">
       <PrimeProgressSpinner class="!h-5 !w-5" />
-      Wird geladen.
+      {{ t("settings.loading") }}
     </div>
 
     <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">

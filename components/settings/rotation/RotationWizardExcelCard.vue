@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
 import { weekOfYearLabel } from "~/shared/utils/format/week";
 import type { RotationExcelImportResult } from "~/types/rotation";
 
@@ -17,8 +18,16 @@ const emit = defineEmits<{
   (e: "cancel"): void;
 }>();
 
-const { assignmentCount, assignmentsLabel } = useRotationPatternSummary();
+const { assignmentCount } = useRotationPatternSummary();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
+// The four how-to lines, in order.
+const HOW_TO = [
+  "settings.wizard.excel.howTo.prepare",
+  "settings.wizard.excel.howTo.download",
+  "settings.wizard.excel.howTo.fill",
+  "settings.wizard.excel.howTo.upload",
+] as const satisfies readonly MessageKey[];
 const importConfirm = ref<HTMLElement | null>(null);
 
 watch(
@@ -33,23 +42,19 @@ watch(
 
 <template>
   <div class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-4">
-    <p class="font-semibold text-[var(--text-1)]">Muster per Excel übernehmen <span class="font-normal text-[var(--text-3)]">(optional)</span></p>
-    <p class="mt-1 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-      Nur nötig, wenn du das Muster lieber in Excel pflegst. Sonst einfach auf
-      <strong>Weiter</strong>.
+    <p class="font-semibold text-[var(--text-1)]">
+      {{ t("settings.wizard.excel.title") }}
+      <span class="font-normal text-[var(--text-3)]">{{ t("settings.wizard.excel.optional") }}</span>
     </p>
+    <i18n-t keypath="settings.wizard.excel.intro" tag="p" class="mt-1 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
+      <template #next><strong>{{ t("common.actions.next") }}</strong></template>
+    </i18n-t>
     <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
-      <li>
-        1. Vorher alles anlegen: Mitarbeitende und Schichten in den Einstellungen, Startwoche und
-        Zykluslänge hier oben. Die Vorlage enthält nur, was beim Herunterladen schon da ist.
-      </li>
-      <li>2. Vorlage herunterladen, sie enthält das aktuelle Muster.</li>
-      <li>3. In Excel bei jeder Person pro Woche die Schicht auswählen und speichern.</li>
-      <li>4. Hochladen. Du siehst vor dem Ersetzen, was übernommen wird.</li>
+      <li v-for="step in HOW_TO" :key="step">{{ t(step) }}</li>
     </ol>
     <div class="mt-4 flex flex-wrap gap-2">
       <PrimeButton
-        label="Vorlage herunterladen"
+        :label="t('settings.wizard.excel.download')"
         icon="pi pi-download"
         severity="secondary"
         class="min-h-11"
@@ -57,7 +62,7 @@ watch(
         @click="emit('download')"
       />
       <PrimeButton
-        label="Ausgefüllte Datei hochladen"
+        :label="t('settings.wizard.excel.upload')"
         icon="pi pi-upload"
         severity="secondary"
         class="min-h-11"
@@ -71,24 +76,27 @@ watch(
       ref="importConfirm"
       class="mt-4 rounded-xl border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm text-[var(--text-1)]"
     >
-      <p class="font-semibold">„{{ pending.file.name }}“ ist in Ordnung.</p>
+      <p class="font-semibold">{{ t("settings.wizard.excel.fileOk", { file: pending.file.name }) }}</p>
       <p class="mt-1 leading-6 text-[var(--text-2)]">
-        Neues Muster: {{ pending.check.config.cycle_length }}-Wochen-Zyklus, Musterwoche 1 =
-        {{ weekOfYearLabel(localeTag, pending.check.config.start_year, pending.check.config.start_week) }},
-        {{ assignmentsLabel(pending.check.importedAssignments) }}.
-        Es ersetzt das aktuelle Muster ({{ assignmentsLabel(assignmentCount) }}). Wochenpläne bleiben
-        unverändert, bis du sie im letzten Schritt ausrollst.
+        {{
+          t("settings.wizard.excel.replaceText", {
+            cycle: t("settings.rotation.cycle", { weeks: pending.check.config.cycle_length }),
+            week: weekOfYearLabel(localeTag, pending.check.config.start_year, pending.check.config.start_week),
+            assignments: t("settings.rotation.assignments", pending.check.importedAssignments),
+            current: t("settings.rotation.assignments", assignmentCount),
+          })
+        }}
       </p>
       <div class="mt-3 flex flex-wrap gap-2">
         <PrimeButton
-          label="Muster ersetzen"
+          :label="t('settings.wizard.excel.replace')"
           icon="pi pi-check"
           class="min-h-11"
           :loading="importing"
           @click="emit('confirm')"
         />
         <PrimeButton
-          label="Abbrechen"
+          :label="t('common.actions.cancel')"
           severity="secondary"
           text
           class="min-h-11"

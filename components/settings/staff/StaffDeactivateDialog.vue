@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const saving = ref(false);
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -34,19 +35,16 @@ async function deactivate() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Mitarbeiter deaktivieren"
+    :header="t('settings.staff.deactivate')"
     modal
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
-    <p>
-      {{ staff?.name }} deaktivieren? Das meldet alle Geräte und Browser ab, löscht die PIN und
-      zieht offene Anfragen zurück. Nach dem Aktivieren ist ein neuer QR-Code nötig.
-    </p>
+    <p>{{ t("settings.staff.deactivateText", { name: staff?.name ?? "" }) }}</p>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        label="Deaktivieren"
+        :label="t('common.actions.deactivate')"
         severity="danger"
         class="min-h-11"
         :loading="saving"

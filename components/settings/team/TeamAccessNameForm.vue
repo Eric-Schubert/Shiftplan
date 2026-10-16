@@ -6,6 +6,7 @@ const name = defineModel<string>("name", { required: true });
 const { authFetch } = useAuthFetch();
 const saving = ref(false);
 const saved = ref(false);
+const { t } = useI18n();
 
 async function save() {
   saving.value = true;
@@ -15,7 +16,7 @@ async function save() {
     saved.value = true;
     setTimeout(() => (saved.value = false), 2000);
   } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || "Name konnte nicht gespeichert werden");
+    emit("error", cause?.data?.statusMessage || t("settings.team.name.failed"));
   } finally {
     saving.value = false;
   }
@@ -25,7 +26,7 @@ async function save() {
 <template>
   <form class="max-w-md space-y-1.5" @submit.prevent="save">
     <label for="team-instance-name" class="block text-sm font-medium text-[var(--text-2)]">
-      Name in der App
+      {{ t("settings.team.name.label") }}
     </label>
     <div class="flex gap-2">
       <PrimeInputText
@@ -33,12 +34,12 @@ async function save() {
         v-model="name"
         class="min-w-0 flex-1"
         maxlength="80"
-        placeholder="z. B. Pflegeteam Nord"
+        :placeholder="t('settings.team.name.placeholder')"
         :disabled="saving"
       />
       <PrimeButton
         type="submit"
-        :label="saved ? 'Gespeichert' : 'Speichern'"
+        :label="saved ? t('settings.team.name.saved') : t('common.actions.save')"
         :icon="saved ? 'pi pi-check' : undefined"
         severity="secondary"
         outlined

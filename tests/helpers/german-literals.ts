@@ -8,11 +8,12 @@ const ALLOWED = new Set([...ALLOWED_IDENTIFIERS, ...Object.keys(SHORT_NAME_KEYS)
 // Attributes no one reads. Every other static attribute is text, so any word in it counts.
 const TECHNICAL_ATTRS = new Set([
   "accept", "aria-busy", "aria-describedby", "aria-hidden", "aria-labelledby", "autocapitalize", "autocomplete",
-  "autocorrect", "class", "draggable", "empty-icon", "field", "for", "height", "href", "icon", "icon-pos", "id",
-  "id-prefix", "input-id", "inputmode", "keypath", "maxlength", "name", "option-label", "option-value", "ref", "rel",
-  "role", "rows", "scope", "severity", "size", "spellcheck", "src", "style", "tabindex", "tag", "target", "to",
-  "type", "value", "width",
+  "autocorrect", "class", "draggable", "empty-icon", "for", "height", "href", "icon", "icon-pos", "id", "id-prefix",
+  "input-id", "inputmode", "keypath", "maxlength", "option-value", "ref", "rel", "role", "rows", "scope", "severity",
+  "size", "spellcheck", "src", "style", "tabindex", "tag", "target", "to", "type", "width",
 ]);
+// Usually a field or option name, but a component may show it (<PrimeTag value="…">): checked like code.
+const VALUE_ATTRS = new Set(["field", "name", "option-label", "value"]);
 
 type Finding = { line: number; text: string };
 
@@ -24,7 +25,8 @@ function codeStrings(source: string, firstLine: number): Finding[] {
 function templateTexts(node: any, found: { markup: Finding[]; code: Finding[] }) {
   for (const prop of node.props ?? []) {
     const line = prop.loc.start.line;
-    if (prop.type === 6 && prop.value && !TECHNICAL_ATTRS.has(prop.name)) found.markup.push({ line, text: prop.value.content });
+    if (prop.type === 6 && prop.value && VALUE_ATTRS.has(prop.name)) found.code.push({ line, text: prop.value.content });
+    else if (prop.type === 6 && prop.value && !TECHNICAL_ATTRS.has(prop.name)) found.markup.push({ line, text: prop.value.content });
     if (prop.type === 7 && prop.exp) found.code.push(...codeStrings(prop.exp.content, line));
   }
   for (const child of node.children ?? []) {

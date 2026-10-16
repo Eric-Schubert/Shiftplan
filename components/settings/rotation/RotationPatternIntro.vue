@@ -7,6 +7,7 @@ defineProps<{
   startYear: number;
 }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -14,14 +15,13 @@ const localeTag = useLocaleTag();
     <div class="flex items-start gap-3">
       <i class="pi pi-info-circle mt-0.5 text-xl text-primary-light dark:text-primary-dark" aria-hidden="true"></i>
       <div class="text-sm text-gray-700 dark:text-gray-300">
-        <p class="mb-1 font-medium">So funktioniert das Rotationsmuster:</p>
-        <p class="mb-2">
-          Lege fest, wer in welcher Woche des Zyklus welche Schicht arbeitet.
-          Das Muster wiederholt sich alle <strong>{{ cycleLength }} Wochen</strong>.
-        </p>
+        <p class="mb-1 font-medium">{{ t("settings.rotation.intro.title") }}</p>
+        <i18n-t keypath="settings.rotation.intro.text" tag="p" class="mb-2">
+          <template #weeks><strong>{{ t("settings.rotation.intro.weeks", { count: cycleLength }) }}</strong></template>
+        </i18n-t>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           <i class="pi pi-calendar mr-1" aria-hidden="true"></i>
-          Musterwoche 1 beginnt in {{ weekOfYearLabel(localeTag, startYear, startWeek) }}
+          {{ t("settings.rotation.intro.firstWeek", { week: weekOfYearLabel(localeTag, startYear, startWeek) }) }}
         </p>
       </div>
     </div>

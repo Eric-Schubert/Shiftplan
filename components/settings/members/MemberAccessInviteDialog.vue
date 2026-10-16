@@ -9,6 +9,7 @@ defineProps<{
 const emit = defineEmits<{ (e: "done"): void }>();
 const visible = defineModel<boolean>("visible", { required: true });
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 function done() {
   visible.value = false;
@@ -19,7 +20,7 @@ function done() {
 <template>
   <PrimeDialog
     v-model:visible="visible"
-    :header="`App-Zugang für ${invite?.staffName}`"
+    :header="t('settings.members.invite.header', { name: invite?.staffName ?? '' })"
     modal
     :style="{ width: '24rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
@@ -27,17 +28,17 @@ function done() {
       <div
         class="mx-auto h-56 w-56 rounded-xl border border-[var(--border-soft)] bg-white p-2 [&_svg]:h-full [&_svg]:w-full"
         role="img"
-        :aria-label="`Persönlicher QR-Code für ${invite.staffName}`"
+        :aria-label="t('settings.members.invite.qrLabel', { name: invite.staffName })"
         v-html="qrSvg"
       ></div>
-      <p class="text-[var(--text-2)]">Mit der Shiftplan-App scannen oder im Browser öffnen. Ohne Kamera geht auch der Code:</p>
+      <p class="text-[var(--text-2)]">{{ t("settings.members.invite.scan") }}</p>
       <p class="font-mono text-xl font-semibold tracking-widest text-[var(--text-1)]">{{ invite.code }}</p>
       <p class="text-xs text-[var(--text-3)]">
-        Gültig bis {{ formatTimestamp(localeTag, invite.expiresAt) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.
+        {{ t("settings.members.invite.validUntil", { until: formatTimestamp(localeTag, invite.expiresAt), name: invite.staffName }) }}
       </p>
     </div>
     <template #footer>
-      <PrimeButton label="Fertig" class="min-h-11" @click="done" />
+      <PrimeButton :label="t('common.actions.done')" class="min-h-11" @click="done" />
     </template>
   </PrimeDialog>
 </template>

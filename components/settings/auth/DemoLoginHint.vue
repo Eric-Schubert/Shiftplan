@@ -6,19 +6,19 @@ defineEmits<{ (e: "fill"): void }>();
 
 <template>
   <div class="mb-5 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] p-4 text-sm">
-    <p class="font-semibold text-[var(--text-1)]">Demo-Zugang</p>
+    <p class="font-semibold text-[var(--text-1)]">{{ $t("settings.auth.demo.title") }}</p>
     <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[var(--text-2)]">
-      <dt>Benutzer</dt>
+      <dt>{{ $t("settings.auth.demo.user") }}</dt>
       <dd class="font-mono text-[var(--text-1)]">{{ username }}</dd>
-      <dt>Passwort</dt>
+      <dt>{{ $t("settings.auth.password") }}</dt>
       <dd class="font-mono text-[var(--text-1)]">{{ password }}</dd>
     </dl>
     <p class="mt-2 text-xs leading-5 text-[var(--text-2)]">
-      Die Demo wird regelmäßig zurückgesetzt.
+      {{ $t("settings.auth.demo.reset") }}
     </p>
     <PrimeButton
       type="button"
-      label="Zugangsdaten übernehmen"
+      :label="$t('settings.auth.demo.fill')"
       icon="pi pi-sign-in"
       size="small"
       outlined

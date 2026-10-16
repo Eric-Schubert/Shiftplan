@@ -45,7 +45,7 @@ export function useRotationExcelImport(onImported: () => void) {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      excelError.value = error.message || "Vorlage konnte nicht geladen werden";
+      excelError.value = error.message || t("settings.wizard.excel.downloadFailed");
     } finally {
       downloadingTemplate.value = false;
     }
@@ -75,7 +75,7 @@ export function useRotationExcelImport(onImported: () => void) {
     try {
       pendingImport.value = { file, check: await uploadExcel(file, true) };
     } catch (error: any) {
-      excelError.value = error.data?.statusMessage || "Die Datei konnte nicht gelesen werden";
+      excelError.value = error.data?.statusMessage || t("settings.wizard.excel.readFailed");
     } finally {
       checkingFile.value = false;
     }
@@ -93,7 +93,7 @@ export function useRotationExcelImport(onImported: () => void) {
       importDone.value = result;
       onImported();
     } catch (error: any) {
-      excelError.value = error.data?.statusMessage || "Import fehlgeschlagen, das Muster ist unverändert";
+      excelError.value = error.data?.statusMessage || t("settings.wizard.excel.importFailed");
     } finally {
       importingExcel.value = false;
     }

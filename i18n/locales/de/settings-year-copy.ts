@@ -1,0 +1,20 @@
+// „Jahr kopieren“ next to the rotation wizard: copies a year's assignments into another year.
+export default {
+  button: "Jahr kopieren",
+  header: "Schichtplan kopieren",
+  intro: "Kopiert alle Schichtzuweisungen von einem Jahr in ein anderes. Das Rotationsmuster bleibt unverändert.",
+  source: "Von (Quelljahr)",
+  target: "Nach (Zieljahr)",
+  overwrite: "Bestehende Zuweisungen in {year} überschreiben",
+  copy: "Kopieren",
+  loading: "Lade Vorschau...",
+  summary: "{weeks} Wochen mit {assignments} Zuweisungen in {year}",
+  empty: "Keine Schichtpläne in {year} vorhanden.",
+  overwriteWarning: "⚠ Bestehende Zuweisungen in {year} werden gelöscht und ersetzt.",
+  skipNote: "Wochen, die in {year} bereits Zuweisungen haben, werden übersprungen.",
+  done: "✓ Erfolgreich kopiert!",
+  copied: "{weeks} Wochen kopiert ({assignments} Zuweisungen)",
+  skipped: "{weeks} Wochen übersprungen (bereits befüllt)",
+  loadFailed: "Fehler beim Laden der Vorschau",
+  copyFailed: "Fehler beim Kopieren",
+};

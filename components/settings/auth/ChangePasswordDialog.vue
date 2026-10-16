@@ -13,6 +13,8 @@ const success = ref(false);
 const loading = ref(false);
 const passwordErrorId = "change-password-error";
 const formId = "change-password-form";
+const { t } = useI18n();
+const passwordHint = computed(() => configStore.passwordPolicy.hint || t("settings.auth.passwordHint"));
 
 function clearFields() {
   currentPassword.value = "";
@@ -27,7 +29,7 @@ async function changePassword() {
     confirmPassword.value,
     configStore.passwordPolicy
   );
-  error.value = problem ?? "";
+  error.value = problem ? t(problem.key, problem.params ?? {}) : "";
   success.value = false;
   if (problem) return;
 
@@ -50,7 +52,7 @@ async function changePassword() {
       success.value = false;
     }, 2000);
   } catch (requestError: any) {
-    error.value = requestError.data?.message || "Passwort konnte nicht geändert werden";
+    error.value = requestError.data?.message || t("settings.auth.changePassword.failed");
   } finally {
     loading.value = false;
   }
@@ -66,7 +68,7 @@ function onHide() {
 <template>
   <PrimeDialog
     v-model:visible="visible"
-    header="Passwort ändern"
+    :header="t('app.settingsPage.changePassword')"
     modal
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
     @hide="onHide"
@@ -78,7 +80,7 @@ function onHide() {
       >
         <i class="pi pi-check-circle mb-2 text-3xl text-[var(--positive-ink)]" aria-hidden="true"></i>
         <p class="font-medium text-[var(--positive-ink)]">
-          Passwort erfolgreich geändert.
+          {{ t("settings.auth.changePassword.done") }}
         </p>
       </div>
 
@@ -86,22 +88,22 @@ function onHide() {
         <ChangePasswordField
           v-model="currentPassword"
           input-id="current-password"
-          label="Aktuelles Passwort"
-          placeholder="Aktuelles Passwort eingeben"
+          :label="t('settings.auth.changePassword.current')"
+          :placeholder="t('settings.auth.changePassword.currentPlaceholder')"
           :described-by="error ? passwordErrorId : undefined"
         />
         <ChangePasswordField
           v-model="newPassword"
           input-id="new-password"
-          label="Neues Passwort"
-          :placeholder="configStore.passwordPolicy.hint"
+          :label="t('settings.auth.changePassword.new')"
+          :placeholder="passwordHint"
           :described-by="error ? passwordErrorId : undefined"
         />
         <ChangePasswordField
           v-model="confirmPassword"
           input-id="confirm-password"
-          label="Neues Passwort bestätigen"
-          placeholder="Neues Passwort wiederholen"
+          :label="t('settings.auth.changePassword.repeat')"
+          :placeholder="t('settings.auth.changePassword.repeatPlaceholder')"
           :described-by="error ? passwordErrorId : undefined"
         />
 
@@ -117,12 +119,12 @@ function onHide() {
     </form>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="visible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="visible = false" />
       <PrimeButton
         v-if="!success"
         type="submit"
         :form="formId"
-        label="Passwort ändern"
+        :label="t('app.settingsPage.changePassword')"
         class="min-h-11"
         :loading="loading"
       />

@@ -10,11 +10,12 @@ const emit = defineEmits<{
   (e: "edit-board"): void;
 }>();
 
-const { patternWeeks, currentPatternWeek, understaffedCount, assignmentsLabel } = useRotationPatternSummary(props.today);
+const { patternWeeks, currentPatternWeek, understaffedCount } = useRotationPatternSummary(props.today);
+const { t } = useI18n();
 
 function staffingNote(staffCount: number, minStaff: number): string | null {
-  if (staffCount === 0) return "unbesetzt";
-  if (staffCount < minStaff) return `${staffCount} von ${minStaff}`;
+  if (staffCount === 0) return t("settings.wizard.review.unstaffed");
+  if (staffCount < minStaff) return t("settings.wizard.review.staffedOf", { count: staffCount, min: minStaff });
   return null;
 }
 </script>
@@ -26,7 +27,11 @@ function staffingNote(staffCount: number, minStaff: number): string | null {
       class="rounded-xl bg-[var(--positive-soft)] px-4 py-3 text-sm text-[var(--positive-ink)]"
     >
       <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>
-      Muster übernommen: {{ assignmentsLabel(importDone.importedAssignments) }}.
+      {{
+        t("settings.wizard.review.imported", {
+          assignments: t("settings.rotation.assignments", importDone.importedAssignments),
+        })
+      }}
     </p>
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -36,16 +41,15 @@ function staffingNote(staffCount: number, minStaff: number): string | null {
       >
         <template v-if="understaffedCount > 0">
           <i class="pi pi-exclamation-triangle mr-1" aria-hidden="true"></i>
-          {{ understaffedCount }} {{ understaffedCount === 1 ? "Schicht ist" : "Schichten sind" }}
-          im Muster unter der Mindestbesetzung.
+          {{ t("settings.wizard.review.understaffed", understaffedCount) }}
         </template>
         <template v-else>
           <i class="pi pi-check-circle mr-1" aria-hidden="true"></i>
-          Alle Schichten sind im Muster besetzt.
+          {{ t("settings.wizard.review.allStaffed") }}
         </template>
       </p>
       <PrimeButton
-        label="Im Board bearbeiten"
+        :label="t('settings.wizard.review.editBoard')"
         icon="pi pi-pencil"
         severity="secondary"
         class="min-h-11 shrink-0"
@@ -60,9 +64,9 @@ function staffingNote(staffCount: number, minStaff: number): string | null {
         class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] p-3"
       >
         <p class="flex items-center gap-2 text-sm font-semibold text-[var(--text-1)]">
-          Musterwoche {{ week.pattern_week }}
+          {{ t("settings.rotation.patternWeek", { week: week.pattern_week }) }}
           <span v-if="week.pattern_week === currentPatternWeek" class="planner-chip planner-chip--accent">
-            diese Woche
+            {{ t("settings.wizard.review.thisWeek") }}
           </span>
         </p>
         <ul class="mt-2 space-y-1.5 text-sm">
