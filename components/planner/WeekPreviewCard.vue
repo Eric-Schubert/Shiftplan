@@ -45,7 +45,7 @@ const assignmentCount = computed(() =>
         <span class="text-xs tabular-nums text-[var(--text-3)]">{{ formatWeekDates(localeTag, week.year, week.week) }}</span>
       </div>
       <span class="text-xs tabular-nums text-[var(--text-3)]">
-        {{ assignmentCount }} Zuweisungen
+        {{ $t("planner.week.preview.assignments", { count: assignmentCount }) }}
       </span>
     </div>
 
@@ -88,7 +88,7 @@ const assignmentCount = computed(() =>
           v-else
           class="py-2 text-sm text-[var(--text-3)]"
         >
-          Noch nicht geplant.
+          {{ $t("planner.week.preview.notPlanned") }}
         </p>
       </template>
     </div>

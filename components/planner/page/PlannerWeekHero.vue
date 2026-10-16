@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { formatWeekDates, weekLabel } from "~/shared/utils/format/week";
 
+import type { MessageKey } from "~/i18n/types";
+
 defineProps<{
   selectedWeek: number;
   selectedYear: number;
   isCurrentWeek: boolean;
-  currentWeekLabel: string | null;
+  currentWeekLabel: MessageKey | null;
   patternWeek?: number | null;
   canEditShifts: boolean;
   generating: boolean;
@@ -21,6 +23,7 @@ const emit = defineEmits<{
   (e: "notify-team"): void;
 }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -31,9 +34,9 @@ const localeTag = useLocaleTag();
           {{ weekLabel(localeTag, selectedWeek) }}
         </h2>
         <span class="planner-chip tabular-nums">{{ selectedYear }}</span>
-        <span v-if="currentWeekLabel" class="planner-chip planner-chip--current">{{ currentWeekLabel }}</span>
+        <span v-if="currentWeekLabel" class="planner-chip planner-chip--current">{{ t(currentWeekLabel) }}</span>
         <span v-if="patternWeek" class="planner-chip planner-chip--accent">
-          Muster {{ patternWeek }}
+          {{ t("planner.week.hero.pattern", { week: patternWeek }) }}
         </span>
       </div>
       <p class="text-sm tabular-nums text-[var(--text-2)]">
@@ -44,7 +47,7 @@ const localeTag = useLocaleTag();
     <div class="flex flex-wrap items-center gap-2">
       <template v-if="canEditShifts">
         <PrimeButton
-          label="Aus Muster füllen"
+          :label="t('planner.week.hero.fillFromPattern')"
           icon="pi pi-sync"
           size="small"
           class="min-h-9"
@@ -52,17 +55,17 @@ const localeTag = useLocaleTag();
           @click="emit('generate')"
         />
         <PrimeButton
-          label="Mehrere Wochen"
+          :label="t('planner.week.hero.severalWeeks')"
           icon="pi pi-calendar-plus"
           severity="secondary"
           size="small"
           outlined
           class="min-h-9"
-          aria-label="Mehrere Wochen aus dem Muster generieren"
+          :aria-label="t('planner.week.hero.severalWeeksHint')"
           @click="emit('open-bulk')"
         />
         <PrimeButton
-          label="Team benachrichtigen"
+          :label="t('planner.week.hero.notifyTeam')"
           icon="pi pi-megaphone"
           severity="secondary"
           size="small"
@@ -73,8 +76,8 @@ const localeTag = useLocaleTag();
         <span class="mx-1 hidden h-6 w-px bg-[var(--border-soft)] sm:block" aria-hidden="true"></span>
       </template>
 
-      <div class="planner-segmented" role="group" aria-label="Woche wechseln">
-        <button type="button" aria-label="Vorherige Woche anzeigen" @click="emit('previous')">
+      <div class="planner-segmented" role="group" :aria-label="t('planner.week.hero.switchWeek')">
+        <button type="button" :aria-label="t('planner.week.hero.previous')" @click="emit('previous')">
           <i class="pi pi-chevron-left text-xs" aria-hidden="true"></i>
         </button>
         <button
@@ -83,20 +86,20 @@ const localeTag = useLocaleTag();
           :aria-current="isCurrentWeek ? 'date' : undefined"
           @click="emit('today')"
         >
-          Heute
+          {{ t("planner.week.hero.today") }}
         </button>
-        <button type="button" aria-label="Nächste Woche anzeigen" @click="emit('next')">
+        <button type="button" :aria-label="t('planner.week.hero.next')" @click="emit('next')">
           <i class="pi pi-chevron-right text-xs" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="planner-segmented hidden sm:inline-flex" role="group" aria-label="Wochen vorspringen">
+      <div class="planner-segmented hidden sm:inline-flex" role="group" :aria-label="t('planner.week.hero.jump')">
         <button
           v-for="offset in [1, 2, 4]"
           :key="offset"
           type="button"
           class="tabular-nums"
-          :aria-label="`${offset} Wochen vorspringen`"
+          :aria-label="t('planner.week.hero.jumpBy', { count: offset })"
           @click="emit('jump', offset)"
         >
           +{{ offset }}

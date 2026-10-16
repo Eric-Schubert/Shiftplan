@@ -20,13 +20,13 @@ const dialogVisible = computed({
   <PrimeDialog
     v-model:visible="dialogVisible"
     modal
-    header="Mehrere Wochen generieren"
+    :header="$t('planner.week.bulk.header')"
     :style="{ width: '34rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <RotationRolloutPanel :initial-year="year" :initial-week="week" @generated="emit('generated')" />
 
     <template #footer>
-      <PrimeButton label="Schließen" text class="min-h-11" @click="dialogVisible = false" />
+      <PrimeButton :label="$t('common.actions.close')" text class="min-h-11" @click="dialogVisible = false" />
     </template>
   </PrimeDialog>
 </template>

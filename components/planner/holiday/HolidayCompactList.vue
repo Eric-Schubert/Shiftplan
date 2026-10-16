@@ -6,6 +6,7 @@ defineProps<{
   holidays: PublicHoliday[];
   schoolHolidays: SchoolHolidayPeriod[];
 }>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -19,7 +20,7 @@ defineProps<{
         class="h-1.5 w-1.5 flex-shrink-0 rounded-full"
         :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"
       ></span>
-      <span class="truncate">{{ shortenHolidayName(holiday.name) }}</span>
+      <span class="truncate">{{ shortenHolidayName(holiday.name, t) }}</span>
     </div>
 
     <div

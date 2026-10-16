@@ -4,7 +4,9 @@ import changelog from "./changelog";
 import common from "./common";
 import errors from "./errors";
 import excel from "./excel";
+import holidays from "./holidays";
 import member from "./member";
+import planner from "./planner";
 import primevue from "./primevue";
 import requests from "./requests";
 import validation from "./validation";
@@ -21,6 +23,8 @@ const de = {
   member,
   requests,
   absence,
+  planner,
+  holidays,
 };
 
 export default de;

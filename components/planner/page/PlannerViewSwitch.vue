@@ -4,14 +4,15 @@ type PlannerView = "week" | "plan";
 // Segmented switch between the week grid and the editable shift cards.
 const view = defineModel<PlannerView>({ required: true });
 
-const viewOptions: Array<{ label: string; value: PlannerView }> = [
-  { label: "Woche", value: "week" },
-  { label: "Plan bearbeiten", value: "plan" },
-];
+const { t } = useI18n();
+const viewOptions = computed<Array<{ label: string; value: PlannerView }>>(() => [
+  { label: t("planner.week.view.week"), value: "week" },
+  { label: t("planner.week.view.plan"), value: "plan" },
+]);
 </script>
 
 <template>
-  <div class="inline-flex gap-1 rounded-lg bg-[var(--surface-muted)] p-1 text-xs" role="radiogroup" aria-label="Ansicht">
+  <div class="inline-flex gap-1 rounded-lg bg-[var(--surface-muted)] p-1 text-xs" role="radiogroup" :aria-label="t('planner.week.view.label')">
     <button
       v-for="option in viewOptions"
       :key="option.value"

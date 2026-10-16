@@ -21,6 +21,7 @@ const emit = defineEmits<{
 
 const appStore = useAppStore();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const shiftList = computed<ShiftWithStaff[]>(() => props.shiftplan?.shifts ?? []);
 const { holidays } = useHolidayWeek(
@@ -28,7 +29,7 @@ const { holidays } = useHolidayWeek(
   computed(() => appStore.selectedWeek)
 );
 const workdays = computed(() => workDates(appStore.selectedYear, appStore.selectedWeek, !appStore.nextWeekFromSaturday));
-const holidayNames = computed(() => new Map(holidays.value.map((holiday) => [holiday.date, shortenHolidayName(holiday.name)])));
+const holidayNames = computed(() => new Map(holidays.value.map((holiday) => [holiday.date, shortenHolidayName(holiday.name, t)])));
 // Nobody is expected to work on holidays, so they never leave a shift short.
 const coverageDates = computed(() => workdays.value.filter((date) => !holidayNames.value.has(date)));
 
@@ -39,8 +40,8 @@ const fullyStaffedShifts = computed(() => {
 });
 const coverageNote = computed(() =>
   shiftList.value.length === 0
-    ? "Noch keine Planbasis"
-    : `${fullyStaffedShifts.value}/${shiftList.value.length} Schichten im Soll`
+    ? t("planner.week.board.noBase")
+    : t("planner.week.board.coverage", { covered: fullyStaffedShifts.value, total: shiftList.value.length })
 );
 </script>
 
@@ -81,14 +82,14 @@ const coverageNote = computed(() =>
 
     <aside class="planner-panel hidden lg:block">
       <div class="mb-3 flex items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold text-[var(--text-1)]">Kalender</h3>
+        <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ t("planner.week.board.calendar") }}</h3>
         <span class="inline-flex items-center gap-1.5 text-xs text-[var(--text-3)]">
           <span
             class="h-1.5 w-1.5 rounded-full"
             :class="pending ? 'bg-amber-500' : 'bg-emerald-500'"
             aria-hidden="true"
           ></span>
-          {{ pending ? "Aktualisiert" : "Aktuell" }}
+          {{ pending ? t("planner.week.board.updating") : t("planner.week.board.current") }}
         </span>
       </div>
       <HolidayInfo

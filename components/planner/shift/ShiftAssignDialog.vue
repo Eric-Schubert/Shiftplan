@@ -23,12 +23,12 @@ const dialogVisible = computed({
   <PrimeDialog
     v-model:visible="dialogVisible"
     modal
-    :header="`${shiftName} - Mitarbeiter zuweisen`"
+    :header="$t('planner.shift.assign.header', { shift: shiftName })"
     :style="{ width: '24rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <div v-if="availableStaff.length === 0" class="planner-empty !py-8">
       <i class="pi pi-user-plus text-3xl text-[var(--text-3)]" aria-hidden="true"></i>
-      <p class="text-sm">Alle verfügbaren Mitarbeiter sind dieser Schicht bereits zugeordnet.</p>
+      <p class="text-sm">{{ $t("planner.shift.assign.allAssigned") }}</p>
     </div>
 
     <div v-else class="space-y-2">
@@ -45,7 +45,7 @@ const dialogVisible = computed({
           v-if="staffMember.is_parttime"
           class="rounded-full bg-[var(--surface-muted)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--text-3)]"
         >
-          TZ
+          {{ $t("planner.shift.assign.partTime") }}
         </span>
       </button>
     </div>

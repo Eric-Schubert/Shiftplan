@@ -21,6 +21,7 @@ const emit = defineEmits<{
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -74,7 +75,7 @@ async function toggle(staffId: number, date: string, present: boolean) {
     saved.value = { ...saved.value, [cellKey(staffId, date)]: present };
     emit("updated");
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Änderung konnte nicht gespeichert werden";
+    error.value = cause?.data?.statusMessage || t("planner.shift.dayChange.failed");
   } finally {
     busyCell.value = "";
   }
@@ -97,7 +98,7 @@ watch(addStaffId, (staffId) => {
   >
     <div class="space-y-3 text-sm">
       <p class="text-[var(--text-2)]">
-        Tippe auf einen Tag, um jemanden nur an diesem Tag ein- oder auszutragen. Der Wochenplan bleibt die Grundlage.
+        {{ t("planner.shift.dayChange.intro") }}
       </p>
 
       <DayChangeGrid :shift="shift" :days="days" :rows="rows" :day-changes="dayChanges" :busy-cell="busyCell" :saved="saved" @toggle="toggle">
@@ -107,7 +108,7 @@ watch(addStaffId, (staffId) => {
             :options="addOptions"
             option-label="label"
             option-value="value"
-            placeholder="Weitere Person für einzelne Tage"
+            :placeholder="t('planner.shift.dayChange.addPerson')"
             filter
             class="min-w-[14rem] flex-1"
           />
@@ -117,7 +118,7 @@ watch(addStaffId, (staffId) => {
     </div>
 
     <template #footer>
-      <PrimeButton label="Fertig" @click="dialogVisible = false" />
+      <PrimeButton :label="t('planner.shift.dayChange.done')" @click="dialogVisible = false" />
     </template>
   </PrimeDialog>
 </template>
