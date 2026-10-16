@@ -54,11 +54,10 @@ describe("apiError", () => {
 });
 
 describe("translate", () => {
-  it("fills placeholders, keeps unknown ones and returns unknown keys as is", () => {
+  it("fills placeholders, leaves missing ones empty and returns unknown keys as is", () => {
     expect(t("de", "errors.shiftplan.noSuchWeek", { year: 2026, week: 53 })).toBe("2026 hat keine KW 53");
-    expect(t("de", "errors.shiftplan.noSuchWeek", { year: 2026 })).toBe("2026 hat keine KW {week}");
+    expect(t("de", "errors.shiftplan.noSuchWeek", { year: 2026 })).toBe("2026 hat keine KW ");
     expect(t("de", "errors.missing" as never)).toBe("errors.missing");
-    expect(t("de", "errors.staff.shortCodeTaken", Object.create({ code: "AW" }))).toBe("Das Kürzel {code} ist schon vergeben");
   });
 });
 

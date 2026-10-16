@@ -1,6 +1,8 @@
 import { createError, type H3Event } from "h3";
 import { DEFAULT_LOCALE, t, type Locale, type MessageKey, type MessageValues } from "~/server/lib/i18n/translate";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { localeTag } from "~/i18n/config";
+import { resolveLocale } from "~/server/utils/locale";
+import { formatDay } from "~/shared/utils/format/day";
 
 /** A parameter that is itself a catalog message, such as a field label; it is translated in the same locale. */
 export type MessageRef = { key: MessageKey; params?: ErrorParams };
@@ -16,16 +18,16 @@ export function dateParam(date: string): DateParam {
   return { date };
 }
 
-// Until server/utils/locale.ts exists every error is German; then this becomes resolveLocale(event).
-function errorLocale(_event: H3Event | null): Locale {
-  return DEFAULT_LOCALE;
+// Errors deep in services have no request at hand and use the instance's language.
+function errorLocale(event: H3Event | null): Locale {
+  return event ? resolveLocale(event) : DEFAULT_LOCALE;
 }
 
 function render(locale: Locale, key: MessageKey, params: ErrorParams = {}): string {
   const values: MessageValues = {};
   for (const [name, value] of Object.entries(params)) {
     if (typeof value !== "object") values[name] = value;
-    else values[name] = "date" in value ? formatNoticeDay(value.date) : render(locale, value.key, value.params);
+    else values[name] = "date" in value ? formatDay(localeTag(locale), value.date) : render(locale, value.key, value.params);
   }
   return t(locale, key, values);
 }
