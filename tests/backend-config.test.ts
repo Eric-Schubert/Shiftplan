@@ -18,6 +18,16 @@ describe("backend config", () => {
     expect(() => validateBackendConfig(invalidConfig)).toThrow(/state XX/);
   });
 
+  it("accepts contactMail.dateLocale from older config files with a warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const legacyConfig = structuredClone(backendConfig);
+    Object.assign(legacyConfig.contactMail, { dateLocale: "en-US" });
+
+    expect(() => validateBackendConfig(legacyConfig)).not.toThrow();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("contactMail.dateLocale is ignored"));
+    warn.mockRestore();
+  });
+
   describe("SHIFTPLAN_TRUST_PROXY_HEADERS", () => {
     afterEach(() => {
       vi.unstubAllEnvs();

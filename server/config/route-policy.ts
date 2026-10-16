@@ -1,7 +1,8 @@
 // Who may reach an API route before its handler runs. server/middleware/auth.ts enforces it,
 // scripts/docs/routes.js documents it in docs/api.md. Handlers add role checks on top
 // (requireAdmin, requirePlanner, requireMember). No imports and only erasable type syntax,
-// so `npm run docs` can load this file with plain Node.
+// so `npm run docs` can load this file with plain Node. Paths outside /api/ are public: pages, static
+// files and server/routes such as /manifest.json; the middleware does not look at them.
 
 export type RoutePolicy = {
   readonly publicRoutes: readonly string[];

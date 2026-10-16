@@ -8,6 +8,7 @@ import {
 } from "~/server/services/member-access.service";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { getDatabase } from "~/server/utils/database";
+import { resolveLocale } from "~/server/utils/locale";
 
 // Not part of member-access: the answer names the instance, and team-access builds on member-access.
 
@@ -37,7 +38,7 @@ export function memberLoginResponse(event: H3Event, result: { token: string; mem
       hasPin: MemberAccessService.hasPin(result.member.staffId),
     },
     instanceId: TeamAccessService.getInstanceId(),
-    instanceName: TeamAccessService.getInstanceName(),
+    instanceName: TeamAccessService.getInstanceName(resolveLocale(event)),
   };
 }
 

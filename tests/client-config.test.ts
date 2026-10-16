@@ -80,7 +80,7 @@ describe("client config", () => {
 
     expect(newUserProblem(user, store)).toBeNull();
     expect(validateContactForm(request, store.contactForm)).toEqual({
-      message: "Die Nachricht braucht mindestens 20 Zeichen.",
+      message: { key: "contact.form.messageShort", params: { min: 20 } },
     });
   });
 

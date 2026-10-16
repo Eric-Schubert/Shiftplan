@@ -3,10 +3,12 @@ import app from "./app";
 import audit from "./audit";
 import changelog from "./changelog";
 import common from "./common";
+import contact from "./contact";
 import errors from "./errors";
 import excel from "./excel";
 import excelTemplate from "./excel-template";
 import holidays from "./holidays";
+import mail from "./mail";
 import member from "./member";
 import planner from "./planner";
 import primevue from "./primevue";
@@ -31,6 +33,8 @@ const de = {
   absence,
   planner,
   holidays,
+  mail,
+  contact,
   audit,
   settings,
 };

@@ -3,6 +3,7 @@ import { useConfigStore } from "~/stores/config.store";
 
 /** State, validation and sending of the contact form on the imprint page. */
 export function useImprintContactForm() {
+  const { t } = useI18n();
   const configStore = useConfigStore();
   const contactForm = reactive({
     name: "",
@@ -16,7 +17,12 @@ export function useImprintContactForm() {
   const error = ref("");
   const submitAttempted = ref(false);
 
-  const contactValidation = computed<ContactValidation>(() => validateContactForm(contactForm, configStore.contactForm));
+  const contactValidation = computed<ContactValidation>(() => {
+    const problems = validateContactForm(contactForm, configStore.contactForm);
+    return Object.fromEntries(
+      Object.entries(problems).map(([field, problem]) => [field, t(problem.key, problem.params ?? {})])
+    );
+  });
   const hasValidationErrors = computed(() => Object.keys(contactValidation.value).length > 0);
   const canSubmit = computed(() => !hasValidationErrors.value && !sending.value);
   const showValidation = computed(() => submitAttempted.value);
@@ -25,10 +31,10 @@ export function useImprintContactForm() {
   );
   const messageHelpText = computed(() => {
     if (messageCharactersRemaining.value > 0 && contactForm.message.trim().length > 0) {
-      return `Noch ${messageCharactersRemaining.value} Zeichen bis zum Senden.`;
+      return t("contact.form.remaining", { remaining: messageCharactersRemaining.value });
     }
 
-    return "Die Angaben werden zur Bearbeitung der Anfrage gespeichert.";
+    return t("contact.form.storedNote");
   });
 
   async function submitContact() {
@@ -72,7 +78,7 @@ export function useImprintContactForm() {
       error.value =
         contactError?.data?.statusMessage ||
         contactError?.data?.message ||
-        "Die Nachricht konnte nicht gesendet werden.";
+        t("contact.form.sendFailed");
     } finally {
       sending.value = false;
     }

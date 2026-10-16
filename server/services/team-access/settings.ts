@@ -1,12 +1,13 @@
 import { randomBytes } from "node:crypto";
 import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "~/i18n/config";
+import { t } from "~/i18n/server";
 import { getAdminDatabase } from "~/server/utils/database";
+import { instanceLocale } from "~/server/utils/locale";
 
 const INSTANCE_NAME_SETTING = "instance_name";
 const INSTANCE_ID_SETTING = "instance_uid";
 const NEXT_WEEK_FROM_SATURDAY_SETTING = "next_week_from_saturday";
 const INSTANCE_LOCALE_SETTING = "instance_locale";
-const DEFAULT_INSTANCE_NAME = "Schichtplaner";
 
 export function getSetting(key: string): string | null {
   const row = getAdminDatabase()
@@ -27,8 +28,12 @@ export function getInstanceId(): string {
   return getSetting(INSTANCE_ID_SETTING)!;
 }
 
-export function getInstanceName(): string {
-  return getSetting(INSTANCE_NAME_SETTING) || DEFAULT_INSTANCE_NAME;
+/**
+ * The name the planner gave the instance. Without one, the default is a UI text in `locale`; it is never
+ * stored. Texts nobody asked for in a language, such as the name the push relay gets, use the instance's.
+ */
+export function getInstanceName(locale: string = instanceLocale()): string {
+  return getSetting(INSTANCE_NAME_SETTING) || t(locale, "app.instance.defaultName");
 }
 
 export function setInstanceName(name: string): void {

@@ -1,13 +1,14 @@
 import { getClientConfig } from "~/server/config/client-config";
 import { TeamAccessService } from "~/server/services/team-access.service";
+import { resolveLocale } from "~/server/utils/locale";
 
 // Bumped only for breaking changes to the endpoints the app uses (docs/api/app-v1.yaml).
 const APP_API_VERSION = 1;
 
-export default defineEventHandler(() => {
+export default defineEventHandler((event) => {
   return {
     instanceId: TeamAccessService.getInstanceId(),
-    name: TeamAccessService.getInstanceName(),
+    name: TeamAccessService.getInstanceName(resolveLocale(event)),
     version: String(useRuntimeConfig().public.appVersion || ""),
     apiVersion: APP_API_VERSION,
     codeRequired: TeamAccessService.isCodeRequired(),
