@@ -172,7 +172,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/team-access` | Admin | No | - | - | List team-access records |
-| `POST` | `/api/team-access` | Admin | Yes | - | `instanceName`, `nextWeekFromSaturday` | Create or update team-access data |
+| `POST` | `/api/team-access` | Admin | Yes | - | `instanceLocale`, `instanceName`, `nextWeekFromSaturday` | Create or update team-access data |
 
 ### Viewer
 

@@ -45,6 +45,17 @@ Planners and admins can maintain rotation patterns with an Excel file:
 
 The sheet "Anleitung" explains the cycle with a real example. Files in the earlier layout (one row per pattern week and shift, names comma-separated) can still be imported. Internal IDs are not exposed in the template.
 
+## Languages
+
+The web app is available in German and English; German is the reference and the fallback for anything missing. URLs, QR codes and deep links are the same in every language.
+
+- The language follows the visitor's choice in the footer's language switcher, then the browser language, then the instance's default language.
+- The switcher remembers the choice in the cookie `shiftplan_locale` for one year. Without a choice, no cookie is set.
+- Admins set the default language under **Einstellungen → Team-Zugang** (Settings → Team access). It applies to visitors whose browser uses none of the offered languages, to the Shiftplan app (it sends no language yet) and to texts no request asked for, such as contact mails to the operator.
+- Server texts follow the request: API error messages, the Excel template and the web manifest. Pushes are written in the language each browser or app device registered with. The Excel import reads templates of every language.
+- The audit log is stored language-neutral and shown in the reader's language; older entries keep their German text.
+- Staff, shift and instance names are never translated. The imprint and the privacy policy are German only.
+
 ## Version History
 
 The version history is available in the app through the version indicator in the header.

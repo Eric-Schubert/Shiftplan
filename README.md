@@ -21,6 +21,7 @@ A browser-based shift planner for small and mid-sized teams. The app works week 
 - Optional team access code with QR code, so employees can read the plan without an account
 - Push notifications for short-notice changes and team messages (installable web app, no app store)
 - Personal app access per employee via QR code, day-level absences reported from the app with a team push
+- German and English UI, with a language switcher and a default language per instance
 - Automated releases, changelog generation, and Docker image publishing via GitHub Actions
 
 ## Quick Start
