@@ -16,12 +16,13 @@ const {
   onChipDragStart,
   onDragOver,
   onDragLeave,
+  onDragEnd,
   onDrop,
 } = useRotationPatternInteractions();
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4" @dragend="onDragEnd">
     <RotationPatternIntro
       :cycle-length="dataStore.rotationPattern?.config.cycle_length || 4"
       :start-week="dataStore.rotationPattern?.config.start_week || 1"

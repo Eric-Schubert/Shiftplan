@@ -61,12 +61,13 @@ export function useShiftCardInteractions({ shift, year, week, onUpdated }: Shift
     await change(() => sendAssignment("unassign", staffId, shift.value.shift_id));
   }
 
+  // Adding to the new shift first: if the second request fails, the person is in both shifts, never in none.
   const dragDrop = useShiftCardDragDrop({
     shift,
     onMove: async (staffId, sourceShiftId) => {
       await change(async () => {
-        await sendAssignment("unassign", staffId, sourceShiftId);
         await sendAssignment("assign", staffId, shift.value.shift_id);
+        await sendAssignment("unassign", staffId, sourceShiftId);
       });
     },
   });
