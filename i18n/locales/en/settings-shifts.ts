@@ -19,5 +19,6 @@ export default {
     end: "End time",
     chooseColor: "Choose colour {color}",
   },
-  deleteText: "Are you sure you want to delete {name}? Existing assignments of this shift will be lost.",
+  deleteText:
+    "Are you sure you want to delete {name}? Existing assignments of this shift will be lost, and so will absences reported for this shift only.",
 } satisfies typeof de;
