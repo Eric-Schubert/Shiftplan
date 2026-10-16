@@ -76,6 +76,8 @@ Proxy headers are ignored by default so clients cannot spoof their IP address to
 
 Behind a proxy with `false`, every client shares the proxy's address and therefore one set of sign-in limits: five wrong passwords from anyone block planner sign-in for everyone for 15 minutes. The app logs a warning once when it sees `X-Forwarded-For` in this mode. Never use `cloudflare` on an origin that is also reachable without Cloudflare: anyone could then send their own `CF-Connecting-IP`.
 
+The same setting decides whether the page statistics take a visitor's country, region and city from proxy headers: with `false` they stay empty, with `cloudflare` only `CF-IPCountry` counts, with `true` the headers of common hosting proxies do. The statistics record at most 300 page views per client network and hour.
+
 ## Environment In Docker
 
 The local `.env` file is not copied into the image. Pass it at runtime with `--env-file .env` or with `env_file` in Docker Compose so imprint and runtime variables are available inside the container. Compose reads `.env` for YAML interpolation, but it only passes values to the container when `env_file` is configured.

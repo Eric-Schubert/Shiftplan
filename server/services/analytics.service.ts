@@ -6,6 +6,7 @@ import { hashDailyVisitor, normalizeCountryCode, normalizePath, normalizeReferre
 import type { AnalyticsSummary } from "~/types/analytics";
 
 export { isLikelyBot, normalizeAnalyticsPath, readDecodedHeader } from "~/server/services/analytics/request";
+export { allowVisit, trustedGeoHeaders } from "~/server/services/analytics/limit";
 
 type VisitRecord = {
   date: string;
