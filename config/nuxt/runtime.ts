@@ -21,7 +21,7 @@ export const publicRuntimeEnv = {
     cloudflare: process.env.NUXT_PUBLIC_PRIVACY_CLOUDFLARE === "true",
     // Name and address of the hosting provider, e.g. „netcup GmbH, Emmy-Noether-Straße 10, 76131 Karlsruhe“.
     hoster: process.env.NUXT_PUBLIC_PRIVACY_HOSTER || "",
-    // Country of the hoster's data centre, e.g. „Deutschland“; empty when unknown, then the privacy policy names none.
+    // ISO 3166 code of the country of the hoster's data centre, e.g. „DE“; empty when unknown, then the privacy policy names none.
     hosterLocation: process.env.NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION || "",
   },
 };

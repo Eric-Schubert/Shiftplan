@@ -88,7 +88,7 @@ The local `.env` file is not copied into the image. Pass it at runtime with `--e
 
 If the instance is served through Cloudflare, set `NUXT_PUBLIC_PRIVACY_CLOUDFLARE=true`. The privacy policy then lists Cloudflare as a processor.
 
-If the instance runs on a rented server, set `NUXT_PUBLIC_PRIVACY_HOSTER` to the provider's name and address, for example `netcup GmbH, Emmy-Noether-Straße 10, 76131 Karlsruhe`. The privacy policy then lists the hoster as a processor. Leave it empty when you run the server yourself. `NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION` names the country of the hoster's data centre, for example `Deutschland`; the policy inserts it as written in both languages. Leave it empty if you do not know where the server is, and the policy names no country.
+If the instance runs on a rented server, set `NUXT_PUBLIC_PRIVACY_HOSTER` to the provider's name and address, for example `netcup GmbH, Emmy-Noether-Straße 10, 76131 Karlsruhe`. The privacy policy then lists the hoster as a processor. Leave it empty when you run the server yourself. `NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION` takes the ISO 3166 country code of the hoster's data centre, for example `DE`; the policy writes it out in each language („in einem Rechenzentrum in Deutschland“, “in a data centre in Germany”). A value that is no country code appears as written. Leave it empty if you do not know where the server is, and the policy names no country.
 
 ## Push Notifications
 
