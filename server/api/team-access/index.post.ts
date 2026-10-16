@@ -7,6 +7,7 @@ import {
 import { requireAdmin } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
 import { apiError, messageRef } from "~/server/utils/api-error";
+import { isAppLocale } from "~/i18n/config";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -16,6 +17,7 @@ export default defineEventHandler(async (event) => {
     generate?: unknown;
     instanceName?: unknown;
     nextWeekFromSaturday?: unknown;
+    instanceLocale?: unknown;
   }>(event);
 
   if (body?.instanceName !== undefined) {
@@ -33,6 +35,12 @@ export default defineEventHandler(async (event) => {
     }
     TeamAccessService.setNextWeekFromSaturday(body.nextWeekFromSaturday);
     return { nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday() };
+  }
+
+  if (body?.instanceLocale !== undefined) {
+    if (!isAppLocale(body.instanceLocale)) throw apiError(event, 400, "errors.team.localeUnknown");
+    TeamAccessService.setInstanceLocale(body.instanceLocale);
+    return { instanceLocale: TeamAccessService.getInstanceLocale() };
   }
 
   if (body?.code === null) {

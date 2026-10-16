@@ -1,9 +1,11 @@
 import { randomBytes } from "node:crypto";
+import { DEFAULT_LOCALE, isAppLocale, type AppLocale } from "~/i18n/config";
 import { getAdminDatabase } from "~/server/utils/database";
 
 const INSTANCE_NAME_SETTING = "instance_name";
 const INSTANCE_ID_SETTING = "instance_uid";
 const NEXT_WEEK_FROM_SATURDAY_SETTING = "next_week_from_saturday";
+const INSTANCE_LOCALE_SETTING = "instance_locale";
 const DEFAULT_INSTANCE_NAME = "Schichtplaner";
 
 export function getSetting(key: string): string | null {
@@ -48,4 +50,18 @@ export function setNextWeekFromSaturday(enabled: boolean): void {
       "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
     )
     .run(NEXT_WEEK_FROM_SATURDAY_SETTING, enabled ? "1" : "0");
+}
+
+/** The instance's language: for visitors without a language of their own, the app, mails and pushes. */
+export function getInstanceLocale(): AppLocale {
+  const locale = getSetting(INSTANCE_LOCALE_SETTING);
+  return isAppLocale(locale) ? locale : DEFAULT_LOCALE;
+}
+
+export function setInstanceLocale(locale: AppLocale): void {
+  getAdminDatabase()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    )
+    .run(INSTANCE_LOCALE_SETTING, locale);
 }

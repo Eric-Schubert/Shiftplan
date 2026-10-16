@@ -5,9 +5,11 @@ import { getSessionData, getSessionToken } from "~/server/utils/session";
 import { MemberAccessService } from "~/server/services/member-access.service";
 import {
   getInstanceId,
+  getInstanceLocale,
   getInstanceName,
   getNextWeekFromSaturday,
   getSetting,
+  setInstanceLocale,
   setInstanceName,
   setNextWeekFromSaturday,
 } from "~/server/services/team-access/settings";
@@ -39,6 +41,8 @@ export const TeamAccessService = {
   setInstanceName,
   getNextWeekFromSaturday,
   setNextWeekFromSaturday,
+  getInstanceLocale,
+  setInstanceLocale,
 
   getAccessCode(): string | null {
     return getSetting(ACCESS_CODE_SETTING);

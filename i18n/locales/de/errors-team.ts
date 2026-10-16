@@ -4,4 +4,5 @@ export default {
   codeWrong: "Zugangscode ist falsch",
   codeWhitespace: "Zugangscode darf keine Leerzeichen enthalten",
   nextWeekFromSaturdayBoolean: "nextWeekFromSaturday muss true oder false sein",
+  localeUnknown: "Diese Sprache gibt es hier nicht",
 };

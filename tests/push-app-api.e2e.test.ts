@@ -45,7 +45,6 @@ describe("app api e2e", () => {
     const before = await client.request("GET", "/api/instance");
     await enableCode();
     const after = await client.request("GET", "/api/instance");
-
     expect(before.json).toEqual({
       instanceId: expect.stringMatching(/^[A-Za-z0-9_-]{16}$/),
       name: "Schichtplaner",
@@ -53,6 +52,7 @@ describe("app api e2e", () => {
       apiVersion: 1,
       codeRequired: false,
       nextWeekFromSaturday: true,
+      locale: "de",
       passwordPolicy: expect.any(Object),
       username: expect.any(Object),
       contactForm: expect.any(Object),

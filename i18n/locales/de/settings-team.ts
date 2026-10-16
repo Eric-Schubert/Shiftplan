@@ -1,4 +1,4 @@
-// Settings tab „Team-Zugang“: team access code, QR code and link, app name, week start.
+// Settings tab „Team-Zugang“: team access code, QR code and link, app name, week start, default language.
 export default {
   intro:
     "Mit einem Zugangscode sieht nur dein Team den Schichtplan. Mitarbeitende brauchen kein eigenes Konto: Sie scannen den QR-Code, sehen den Plan und können Benachrichtigungen aktivieren. Ändern können Schichten weiterhin nur Planer und Admins.",
@@ -41,5 +41,9 @@ export default {
   weekStart: {
     label: "Ab Samstag die nächste Woche zeigen",
     hint: "Passt für Teams ohne Wochenendschichten. Arbeitet ihr am Samstag oder Sonntag, schalte es aus. Dann zeigen der Plan und „Heute“ bis Sonntag die laufende Woche.",
+  },
+  locale: {
+    label: "Standardsprache",
+    hint: "Gilt für alle, die selbst keine Sprache gewählt haben und deren Browser keine der angebotenen Sprachen nutzt, außerdem für die App und Kontakt-Mails.",
   },
 };

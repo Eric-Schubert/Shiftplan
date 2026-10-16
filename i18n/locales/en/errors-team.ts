@@ -6,4 +6,5 @@ export default {
   codeWrong: "Access code is incorrect",
   codeWhitespace: "Access code must not contain spaces",
   nextWeekFromSaturdayBoolean: "nextWeekFromSaturday must be true or false",
+  localeUnknown: "This language is not available here",
 } satisfies typeof de;
