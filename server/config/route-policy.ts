@@ -17,8 +17,9 @@ export type RoutePolicy = {
 export type RouteClass = "public" | "team" | "member" | "teamRead" | "publicRead" | "session";
 
 export const ROUTE_POLICY: RoutePolicy = {
-  // Exact paths open to anyone with any method: no session, no CSRF token. Signing out is here so a
-  // stale tab can always end its session; the strict session cookie never comes along on cross-site posts anyway.
+  // Exact paths open to anyone with any method: no session, no CSRF token. Signing out is here so a stale tab
+  // can always end its session. With auth.session.cookies.sameSite "strict" (default) or "lax" the browser leaves
+  // the session cookie off cross-site posts; with "none" a foreign page could sign a planner out, nothing more.
   publicRoutes: ["/api/auth/login", "/api/auth/session", "/api/auth/logout", "/api/analytics/visit", "/api/contact"],
 
   // GET below this prefix: facts for /datenschutz, public even when a team access code is set.
