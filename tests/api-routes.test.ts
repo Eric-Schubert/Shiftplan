@@ -4,6 +4,10 @@ import { apiRoutes, checkRoute } from "./helpers/routes";
 
 const SELF = "tests/api-routes.test.ts";
 
+// Handlers that no test registers in the harness. Keep it empty: a new handler gets an E2E test
+// with a happy path and an access or validation check, not an entry here.
+const WITHOUT_TEST: string[] = [];
+
 /** Handler files relative to server/api, as apiRoutes() names them. */
 const HANDLERS = (listFilesRecursive("server/api") as string[])
   .map((file) => file.split("\\").join("/"))
@@ -47,5 +51,12 @@ describe("harness routes", () => {
 
     expect(HANDLERS.length).toBeGreaterThan(50);
     expect(missing).toEqual([]);
+  });
+
+  it("registers every handler in at least one test", () => {
+    const registered = new Set([...REGISTERED.values()].flat());
+    const untested = HANDLERS.filter((file) => !registered.has(file));
+
+    expect(untested).toEqual(WITHOUT_TEST);
   });
 });

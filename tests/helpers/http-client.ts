@@ -2,8 +2,11 @@ import type { PlainHandler, PlainResponse } from "h3";
 import backendConfig from "../../config/backend.config.json";
 
 export type CookieJar = Map<string, string>;
+export type FormFile = { filename: string; data: Buffer };
 export type RequestOptions = {
   body?: unknown;
+  /** Sent as multipart/form-data instead of a JSON body, like a browser upload. */
+  form?: Record<string, string | FormFile>;
   jar?: CookieJar;
   csrf?: boolean;
   headers?: Record<string, string>;
@@ -22,6 +25,18 @@ function parseBody(body: unknown) {
   }
 }
 
+const BOUNDARY = "shiftplan-test-boundary";
+
+function multipart(form: Record<string, string | FormFile>): Uint8Array<ArrayBuffer> {
+  const parts = Object.entries(form).map(([name, value]) => {
+    const file = typeof value === "string" ? null : value;
+    const disposition = `form-data; name="${name}"${file ? `; filename="${file.filename}"` : ""}`;
+    const head = `--${BOUNDARY}\r\nContent-Disposition: ${disposition}\r\n${file ? "Content-Type: application/octet-stream\r\n" : ""}\r\n`;
+    return Buffer.concat([Buffer.from(head), file ? file.data : Buffer.from(value as string), Buffer.from("\r\n")]);
+  });
+  return new Uint8Array(Buffer.concat([...parts, Buffer.from(`--${BOUNDARY}--\r\n`)]));
+}
+
 function updateCookieJar(jar: CookieJar | undefined, response: PlainResponse) {
   if (!jar) return;
   for (const [name, header] of response.headers) {
@@ -33,7 +48,7 @@ function updateCookieJar(jar: CookieJar | undefined, response: PlainResponse) {
   }
 }
 
-/** Sends JSON requests like a browser: cookies from the jar, CSRF header on request. */
+/** Sends JSON or form requests like a browser: cookies from the jar, CSRF header on request. */
 export function requestWithCookies(handler: PlainHandler, defaultHeaders: Record<string, string> = {}): ApiRequest {
   return async (method, requestPath, options = {}) => {
     const headers: Record<string, string> = { ...defaultHeaders, ...options.headers };
@@ -41,6 +56,7 @@ export function requestWithCookies(handler: PlainHandler, defaultHeaders: Record
       headers.cookie = [...options.jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
     }
     if (options.body !== undefined) headers["content-type"] ??= "application/json";
+    if (options.form) headers["content-type"] = `multipart/form-data; boundary=${BOUNDARY}`;
     if (options.csrf && options.jar?.get(csrfCookieName)) {
       headers["x-csrf-token"] = options.jar.get(csrfCookieName)!;
     }
@@ -48,7 +64,7 @@ export function requestWithCookies(handler: PlainHandler, defaultHeaders: Record
       method,
       path: requestPath,
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.form ? multipart(options.form) : options.body === undefined ? undefined : JSON.stringify(options.body),
     });
     updateCookieJar(options.jar, response);
     return { ...response, json: parseBody(response.body) };
