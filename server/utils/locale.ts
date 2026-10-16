@@ -1,5 +1,5 @@
 import { getCookie, getHeader, type H3Event } from "h3";
-import { DEFAULT_LOCALE, isAppLocale, LOCALE_COOKIE, type AppLocale } from "~/i18n/config";
+import { DEFAULT_LOCALE, isAppLocale, LOCALE_COOKIE, localeTag, type AppLocale } from "~/i18n/config";
 
 /** The best supported locale of an Accept-Language header, by quality and then order; "de-AT" matches "de". */
 export function localeFromAcceptLanguage(header: string | null | undefined): AppLocale | null {
@@ -23,4 +23,12 @@ export function resolveLocale(event: H3Event): AppLocale {
   const cookie = getCookie(event, LOCALE_COOKIE);
   if (isAppLocale(cookie)) return cookie;
   return localeFromAcceptLanguage(getHeader(event, "accept-language")) ?? DEFAULT_LOCALE;
+}
+
+/**
+ * Language tag for texts that no request asked for: pushes, stored audit notes, error texts deep in
+ * services. That is the instance's language, German until instances get a language setting.
+ */
+export function instanceLocaleTag(): string {
+  return localeTag(DEFAULT_LOCALE);
 }

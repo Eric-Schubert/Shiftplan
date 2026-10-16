@@ -17,7 +17,7 @@ const props = defineProps<{
 const emit = defineEmits<{ updated: []; "edit-days": [shiftId: number] }>();
 
 const authStore = useAuthStore();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 const shift = toRef(props, "shift");
 const year = toRef(props, "year");
@@ -49,7 +49,7 @@ const {
 const understaffedNote = computed(() => {
   const short = understaffedDates(props.shift, props.coverageDates, props.dayChanges ?? [], []);
   if (short.length === 0) return "";
-  return short.length === props.coverageDates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(locale.value, short)}`;
+  return short.length === props.coverageDates.length ? "Unterbesetzt" : `Unterbesetzt ${formatWeekdays(localeTag.value, short)}`;
 });
 </script>
 

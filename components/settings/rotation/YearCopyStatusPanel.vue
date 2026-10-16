@@ -11,7 +11,7 @@ defineProps<{
   targetYear: number;
   overwrite: boolean;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -30,7 +30,7 @@ const { locale } = useI18n();
           {{ preview.totalWeeks }} Wochen mit {{ preview.totalAssignments }} Zuweisungen in {{ sourceYear }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ weekLabel(locale, preview.weeks[0]?.week ?? 0) }} bis {{ weekLabel(locale, preview.weeks.at(-1)?.week ?? 0) }}
+          {{ weekLabel(localeTag, preview.weeks[0]?.week ?? 0) }} bis {{ weekLabel(localeTag, preview.weeks.at(-1)?.week ?? 0) }}
         </p>
       </div>
     </div>

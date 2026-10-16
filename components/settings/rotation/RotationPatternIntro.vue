@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { weekLabel } from "~/shared/utils/format/week";
+import { weekOfYearLabel } from "~/shared/utils/format/week";
 
 defineProps<{
   cycleLength: number;
   startWeek: number;
   startYear: number;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const { locale } = useI18n();
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           <i class="pi pi-calendar mr-1" aria-hidden="true"></i>
-          Musterwoche 1 beginnt in {{ weekLabel(locale, startWeek, startYear) }}
+          Musterwoche 1 beginnt in {{ weekOfYearLabel(localeTag, startYear, startWeek) }}
         </p>
       </div>
     </div>

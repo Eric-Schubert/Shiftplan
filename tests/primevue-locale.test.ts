@@ -15,7 +15,7 @@ const LEGACY_DE = {
 
 describe("PrimeVue locale", () => {
   it("builds the German names from Intl exactly as they were written by hand", () => {
-    expect(buildPrimeLocale("de", de.primevue)).toEqual(LEGACY_DE);
+    expect(buildPrimeLocale("de-DE", de.primevue)).toEqual(LEGACY_DE);
   });
 
   it("starts the week on Monday and lists days from Sunday in other locales too", () => {

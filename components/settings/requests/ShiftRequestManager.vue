@@ -4,7 +4,7 @@ import { formatRequestPeriod } from "~/utils/request-period";
 
 const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 const requests = ref<ShiftRequest[]>([]);
 const requiresApproval = ref(false);
 const loading = ref(true);
@@ -77,7 +77,7 @@ onMounted(load);
         <ul class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
           <li v-for="request in pending" :key="request.request_id" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
             <div class="min-w-0 flex-1 text-sm">
-              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(locale, request) }} · {{ summary(request) }}</p>
+              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(localeTag, request) }} · {{ summary(request) }}</p>
               <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
             </div>
             <div class="flex gap-2">
@@ -94,7 +94,7 @@ onMounted(load);
         <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
           <li v-for="request in others" :key="request.request_id" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
             <div class="min-w-0 flex-1 text-sm">
-              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(locale, request) }} · {{ summary(request) }}</p>
+              <p class="font-medium text-[var(--text-1)]">{{ formatRequestPeriod(localeTag, request) }} · {{ summary(request) }}</p>
               <p class="text-xs text-[var(--text-3)]">
                 {{ statusLine(request) }}
               </p>

@@ -20,7 +20,7 @@ const emit = defineEmits<{
   (e: "open-bulk"): void;
   (e: "notify-team"): void;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const { locale } = useI18n();
     <div class="min-w-0 space-y-1.5">
       <div class="flex flex-wrap items-center gap-2.5">
         <h2 class="planner-headline text-[var(--text-1)]">
-          {{ weekLabel(locale, selectedWeek) }}
+          {{ weekLabel(localeTag, selectedWeek) }}
         </h2>
         <span class="planner-chip tabular-nums">{{ selectedYear }}</span>
         <span v-if="currentWeekLabel" class="planner-chip planner-chip--current">{{ currentWeekLabel }}</span>
@@ -37,7 +37,7 @@ const { locale } = useI18n();
         </span>
       </div>
       <p class="text-sm tabular-nums text-[var(--text-2)]">
-        {{ formatWeekDates(locale, selectedYear, selectedWeek) }}
+        {{ formatWeekDates(localeTag, selectedYear, selectedWeek) }}
       </p>
     </div>
 

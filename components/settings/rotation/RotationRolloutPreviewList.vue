@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { weekLabel } from "~/shared/utils/format/week";
+import { weekOfYearLabel } from "~/shared/utils/format/week";
 import type { GenerationPreviewWeek } from "~/types/shiftplan";
 
 const props = defineProps<{
@@ -10,7 +10,7 @@ const props = defineProps<{
   overwrite: boolean;
 }>();
 
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 const lastPreviewWeek = computed(() => props.preview.at(-1));
 
 function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string } {
@@ -32,7 +32,7 @@ function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string 
       <span>
         Vorschau
         <template v-if="lastPreviewWeek">
-          · {{ weekLabel(locale, startWeek, startYear) }} bis {{ weekLabel(locale, lastPreviewWeek.week, lastPreviewWeek.year) }}
+          · {{ weekOfYearLabel(localeTag, startYear, startWeek) }} bis {{ weekOfYearLabel(localeTag, lastPreviewWeek.year, lastPreviewWeek.week) }}
         </template>
       </span>
       <i v-if="loading" class="pi pi-spinner pi-spin text-[var(--text-3)]" aria-hidden="true"></i>
@@ -44,7 +44,7 @@ function weekStatus(week: GenerationPreviewWeek): { label: string; tone: string 
         class="flex items-center justify-between gap-3 px-4 py-1.5"
       >
         <span class="text-[var(--text-1)]">
-          {{ weekLabel(locale, week.week, week.year) }}
+          {{ weekOfYearLabel(localeTag, week.year, week.week) }}
           <span class="text-[var(--text-3)]">· Musterwoche {{ week.pattern_week }}</span>
         </span>
         <span class="rounded-md px-2 py-0.5 text-xs font-semibold" :class="weekStatus(week).tone">

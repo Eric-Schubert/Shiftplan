@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ (e: "edit-days", shiftId: number): void }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 const today = todayISO();
 
@@ -25,7 +25,7 @@ const rows = computed(() => {
   const holidayDates = new Set(props.holidays.keys());
   return props.shifts.map((shift) => ({
     shift,
-    cells: weekGridRow(shift, props.workdays, props.dayChanges, props.absences, holidayDates, locale.value),
+    cells: weekGridRow(shift, props.workdays, props.dayChanges, props.absences, holidayDates, localeTag.value),
   }));
 });
 
@@ -44,7 +44,7 @@ function personClass(person: GridPerson): string {
 }
 
 function dayLabel(date: string): string {
-  return formatDay(locale.value, date, "date");
+  return formatDay(localeTag.value, date, "date");
 }
 </script>
 
@@ -65,7 +65,7 @@ function dayLabel(date: string): string {
             class="px-0.5 py-2 text-center text-xs font-semibold"
             :class="[date === today ? 'text-[var(--accent)]' : 'text-[var(--text-2)]', { 'bg-[var(--positive-soft)]': holidays.has(date) }]"
           >
-            {{ formatDay(locale, date, "weekday") }}
+            {{ formatDay(localeTag, date, "weekday") }}
             <span class="block font-normal tabular-nums">{{ dayLabel(date) }}</span>
             <span v-if="holidays.has(date)" class="block truncate font-normal text-[var(--positive-ink)]" :title="holidays.get(date)">
               {{ holidays.get(date) }}

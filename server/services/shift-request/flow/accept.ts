@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { applyRequest, withCurrent } from "./apply";
@@ -29,7 +29,7 @@ export async function acceptRequest(
     await notifyStaff(
       [request.requester_staff_id],
       isTakeover ? "Übernahme zugesagt" : "Tausch zugesagt",
-      `${member.staffName} hat zugesagt (${describeRequest(request, DEFAULT_LOCALE)}). Die Planung muss noch freigeben.`
+      `${member.staffName} hat zugesagt (${describeRequest(request, instanceLocaleTag())}). Die Planung muss noch freigeben.`
     );
     return updated;
   }
@@ -37,8 +37,8 @@ export async function acceptRequest(
     [request.requester_staff_id],
     isTakeover ? "Schicht übernommen" : "Tausch steht",
     isTakeover
-      ? `${member.staffName} übernimmt ${describeRequest(request, DEFAULT_LOCALE)}.`
-      : `${member.staffName} hat dem Tausch zugestimmt (${describeRequest(request, DEFAULT_LOCALE)}).`
+      ? `${member.staffName} übernimmt ${describeRequest(request, instanceLocaleTag())}.`
+      : `${member.staffName} hat dem Tausch zugestimmt (${describeRequest(request, instanceLocaleTag())}).`
   );
   return updated;
 }

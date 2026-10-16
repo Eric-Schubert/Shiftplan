@@ -1,6 +1,6 @@
 import type { Absence } from "~/server/services/absence/model";
 import { AuditService } from "~/server/services/audit.service";
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { formatDayRange } from "~/shared/utils/format/day";
 import { weekOfDate } from "~/shared/utils/week";
 
@@ -29,7 +29,7 @@ export function logPerWeek(absences: Absence[], action: "absence" | "absence_can
       shiftId: shiftIds.size === 1 ? (first.shift_id ?? undefined) : undefined,
       staffId: first.staff_id,
       // Stored text, so in the instance language.
-      reason: formatDayRange(DEFAULT_LOCALE, first.absence_date, last.absence_date),
+      reason: formatDayRange(instanceLocaleTag(), first.absence_date, last.absence_date),
       source: actor.source,
     });
   }

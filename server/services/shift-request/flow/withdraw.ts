@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { conflict } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -18,7 +18,7 @@ export async function declineRequest(request: ShiftRequest, staffId: number, sta
     if (current.status !== "open") conflict("Die Anfrage ist nicht mehr offen");
     return ShiftRequestService.setStatus(current.request_id, "declined", { expected: "open" });
   });
-  await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request, DEFAULT_LOCALE)} nicht tauschen.`);
+  await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request, instanceLocaleTag())} nicht tauschen.`);
   return updated;
 }
 
@@ -36,8 +36,8 @@ async function withdrawAcceptance(request: ShiftRequest, member: Member): Promis
     [request.requester_staff_id],
     "Zusage zurückgezogen",
     takeover
-      ? `${member.staffName} übernimmt ${describeRequest(request, DEFAULT_LOCALE)} doch nicht. Die Übernahme ist wieder offen.`
-      : `${member.staffName} möchte ${describeRequest(request, DEFAULT_LOCALE)} doch nicht tauschen.`
+      ? `${member.staffName} übernimmt ${describeRequest(request, instanceLocaleTag())} doch nicht. Die Übernahme ist wieder offen.`
+      : `${member.staffName} möchte ${describeRequest(request, instanceLocaleTag())} doch nicht tauschen.`
   );
   return updated;
 }
@@ -55,7 +55,7 @@ export async function cancelRequest(request: ShiftRequest, member: Member): Prom
   });
   // The colleague who agreed, or who was asked to swap, should not wait for it any more.
   if (partner !== null) {
-    await notifyStaff([partner], "Anfrage zurückgezogen", `${member.staffName} hat die Anfrage (${describeRequest(request, DEFAULT_LOCALE)}) zurückgezogen.`);
+    await notifyStaff([partner], "Anfrage zurückgezogen", `${member.staffName} hat die Anfrage (${describeRequest(request, instanceLocaleTag())}) zurückgezogen.`);
   }
   return updated;
 }

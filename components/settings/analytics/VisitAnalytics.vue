@@ -2,7 +2,7 @@
 import type { AnalyticsSummary } from "~/types/analytics";
 import { formatLocation, formatPath } from "~/utils/analytics/format";
 
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 const summary = ref<AnalyticsSummary | null>(null);
 const loading = ref(true);
 const errorMessage = ref("");
@@ -16,7 +16,7 @@ const locationItems = computed(() =>
   (summary.value?.locations ?? []).map((location) => ({
     ...location,
     key: `${location.countryCode}-${location.region}-${location.city}`,
-    label: formatLocation(locale.value, location),
+    label: formatLocation(localeTag.value, location),
   }))
 );
 

@@ -16,7 +16,7 @@ const emit = defineEmits<{
   (e: "revoke", device: MemberDevice): void;
   (e: "invite"): void;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -49,7 +49,7 @@ const { locale } = useI18n();
         >
           <i class="pi pi-mobile text-[0.7rem]" aria-hidden="true"></i>
           <span>{{ device.deviceName || "Unbenanntes Gerät" }}</span>
-          <span class="text-[var(--text-3)]">· zuletzt {{ formatTimestamp(locale, device.lastSeenAt) }}</span>
+          <span class="text-[var(--text-3)]">· zuletzt {{ formatTimestamp(localeTag, device.lastSeenAt) }}</span>
           <button
             type="button"
             class="ml-1 font-semibold text-[var(--danger-ink)] hover:underline"

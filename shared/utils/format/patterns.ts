@@ -1,6 +1,6 @@
 // Where the app writes dates and weeks differently from what Intl alone gives. Intl writes
-// „Do., 08.10.“, the app „Do. 08.10.“. Other locales get their row with their catalog; until
-// then they use the German row.
+// „Do., 08.10.“, the app „Do. 08.10.“. Rows are keyed by language tag; a tag without a row
+// takes the row of its language („de-AT“ → „de-DE“), and every app locale needs a row (tested).
 export interface LocalePatterns {
   /** Weekday and date from Intl's parts: {weekday}, {day}, {month}. */
   day: string;
@@ -15,7 +15,7 @@ export interface LocalePatterns {
 }
 
 const PATTERNS: Record<string, LocalePatterns> = {
-  de: {
+  "de-DE": {
     day: "{weekday} {day}.{month}.",
     range: "{from} – {to}",
     weekdayRun: "{from}–{to}",
@@ -24,9 +24,16 @@ const PATTERNS: Record<string, LocalePatterns> = {
     weekOfYear: "KW {week}/{year}",
   },
 };
+const FALLBACK = "de-DE";
+
+/** Language tags with their own row. */
+export const PATTERN_LOCALES = Object.keys(PATTERNS);
+
+const language = (tag: string) => tag.split("-")[0]!.toLowerCase();
 
 export function patternsFor(locale: string): LocalePatterns {
-  return PATTERNS[locale.split("-")[0]!.toLowerCase()] ?? PATTERNS.de!;
+  const sameLanguage = PATTERN_LOCALES.find((tag) => language(tag) === language(locale));
+  return PATTERNS[locale] ?? PATTERNS[sameLanguage ?? FALLBACK]!;
 }
 
 /** Replaces each {name} with its value. */

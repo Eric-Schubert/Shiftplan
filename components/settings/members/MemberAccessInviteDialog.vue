@@ -8,7 +8,7 @@ defineProps<{
 }>();
 const emit = defineEmits<{ (e: "done"): void }>();
 const visible = defineModel<boolean>("visible", { required: true });
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 function done() {
   visible.value = false;
@@ -33,7 +33,7 @@ function done() {
       <p class="text-[var(--text-2)]">Mit der Shiftplan-App scannen oder im Browser öffnen. Ohne Kamera geht auch der Code:</p>
       <p class="font-mono text-xl font-semibold tracking-widest text-[var(--text-1)]">{{ invite.code }}</p>
       <p class="text-xs text-[var(--text-3)]">
-        Gültig bis {{ formatTimestamp(locale, invite.expiresAt) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.
+        Gültig bis {{ formatTimestamp(localeTag, invite.expiresAt) }}, nur einmal nutzbar. Nur an {{ invite.staffName }} weitergeben.
       </p>
     </div>
     <template #footer>

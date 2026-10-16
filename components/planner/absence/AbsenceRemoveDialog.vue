@@ -7,8 +7,8 @@ defineProps<{ removing: boolean }>();
 const emit = defineEmits<{ (e: "confirm", absence: Absence): void }>();
 const absence = defineModel<Absence | null>("absence");
 
-const { locale } = useI18n();
-const notice = computed(() => (absence.value ? removalNotice(locale.value, absence.value) : null));
+const localeTag = useLocaleTag();
+const notice = computed(() => (absence.value ? removalNotice(localeTag.value, absence.value) : null));
 const visible = computed({
   get: () => absence.value != null,
   set: (value: boolean) => {

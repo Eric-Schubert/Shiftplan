@@ -10,7 +10,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "open", entry: ChangelogEntry): void;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 function isLatest(entry: ChangelogEntry): boolean {
   return props.entries[0] === entry;
@@ -36,7 +36,7 @@ function remainingChangeCount(entry: ChangelogEntry): number {
     >
       <div class="changelog-release__meta">
         <span class="changelog-release__relative">
-          {{ formatRelativeChangelogDate(locale, entry.date) }}
+          {{ formatRelativeChangelogDate(localeTag, entry.date) }}
         </span>
         <span class="changelog-release__date">
           {{ entry.date }}

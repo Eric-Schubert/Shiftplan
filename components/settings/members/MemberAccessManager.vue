@@ -7,7 +7,7 @@ type Invite = { staffId: number; staffName: string; code: string; link: string; 
 
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 const devices = ref<MemberDevice[]>([]);
 const loading = ref(true);
 const creatingFor = ref<number | null>(null);
@@ -19,7 +19,7 @@ const resettingPin = ref<number | null>(null);
 const revoking = ref(false);
 const error = ref("");
 
-const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => collator(locale.value).compare(a.name, b.name)));
+const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => collator(localeTag.value).compare(a.name, b.name)));
 const devicesByStaff = computed(() => {
   const map = new Map<number, MemberDevice[]>();
   for (const device of devices.value) {

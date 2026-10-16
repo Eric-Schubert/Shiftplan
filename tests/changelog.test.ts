@@ -135,6 +135,6 @@ describe("changelog ordering", () => {
     expect(getCalendarDayDiff("2026-04-01", today)).toBe(19);
     expect(getCalendarDayDiff("2026-01-04", today)).toBe(106);
     expect(getCalendarDayDiff("2026-01-01", today)).toBe(109);
-    expect(formatRelativeChangelogDate("de", "2026-01-04", today)).toBe("vor 106 Tagen");
+    expect(formatRelativeChangelogDate("de-DE", "2026-01-04", today)).toBe("vor 106 Tagen");
   });
 });

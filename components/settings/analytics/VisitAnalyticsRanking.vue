@@ -8,7 +8,7 @@ defineProps<{
   emptyIcon: string;
   emptyText: string;
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -31,11 +31,11 @@ const { locale } = useI18n();
             {{ item.label }}
           </p>
           <p class="text-xs text-[var(--text-3)]">
-            {{ formatNumber(locale, item.uniqueVisitors) }} individuelle Zugriffe
+            {{ formatNumber(localeTag, item.uniqueVisitors) }} individuelle Zugriffe
           </p>
         </div>
         <span class="planner-chip planner-chip--muted flex-shrink-0">
-          {{ formatNumber(locale, item.pageViews) }}
+          {{ formatNumber(localeTag, item.pageViews) }}
         </span>
       </div>
     </div>

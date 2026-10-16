@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { PushService } from "~/server/services/push.service";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -22,7 +22,7 @@ export async function requestTakeover(input: {
       PushService.sendTeamNotice(
         {
           title: "Übernahme gesucht",
-          body: `${request.requester_name} sucht Ersatz: ${describeRequest(request, DEFAULT_LOCALE)}${extra}`,
+          body: `${request.requester_name} sucht Ersatz: ${describeRequest(request, instanceLocaleTag())}${extra}`,
           url: REQUESTS_URL,
           year,
           week,
@@ -47,7 +47,7 @@ export async function requestSwap(input: {
   await notifyStaff(
     [request.partner_staff_id!],
     "Tauschanfrage",
-    `${request.requester_name} möchte ${describeRequest(request, DEFAULT_LOCALE)} die Schichten mit dir tauschen.${extra}`
+    `${request.requester_name} möchte ${describeRequest(request, instanceLocaleTag())} die Schichten mit dir tauschen.${extra}`
   );
   return request;
 }

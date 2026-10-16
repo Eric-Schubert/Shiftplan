@@ -20,7 +20,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -91,7 +91,7 @@ watch(addStaffId, (staffId) => {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    :header="`${shift.name} · ${weekLabel(locale, week)}`"
+    :header="`${shift.name} · ${weekLabel(localeTag, week)}`"
     modal
     :style="{ width: '40rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >

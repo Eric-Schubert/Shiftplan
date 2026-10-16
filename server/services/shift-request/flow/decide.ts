@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { conflict } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -29,7 +29,7 @@ export async function decideRequest(
     await notifyStaff(
       people(updated),
       "Anfrage zurückgenommen",
-      `Die Planung hat ${subject} (${describeRequest(request, DEFAULT_LOCALE)}) zurückgenommen.`
+      `Die Planung hat ${subject} (${describeRequest(request, instanceLocaleTag())}) zurückgenommen.`
     );
     return updated;
   }
@@ -44,9 +44,9 @@ export async function decideRequest(
     return ShiftRequestService.setStatus(current.request_id, "done", { expected: "pending_approval", decidedBy, applied });
   });
   if (action === "reject") {
-    await notifyStaff(people(updated), "Anfrage abgelehnt", `Die Planung hat ${describeRequest(request, DEFAULT_LOCALE)} nicht freigegeben.`);
+    await notifyStaff(people(updated), "Anfrage abgelehnt", `Die Planung hat ${describeRequest(request, instanceLocaleTag())} nicht freigegeben.`);
   } else {
-    await notifyStaff(people(updated), "Anfrage freigegeben", `Die Planung hat ${subject} freigegeben (${describeRequest(request, DEFAULT_LOCALE)}).`);
+    await notifyStaff(people(updated), "Anfrage freigegeben", `Die Planung hat ${subject} freigegeben (${describeRequest(request, instanceLocaleTag())}).`);
   }
   return updated;
 }

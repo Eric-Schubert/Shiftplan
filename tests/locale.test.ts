@@ -2,7 +2,8 @@ import { createEvent } from "h3";
 import { IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
 import { describe, expect, it } from "vitest";
-import { localeFromAcceptLanguage, resolveLocale } from "~/server/utils/locale";
+import { localeTag } from "~/i18n/config";
+import { instanceLocaleTag, localeFromAcceptLanguage, resolveLocale } from "~/server/utils/locale";
 
 function eventWith(headers: Record<string, string>) {
   const request = new IncomingMessage(new Socket());
@@ -25,5 +26,11 @@ describe("request locale", () => {
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=xx", "accept-language": "de-CH" }))).toBe("de");
     expect(resolveLocale(eventWith({ "accept-language": "fr, en" }))).toBe("de");
     expect(resolveLocale(eventWith({}))).toBe("de");
+  });
+
+  it("gives the formatters full language tags", () => {
+    expect(localeTag("de")).toBe("de-DE");
+    expect(localeTag("xx")).toBe("de-DE");
+    expect(instanceLocaleTag()).toBe("de-DE");
   });
 });

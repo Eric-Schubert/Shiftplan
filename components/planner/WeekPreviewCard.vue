@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ (e: "select"): void }>();
 const configStore = useConfigStore();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 const shifts = computed(() => {
   if (!props.plan?.shifts || props.plan.shifts.length === 0) {
@@ -41,8 +41,8 @@ const assignmentCount = computed(() =>
   >
     <div class="planner-preview-card__header flex items-baseline justify-between gap-3 px-4 py-3">
       <div class="flex items-baseline gap-2">
-        <h4 class="text-base font-semibold text-[var(--text-1)]">{{ weekLabel(locale, week.week) }}</h4>
-        <span class="text-xs tabular-nums text-[var(--text-3)]">{{ formatWeekDates(locale, week.year, week.week) }}</span>
+        <h4 class="text-base font-semibold text-[var(--text-1)]">{{ weekLabel(localeTag, week.week) }}</h4>
+        <span class="text-xs tabular-nums text-[var(--text-3)]">{{ formatWeekDates(localeTag, week.year, week.week) }}</span>
       </div>
       <span class="text-xs tabular-nums text-[var(--text-3)]">
         {{ assignmentCount }} Zuweisungen

@@ -6,7 +6,7 @@ import { formatRequestPeriod } from "~/utils/request-period";
 defineProps<{ busy: boolean }>();
 const emit = defineEmits<{ (e: "confirm", request: ShiftRequest): void }>();
 const request = defineModel<ShiftRequest | null>("request");
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const { locale } = useI18n();
     @update:visible="!$event && (request = null)"
   >
     <p v-if="request" class="text-sm text-[var(--text-2)]">
-      Du übernimmst {{ request.shift_name }} am {{ formatRequestPeriod(locale, request) }} für {{ request.requester_name }}. Hast du an
+      Du übernimmst {{ request.shift_name }} am {{ formatRequestPeriod(localeTag, request) }} für {{ request.requester_name }}. Hast du an
       dem Tag eine eigene Schicht, wirst du dort ausgetragen.
     </p>
     <template #footer>

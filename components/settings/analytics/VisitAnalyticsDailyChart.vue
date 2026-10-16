@@ -6,7 +6,7 @@ import { formatNumber } from "~/shared/utils/format/number";
 const props = defineProps<{
   daily: AnalyticsDailyMetric[];
 }>();
-const { locale } = useI18n();
+const localeTag = useLocaleTag();
 
 const maxDailyPageViews = computed(() => Math.max(1, ...props.daily.map((day) => day.pageViews)));
 const latestDaily = computed(() => props.daily.slice(-14));
@@ -28,7 +28,7 @@ function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
         </h4>
       </div>
       <span class="planner-chip planner-chip--muted">
-        {{ formatNumber(locale, maxDailyPageViews) }} max.
+        {{ formatNumber(localeTag, maxDailyPageViews) }} max.
       </span>
     </div>
 
@@ -38,7 +38,7 @@ function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
           v-for="day in latestDaily"
           :key="day.date"
           class="flex h-full flex-1 flex-col justify-end gap-2"
-          :title="`${formatDay(locale, day.date, 'intl')}: ${day.pageViews} Aufrufe, ${day.uniqueVisitors} individuell`"
+          :title="`${formatDay(localeTag, day.date, 'intl')}: ${day.pageViews} Aufrufe, ${day.uniqueVisitors} individuell`"
         >
           <div class="flex min-h-0 flex-1 items-end">
             <div
@@ -49,10 +49,10 @@ function barStyle(day: AnalyticsDailyMetric): Record<string, string> {
           </div>
           <div class="text-center">
             <span class="block text-xs font-semibold text-[var(--text-1)]">
-              {{ formatNumber(locale, day.pageViews) }}
+              {{ formatNumber(localeTag, day.pageViews) }}
             </span>
             <span class="block text-[0.68rem] font-semibold text-[var(--text-3)]">
-              {{ formatDay(locale, day.date, "date") }}
+              {{ formatDay(localeTag, day.date, "date") }}
             </span>
           </div>
         </div>

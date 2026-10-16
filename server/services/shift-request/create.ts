@@ -1,7 +1,7 @@
 import { getDatabase } from "~/server/utils/database";
 import { DayChangeService } from "~/server/services/day-change.service";
 import { datesBetween, parseISODate } from "~/shared/utils/iso-date";
-import { DEFAULT_LOCALE } from "~/i18n/config";
+import { instanceLocaleTag } from "~/server/utils/locale";
 import { formatDay } from "~/shared/utils/format/day";
 import { activeStaffName, badRequest, conflict, today } from "~/server/services/shift-request/common";
 import { isOffDay, requestDays } from "~/server/services/shift-request/days";
@@ -77,7 +77,7 @@ export function createSwap(input: {
   const absent = absentInChanges(changes);
   if (absent) {
     const name = absent.staffId === input.partnerStaffId ? partnerName : activeStaffName(input.staffId);
-    badRequest(`${name} hat am ${formatDay(DEFAULT_LOCALE, absent.date)} einen Ausfall eingetragen`);
+    badRequest(`${name} hat am ${formatDay(instanceLocaleTag(), absent.date)} einen Ausfall eingetragen`);
   }
   if (overlappingSwap(input.staffId, input.partnerStaffId, input.from, input.to)) {
     conflict("Für diesen Zeitraum läuft schon eine Tauschanfrage mit dieser Person");
