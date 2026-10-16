@@ -20,6 +20,7 @@ const formId = "create-user-form";
 const creating = ref(false);
 const form = ref<UserCreatePayload>(createEmptyForm());
 const { t } = useI18n();
+const requestError = useRequestError();
 const passwordHint = computed(() => configStore.passwordPolicy.hint || t("settings.auth.passwordHint"));
 
 const dialogVisible = computed({
@@ -58,8 +59,8 @@ async function createUser() {
 
     dialogVisible.value = false;
     emit("created");
-  } catch (error: any) {
-    createError.value = error.data?.statusMessage || t("settings.users.form.failed");
+  } catch (error) {
+    createError.value = requestError(error, "settings.users.form.failed");
   } finally {
     creating.value = false;
   }
@@ -80,6 +81,7 @@ async function createUser() {
           :placeholder="t('settings.users.form.usernamePlaceholder')"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
+          autocomplete="off"
           autocapitalize="none"
           autocorrect="off"
           spellcheck="false"
@@ -97,6 +99,7 @@ async function createUser() {
           v-model="form.password"
           id="create-password"
           type="password"
+          autocomplete="new-password"
           class="w-full"
           :placeholder="passwordHint"
           :disabled="creating"

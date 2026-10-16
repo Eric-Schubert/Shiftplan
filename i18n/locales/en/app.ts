@@ -41,6 +41,7 @@ export default {
     imprint: "Legal notice",
     privacy: "Privacy",
     language: "Language",
+    dataFailed: "Staff, shifts and the rotation pattern could not be loaded.",
   },
   settingsPage: {
     checking: "Checking session.",

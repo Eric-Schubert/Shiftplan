@@ -5,6 +5,7 @@ import { isoWeeksInYear } from "~/shared/utils/week";
 export function useRotationRollout(initialYear: number, initialWeek: number, onGenerated: (result: GenerationResult) => void) {
   const { authFetch } = useAuthFetch();
   const { t } = useI18n();
+  const requestError = useRequestError();
 
   const startYear = ref(initialYear);
   const startWeek = ref(initialWeek);
@@ -60,10 +61,10 @@ export function useRotationRollout(initialYear: number, initialWeek: number, onG
         query: { year: startYear.value, week: startWeek.value, weeks: weeksToGenerate.value },
       });
       if (request === previewRequest) preview.value = data.weeks;
-    } catch (error: any) {
+    } catch (error) {
       if (request === previewRequest) {
         preview.value = [];
-        errorMessage.value = error.data?.statusMessage || t("settings.rollout.previewFailed");
+        errorMessage.value = requestError(error, "settings.rollout.previewFailed");
       }
     } finally {
       if (request === previewRequest) loadingPreview.value = false;
@@ -88,8 +89,8 @@ export function useRotationRollout(initialYear: number, initialWeek: number, onG
       overwrite.value = false;
       onGenerated(result.value);
       await loadPreview();
-    } catch (error: any) {
-      errorMessage.value = error.data?.statusMessage || t("settings.rollout.failed");
+    } catch (error) {
+      errorMessage.value = requestError(error, "settings.rollout.failed");
     } finally {
       generating.value = false;
     }

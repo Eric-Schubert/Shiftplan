@@ -14,6 +14,7 @@ const dataStore = useDataStore();
 const saving = ref(false);
 const error = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 const form = ref<StaffCreateDTO>(createDefaultForm());
 
 const dialogVisible = computed({
@@ -59,8 +60,8 @@ async function saveStaff() {
     }
 
     dialogVisible.value = false;
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.staff.form.saveFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.staff.form.saveFailed");
   } finally {
     saving.value = false;
   }

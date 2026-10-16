@@ -112,6 +112,7 @@ function onActivity() {
     </header>
 
     <main id="main" tabindex="-1" class="app-main mx-auto max-w-[80rem] px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+      <AppDataLoadError />
       <slot />
     </main>
 
@@ -128,5 +129,6 @@ function onActivity() {
     </footer>
 
     <LazyPushDialog v-if="pushDialogOpen" />
+    <AppErrorNotices />
   </div>
 </template>

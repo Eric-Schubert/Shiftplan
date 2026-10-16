@@ -47,27 +47,38 @@ export function weekGridRow(
   });
 }
 
-function initials(name: string): string {
+/**
+ * A label of growing length: initials („AR“, „Kai“, „Be“), then more of the first name
+ * („AnR“, „Ben“, „AnnR“), at last the whole name.
+ */
+function label(name: string, level: number): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "?";
-  if (words.length === 1) return words[0]!.length <= 3 ? words[0]! : words[0]!.slice(0, 2);
-  return `${words[0]![0]}${words.at(-1)![0]}`.toUpperCase();
+  const first = words[0]!;
+  if (level === 0 && words.length === 1) return first.length <= 3 ? first : first.slice(0, 2);
+  if (level === 0) return `${first[0]}${words.at(-1)![0]}`.toUpperCase();
+  // Once the first name is used up, only the whole name is left.
+  if (words.length > 1 && level >= first.length) return name;
+  const short = words.length === 1 ? first.slice(0, level + 2) : `${first.slice(0, level + 1)}${words.at(-1)![0]!.toUpperCase()}`;
+  return short.length >= words.join(" ").length ? name : short;
 }
 
 /**
- * Short labels for narrow screens: initials, or the name itself when it is already short.
- * Two people with the same initials get the first two letters of the first name instead.
+ * Short labels for narrow screens, where they are all that names a person: initials, or the name
+ * itself when it is already short. People whose labels clash get longer ones until every label is unique.
  */
 export function shortNames(names: string[]): Map<string, string> {
   const unique = [...new Set(names)];
-  const counts = new Map<string, number>();
-  for (const name of unique) counts.set(initials(name), (counts.get(initials(name)) ?? 0) + 1);
-  return new Map(
-    unique.map((name) => {
-      const short = initials(name);
-      const words = name.trim().split(/\s+/);
-      if (counts.get(short)! < 2 || words.length < 2) return [name, short];
-      return [name, `${words[0]!.slice(0, 2)}${words.at(-1)![0]!.toUpperCase()}`];
-    })
-  );
+  const levels = new Map(unique.map((name) => [name, 0]));
+  // Every round lengthens a label, and whole names never clash, so this ends; the bound is a guard.
+  for (let round = 0; round < 100; round++) {
+    const labels = new Map(unique.map((name) => [name, label(name, levels.get(name)!)]));
+    const counts = new Map<string, number>();
+    for (const short of labels.values()) counts.set(short, (counts.get(short) ?? 0) + 1);
+    // A label that is the whole name cannot grow; the others in its clash move on.
+    const clashing = unique.filter((name) => counts.get(labels.get(name)!)! > 1 && labels.get(name) !== name);
+    if (clashing.length === 0) return labels;
+    for (const name of clashing) levels.set(name, levels.get(name)! + 1);
+  }
+  return new Map(unique.map((name) => [name, name]));
 }

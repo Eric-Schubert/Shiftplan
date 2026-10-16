@@ -14,6 +14,8 @@ const dialogVisible = computed({
 });
 
 const { t } = useI18n();
+
+const requestError = useRequestError();
 const reasonOptions = computed(() =>
   (Object.keys(ABSENCE_REASON_KEYS) as AbsenceReason[]).map((reason) => ({ label: t(ABSENCE_REASON_KEYS[reason]), value: reason }))
 );
@@ -61,8 +63,8 @@ async function save() {
     });
     emit("created", { notified: notifyTeam.value, takeovers: seekTakeover.value });
     dialogVisible.value = false;
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("absence.member.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "absence.member.failed");
   } finally {
     saving.value = false;
   }

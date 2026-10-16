@@ -15,7 +15,9 @@ const dataStore = useDataStore();
 const configStore = useConfigStore();
 
 const saving = ref(false);
+const error = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 const form = ref<ShiftCreateDTO>(createDefaultForm(props.nextSortOrder));
 
 const dialogVisible = computed({
@@ -29,6 +31,7 @@ watch(
   [() => props.visible, () => props.shift, () => props.nextSortOrder],
   ([isVisible, shift, nextSortOrder]) => {
     if (!isVisible) return;
+    error.value = "";
     form.value = shift ? createEditForm(shift) : createDefaultForm(nextSortOrder);
   },
   { immediate: true }
@@ -60,6 +63,7 @@ async function saveShift() {
   if (!form.value.name.trim()) return;
 
   saving.value = true;
+  error.value = "";
   try {
     if (props.shift) {
       await dataStore.updateShift(props.shift.shift_id, form.value);
@@ -68,6 +72,8 @@ async function saveShift() {
     }
 
     dialogVisible.value = false;
+  } catch (cause) {
+    error.value = requestError(cause, "settings.saveFailed");
   } finally {
     saving.value = false;
   }
@@ -112,6 +118,7 @@ async function saveShift() {
         />
       </div>
     </div>
+    <small v-if="error" class="mt-3 block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />

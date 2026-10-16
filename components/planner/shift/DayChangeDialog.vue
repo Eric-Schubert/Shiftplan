@@ -22,6 +22,7 @@ const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -72,8 +73,8 @@ async function toggle(staffId: number, date: string, present: boolean) {
     });
     saved.value = { ...saved.value, [cellKey(staffId, date)]: present };
     emit("updated");
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("planner.shift.dayChange.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "planner.shift.dayChange.failed");
   } finally {
     busyCell.value = "";
   }

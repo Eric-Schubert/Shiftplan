@@ -17,6 +17,7 @@ export default {
     done: "Fertig",
     edit: "Bearbeiten",
     next: "Weiter",
+    retry: "Erneut versuchen",
     save: "Speichern",
     signIn: "Anmelden",
     signOut: "Abmelden",

@@ -6,6 +6,7 @@ const requiresApproval = defineModel<boolean>({ required: true });
 const { authFetch } = useAuthFetch();
 const saving = ref(false);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 async function save(value: boolean) {
   saving.value = true;
@@ -16,8 +17,8 @@ async function save(value: boolean) {
       body: { requiresApproval: value },
     });
     requiresApproval.value = result.requiresApproval;
-  } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || t("settings.settingFailed"));
+  } catch (cause) {
+    emit("error", requestError(cause, "settings.settingFailed"));
     requiresApproval.value = !value;
   } finally {
     saving.value = false;

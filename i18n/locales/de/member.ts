@@ -33,6 +33,7 @@ export default {
   account: {
     signedInAs: "Angemeldet als {name}",
     title: "Mein Zugang",
+    signOutFailed: "Abmelden hat nicht geklappt",
   },
   panel: {
     marked: "Deine Schichten sind im Plan markiert.",

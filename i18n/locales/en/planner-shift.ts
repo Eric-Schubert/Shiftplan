@@ -6,6 +6,8 @@ export default {
   understaffed: "Understaffed",
   understaffedOn: "Understaffed {days}",
   open: "open",
+  // A change on the plan that failed without a reason from the server.
+  changeFailed: "The change to the plan could not be saved",
   grid: {
     shift: "Shift",
     substitute: "{name} (substitute)",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RotationExcelImportResult } from "~/types/rotation";
+import { staffingGap } from "~/composables/useRotationPatternSummary";
 
 const props = defineProps<{
   importDone: RotationExcelImportResult | null;
@@ -13,10 +14,11 @@ const emit = defineEmits<{
 const { patternWeeks, currentPatternWeek, understaffedCount } = useRotationPatternSummary(props.today);
 const { t } = useI18n();
 
+// Same rule as the summary above, so a shift with a minimum of 0 is not flagged.
 function staffingNote(staffCount: number, minStaff: number): string | null {
-  if (staffCount === 0) return t("settings.wizard.review.unstaffed");
-  if (staffCount < minStaff) return t("settings.wizard.review.staffedOf", { count: staffCount, min: minStaff });
-  return null;
+  const gap = staffingGap(staffCount, minStaff);
+  if (gap === "unstaffed") return t("settings.wizard.review.unstaffed");
+  return gap ? t("settings.wizard.review.staffedOf", { count: staffCount, min: minStaff }) : null;
 }
 </script>
 

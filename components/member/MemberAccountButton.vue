@@ -15,6 +15,7 @@ const busy = ref(false);
 const error = ref("");
 const saved = ref(false);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 function openAccount() {
   currentPin.value = "";
@@ -37,8 +38,8 @@ async function savePin() {
     await setPin(newPin.value, member.value?.hasPin ? currentPin.value : undefined);
     saved.value = true;
     currentPin.value = newPin.value = repeatPin.value = "";
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("member.pin.saveFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "member.pin.saveFailed");
   } finally {
     busy.value = false;
   }
@@ -46,6 +47,7 @@ async function savePin() {
 
 async function signOut() {
   busy.value = true;
+  error.value = "";
   try {
     await logout();
     showAccount.value = false;
@@ -53,6 +55,8 @@ async function signOut() {
     // Signing out removed this browser's push subscription; with team access it returns as a team one.
     await syncPush();
     await refreshNuxtData();
+  } catch (cause) {
+    error.value = requestError(cause, "member.account.signOutFailed");
   } finally {
     busy.value = false;
   }

@@ -2,7 +2,7 @@
 import type { MemberDevice } from "~/types/absence";
 
 // Asks before a device is signed out for good.
-defineProps<{ revoking: boolean }>();
+defineProps<{ revoking: boolean; error?: string }>();
 const emit = defineEmits<{ (e: "confirm"): void }>();
 const device = defineModel<MemberDevice | null>("device");
 const { t } = useI18n();
@@ -30,6 +30,7 @@ const visible = computed({
         })
       }}
     </p>
+    <small v-if="error" class="mt-3 block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="device = null" />
       <PrimeButton :label="t('settings.members.revoke')" severity="danger" class="min-h-11" :loading="revoking" @click="emit('confirm')" />

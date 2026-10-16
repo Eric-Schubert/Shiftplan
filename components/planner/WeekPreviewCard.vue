@@ -1,23 +1,26 @@
 <script setup lang="ts">
 import { formatWeekDates, weekLabel } from "~/shared/utils/format/week";
-import type { WeeklyShiftplan } from "~/types/shiftplan";
+import type { PreviewWeek } from "~/composables/useWeekPreviewData";
 
 // One upcoming week: assignment count, holidays and who works which shift.
 const props = defineProps<{
   week: { year: number; week: number };
-  plan?: WeeklyShiftplan | null;
+  plan?: PreviewWeek;
   loading: boolean;
 }>();
 const emit = defineEmits<{ (e: "select"): void }>();
 const configStore = useConfigStore();
 const localeTag = useLocaleTag();
 
+const failed = computed(() => props.plan === "failed");
+const loadedShifts = computed(() => (props.plan && props.plan !== "failed" ? props.plan.shifts : []));
+
 const shifts = computed(() => {
-  if (!props.plan?.shifts || props.plan.shifts.length === 0) {
+  if (loadedShifts.value.length === 0) {
     return null;
   }
 
-  const shiftsWithStaff = props.plan.shifts
+  const shiftsWithStaff = loadedShifts.value
     .filter((shift) => shift.assigned_staff && shift.assigned_staff.length > 0)
     .map((shift) => ({
       name: shift.name,
@@ -28,7 +31,7 @@ const shifts = computed(() => {
   return shiftsWithStaff.length > 0 ? shiftsWithStaff : null;
 });
 
-const assignmentCount = computed(() => (props.plan?.shifts ? props.plan.shifts.reduce((sum, shift) => sum + shift.assigned_staff.length, 0) : 0));
+const assignmentCount = computed(() => loadedShifts.value.reduce((sum, shift) => sum + shift.assigned_staff.length, 0));
 </script>
 
 <template>
@@ -38,7 +41,7 @@ const assignmentCount = computed(() => (props.plan?.shifts ? props.plan.shifts.r
         <h4 class="text-base font-semibold text-[var(--text-1)]">{{ weekLabel(localeTag, week.week) }}</h4>
         <span class="text-xs tabular-nums text-[var(--text-3)]">{{ formatWeekDates(localeTag, week.year, week.week) }}</span>
       </div>
-      <span class="text-xs tabular-nums text-[var(--text-3)]">
+      <span v-if="!failed" class="text-xs tabular-nums text-[var(--text-3)]">
         {{ $t("planner.week.preview.assignments", { count: assignmentCount }) }}
       </span>
     </div>
@@ -62,6 +65,10 @@ const assignmentCount = computed(() => (props.plan?.shifts ? props.plan.shifts.r
             </div>
           </li>
         </ul>
+
+        <p v-else-if="failed" class="py-2 text-sm text-[var(--danger-ink)]">
+          {{ $t("planner.week.preview.failed") }}
+        </p>
 
         <p v-else class="py-2 text-sm text-[var(--text-3)]">
           {{ $t("planner.week.preview.notPlanned") }}

@@ -25,6 +25,7 @@ const dialogVisible = computed({
 
 const staffOptions = computed(() => dataStore.activeStaff.map((staff) => ({ label: staff.name, value: staff.staff_id })));
 const { t } = useI18n();
+const requestError = useRequestError();
 const reasonOptions = computed(() =>
   (Object.keys(ABSENCE_REASON_KEYS) as AbsenceReason[]).map((reason) => ({ label: t(ABSENCE_REASON_KEYS[reason]), value: reason }))
 );
@@ -63,8 +64,8 @@ async function save() {
     });
     emit("created");
     dialogVisible.value = false;
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("absence.dialog.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "absence.dialog.failed");
   } finally {
     saving.value = false;
   }

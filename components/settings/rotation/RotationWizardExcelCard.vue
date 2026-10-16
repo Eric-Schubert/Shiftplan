@@ -91,7 +91,8 @@ watch(
       </p>
       <div class="mt-3 flex flex-wrap gap-2">
         <PrimeButton :label="t('settings.wizard.excel.replace')" icon="pi pi-check" class="min-h-11" :loading="importing" @click="emit('confirm')" />
-        <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text class="min-h-11" @click="emit('cancel')" />
+        <!-- The import cannot be stopped once sent, so cancelling is only offered before. -->
+        <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text class="min-h-11" :disabled="importing" @click="emit('cancel')" />
       </div>
     </div>
 

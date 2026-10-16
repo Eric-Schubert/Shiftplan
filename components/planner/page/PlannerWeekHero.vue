@@ -10,6 +10,7 @@ defineProps<{
   patternWeek?: number | null;
   canEditShifts: boolean;
   generating: boolean;
+  fillDisabled: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -51,6 +52,7 @@ const { t } = useI18n();
           size="small"
           class="min-h-9"
           :loading="generating"
+          :disabled="fillDisabled"
           @click="emit('generate')"
         />
         <PrimeButton

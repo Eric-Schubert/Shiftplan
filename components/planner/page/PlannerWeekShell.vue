@@ -10,6 +10,8 @@ defineProps<{
   absences: Absence[];
   member: MemberProfile | null;
   generating: boolean;
+  /** The selected week's plan is loaded, so filling it knows what it replaces. */
+  fillReady: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -57,6 +59,7 @@ function jumpWeeks(offset: number) {
       :pattern-week="shiftplan?.pattern_week"
       :can-edit-shifts="authStore.canEditShifts"
       :generating="generating"
+      :fill-disabled="!fillReady"
       @previous="appStore.previousWeek"
       @today="appStore.goToCurrentWeek"
       @next="appStore.nextWeek"

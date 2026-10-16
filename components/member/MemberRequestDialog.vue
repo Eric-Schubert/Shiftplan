@@ -19,6 +19,8 @@ const { data: shifts } = await useFetch<Shift[]>("/api/shift", { default: () => 
 const { data: staff } = await useFetch<Staff[]>("/api/staff", { default: () => [] });
 
 const { t } = useI18n();
+
+const requestError = useRequestError();
 const shiftOptions = computed(() => [
   { label: t("requests.dialog.myShift"), value: null },
   ...(shifts.value ?? []).filter((shift) => shift.active).map((shift) => ({ label: shift.name, value: shift.shift_id })),
@@ -60,8 +62,8 @@ async function save() {
     });
     emit("created");
     dialogVisible.value = false;
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("requests.dialog.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "requests.dialog.failed");
   } finally {
     saving.value = false;
   }

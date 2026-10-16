@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AnalyticsSummary } from "~/types/analytics";
 import { formatLocation, formatPath } from "~/utils/analytics/format";
+import { latestRequest } from "~/utils/latest-request";
 
 const localeTag = useLocaleTag();
 const { t } = useI18n();
@@ -9,6 +10,9 @@ const loading = ref(true);
 const errorMessage = ref("");
 const selectedDays = ref(30);
 const dayOptions = [7, 30, 90];
+// Switching from 90 to 7 days quickly must not let the slower 90-day answer win.
+const requests = latestRequest();
+const requestError = useRequestError();
 
 const pageItems = computed(() =>
   (summary.value?.topPages ?? []).map((page) => ({ ...page, key: page.path, label: formatPath(page.path, t("settings.analytics.startPage")) }))
@@ -22,17 +26,19 @@ const locationItems = computed(() =>
 );
 
 async function fetchSummary() {
+  const request = requests.start();
   loading.value = true;
   errorMessage.value = "";
 
   try {
-    summary.value = await $fetch<AnalyticsSummary>("/api/analytics", {
+    const result = await $fetch<AnalyticsSummary>("/api/analytics", {
       query: { days: selectedDays.value },
     });
-  } catch (error: any) {
-    errorMessage.value = error?.data?.statusMessage || error?.data?.message || t("settings.analytics.loadFailed");
+    if (requests.isLatest(request)) summary.value = result;
+  } catch (error) {
+    if (requests.isLatest(request)) errorMessage.value = requestError(error, "settings.analytics.loadFailed");
   } finally {
-    loading.value = false;
+    if (requests.isLatest(request)) loading.value = false;
   }
 }
 
