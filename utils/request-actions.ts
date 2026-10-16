@@ -1,3 +1,4 @@
+import type { MessageKey } from "~/i18n/types";
 import type { ShiftRequest } from "../types/shift-request";
 import { todayISO } from "./week-dates";
 
@@ -11,13 +12,13 @@ export function ownRequestAction(
   request: ShiftRequest,
   memberId: number,
   today = todayISO()
-): { label: string; action: RequestAction } | null {
+): { label: MessageKey; action: RequestAction } | null {
   const open = request.status === "open" || request.status === "pending_approval";
-  if (request.requester_staff_id === memberId && open) return { label: "Zurückziehen", action: "cancel" };
+  if (request.requester_staff_id === memberId && open) return { label: "requests.own.cancel", action: "cancel" };
   if (request.partner_staff_id === memberId && request.status === "pending_approval") {
-    return { label: "Zusage zurückziehen", action: "cancel" };
+    return { label: "requests.own.withdrawAccept", action: "cancel" };
   }
   if (request.status !== "done" || request.partner_staff_id === null) return null;
-  if (request.undo_requested_by === memberId) return { label: "Storno zurückziehen", action: "decline_undo" };
-  return request.undo_requested_by === null && request.date_from > today ? { label: "Stornieren", action: "request_undo" } : null;
+  if (request.undo_requested_by === memberId) return { label: "requests.own.withdrawUndo", action: "decline_undo" };
+  return request.undo_requested_by === null && request.date_from > today ? { label: "requests.own.undo", action: "request_undo" } : null;
 }

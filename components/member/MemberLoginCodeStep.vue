@@ -8,11 +8,10 @@ const code = defineModel<string>("code", { required: true });
 <template>
   <form class="space-y-4 text-sm" @submit.prevent="emit('submit')">
     <p class="text-[var(--text-2)]">
-      Den persönlichen Code bekommst du von deiner Schichtplanung (Einstellungen → App-Zugänge). Danach legst du deine
-      PIN fest.
+      {{ $t("member.login.codeIntro") }}
     </p>
     <div class="space-y-1.5">
-      <label for="member-invite-code" class="block font-medium text-[var(--text-2)]">Persönlicher Code</label>
+      <label for="member-invite-code" class="block font-medium text-[var(--text-2)]">{{ $t("member.login.code") }}</label>
       <PrimeInputText
         id="member-invite-code"
         v-model="code"
@@ -25,10 +24,10 @@ const code = defineModel<string>("code", { required: true });
       />
     </div>
     <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
-    <PrimeButton type="submit" label="Weiter" icon="pi pi-arrow-right" icon-pos="right" class="min-h-11 w-full" :loading="busy" />
+    <PrimeButton type="submit" :label="$t('member.login.next')" icon="pi pi-arrow-right" icon-pos="right" class="min-h-11 w-full" :loading="busy" />
     <p class="text-center">
       <button type="button" class="font-medium text-[var(--accent-strong)] hover:underline" @click="emit('use-pin')">
-        Ich habe schon eine PIN
+        {{ $t("member.login.havePin") }}
       </button>
     </p>
   </form>

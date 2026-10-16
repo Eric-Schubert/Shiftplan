@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ABSENCE_REASON_LABELS, type AbsenceReason } from "~/types/absence";
+import { ABSENCE_REASON_KEYS, type AbsenceReason } from "~/types/absence";
 import { datesOfISOWeek } from "~/shared/utils/week";
 
 const props = defineProps<{
@@ -25,10 +25,10 @@ const dialogVisible = computed({
 const staffOptions = computed(() =>
   dataStore.activeStaff.map((staff) => ({ label: staff.name, value: staff.staff_id }))
 );
-const reasonOptions = (Object.keys(ABSENCE_REASON_LABELS) as AbsenceReason[]).map((reason) => ({
-  label: ABSENCE_REASON_LABELS[reason],
-  value: reason,
-}));
+const { t } = useI18n();
+const reasonOptions = computed(() =>
+  (Object.keys(ABSENCE_REASON_KEYS) as AbsenceReason[]).map((reason) => ({ label: t(ABSENCE_REASON_KEYS[reason]), value: reason }))
+);
 
 const staffId = ref<number | null>(null);
 const days = datesOfISOWeek(props.year, props.week);
@@ -43,7 +43,7 @@ const error = ref("");
 
 async function save() {
   if (!staffId.value || !from.value || !to.value) {
-    error.value = "Bitte Mitarbeiter und Zeitraum wählen";
+    error.value = t("absence.dialog.missing");
     return;
   }
 
@@ -65,7 +65,7 @@ async function save() {
     emit("created");
     dialogVisible.value = false;
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Ausfall konnte nicht gespeichert werden";
+    error.value = cause?.data?.statusMessage || t("absence.dialog.failed");
   } finally {
     saving.value = false;
   }
@@ -75,20 +75,20 @@ async function save() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Ausfall eintragen"
+    :header="t('absence.add')"
     modal
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <form class="space-y-4 text-sm" @submit.prevent="save">
       <div class="space-y-1.5">
-        <label for="absence-staff" class="block font-medium text-[var(--text-2)]">Mitarbeiter</label>
+        <label for="absence-staff" class="block font-medium text-[var(--text-2)]">{{ t("absence.dialog.staff") }}</label>
         <PrimeSelect
           v-model="staffId"
           input-id="absence-staff"
           :options="staffOptions"
           option-label="label"
           option-value="value"
-          placeholder="Bitte wählen"
+          :placeholder="t('common.choose')"
           filter
           class="w-full"
         />
@@ -97,7 +97,7 @@ async function save() {
       <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="absence" />
 
       <div class="space-y-1.5">
-        <label for="absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
+        <label for="absence-reason" class="block font-medium text-[var(--text-2)]">{{ t("absence.reason") }}</label>
         <PrimeSelect
           v-model="reason"
           input-id="absence-reason"
@@ -109,11 +109,11 @@ async function save() {
       </div>
 
       <div class="space-y-1.5">
-        <label for="absence-note" class="block font-medium text-[var(--text-2)]">Notiz (optional)</label>
+        <label for="absence-note" class="block font-medium text-[var(--text-2)]">{{ t("absence.dialog.note") }}</label>
         <PrimeInputText id="absence-note" v-model="note" maxlength="200" class="w-full" />
         <p class="text-xs text-[var(--text-3)]">
-          Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht.
-          Höchstens {{ authStore.isAdmin ? "1 Jahr" : "8 Wochen" }} am Stück.
+          {{ t("absence.dialog.privacy") }}
+          {{ authStore.isAdmin ? t("absence.dialog.maxAdmin") : t("absence.dialog.maxPlanner") }}
         </p>
       </div>
 
@@ -123,8 +123,8 @@ async function save() {
     </form>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
-      <PrimeButton label="Eintragen" icon="pi pi-check" class="min-h-11" :loading="saving" @click="save" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('absence.dialog.submit')" icon="pi pi-check" class="min-h-11" :loading="saving" @click="save" />
     </template>
   </PrimeDialog>
 </template>

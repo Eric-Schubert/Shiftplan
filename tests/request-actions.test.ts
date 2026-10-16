@@ -37,10 +37,10 @@ describe("actions on own requests", () => {
     // 22:30 UTC is already 00:30 on Thursday in Berlin.
     vi.setSystemTime(new Date("2026-10-07T22:30:00Z"));
 
-    expect(eveningBefore).toEqual({ label: "Stornieren", action: "request_undo" });
+    expect(eveningBefore).toEqual({ label: "requests.own.undo", action: "request_undo" });
     expect(ownRequestAction(takenOver, ANNA)).toBeNull();
     expect(ownRequestAction({ ...takenOver, undo_requested_by: ANNA }, ANNA)).toEqual({
-      label: "Storno zurückziehen",
+      label: "requests.own.withdrawUndo",
       action: "decline_undo",
     });
   });

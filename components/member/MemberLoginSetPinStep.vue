@@ -8,15 +8,16 @@ const repeat = defineModel<string>("repeat", { required: true });
 
 <template>
   <form class="space-y-4 text-sm" @submit.prevent="emit('submit')">
-    <p class="text-[var(--text-2)]">
-      Du bist angemeldet. Lege jetzt eine PIN fest, dann kannst du dich auf jedem Gerät mit deinem Kürzel
-      <span class="font-mono font-semibold text-[var(--text-1)]">{{ shortCode }}</span> anmelden.
-    </p>
+    <i18n-t keypath="member.login.setPinIntro" tag="p" class="text-[var(--text-2)]">
+      <template #code>
+        <span class="font-mono font-semibold text-[var(--text-1)]">{{ shortCode }}</span>
+      </template>
+    </i18n-t>
     <MemberPinFields v-model:pin="pin" v-model:repeat="repeat" id-prefix="member-new" :disabled="busy" />
     <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     <div class="flex gap-2">
-      <PrimeButton label="Später" text class="min-h-11" :disabled="busy" @click="emit('later')" />
-      <PrimeButton type="submit" label="PIN speichern" icon="pi pi-check" class="min-h-11 flex-1" :loading="busy" />
+      <PrimeButton :label="$t('member.login.later')" text class="min-h-11" :disabled="busy" @click="emit('later')" />
+      <PrimeButton type="submit" :label="$t('member.pin.save')" icon="pi pi-check" class="min-h-11 flex-1" :loading="busy" />
     </div>
   </form>
 </template>

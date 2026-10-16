@@ -2,8 +2,6 @@
 
 export const PIN_MIN_LENGTH = 6;
 export const PIN_MAX_LENGTH = 12;
-export const PIN_LENGTH_MESSAGE = `Die PIN braucht ${PIN_MIN_LENGTH} bis ${PIN_MAX_LENGTH} Ziffern`;
-export const WEAK_PIN_MESSAGE = "Diese PIN ist zu leicht zu erraten";
 
 const PIN_PATTERN = new RegExp(`^\\d{${PIN_MIN_LENGTH},${PIN_MAX_LENGTH}}$`);
 
