@@ -9,12 +9,10 @@ export default defineEventHandler(async (event) => {
   const id = validateId(getRouterParam(event, "id"), "recordId");
   const body = await readBody(event);
 
-
   const name = validateName(body.name, "name", { maxLength: 100 });
   const active = validateBoolean(body.active, "active");
   const isPartTime = validateBoolean(body.is_parttime, "partTime");
   const shortCode = typeof body.short_code === "string" ? body.short_code : undefined;
-
 
   if (name === undefined && active === undefined && isPartTime === undefined && shortCode === undefined) {
     throw apiError(event, 400, "errors.common.noChanges");

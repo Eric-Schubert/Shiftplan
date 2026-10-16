@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const shiftConfig = getShiftValidationConfig();
 
-
   const name = validateName(body.name, "name", { maxLength: 100 });
   const active = validateBoolean(body.active, "active");
   const startTime = validateTime(body.start_time, "startTime");

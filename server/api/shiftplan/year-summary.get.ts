@@ -11,7 +11,6 @@ export default defineEventHandler((event) => {
 
   const db = getDatabase();
 
-
   const weeks = db
     .prepare(`
       SELECT

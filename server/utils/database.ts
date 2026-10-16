@@ -17,7 +17,6 @@ function logMigration(message: string): void {
   console.log(message);
 }
 
-
 export function getDatabase(): DatabaseType {
   if (!db) {
     const databasePath = getDatabasePaths().main;
@@ -30,7 +29,6 @@ export function getDatabase(): DatabaseType {
   }
   return db;
 }
-
 
 export function getAdminDatabase(): DatabaseType {
   if (!adminDb) {

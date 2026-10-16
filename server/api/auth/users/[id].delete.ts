@@ -12,13 +12,11 @@ export default defineEventHandler((event) => {
     throw apiError(event, 400, "errors.auth.invalidUserId");
   }
 
-
   if (id === currentUser.userId) {
     throw apiError(event, 400, "errors.auth.cannotDeleteSelf");
   }
 
   const db = getAdminDatabase();
-
 
   const user = db
     .prepare("SELECT role FROM users WHERE user_id = ?")

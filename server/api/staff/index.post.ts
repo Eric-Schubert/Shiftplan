@@ -7,7 +7,6 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-
   const name = validateName(body.name, "name", { required: true, maxLength: 100 });
   const active = validateBoolean(body.active, "active");
   const isPartTime = validateBoolean(body.is_parttime, "partTime");

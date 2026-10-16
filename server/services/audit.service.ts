@@ -5,8 +5,6 @@ import { purgeOldAuditEntries } from "~/server/services/audit/purge";
 
 export class AuditService {
 
-
-
   static log(params: {
     userId: number;
     username: string;
@@ -57,9 +55,6 @@ export class AuditService {
       params.source ?? "web",
     );
   }
-
-
-
 
   static getEntries(options?: {
     limit?: number;

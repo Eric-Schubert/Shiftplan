@@ -15,7 +15,6 @@ export default defineEventHandler(async (event) => {
   const shiftConfig = getShiftValidationConfig();
   const shiftDefaults = getShiftDefaults();
 
-
   const name = validateName(body.name, "name", { required: true, maxLength: 100 });
   const startTime = validateTime(body.start_time, "startTime", { required: true });
   const endTime = validateTime(body.end_time, "endTime", { required: true });

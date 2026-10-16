@@ -32,18 +32,15 @@ export default defineEventHandler((event) => {
   const path = getRequestURL(event).pathname;
   const method = getMethod(event);
 
-
   if (!path.startsWith("/api/")) {
     return;
   }
 
   const routeClass = classifyRoute(method, path);
 
-
   if (routeClass === "public" || routeClass === "publicRead") {
     return;
   }
-
 
   if (routeClass === "team" || routeClass === "member") {
     if (method !== "GET" && getMemberToken(event)?.viaCookie && !isSameOriginRequest(event)) {
@@ -52,7 +49,6 @@ export default defineEventHandler((event) => {
     return;
   }
 
-
   if (routeClass === "teamRead") {
     if (!TeamAccessService.hasReadAccess(event)) {
       throw apiError(event, 401, "errors.team.codeRequired");
@@ -60,14 +56,12 @@ export default defineEventHandler((event) => {
     return;
   }
 
-
   const token = getSessionToken(event);
   const isValid = validateSession(token);
 
   if (!isValid) {
     throw apiError(event, 401, "errors.auth.loginRequired");
   }
-
 
   // CSRF protects ambient cookies. A Bearer token is sent explicitly by the app.
   const usesBearer = getHeader(event, "authorization")?.startsWith("Bearer ") ?? false;
