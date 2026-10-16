@@ -1,5 +1,5 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
-import { shortCodeOf } from "~/server/utils/member-login";
+import { shortCodeOf } from "~/server/services/member-login.service";
 
 export default defineEventHandler((event) => {
   const member = MemberAccessService.requireMember(event);

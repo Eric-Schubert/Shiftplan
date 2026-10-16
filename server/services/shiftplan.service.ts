@@ -15,6 +15,8 @@ import {
 } from "~/server/services/shiftplan/weekly-plan";
 import { listWeeks, previewGeneration } from "~/server/services/shiftplan/generation";
 
+export { readGenerationRange } from "~/server/services/shiftplan/generation-range";
+
 // The generation workflows call siblings through `this`, so tests can swap single steps.
 export const ShiftplanService = {
   getOrCreateWeek,

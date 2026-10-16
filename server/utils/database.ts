@@ -3,7 +3,7 @@ import type { Database as DatabaseType } from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { migrateAdminDatabase, migrateMainDatabase } from "./database-migrations.js";
-import { assignMissingShortCodes } from "./staff-short-code.js";
+import { assignMissingShortCodes } from "../lib/migrations/staff-short-code.js";
 import { applyConfiguredPragmas, getDatabasePaths } from "~/server/config/database-config";
 
 let db: DatabaseType | null = null;

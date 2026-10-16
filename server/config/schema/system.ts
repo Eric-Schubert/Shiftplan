@@ -66,10 +66,16 @@ export function validateAuth(value: unknown, errors: MutableErrorList): void {
   integerAt(limit.windowMinutes, "auth.loginRateLimit.windowMinutes", errors, { min: 1 });
   integerAt(limit.blockMinutes, "auth.loginRateLimit.blockMinutes", errors, { min: 1 });
 
-  const routes = objectAt(config.routes, "auth.routes", errors);
-  stringArrayAt(routes.public, "auth.routes.public", errors);
-  stringArrayAt(routes.publicGetPrefixes, "auth.routes.publicGetPrefixes", errors);
-  const methods = stringArrayAt(routes.csrfMethods, "auth.routes.csrfMethods", errors);
+  // Optional since the route policy is built in. route-config.ts checks public and publicGetPrefixes from older files.
+  const routes = config.routes === undefined ? {} : objectAt(config.routes, "auth.routes", errors);
+  for (const key of ["public", "publicGetPrefixes"]) {
+    if (routes[key] !== undefined) stringArrayAt(routes[key], `auth.routes.${key}`, errors);
+  }
+  const methods =
+    routes.csrfMethods === undefined ? [] : stringArrayAt(routes.csrfMethods, "auth.routes.csrfMethods", errors);
+  if (Array.isArray(routes.csrfMethods) && routes.csrfMethods.length === 0) {
+    errors.push("auth.routes.csrfMethods must not be empty; leave it out for the default methods");
+  }
   for (const method of methods) {
     if (!HTTP_METHODS.has(method.toUpperCase())) {
       errors.push(`auth.routes.csrfMethods contains an unknown HTTP method: ${method}`);

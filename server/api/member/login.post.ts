@@ -1,8 +1,8 @@
 import { DEVICE_NAME_MAX_LENGTH, MemberAccessService } from "~/server/services/member-access.service";
-import { memberLoginResponse } from "~/server/utils/member-login";
+import { memberLoginResponse } from "~/server/services/member-login.service";
 import { getClientNetwork, limitAttempt, type AttemptBucket } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
-import { normalizeShortCode } from "~/server/utils/staff-short-code.js";
+import { normalizeShortCode } from "~/server/lib/migrations/staff-short-code.js";
 
 // A short code may see more failures than one network, so a stranger alone cannot lock a colleague out.
 const SHORT_CODE_ATTEMPTS_FACTOR = 3;

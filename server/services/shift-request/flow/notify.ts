@@ -1,6 +1,6 @@
 import { PushService } from "~/server/services/push.service";
-import type { ShiftRequest } from "~/server/services/shift-request.service";
-import { formatNoticeDay } from "~/server/utils/absence-notice";
+import type { ShiftRequest } from "~/server/services/shift-request/types";
+import { formatNoticeDay } from "~/shared/utils/notice-day";
 
 export const REQUESTS_URL = "/?anfragen=1";
 

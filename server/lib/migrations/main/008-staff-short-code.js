@@ -1,5 +1,5 @@
 import { addColumnIfMissing, hasMissingColumns } from "../schema.js";
-import { assignMissingShortCodes } from "../../../utils/staff-short-code.js";
+import { assignMissingShortCodes } from "../staff-short-code.js";
 
 export default {
   id: "008_main_staff_short_code",

@@ -1,6 +1,6 @@
-import { AbsenceService } from "~/server/services/absence.service";
-import { cancelAbsence, requestSource } from "~/server/utils/absence-flow";
+import { AbsenceService, cancelAbsence } from "~/server/services/absence.service";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { validateId } from "~/server/utils/validation";
 
 export default defineEventHandler((event) => {

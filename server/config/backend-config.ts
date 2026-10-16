@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateBackendConfig } from "./backend-config.schema";
 import type { BackendConfig } from "./backend-config.types";
+import { resolveRouteConfig } from "./route-config";
 
 let cachedConfig: BackendConfig | null = null;
 
@@ -14,9 +15,9 @@ export function getBackendConfig(): BackendConfig {
   return cachedConfig;
 }
 
-// The schema accepts "post", but the auth middleware and the client compare upper-case request methods.
+// auth.routes is optional; the route policy is built in (route-config.ts).
 function normalize(config: BackendConfig): BackendConfig {
-  config.auth.routes.csrfMethods = config.auth.routes.csrfMethods.map((method) => method.toUpperCase());
+  config.auth.routes = resolveRouteConfig(config.auth.routes);
   return config;
 }
 

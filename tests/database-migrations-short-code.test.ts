@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { migrateMainDatabase } from "~/server/utils/database-migrations.js";
-import { assignMissingShortCodes } from "~/server/utils/staff-short-code.js";
+import { assignMissingShortCodes } from "~/server/lib/migrations/staff-short-code.js";
 
 describe("database migrations", () => {
   it("gives existing staff a unique short code from their initials", () => {

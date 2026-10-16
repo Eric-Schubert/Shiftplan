@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
-import { normalizeShortCode } from "~/server/utils/staff-short-code.js";
+import { normalizeShortCode } from "~/server/lib/migrations/staff-short-code.js";
 import { createSession, type Member } from "~/server/services/member-access/sessions";
 import { PIN_LENGTH_MESSAGE, WEAK_PIN_MESSAGE, isValidPin, isWeakPin } from "~/shared/utils/limits";
 

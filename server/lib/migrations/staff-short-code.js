@@ -1,4 +1,5 @@
-// Personal sign-in name for staff ("MM" for Max Mustermann). Plain JS so migrations can use it.
+// Personal sign-in name for staff ("MM" for Max Mustermann). Plain JS next to the migrations,
+// because setup.js runs migration 008 without the Nitro bundle.
 
 export const SHORT_CODE_MAX_LENGTH = 8;
 

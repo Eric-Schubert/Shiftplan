@@ -1,3 +1,5 @@
+import type { RouteConfig } from "../route-config";
+
 export type DatabaseSettings = {
   directory: string;
   mainFile: string;
@@ -43,9 +45,6 @@ export type AuthSettings = {
     windowMinutes: number;
     blockMinutes: number;
   };
-  routes: {
-    public: string[];
-    publicGetPrefixes: string[];
-    csrfMethods: string[];
-  };
+  // Resolved by route-config.ts; the config file may omit it.
+  routes: RouteConfig;
 };

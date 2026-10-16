@@ -80,7 +80,6 @@ jobs:
         if: needs.changes.outputs.code != 'false'
         run: npm run lint:english
 
-      # Report mode for now: lists the violations without failing.
       - name: Check import boundaries
         if: needs.changes.outputs.code != 'false'
         run: npm run lint:boundaries

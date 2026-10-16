@@ -15,6 +15,7 @@ import {
   revokeSession,
 } from "~/server/services/member-access/sessions";
 
+export { purgeMemberAccess, removeStaffAccess } from "~/server/services/member-access/cleanup";
 export type { Member, MemberSession } from "~/server/services/member-access/sessions";
 export {
   MEMBER_COOKIE_DAYS,
