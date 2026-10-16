@@ -1,6 +1,8 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns } from "../schema.js";
 import { assignMissingShortCodes } from "../staff-short-code.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "008_main_staff_short_code",
   description: "Short code for the personal sign-in with PIN",

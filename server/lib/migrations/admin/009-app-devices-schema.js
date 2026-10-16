@@ -1,5 +1,7 @@
+// @ts-check
 import { tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "009_admin_app_devices_schema",
   description: "Create native app push device table",

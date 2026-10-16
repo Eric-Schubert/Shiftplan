@@ -1,12 +1,14 @@
+// @ts-check
 import { hasMissingColumns, tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "006_main_absence_ranges_day_changes",
   description: "Vacation reasons, absence ranges and day-level shift changes",
   shouldRun(database) {
-    const absences = database
-      .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'absences'")
-      .get();
+    const absences = /** @type {{ sql: string } | undefined} */ (
+      database.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'absences'").get()
+    );
     return (
       !absences ||
       absences.sql.includes("'krank'") ||

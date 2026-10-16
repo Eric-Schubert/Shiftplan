@@ -1,3 +1,4 @@
+// @ts-check
 import coreSchema from "./001-core-schema.js";
 import rotationSchema from "./002-rotation-schema.js";
 import auditSchema from "./003-audit-schema.js";

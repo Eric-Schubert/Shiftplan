@@ -1,14 +1,17 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, indexExists, tableExists } from "../schema.js";
 import { requireBootstrapPasswordHash } from "../admin-credentials.js";
 
+/** @param {import("better-sqlite3").Database} database */
 function getMissingPasswordHashCount(database) {
   if (!tableExists(database, "users")) return 0;
-  const row = database
-    .prepare("SELECT COUNT(*) AS count FROM users WHERE password_hash IS NULL OR password_hash = ''")
-    .get();
+  const row = /** @type {{ count: number } | undefined} */ (
+    database.prepare("SELECT COUNT(*) AS count FROM users WHERE password_hash IS NULL OR password_hash = ''").get()
+  );
   return row?.count || 0;
 }
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "002_admin_users_schema",
   description: "Create and normalize users table",
