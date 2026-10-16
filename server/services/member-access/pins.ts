@@ -2,17 +2,12 @@ import bcrypt from "bcryptjs";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { normalizeShortCode } from "~/server/utils/staff-short-code.js";
 import { createSession, type Member } from "~/server/services/member-access/sessions";
-import { WEAK_PIN_MESSAGE, isWeakPin } from "~/utils/member-pin";
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH, WEAK_PIN_MESSAGE, isValidPin, isWeakPin } from "~/shared/utils/limits";
 
-export const PIN_MIN_LENGTH = 6;
-export const PIN_MAX_LENGTH = 12;
+export { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPin };
 const PIN_HASH_COST = 10;
 // Compared against when there is no PIN to check, so every check costs the same time.
 const DUMMY_PIN_HASH = "$2b$10$lhJ.r4DWfwPlCqLrcMGjQ.luDHeryPcty4RreG2XIp0mP6Cu6Pvhi";
-
-export function isValidPin(pin: unknown): pin is string {
-  return typeof pin === "string" && new RegExp(`^\\d{${PIN_MIN_LENGTH},${PIN_MAX_LENGTH}}$`).test(pin);
-}
 
 export function hasPin(staffId: number): boolean {
   return Boolean(getAdminDatabase().prepare("SELECT 1 FROM member_pins WHERE staff_id = ?").get(staffId));

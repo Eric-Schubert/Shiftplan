@@ -770,6 +770,25 @@ components:
             hint:
               type: string
               description: Short German summary of the rules, for example as a placeholder
+        username:
+          allOf:
+            - $ref: "#/components/schemas/LengthLimits"
+          description: Allowed length of a planner's user name (auth.users), as the server validates it
+        contactForm:
+          type: object
+          description: >-
+            Allowed lengths of the contact form fields (contact.form). The web app checks the
+            minimum lengths early; the server checks both again.
+          required: [name, replyTo, subject, message]
+          properties:
+            name:
+              $ref: "#/components/schemas/LengthLimits"
+            replyTo:
+              $ref: "#/components/schemas/LengthLimits"
+            subject:
+              $ref: "#/components/schemas/LengthLimits"
+            message:
+              $ref: "#/components/schemas/LengthLimits"
         shift:
           type: object
           description: Defaults and limits for shifts in the web app, as the server validates them
@@ -805,6 +824,15 @@ components:
               items:
                 type: string
               description: Upper-case HTTP methods that need the `x-csrf-token` header
+
+    LengthLimits:
+      type: object
+      required: [minLength, maxLength]
+      properties:
+        minLength:
+          type: integer
+        maxLength:
+          type: integer
 
     StaffRef:
       type: object

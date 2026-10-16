@@ -1,12 +1,16 @@
+import { validatePasswordStrength } from "~/shared/utils/limits";
 import type { UserCreatePayload } from "~/types/auth";
-import type { PasswordPolicy } from "~/types/instance";
-import { validatePasswordStrength } from "~/utils/password-policy";
+import type { ClientConfig, PasswordPolicy } from "~/types/instance";
 
 /** Checks the new-user form before it is sent; returns an error text or null. */
-export function newUserProblem(form: UserCreatePayload, policy: PasswordPolicy): string | null {
+export function newUserProblem(
+  form: UserCreatePayload,
+  config: Pick<ClientConfig, "passwordPolicy" | "username">
+): string | null {
   if (!form.username || !form.password) return "Benutzername und Passwort sind erforderlich.";
-  if (form.username.trim().length < 3) return "Der Benutzername braucht mindestens 3 Zeichen.";
-  const strength = validatePasswordStrength(form.password, policy);
+  const minLength = config.username.minLength;
+  if (form.username.trim().length < minLength) return `Der Benutzername braucht mindestens ${minLength} Zeichen.`;
+  const strength = validatePasswordStrength(form.password, config.passwordPolicy);
   return strength.valid ? null : strength.message;
 }
 
