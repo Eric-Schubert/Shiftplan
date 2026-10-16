@@ -44,8 +44,8 @@ defineProps<{
     <p>
       Ist der Schichtplan durch einen Team-Zugangscode geschützt, setzt die Anwendung nach
       Eingabe des Codes das Cookie <code>viewer_token</code>. Es erlaubt nur das Lesen des
-      Plans, ist für JavaScript nicht lesbar und gilt bis zu 180 Tage. Auch dieses Cookie ist
-      technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+      Plans, ist für JavaScript nicht lesbar und gilt bis zu {{ daysText(retention.viewerSession) }}.
+      Auch dieses Cookie ist technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
     </p>
     <p>
       Meldet sich jemand im Browser persönlich an (Kürzel und PIN oder Einladungslink), setzt

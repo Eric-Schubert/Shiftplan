@@ -21,6 +21,8 @@ export const MEMBER_COOKIE_DAYS = 365;
 export const INVITE_VALID_DAYS = 7;
 /** A planner signed in on the phone stays signed in this long without use. */
 export const PLANNER_APP_SESSION_DAYS = 14;
+/** A team code access lasts this long: the cookie from the code on, in the app since the last use. */
+export const VIEWER_SESSION_DAYS = 180;
 
 /** Every period the privacy policy names, in days. */
 export type RetentionDays = {
@@ -33,6 +35,7 @@ export type RetentionDays = {
   memberCookie: number;
   memberInvite: number;
   plannerApp: number;
+  viewerSession: number;
 };
 
 /** The fixed periods together with the configured statistics period. */
@@ -47,5 +50,6 @@ export function retentionPeriods(analyticsDays: number): RetentionDays {
     memberCookie: MEMBER_COOKIE_DAYS,
     memberInvite: INVITE_VALID_DAYS,
     plannerApp: PLANNER_APP_SESSION_DAYS,
+    viewerSession: VIEWER_SESSION_DAYS,
   };
 }

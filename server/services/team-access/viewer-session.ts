@@ -1,8 +1,9 @@
 import { randomBytes } from "crypto";
 import { getAdminDatabase } from "~/server/utils/database";
+import { VIEWER_SESSION_DAYS } from "~/shared/utils/retention";
 
+export { VIEWER_SESSION_DAYS };
 export const VIEWER_COOKIE_NAME = "viewer_token";
-export const VIEWER_SESSION_DAYS = 180;
 const VIEWER_SESSION_MS = VIEWER_SESSION_DAYS * 24 * 60 * 60 * 1000;
 
 export function getBearerToken(event: any): string | undefined {

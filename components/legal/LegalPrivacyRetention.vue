@@ -32,8 +32,9 @@ defineProps<{
       <dd>wird spätestens nach {{ periodText(retention.analytics, "dative") }} bereinigt.</dd>
       <dt>Team-Zugangscode</dt>
       <dd>
-        Zugänge gelten im Browser bis zu 180 Tage ab Eingabe des Codes, in der App bis zu 180
-        Tage nach der letzten Nutzung; ein neuer Code beendet alle sofort.
+        Zugänge gelten im Browser bis zu {{ daysText(retention.viewerSession) }} ab Eingabe des
+        Codes, in der App bis zu {{ daysText(retention.viewerSession) }} nach der letzten Nutzung;
+        ein neuer Code beendet alle sofort.
       </dd>
       <dt>Push-Abonnements und App-Gerätetokens</dt>
       <dd>
