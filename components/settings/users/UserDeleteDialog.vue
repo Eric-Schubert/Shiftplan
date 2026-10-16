@@ -16,6 +16,7 @@ const { authFetch } = useAuthFetch();
 const deleting = ref(false);
 const deleteError = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -39,8 +40,8 @@ async function deleteUser() {
     await authFetch(`/api/auth/users/${props.user.user_id}`, { method: "DELETE" });
     dialogVisible.value = false;
     emit("deleted");
-  } catch (error: any) {
-    deleteError.value = error.data?.statusMessage || t("settings.users.deleteFailed");
+  } catch (error) {
+    deleteError.value = requestError(error, "settings.users.deleteFailed");
   } finally {
     deleting.value = false;
   }

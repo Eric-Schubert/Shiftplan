@@ -9,6 +9,7 @@ export function useRotationExcelImport(onImported: () => void) {
   const dataStore = useDataStore();
   const { authFetch } = useAuthFetch();
   const { t } = useI18n();
+  const requestError = useRequestError();
 
   const downloadingTemplate = ref(false);
   const checkingFile = ref(false);
@@ -74,8 +75,8 @@ export function useRotationExcelImport(onImported: () => void) {
 
     try {
       pendingImport.value = { file, check: await uploadExcel(file, true) };
-    } catch (error: any) {
-      excelError.value = error.data?.statusMessage || t("settings.wizard.excel.readFailed");
+    } catch (error) {
+      excelError.value = requestError(error, "settings.wizard.excel.readFailed");
     } finally {
       checkingFile.value = false;
     }
@@ -92,8 +93,8 @@ export function useRotationExcelImport(onImported: () => void) {
       await dataStore.fetchRotation();
       importDone.value = result;
       onImported();
-    } catch (error: any) {
-      excelError.value = error.data?.statusMessage || t("settings.wizard.excel.importFailed");
+    } catch (error) {
+      excelError.value = requestError(error, "settings.wizard.excel.importFailed");
     } finally {
       importingExcel.value = false;
     }

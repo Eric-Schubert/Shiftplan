@@ -4,6 +4,7 @@ import { useConfigStore } from "~/stores/config.store";
 /** State, validation and sending of the contact form on the imprint page. */
 export function useImprintContactForm() {
   const { t } = useI18n();
+  const requestError = useRequestError();
   const configStore = useConfigStore();
   const contactForm = reactive({
     name: "",
@@ -68,8 +69,8 @@ export function useImprintContactForm() {
       contactForm.company = "";
       submitAttempted.value = false;
       sent.value = true;
-    } catch (contactError: any) {
-      error.value = contactError?.data?.statusMessage || contactError?.data?.message || t("contact.form.sendFailed");
+    } catch (contactError) {
+      error.value = requestError(contactError, "contact.form.sendFailed");
     } finally {
       sending.value = false;
     }

@@ -7,6 +7,7 @@ const { authFetch } = useAuthFetch();
 const appStore = useAppStore();
 const saving = ref(false);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 async function save(value: boolean) {
   saving.value = true;
@@ -18,8 +19,8 @@ async function save(value: boolean) {
     });
     enabled.value = result.nextWeekFromSaturday;
     appStore.setNextWeekFromSaturday(result.nextWeekFromSaturday);
-  } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || t("settings.settingFailed"));
+  } catch (cause) {
+    emit("error", requestError(cause, "settings.settingFailed"));
     enabled.value = !value;
   } finally {
     saving.value = false;

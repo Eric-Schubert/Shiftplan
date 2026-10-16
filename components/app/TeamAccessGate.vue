@@ -10,6 +10,7 @@ const error = ref(props.initialError || "");
 const loading = ref(false);
 const errorId = "team-access-error";
 const { t } = useI18n();
+const requestError = useRequestError();
 
 async function submit() {
   if (!code.value.trim()) {
@@ -22,8 +23,8 @@ async function submit() {
   try {
     // The page notices the granted access itself; this gate is gone by then.
     await login(code.value);
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("errors.team.codeWrong");
+  } catch (cause) {
+    error.value = requestError(cause, "errors.team.codeWrong");
   } finally {
     loading.value = false;
   }

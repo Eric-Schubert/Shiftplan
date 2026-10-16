@@ -21,6 +21,7 @@ const instanceName = ref("");
 const nextWeekFromSaturday = ref(true);
 const instanceLocale = ref<AppLocale>(DEFAULT_LOCALE);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const confirmVisible = computed({
   get: () => pendingAction.value !== null,
@@ -63,8 +64,8 @@ async function applyChange(action: PendingAction) {
     customCode.value = "";
     pendingAction.value = null;
     await load();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.team.saveFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.team.saveFailed");
     pendingAction.value = null;
   } finally {
     saving.value = false;

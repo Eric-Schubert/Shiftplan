@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
+
 const props = defineProps<{
   visible: boolean;
   /** Code from a personal invite link, redeemed right away. */
@@ -12,6 +14,7 @@ const emit = defineEmits<{
 
 const { member, login, redeem, setPin } = useMember();
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -30,13 +33,13 @@ const error = ref("");
 
 const title = computed(() => (step.value === "set-pin" ? t("member.hello", { name: member.value?.name ?? "" }) : t("member.login.title")));
 
-async function run(action: () => Promise<void>, fallback: string) {
+async function run(action: () => Promise<void>, fallback: MessageKey) {
   busy.value = true;
   error.value = "";
   try {
     await action();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || fallback;
+  } catch (cause) {
+    error.value = requestError(cause, fallback);
   } finally {
     busy.value = false;
   }
@@ -55,7 +58,7 @@ function submitPin() {
   void run(async () => {
     await login(shortCode.value, pin.value);
     finish();
-  }, t("errors.auth.loginFailed"));
+  }, "errors.auth.loginFailed");
 }
 
 function submitCode() {
@@ -67,7 +70,7 @@ function submitCode() {
     const profile = await redeem(code.value);
     if (profile.hasPin) finish();
     else step.value = "set-pin";
-  }, t("member.login.codeInvalid"));
+  }, "member.login.codeInvalid");
 }
 
 function submitNewPin() {
@@ -79,7 +82,7 @@ function submitNewPin() {
   void run(async () => {
     await setPin(newPin.value);
     finish();
-  }, t("member.pin.saveFailed"));
+  }, "member.pin.saveFailed");
 }
 
 function switchTo(next: Step) {

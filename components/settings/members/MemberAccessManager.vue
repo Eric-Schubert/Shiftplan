@@ -68,8 +68,8 @@ async function createInvite(staffId: number, staffName: string) {
     const link = `${window.location.origin}${result.path}`;
     qrSvg.value = await renderQrSvg(link);
     invite.value = { staffId, staffName, code: result.code, link, expiresAt: result.expiresAt };
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.members.inviteFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.members.inviteFailed");
   } finally {
     creatingFor.value = null;
   }
@@ -96,8 +96,8 @@ async function resetPin(staffId: number) {
   try {
     await authFetch(`/api/staff/${staffId}/pin`, { method: "DELETE" });
     await loadDevices();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.members.resetPinFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.members.resetPinFailed");
   } finally {
     resettingPin.value = null;
   }
