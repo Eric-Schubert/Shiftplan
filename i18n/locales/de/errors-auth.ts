@@ -1,0 +1,32 @@
+// Planner and admin sign-in, sessions, password changes and user management.
+export default {
+  loginRequired: "Nicht autorisiert - Bitte einloggen",
+  forbidden: "Keine Berechtigung für diese Aktion",
+  csrfInvalid: "Ungültiger Sicherheitstoken - Bitte Seite neu laden",
+  usernameRequired: "Benutzername erforderlich",
+  passwordRequired: "Passwort erforderlich",
+  invalidCredentials: "Ungültige Zugangsdaten",
+  passwordTooLong: "Passwort zu lang",
+  tooManyLogins: "Zu viele Anmeldeversuche. Bitte warten.",
+  loginFailed: "Anmeldung fehlgeschlagen",
+  demoPassword: "In der Demo lässt sich das Passwort nicht ändern",
+  currentPasswordRequired: "Aktuelles Passwort erforderlich",
+  newPasswordRequired: "Neues Passwort erforderlich",
+  passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
+  userFieldsRequired: "Benutzername, Passwort und Rolle erforderlich",
+  usernameLength: "Benutzername muss zwischen {min} und {max} Zeichen haben",
+  invalidRole: "Ungültige Rolle. Erlaubt: admin, planner",
+  usernameTaken: "Benutzername bereits vergeben",
+  invalidUserId: "Ungültige User-ID",
+  cannotDeleteSelf: "Du kannst dich nicht selbst löschen",
+  userNotFound: "Benutzer nicht gefunden",
+  lastAdmin: "Der letzte Admin kann nicht gelöscht werden",
+  // The rules of auth.passwordPolicy, in the order they are checked. Same texts as the web form.
+  password: {
+    minLength: "Passwort muss mindestens {min} Zeichen haben",
+    maxLength: "Passwort darf maximal {max} Zeichen haben",
+    uppercase: "Passwort muss mindestens einen Großbuchstaben enthalten",
+    lowercase: "Passwort muss mindestens einen Kleinbuchstaben enthalten",
+    number: "Passwort muss mindestens eine Zahl enthalten",
+  },
+};

@@ -1,0 +1,48 @@
+// Takeover and swap requests between members, the planners' approval and the undo flow.
+// `{name}` is a staff name, `{day}` an already formatted day.
+export default {
+  notFound: "Anfrage nicht gefunden",
+  kindInvalid: "kind muss takeover oder swap sein",
+  memberActionInvalid: "action muss accept, decline, cancel, request_undo, confirm_undo oder decline_undo sein",
+  plannerActionInvalid: "action muss approve, reject oder revert sein",
+  requiresApprovalBoolean: "requiresApproval muss true oder false sein",
+  // Creating a request
+  dayPassed: "Der Tag liegt in der Vergangenheit",
+  weekendOff: "Am Wochenende arbeitet dein Team nicht",
+  noShiftThatDay: "An diesem Tag hast du keine Schicht",
+  chooseShift: "Bitte die Schicht wählen",
+  notYourShift: "Diese Schicht hast du an dem Tag nicht",
+  duplicate: "Für diese Schicht läuft schon eine Anfrage",
+  swapWithSelf: "Tauschen geht nur mit jemand anderem",
+  unknownPartner: "Unbekannte Kollegin oder unbekannter Kollege",
+  invalidRange: "Ungültiger Zeitraum (höchstens {weeks} Wochen)",
+  rangePassed: "Der Zeitraum liegt in der Vergangenheit",
+  nothingToSwap: "Im Zeitraum gibt es nichts zu tauschen",
+  duplicateSwap: "Für diesen Zeitraum läuft schon eine Tauschanfrage mit dieser Person",
+  absent: "{name} hat am {day} einen Ausfall eingetragen",
+  // Answering a request
+  notOpen: "Die Anfrage ist nicht mehr offen",
+  expired: "Die Anfrage ist abgelaufen",
+  alreadyClosed: "Die Anfrage ist schon abgeschlossen",
+  alreadyHandled: "Die Anfrage wurde inzwischen schon bearbeitet",
+  ownShift: "Die eigene Schicht kannst du nicht übernehmen",
+  selfAbsent: "An dem Tag hast du selbst einen Ausfall eingetragen",
+  alreadyInShift: "Du bist an dem Tag schon in dieser Schicht",
+  requesterLeftShift: "{name} ist an dem Tag nicht mehr in dieser Schicht",
+  partnerInShift: "{name} ist an dem Tag schon in dieser Schicht",
+  nothingLeftToSwap: "Im Zeitraum gibt es nichts mehr zu tauschen",
+  daysPassed: "Die Tage der Anfrage liegen schon in der Vergangenheit",
+  // Planner approval and revert
+  notAwaitingApproval: "Die Anfrage wartet nicht auf eine Freigabe",
+  revertOnlyDone: "Nur durchgeführte Anfragen lassen sich zurücknehmen",
+  planMovedPlanner: "Der Plan hat sich seitdem geändert, z. B. durch eine spätere Anfrage. Bitte die Tage direkt im Plan anpassen.",
+  // Undo between the two members
+  planMovedMember: "Der Plan hat sich seitdem geändert. Bitte wende dich an die Planung.",
+  undoOnlyDone: "Nur durchgeführte Anfragen lassen sich stornieren",
+  undoDayBefore: "Stornieren geht nur bis zum Vortag",
+  undoNotInTeam: "{name} ist nicht mehr im Team",
+  undoAbsent: "{name} ist an dem Tag abwesend und kann nichts zurücknehmen",
+  undoAlreadyAsked: "Ein Storno ist schon angefragt",
+  undoNotAsked: "Es ist kein Storno angefragt",
+  undoOtherConfirms: "Den Storno muss die andere Person bestätigen",
+};
