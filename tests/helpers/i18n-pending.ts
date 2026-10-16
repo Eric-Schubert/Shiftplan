@@ -3,7 +3,6 @@
 
 /** Track C step 6b: settings, the planner sign-in and their helpers. */
 export const PENDING_SETTINGS = [
-  "components/settings/SettingsTabs.vue",
   "components/settings/analytics/VisitAnalytics.vue",
   "components/settings/analytics/VisitAnalyticsDailyChart.vue",
   "components/settings/analytics/VisitAnalyticsRanking.vue",
@@ -39,17 +38,6 @@ export const PENDING_SETTINGS = [
   "components/settings/rotation/YearCopy.vue",
   "components/settings/rotation/YearCopyDialog.vue",
   "components/settings/rotation/YearCopyStatusPanel.vue",
-  "components/settings/shared/SettingsPager.vue",
-  "components/settings/shifts/ShiftColorPicker.vue",
-  "components/settings/shifts/ShiftDeleteDialog.vue",
-  "components/settings/shifts/ShiftFormDialog.vue",
-  "components/settings/shifts/ShiftManagementHeader.vue",
-  "components/settings/shifts/ShiftManagementList.vue",
-  "components/settings/staff/StaffDeactivateDialog.vue",
-  "components/settings/staff/StaffDeleteDialog.vue",
-  "components/settings/staff/StaffFormDialog.vue",
-  "components/settings/staff/StaffManagementHeader.vue",
-  "components/settings/staff/StaffManagementList.vue",
   "components/settings/team/TeamAccessCodeCard.vue",
   "components/settings/team/TeamAccessConfirmDialog.vue",
   "components/settings/team/TeamAccessCustomCodeForm.vue",

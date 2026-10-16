@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: "toggle-active", staff: Staff): void;
   (e: "delete", staff: Staff): void;
 }>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -29,11 +30,11 @@ const emit = defineEmits<{
             </p>
             <div class="flex flex-wrap gap-2">
               <PrimeTag
-                :value="staffMember.is_parttime ? 'Teilzeit' : 'Vollzeit'"
+                :value="staffMember.is_parttime ? t('settings.staff.partTime') : t('settings.staff.fullTime')"
                 :severity="staffMember.is_parttime ? 'info' : 'secondary'"
               />
               <PrimeTag
-                :value="staffMember.active ? 'Aktiv' : 'Inaktiv'"
+                :value="staffMember.active ? t('settings.list.active') : t('settings.list.inactive')"
                 :severity="staffMember.active ? 'success' : 'danger'"
               />
             </div>
@@ -41,21 +42,21 @@ const emit = defineEmits<{
 
           <div class="flex flex-wrap justify-end gap-2">
             <PrimeButton
-              label="Bearbeiten"
+              :label="t('common.actions.edit')"
               severity="secondary"
               outlined
               class="min-h-10"
               @click="emit('edit', staffMember)"
             />
             <PrimeButton
-              :label="staffMember.active ? 'Deaktivieren' : 'Aktivieren'"
+              :label="staffMember.active ? t('common.actions.deactivate') : t('common.actions.activate')"
               severity="secondary"
               outlined
               class="min-h-10"
               @click="emit('toggle-active', staffMember)"
             />
             <PrimeButton
-              label="Löschen"
+              :label="t('common.actions.delete')"
               severity="danger"
               outlined
               class="min-h-10"
@@ -74,32 +75,32 @@ const emit = defineEmits<{
         :paginator="staff.length > 10"
         :rows="10"
       >
-        <PrimeColumn field="name" header="Name" sortable>
+        <PrimeColumn field="name" :header="t('validation.fields.name')" sortable>
           <template #body="{ data }">
             <span :class="{ 'opacity-50': !data.active }">{{ data.name }}</span>
             <span v-if="data.short_code" class="ml-2 font-mono text-xs font-semibold text-[var(--text-3)]">{{ data.short_code }}</span>
           </template>
         </PrimeColumn>
 
-        <PrimeColumn field="is_parttime" header="Arbeitszeit" sortable>
+        <PrimeColumn field="is_parttime" :header="t('settings.staff.workingTime')" sortable>
           <template #body="{ data }">
             <PrimeTag
-              :value="data.is_parttime ? 'Teilzeit' : 'Vollzeit'"
+              :value="data.is_parttime ? t('settings.staff.partTime') : t('settings.staff.fullTime')"
               :severity="data.is_parttime ? 'info' : 'secondary'"
             />
           </template>
         </PrimeColumn>
 
-        <PrimeColumn field="active" header="Status" sortable>
+        <PrimeColumn field="active" :header="t('settings.list.status')" sortable>
           <template #body="{ data }">
             <PrimeTag
-              :value="data.active ? 'Aktiv' : 'Inaktiv'"
+              :value="data.active ? t('settings.list.active') : t('settings.list.inactive')"
               :severity="data.active ? 'success' : 'danger'"
             />
           </template>
         </PrimeColumn>
 
-        <PrimeColumn header="Aktionen" style="width: 180px">
+        <PrimeColumn :header="t('settings.list.actions')" style="width: 180px">
           <template #body="{ data }">
             <div class="flex gap-1">
               <PrimeButton
@@ -107,7 +108,7 @@ const emit = defineEmits<{
                 text
                 rounded
                 class="!h-10 !w-10"
-                aria-label="Mitarbeiter bearbeiten"
+                :aria-label="t('settings.staff.edit')"
                 @click="emit('edit', data)"
               />
               <PrimeButton
@@ -115,7 +116,7 @@ const emit = defineEmits<{
                 text
                 rounded
                 class="!h-10 !w-10"
-                :aria-label="data.active ? 'Mitarbeiter deaktivieren' : 'Mitarbeiter aktivieren'"
+                :aria-label="data.active ? t('settings.staff.deactivate') : t('settings.staff.activate')"
                 @click="emit('toggle-active', data)"
               />
               <PrimeButton
@@ -124,7 +125,7 @@ const emit = defineEmits<{
                 rounded
                 class="!h-10 !w-10"
                 severity="danger"
-                aria-label="Mitarbeiter löschen"
+                :aria-label="t('settings.staff.delete')"
                 @click="emit('delete', data)"
               />
             </div>

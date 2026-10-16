@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const deleting = ref(false);
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -34,18 +35,16 @@ async function deleteShift() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Schicht löschen"
+    :header="t('settings.shifts.delete')"
     modal
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
-    <p>
-      {{ shift?.name }} wirklich löschen? Bereits bestehende Zuordnungen dieser Schicht gehen dabei verloren.
-    </p>
+    <p>{{ t("settings.shifts.deleteText", { name: shift?.name ?? "" }) }}</p>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        label="Schicht löschen"
+        :label="t('settings.shifts.delete')"
         severity="danger"
         class="min-h-11"
         :loading="deleting"

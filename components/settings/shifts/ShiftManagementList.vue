@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: "toggle-active", shift: Shift): void;
   (e: "delete", shift: Shift): void;
 }>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -30,12 +31,12 @@ const emit = defineEmits<{
               </p>
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300">
-              {{ shift.start_time }} - {{ shift.end_time }} Uhr
+              {{ t("settings.shifts.timeRange", { start: shift.start_time, end: shift.end_time }) }}
             </p>
             <div class="flex flex-wrap gap-2">
-              <PrimeTag :value="`${shift.min_staff} Min. MA`" severity="secondary" />
+              <PrimeTag :value="t('settings.shifts.minStaffTag', { count: shift.min_staff })" severity="secondary" />
               <PrimeTag
-                :value="shift.active ? 'Aktiv' : 'Inaktiv'"
+                :value="shift.active ? t('settings.list.active') : t('settings.list.inactive')"
                 :severity="shift.active ? 'success' : 'danger'"
               />
             </div>
@@ -43,21 +44,21 @@ const emit = defineEmits<{
 
           <div class="flex flex-wrap justify-end gap-2">
             <PrimeButton
-              label="Bearbeiten"
+              :label="t('common.actions.edit')"
               severity="secondary"
               outlined
               class="min-h-10"
               @click="emit('edit', shift)"
             />
             <PrimeButton
-              :label="shift.active ? 'Deaktivieren' : 'Aktivieren'"
+              :label="shift.active ? t('common.actions.deactivate') : t('common.actions.activate')"
               severity="secondary"
               outlined
               class="min-h-10"
               @click="emit('toggle-active', shift)"
             />
             <PrimeButton
-              label="Löschen"
+              :label="t('common.actions.delete')"
               severity="danger"
               outlined
               class="min-h-10"
@@ -76,28 +77,28 @@ const emit = defineEmits<{
           </template>
         </PrimeColumn>
 
-        <PrimeColumn field="name" header="Name" sortable>
+        <PrimeColumn field="name" :header="t('validation.fields.name')" sortable>
           <template #body="{ data }">
             <span :class="{ 'opacity-50': !data.active }">{{ data.name }}</span>
           </template>
         </PrimeColumn>
 
-        <PrimeColumn header="Zeit">
-          <template #body="{ data }">{{ data.start_time }} - {{ data.end_time }} Uhr</template>
+        <PrimeColumn :header="t('settings.shifts.time')">
+          <template #body="{ data }">{{ t("settings.shifts.timeRange", { start: data.start_time, end: data.end_time }) }}</template>
         </PrimeColumn>
 
-        <PrimeColumn field="min_staff" header="Min. MA" sortable />
+        <PrimeColumn field="min_staff" :header="t('settings.shifts.minStaffShort')" sortable />
 
-        <PrimeColumn field="active" header="Status" sortable>
+        <PrimeColumn field="active" :header="t('settings.list.status')" sortable>
           <template #body="{ data }">
             <PrimeTag
-              :value="data.active ? 'Aktiv' : 'Inaktiv'"
+              :value="data.active ? t('settings.list.active') : t('settings.list.inactive')"
               :severity="data.active ? 'success' : 'danger'"
             />
           </template>
         </PrimeColumn>
 
-        <PrimeColumn header="Aktionen" style="width: 180px">
+        <PrimeColumn :header="t('settings.list.actions')" style="width: 180px">
           <template #body="{ data }">
             <div class="flex gap-1">
               <PrimeButton
@@ -105,7 +106,7 @@ const emit = defineEmits<{
                 text
                 rounded
                 class="!h-10 !w-10"
-                aria-label="Schicht bearbeiten"
+                :aria-label="t('settings.shifts.edit')"
                 @click="emit('edit', data)"
               />
               <PrimeButton
@@ -113,7 +114,7 @@ const emit = defineEmits<{
                 text
                 rounded
                 class="!h-10 !w-10"
-                :aria-label="data.active ? 'Schicht deaktivieren' : 'Schicht aktivieren'"
+                :aria-label="data.active ? t('settings.shifts.deactivate') : t('settings.shifts.activate')"
                 @click="emit('toggle-active', data)"
               />
               <PrimeButton
@@ -122,7 +123,7 @@ const emit = defineEmits<{
                 rounded
                 class="!h-10 !w-10"
                 severity="danger"
-                aria-label="Schicht löschen"
+                :aria-label="t('settings.shifts.delete')"
                 @click="emit('delete', data)"
               />
             </div>

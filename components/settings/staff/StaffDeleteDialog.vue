@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const deleting = ref(false);
+const { t } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -34,18 +35,16 @@ async function deleteStaff() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Mitarbeiter löschen"
+    :header="t('settings.staff.delete')"
     modal
     :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
-    <p>
-      {{ staff?.name }} wirklich löschen? Bereits geplante Einsätze dieses Mitarbeiters gehen dabei verloren.
-    </p>
+    <p>{{ t("settings.staff.deleteText", { name: staff?.name ?? "" }) }}</p>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        label="Mitarbeiter löschen"
+        :label="t('settings.staff.delete')"
         severity="danger"
         class="min-h-11"
         :loading="deleting"
