@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { imprintAddressLines } from "~/utils/legal/imprint";
-import { PRIVACY_LINK_CLASS as linkClass, PRIVACY_SECTIONS as sections } from "~/utils/legal/privacy";
+import { PRIVACY_SECTIONS as sections } from "~/utils/legal/de/privacy";
+import { PRIVACY_LINK_CLASS as linkClass } from "~/utils/legal/privacy";
 
 const runtimeConfig = useRuntimeConfig();
 

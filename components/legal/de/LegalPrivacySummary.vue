@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RetentionDays } from "~/shared/utils/retention";
-import { periodText } from "~/utils/legal/durations";
+import { periodText } from "~/utils/legal/de/durations";
 
 defineProps<{
   retention: RetentionDays;

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toPrivacyFacts } from "~/utils/legal/privacy-facts";
 
+definePageMeta({ alias: ["/privacy"] });
+
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
@@ -9,36 +11,39 @@ const hoster = String(privacy?.hoster || "").trim();
 // Microsoft, the push relay, periods and cookie names as this instance is set up.
 const { data } = await useFetch("/api/legal/privacy");
 const facts = computed(() => toPrivacyFacts(data.value));
-
-useSeoMeta({
-  title: "Datenschutz | Shiftplan",
-  description:
-    "Datenschutzerklärung für Shiftplan: welche Daten Planung, Team-App, Kontaktformular und Statistik verarbeiten, wie lange sie gespeichert werden und welche Rechte du hast.",
+const services = computed(() => {
+  const { microsoft, appPush, defaultRelay, relayHost } = facts.value;
+  return { hoster, usesCloudflare, usesMicrosoft: microsoft, appPush, defaultRelay, relayHost };
 });
+
+// German is the binding version; the English one in components/legal/en is a translation of it.
+const { locale } = useI18n();
+const english = computed(() => locale.value === "en");
 </script>
 
 <template>
   <div class="privacy mx-auto max-w-[72rem] pb-16 pt-2 sm:pt-6">
-    <LegalPrivacyHeader :is-demo="isDemo" />
+    <LegalPrivacyHeaderEn v-if="english" :is-demo="isDemo" />
+    <LegalPrivacyHeader v-else :is-demo="isDemo" />
 
-    <LegalPrivacySummary :retention="facts.retentionDays" />
+    <LegalPrivacySummaryEn v-if="english" :retention="facts.retentionDays" />
+    <LegalPrivacySummary v-else :retention="facts.retentionDays" />
 
     <div class="mt-12 grid gap-10 lg:grid-cols-[15rem_minmax(0,44rem)] lg:gap-16">
-      <LegalPrivacySidebar />
+      <LegalPrivacySidebarEn v-if="english" />
+      <LegalPrivacySidebar v-else />
 
       <article class="privacy-body">
-        <LegalPrivacyPurpose :retention="facts.retentionDays" />
-        <LegalPrivacyProcessing :uses-microsoft="facts.microsoft" :retention="facts.retentionDays" :session="facts.session" />
-        <LegalPrivacyServices
-          :hoster="hoster"
-          :uses-cloudflare="usesCloudflare"
-          :uses-microsoft="facts.microsoft"
-          :app-push="facts.appPush"
-          :default-relay="facts.defaultRelay"
-          :relay-host="facts.relayHost"
-        />
-        <LegalPrivacyRetention :retention="facts.retentionDays" :session="facts.session" />
-        <LegalPrivacyRights />
+        <LegalPrivacyPurposeEn v-if="english" :retention="facts.retentionDays" />
+        <LegalPrivacyPurpose v-else :retention="facts.retentionDays" />
+        <LegalPrivacyProcessingEn v-if="english" :uses-microsoft="facts.microsoft" :retention="facts.retentionDays" :session="facts.session" />
+        <LegalPrivacyProcessing v-else :uses-microsoft="facts.microsoft" :retention="facts.retentionDays" :session="facts.session" />
+        <LegalPrivacyServicesEn v-if="english" v-bind="services" />
+        <LegalPrivacyServices v-else v-bind="services" />
+        <LegalPrivacyRetentionEn v-if="english" :retention="facts.retentionDays" :session="facts.session" />
+        <LegalPrivacyRetention v-else :retention="facts.retentionDays" :session="facts.session" />
+        <LegalPrivacyRightsEn v-if="english" />
+        <LegalPrivacyRights v-else />
       </article>
     </div>
   </div>

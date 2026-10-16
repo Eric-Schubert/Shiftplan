@@ -6,7 +6,8 @@ import {
   REQUEST_MESSAGE_RETENTION_DAYS,
   retentionPeriods,
 } from "~/shared/utils/retention";
-import { daysText, minutesText, periodText } from "~/utils/legal/durations";
+import { daysText, minutesText, periodText } from "~/utils/legal/de/durations";
+import * as english from "~/utils/legal/en/durations";
 
 describe("shared retention periods", () => {
   it("keeps the periods the privacy policy has always named", () => {
@@ -50,5 +51,28 @@ describe("durations in the privacy policy", () => {
     expect(minutesText(480)).toBe("8 Stunden");
     expect(minutesText(90)).toBe("90 Minuten");
     expect(minutesText(1)).toBe("eine Minute");
+  });
+});
+
+describe("durations in the English privacy policy", () => {
+  it("split the periods like the German text", () => {
+    const periods = retentionPeriods(90);
+
+    expect(english.periodText(periods.contactMessages)).toBe("one year");
+    expect(english.periodText(periods.auditLog)).toBe("2 years");
+    expect(english.periodText(periods.absenceReasons)).toBe("90 days");
+    expect(english.daysText(periods.memberCookie)).toBe("365 days");
+    expect(english.daysText(periods.memberInvite)).toBe("7 days");
+    expect(english.minutesText(30)).toBe("30 minutes");
+  });
+
+  it("use one for single units", () => {
+    expect([english.periodText(1), english.daysText(1), english.minutesText(1), english.minutesText(60)]).toEqual([
+      "one day",
+      "one day",
+      "one minute",
+      "one hour",
+    ]);
+    expect([english.periodText(366), english.minutesText(480)]).toEqual(["366 days", "8 hours"]);
   });
 });

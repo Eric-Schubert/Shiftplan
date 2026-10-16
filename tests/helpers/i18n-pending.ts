@@ -1,23 +1,10 @@
+// Legal texts are per-language components on purpose, not catalog entries: the German version is legally
+// binding, the English one is a translation of it. The guard in i18n-client-literals.test.ts skips these
+// folders; legal-pages.test.ts checks the English text for German.
+export const LEGAL_TEXTS = /^(?:components|utils)\/legal\/(?:de|en)\//;
+
 // App files that still hold German texts, by the step of the i18n plan that moves them. Exact paths:
 // the guard in i18n-client-literals.test.ts fails on German anywhere else and on entries without German left.
 
-/** Legal texts and the contact form: per-language components, step 10. */
-export const PENDING_LEGAL = [
-  "components/legal/LegalImprintContact.vue",
-  "components/legal/LegalImprintContactAlerts.vue",
-  "components/legal/LegalImprintProvider.vue",
-  "components/legal/LegalPrivacyAppScan.vue",
-  "components/legal/LegalPrivacyAppServices.vue",
-  "components/legal/LegalPrivacyHeader.vue",
-  "components/legal/LegalPrivacyProcessing.vue",
-  "components/legal/LegalPrivacyPurpose.vue",
-  "components/legal/LegalPrivacyRetention.vue",
-  "components/legal/LegalPrivacyRights.vue",
-  "components/legal/LegalPrivacyServices.vue",
-  "components/legal/LegalPrivacySidebar.vue",
-  "components/legal/LegalPrivacySummary.vue",
-  "pages/datenschutz.vue",
-  "pages/impressum.vue",
-  "utils/legal/durations.ts",
-  "utils/legal/privacy.ts",
-];
+/** Legal texts and the contact form: moved into LEGAL_TEXTS by step 10. */
+export const PENDING_LEGAL: string[] = [];
