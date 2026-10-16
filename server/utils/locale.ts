@@ -1,6 +1,13 @@
 import { getCookie, getHeader, type H3Event } from "h3";
 import { DEFAULT_LOCALE, isAppLocale, LOCALE_COOKIE, localeTag, type AppLocale } from "~/i18n/config";
 
+/** The supported locale of one language tag: "de", "de-AT" and Flutter's "de_DE" all give "de". */
+export function localeFromTag(tag: unknown): AppLocale | null {
+  if (typeof tag !== "string") return null;
+  const language = tag.trim().replace(/_/g, "-").split("-")[0]!.toLowerCase();
+  return isAppLocale(language) ? language : null;
+}
+
 /** The best supported locale of an Accept-Language header, by quality and then order; "de-AT" matches "de". */
 export function localeFromAcceptLanguage(header: string | null | undefined): AppLocale | null {
   const ranges = (header ?? "")
@@ -12,7 +19,7 @@ export function localeFromAcceptLanguage(header: string | null | undefined): App
     })
     .filter((range) => range.tag && range.quality > 0)
     .sort((a, b) => b.quality - a.quality || a.index - b.index);
-  return ranges.map(({ tag }) => tag.split("-")[0]).find(isAppLocale) ?? null;
+  return ranges.map(({ tag }) => localeFromTag(tag)).find((locale) => locale !== null) ?? null;
 }
 
 /**

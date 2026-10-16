@@ -1,38 +1,47 @@
-import type { NativeMessage } from "~/server/services/push-relay.service";
-import type { PendingChange, PushPayload, StoredDevice } from "~/server/services/push/types";
+import { localeTag } from "~/i18n/config";
+import { t } from "~/i18n/server";
+import type { PendingChange, PushPayload } from "~/server/services/push/types";
+import { formatDay } from "~/shared/utils/format/day";
 import { collator } from "~/shared/utils/format/number";
 import { weekLabel } from "~/shared/utils/format/week";
 
 const MAX_CHANGE_LINES = 4;
-const TEAM_TITLE = "Schichtplan geändert";
-const OWN_TITLE = "Deine Schicht hat sich geändert";
-// The relay takes 30 calls a minute and one text per call. Beyond this many different
-// "only mine" texts, those devices get one text per set of weeks instead.
-const MAX_PERSONAL_TEXTS = 8;
-// The relay rejects texts over 500 characters, which would cost every device of that text its push.
-const MAX_APP_BODY_LENGTH = 480;
+
+/** A change with the shift as the push names it, a day change with its date: „Früh Di. 13.10.“. */
+export type LabeledChange = PendingChange & { label: string };
+
+export function withLabels(changes: PendingChange[], locale: string): LabeledChange[] {
+  const tag = localeTag(locale);
+  return changes.map((change) => ({
+    ...change,
+    label: change.date
+      ? t(locale, "push.change.dayShift", { shift: change.shiftName, day: formatDay(tag, change.date) })
+      : change.shiftName,
+  }));
+}
 
 // Whole-week changes first, then day changes by date, each in shift order.
-function sortChanges(changes: PendingChange[], locale: string): PendingChange[] {
+export function sortChanges(changes: LabeledChange[], locale: string): LabeledChange[] {
   return [...changes].sort(
     (a, b) =>
       a.year - b.year ||
       a.week - b.week ||
       (a.date ?? "").localeCompare(b.date ?? "") ||
       a.shiftOrder - b.shiftOrder ||
-      collator(locale).compare(a.shiftName, b.shiftName)
+      collator(localeTag(locale)).compare(a.label, b.label)
   );
 }
 
+/** The browser push about plan changes in `locale`; null when the changes cancel out. */
 export function buildChangePayload(changes: PendingChange[], locale: string): PushPayload | null {
-  const effective = sortChanges(changes.filter((change) => change.delta !== 0), locale);
+  const effective = sortChanges(withLabels(changes.filter((change) => change.delta !== 0), locale), locale);
   if (effective.length === 0) return null;
 
   const groups = new Map<string, { label: string; added: string[]; removed: string[] }>();
   for (const change of effective) {
-    const key = `${change.year}-${change.week}|${change.shiftName}`;
+    const key = `${change.year}-${change.week}|${change.label}`;
     const group = groups.get(key) || {
-      label: `${weekLabel(locale, change.week)} · ${change.shiftName}`,
+      label: t(locale, "push.change.group", { week: weekLabel(localeTag(locale), change.week), shift: change.label }),
       added: [],
       removed: [],
     };
@@ -42,94 +51,20 @@ export function buildChangePayload(changes: PendingChange[], locale: string): Pu
 
   const lines = [...groups.values()].map((group) => {
     const parts: string[] = [];
-    if (group.added.length > 0) parts.push(`neu: ${group.added.join(", ")}`);
-    if (group.removed.length > 0) parts.push(`entfällt: ${group.removed.join(", ")}`);
-    return `${group.label}: ${parts.join(" / ")}`;
+    if (group.added.length > 0) parts.push(t(locale, "push.change.added", { names: group.added.join(", ") }));
+    if (group.removed.length > 0) parts.push(t(locale, "push.change.removed", { names: group.removed.join(", ") }));
+    return t(locale, "push.change.line", { group: group.label, changes: parts.join(" / ") });
   });
 
   const visible = lines.slice(0, MAX_CHANGE_LINES);
   if (lines.length > MAX_CHANGE_LINES) {
-    visible.push(`… und ${lines.length - MAX_CHANGE_LINES} weitere Änderungen`);
+    visible.push(t(locale, "push.change.more", { count: lines.length - MAX_CHANGE_LINES }));
   }
 
   const first = effective[0]!;
   return {
-    title: TEAM_TITLE,
+    title: t(locale, "push.change.teamTitle"),
     body: visible.join("\n"),
     url: `/?year=${first.year}&week=${first.week}`,
   };
-}
-
-/** "KW 41: Frühschicht, Spätschicht · KW 42: Nacht" without any staff names. */
-function summarizeShifts(changes: PendingChange[], locale: string): string {
-  const weeks = new Map<string, { week: number; shifts: string[] }>();
-  for (const change of sortChanges(changes, locale)) {
-    const key = `${change.year}-${change.week}`;
-    const entry = weeks.get(key) || { week: change.week, shifts: [] };
-    if (!entry.shifts.includes(change.shiftName)) entry.shifts.push(change.shiftName);
-    weeks.set(key, entry);
-  }
-  return [...weeks.values()].map((entry) => `${weekLabel(locale, entry.week)}: ${entry.shifts.join(", ")}`).join(" · ");
-}
-
-/** "Änderungen in KW 41 · KW 42", for when per-shift texts would be too many. */
-function summarizeWeeks(changes: PendingChange[], locale: string): string {
-  const weeks = new Set(sortChanges(changes, locale).map((change) => weekLabel(locale, change.week)));
-  return `Änderungen in ${[...weeks].join(" · ")}`;
-}
-
-type Recipient = { token: string; changes: PendingChange[] };
-
-function fitAppBody(text: string): string {
-  return text.length > MAX_APP_BODY_LENGTH ? `${text.slice(0, MAX_APP_BODY_LENGTH - 1)}…` : text;
-}
-
-/** One relay message per distinct text, linking to the first week it names. */
-function groupByText(
-  title: string,
-  recipients: Recipient[],
-  summarize: (changes: PendingChange[], locale: string) => string,
-  instanceId: string,
-  locale: string
-): NativeMessage[] {
-  const messages = new Map<string, NativeMessage>();
-  for (const { token, changes } of recipients) {
-    const body = fitAppBody(summarize(changes, locale));
-    const first = sortChanges(changes, locale)[0]!;
-    const message: NativeMessage = messages.get(body) || {
-      title,
-      body,
-      data: { instanceId, url: `/?year=${first.year}&week=${first.week}`, year: String(first.year), week: String(first.week) },
-      tokens: [],
-    };
-    message.tokens.push(token);
-    messages.set(body, message);
-  }
-  return [...messages.values()];
-}
-
-/**
- * App pushes go through Google/Apple without end-to-end encryption, so they only
- * name weeks and shifts. Devices with "only mine" hear about their own shifts.
- */
-export function buildNativeMessages(
-  changes: PendingChange[],
-  devices: StoredDevice[],
-  instanceId: string,
-  locale: string
-): NativeMessage[] {
-  const effective = changes.filter((change) => change.delta !== 0);
-  if (effective.length === 0 || devices.length === 0) return [];
-
-  const team = devices
-    .filter((device) => device.scope === "all")
-    .map((device) => ({ token: device.token, changes: effective }));
-  const personal = devices
-    .filter((device) => device.scope === "mine")
-    .map((device) => ({ token: device.token, changes: effective.filter((change) => change.staffId === device.staff_id) }))
-    .filter((recipient) => recipient.changes.length > 0);
-
-  let own = groupByText(OWN_TITLE, personal, summarizeShifts, instanceId, locale);
-  if (own.length > MAX_PERSONAL_TEXTS) own = groupByText(OWN_TITLE, personal, summarizeWeeks, instanceId, locale);
-  return [...groupByText(TEAM_TITLE, team, summarizeShifts, instanceId, locale), ...own];
 }

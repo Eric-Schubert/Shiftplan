@@ -1,4 +1,3 @@
-import { instanceLocaleTag } from "~/server/utils/locale";
 import { logPerWeek, type Actor } from "~/server/services/absence/audit";
 import type { Absence, AbsenceReason } from "~/server/services/absence/model";
 import { buildAbsenceNotice } from "~/server/services/absence/notice";
@@ -69,17 +68,19 @@ export async function reportAbsence(input: {
     const first = absences[0]!;
     const last = absences[absences.length - 1]!;
     try {
+      // Each recipient reads it in the language their browser or app registered with.
       notified = await PushService.sendTeamNotice(
-        buildAbsenceNotice({
-          locale: instanceLocaleTag(),
-          staffName: first.staff_name,
-          from: first.absence_date,
-          to: last.absence_date,
-          shiftName: first.shift_name,
-          message: input.message,
-          // Only ask who takes over when there is a request to take up.
-          seekingTakeover: takeovers > 0,
-        }),
+        (locale) =>
+          buildAbsenceNotice({
+            locale,
+            staffName: first.staff_name,
+            from: first.absence_date,
+            to: last.absence_date,
+            shiftName: first.shift_name,
+            message: input.message,
+            // Only ask who takes over when there is a request to take up.
+            seekingTakeover: takeovers > 0,
+          }),
         { excludeStaffId: first.staff_id }
       );
     } catch (error) {

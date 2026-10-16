@@ -1,8 +1,7 @@
-import { instanceLocaleTag } from "~/server/utils/locale";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { applyRequest, withCurrent } from "./apply";
-import { describeRequest, notifyStaff } from "./notify";
+import { notifyStaff } from "./notify";
 
 /** A colleague accepts. Without planner approval the plan changes right away. */
 export async function acceptRequest(
@@ -26,19 +25,9 @@ export async function acceptRequest(
   });
 
   if (approval) {
-    await notifyStaff(
-      [request.requester_staff_id],
-      isTakeover ? "Übernahme zugesagt" : "Tausch zugesagt",
-      `${member.staffName} hat zugesagt (${describeRequest(request, instanceLocaleTag())}). Die Planung muss noch freigeben.`
-    );
+    await notifyStaff([request.requester_staff_id], request, isTakeover ? "takeoverPromised" : "swapPromised", member.staffName);
     return updated;
   }
-  await notifyStaff(
-    [request.requester_staff_id],
-    isTakeover ? "Schicht übernommen" : "Tausch steht",
-    isTakeover
-      ? `${member.staffName} übernimmt ${describeRequest(request, instanceLocaleTag())}.`
-      : `${member.staffName} hat dem Tausch zugestimmt (${describeRequest(request, instanceLocaleTag())}).`
-  );
+  await notifyStaff([request.requester_staff_id], request, isTakeover ? "takenOver" : "swapAgreed", member.staffName);
   return updated;
 }
