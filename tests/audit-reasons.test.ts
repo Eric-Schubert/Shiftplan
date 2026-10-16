@@ -3,6 +3,7 @@ import { createI18n } from "vue-i18n";
 import { entryReason, type AuditReason, type Translate } from "~/i18n/audit-reason";
 import { DEFAULT_LOCALE, localeTag } from "~/i18n/config";
 import de from "~/i18n/locales/de";
+import en from "~/i18n/locales/en";
 import { readReasonParams, storedReason } from "~/server/services/audit/reason";
 
 const TAG = localeTag(DEFAULT_LOCALE);
@@ -49,7 +50,7 @@ const CASES: Array<[AuditReason, string]> = [
 ];
 
 // The app renders with vue-i18n like AuditLogEntry.vue: the plural count is its own argument.
-const app = createI18n({ legacy: false, locale: DEFAULT_LOCALE, messages: { de } }).global;
+const app = createI18n({ legacy: false, locale: DEFAULT_LOCALE, messages: { de, en } }).global;
 const appTranslate: Translate = (key, params) =>
   typeof params.count === "number" ? app.t(key, params, params.count) : app.t(key, params);
 const known = (key: string) => app.te(key);
@@ -96,5 +97,20 @@ describe("audit reasons", () => {
     expect(readReasonParams("{broken")).toBeNull();
     expect(readReasonParams("[1]")).toBeNull();
     expect(entryReason({ reason: "alt", reason_key: "audit.reason.day", reason_params: null }, TAG, appTranslate, known)).toBe("alt");
+  });
+
+  it("renders the same stored entry in the reader's language", () => {
+    const english = createI18n({ legacy: false, locale: "en", fallbackLocale: DEFAULT_LOCALE, messages: { de, en } }).global;
+    const translate: Translate = (key, params) =>
+      typeof params.count === "number" ? english.t(key, params, params.count) : english.t(key, params);
+    const render = (reason: AuditReason) =>
+      entryReason({ ...written(reason), reason: null }, localeTag("en"), translate, (key) => english.te(key));
+
+    expect(render(CASES[0]![0])).toBe("only Thu 08/10");
+    expect(render(CASES[2]![0])).toBe("Swap Anna Weber ↔ Max Mustermann, Thu 08/10");
+    expect(render(CASES[5]![0])).toBe("Wed 07/10 – Fri 09/10");
+    expect(render(CASES[6]![0])).toBe("1 week up to Week 42/2026 generated from the rotation pattern");
+    expect(render(CASES[7]![0])).toBe("4 weeks up to Week 1/2027 generated from the rotation pattern");
+    expect(render(CASES[11]![0])).toBe("Rotation pattern replaced from Excel: 1-week cycle, 0 assignments");
   });
 });

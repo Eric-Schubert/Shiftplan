@@ -23,6 +23,15 @@ const PATTERNS: Record<string, LocalePatterns> = {
     week: "KW {week}",
     weekOfYear: "KW {week}/{year}",
   },
+  // Intl writes „Thu 08/10“ already; the row keeps it that way and names weeks in words.
+  "en-GB": {
+    day: "{weekday} {day}/{month}",
+    range: "{from} – {to}",
+    weekdayRun: "{from}–{to}",
+    listSeparator: ", ",
+    week: "Week {week}",
+    weekOfYear: "Week {week}/{year}",
+  },
 };
 const FALLBACK = "de-DE";
 

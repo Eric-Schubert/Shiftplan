@@ -16,6 +16,8 @@ describe("request locale", () => {
     expect(localeFromAcceptLanguage("de-AT,de;q=0.9,en;q=0.8")).toBe("de");
     expect(localeFromAcceptLanguage("fr-CH, fr;q=0.9, de;q=0.5")).toBe("de");
     expect(localeFromAcceptLanguage("en;q=0.9, DE-de;q=0.95")).toBe("de");
+    expect(localeFromAcceptLanguage("en-GB,en;q=0.9,de;q=0.8")).toBe("en");
+    expect(localeFromAcceptLanguage("fr, en-US;q=0.7")).toBe("en");
     expect(localeFromAcceptLanguage("de;q=0, fr")).toBeNull();
     expect(localeFromAcceptLanguage("")).toBeNull();
     expect(localeFromAcceptLanguage(undefined)).toBeNull();
@@ -24,12 +26,15 @@ describe("request locale", () => {
   it("prefers the locale cookie, then Accept-Language, then German", () => {
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=de", "accept-language": "fr" }))).toBe("de");
     expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=xx", "accept-language": "de-CH" }))).toBe("de");
-    expect(resolveLocale(eventWith({ "accept-language": "fr, en" }))).toBe("de");
+    expect(resolveLocale(eventWith({ cookie: "shiftplan_locale=en", "accept-language": "de-DE" }))).toBe("en");
+    expect(resolveLocale(eventWith({ "accept-language": "en-GB" }))).toBe("en");
+    expect(resolveLocale(eventWith({ "accept-language": "fr, it" }))).toBe("de");
     expect(resolveLocale(eventWith({}))).toBe("de");
   });
 
   it("gives the formatters full language tags", () => {
     expect(localeTag("de")).toBe("de-DE");
+    expect(localeTag("en")).toBe("en-GB");
     expect(localeTag("xx")).toBe("de-DE");
     expect(instanceLocaleTag()).toBe("de-DE");
   });
