@@ -15,7 +15,7 @@ defineProps<{
     <dl class="privacy-terms">
       <dt>Planner sign-in</dt>
       <dd>
-        ends in the browser at the latest {{ minutesText(session.durationMinutes) }} after signing in, in the app after
+        ends in the browser at the latest {{ minutesText(session.durationMinutes) }} after the last activity, in the app after
         {{ daysText(retention.plannerApp) }} without use. Signing out ends it immediately.
       </dd>
       <dt>Login locks and rate limits</dt>

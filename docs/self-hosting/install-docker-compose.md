@@ -58,6 +58,8 @@ NUXT_PUBLIC_PRIVACY_CLOUDFLARE=false
 # Hosting provider with address if the server is rented (for example "netcup GmbH, Emmy-Noether-Straße 10,
 # 76131 Karlsruhe"). The privacy policy then lists it as a processor. Leave empty for your own server.
 NUXT_PUBLIC_PRIVACY_HOSTER=
+# Country of the hoster's data centre (for example "Deutschland"). Empty: the privacy policy names no country.
+NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION=
 
 # Contact for web push (VAPID). Default: mailto: with the imprint email.
 SHIFTPLAN_PUSH_SUBJECT=

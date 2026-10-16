@@ -18,7 +18,7 @@ defineProps<{
     <dl class="privacy-terms">
       <dt>Anmeldung der Planung</dt>
       <dd>
-        endet im Browser spätestens {{ minutesText(session.durationMinutes) }} nach der Anmeldung, in der App nach
+        endet im Browser spätestens {{ minutesText(session.durationMinutes) }} nach der letzten Aktivität, in der App nach
         {{ daysText(retention.plannerApp, "dative") }} ohne Nutzung. Abmelden beendet sie sofort.
       </dd>
       <dt>Login-Sperren und Rate-Limits</dt>

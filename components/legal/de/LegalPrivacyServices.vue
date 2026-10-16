@@ -2,6 +2,8 @@
 defineProps<{
   /** Hosting provider with address; empty when the operator runs the server themselves. */
   hoster: string;
+  /** Country of the hoster's data centre; empty when unknown, then the text names none. */
+  hosterLocation: string;
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
   appPush: boolean;
@@ -15,9 +17,12 @@ defineProps<{
     <template v-if="hoster">
       <h4>Hosting</h4>
       <p>
-        Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }} in einem Rechenzentrum in Deutschland. Der Anbieter handelt als
-        Auftragsverarbeiter nach Art. 28 DSGVO und verarbeitet die Daten nur, um den Server bereitzustellen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
-        DSGVO; unser berechtigtes Interesse liegt in einem zuverlässigen Betrieb.
+        <template v-if="hosterLocation">
+          Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }} in einem Rechenzentrum in {{ hosterLocation }}.
+        </template>
+        <template v-else>Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }}.</template>
+        Der Anbieter handelt als Auftragsverarbeiter nach Art. 28 DSGVO und verarbeitet die Daten nur, um den Server bereitzustellen. Rechtsgrundlage ist
+        Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt in einem zuverlässigen Betrieb.
       </p>
     </template>
 

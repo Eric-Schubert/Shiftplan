@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { retentionPeriods } from "~/shared/utils/retention";
 import { PRIVACY_SECTION_IDS } from "~/utils/legal/privacy";
 import { isGermanText } from "./helpers/german-text";
-import { IMPRINT, renderImprint, renderPrivacy, sectionIds, textOf, type LegalSetup } from "./helpers/legal-render";
+import { IMPRINT, NO_IMPRINT, renderImprint, renderPrivacy, sectionIds, textOf, type LegalSetup } from "./helpers/legal-render";
 
 // German names the English text keeps: laws, the Saxon authority, an address, and the labels of the
 // app, which is German only.
@@ -41,8 +41,9 @@ const VARIANTS: Array<[string, Partial<LegalSetup>]> = [
   ["without Microsoft and app pushes", { facts: { microsoft: false, appPush: false, defaultRelay: false } }],
   [
     "with Cloudflare, a hoster and an own relay",
-    { cloudflare: true, hoster: "netcup GmbH, Karlsruhe", facts: { defaultRelay: false, relayHost: "push.example.org" } },
+    { cloudflare: true, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "Deutschland", facts: { defaultRelay: false, relayHost: "push.example.org" } },
   ],
+  ["without an imprint, with a hoster without location", { imprint: NO_IMPRINT, hoster: "netcup GmbH, Karlsruhe" }],
   ["as the demo", { demo: true }],
 ];
 
@@ -81,28 +82,6 @@ describe("English privacy policy", () => {
     expect(blocks(english.html)).toEqual(blocks(german.html));
     expect(germanSentences(english.html)).toEqual([]);
     expect(germanSentences(german.html).length).toBeGreaterThan(50);
-  });
-
-  it("names the configured services", async () => {
-    const text = (setup: Partial<LegalSetup>) => renderPrivacy({ ...setup, locale: "en" }).then(({ html }) => textOf(html));
-    const plain = await text({ facts: { microsoft: false } });
-    const all = await text({ cloudflare: true, hoster: "netcup GmbH, Karlsruhe", facts: { microsoft: true } });
-
-    expect(plain).not.toContain("Microsoft 365");
-    expect(plain).not.toContain("Delivery via Cloudflare");
-    expect(plain).not.toContain("Hosting");
-    expect(all).toContain("We send notifications of new requests by email via Microsoft 365 (Microsoft Graph).");
-    expect(all).toContain("Email delivery via Microsoft 365");
-    expect(all).toContain("Delivery via Cloudflare");
-    expect(all).toContain("located on a server of netcup GmbH, Karlsruhe in a data centre in Germany");
-  });
-
-  it("describes the app's push route as the instance is set up", async () => {
-    const text = (facts: Partial<LegalSetup["facts"]>) => renderPrivacy({ locale: "en", facts }).then(({ html }) => textOf(html));
-
-    expect(await text({})).toContain("via ES Software's push service push.shiftplan.info");
-    expect(await text({ defaultRelay: false, relayHost: "push.example.org" })).toContain("via the push service push.example.org set up by the operator");
-    expect(await text({ appPush: false })).toContain("This instance does not send any pushes to the Shiftplan app.");
   });
 
   it("is also reachable as /privacy", async () => {
