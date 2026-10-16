@@ -10,6 +10,8 @@ Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or 
 
 The Compose file mounts `./config/backend.config.json` to `/app/config/backend.config.json`, so backend settings can be changed without rebuilding the image.
 
+The web client follows the same file. It loads the password policy (`auth.passwordPolicy`, including `hint`), the shift defaults (`validation.shift.defaultColor`, `validation.shift.minStaff.default`) and the CSRF settings (`auth.session.cookies.csrfName`, `auth.routes.csrfMethods`) from `GET /api/instance` when the page loads. A restart after editing the mounted file is enough; the prebuilt image does not need a rebuild.
+
 Holiday example:
 
 ```json
