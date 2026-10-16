@@ -22,13 +22,10 @@ describe("database migrations", () => {
         active INTEGER NOT NULL DEFAULT 1
       );
     `);
-    db.prepare("INSERT INTO users (username, password_hash, role, active) VALUES (?, ?, 'admin', 1)")
-      .run("admin", passwordHash);
+    db.prepare("INSERT INTO users (username, password_hash, role, active) VALUES (?, ?, 'admin', 1)").run("admin", passwordHash);
 
     const result = migrateAdminDatabase(db);
-    const user = db
-      .prepare("SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ?")
-      .get("admin") as any;
+    const user = db.prepare("SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ?").get("admin") as any;
 
     expect(result.applied.map((migration) => migration.id)).toContain("002_admin_users_schema");
     expect(user.created_at).toBeTruthy();
@@ -50,9 +47,7 @@ describe("database migrations", () => {
     db.prepare("INSERT INTO settings (key, value) VALUES ('admin_password', ?)").run(passwordHash);
 
     migrateAdminDatabase(db);
-    const user = db
-      .prepare("SELECT username, role, active, created_at, password_hash FROM users WHERE username = 'admin'")
-      .get() as any;
+    const user = db.prepare("SELECT username, role, active, created_at, password_hash FROM users WHERE username = 'admin'").get() as any;
 
     expect(user.username).toBe("admin");
     expect(user.role).toBe("admin");
@@ -75,18 +70,14 @@ describe("database migrations", () => {
     const db = new Database(":memory:");
 
     migrateAdminDatabase(db, { bootstrapAdminPassword: "BootstrapPass1" });
-    const user = db
-      .prepare("SELECT username, role, active, created_at, password_hash FROM users WHERE username = 'admin'")
-      .get() as any;
+    const user = db.prepare("SELECT username, role, active, created_at, password_hash FROM users WHERE username = 'admin'").get() as any;
 
     expect(user.username).toBe("admin");
     expect(user.role).toBe("admin");
     expect(user.active).toBe(1);
     expect(user.created_at).toBeTruthy();
     expect(await bcrypt.compare("BootstrapPass1", user.password_hash)).toBe(true);
-    expect(columnNames(db, "contact_messages")).toEqual(
-      expect.arrayContaining(["contact_id", "name", "reply_to", "message", "created_at", "read_at"])
-    );
+    expect(columnNames(db, "contact_messages")).toEqual(expect.arrayContaining(["contact_id", "name", "reply_to", "message", "created_at", "read_at"]));
 
     db.close();
   });
@@ -104,14 +95,13 @@ describe("database migrations", () => {
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
-    db.prepare(
-      "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, 'admin', 1, datetime('now'))"
-    ).run("admin", bcrypt.hashSync("admin", 4));
+    db.prepare("INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, 'admin', 1, datetime('now'))").run(
+      "admin",
+      bcrypt.hashSync("admin", 4)
+    );
 
     migrateAdminDatabase(db, { bootstrapAdminPassword: "SecureAdmin1" });
-    const user = db
-      .prepare("SELECT password_hash FROM users WHERE username = 'admin'")
-      .get() as any;
+    const user = db.prepare("SELECT password_hash FROM users WHERE username = 'admin'").get() as any;
 
     expect(await bcrypt.compare("SecureAdmin1", user.password_hash)).toBe(true);
     expect(await bcrypt.compare("admin", user.password_hash)).toBe(false);

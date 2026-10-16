@@ -13,10 +13,7 @@ export function networkOf(ip: string): string {
   const [head = "", tail] = address.split("::");
   const left = head ? head.split(":") : [];
   const right = tail ? tail.split(":") : [];
-  const groups =
-    tail === undefined
-      ? left
-      : [...left, ...Array<string>(Math.max(8 - left.length - right.length, 0)).fill("0"), ...right];
+  const groups = tail === undefined ? left : [...left, ...Array<string>(Math.max(8 - left.length - right.length, 0)).fill("0"), ...right];
   const prefix = groups.slice(0, 4).map((group) => (Number.parseInt(group, 16) || 0).toString(16));
   return `${prefix.join(":")}::/64`;
 }

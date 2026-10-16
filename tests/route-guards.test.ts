@@ -60,7 +60,7 @@ describe("route policy coverage", () => {
 
   it("does not count a guard that only appears in a comment", () => {
     expect(getGuard("// TODO requireAdmin(event)\nexport default defineEventHandler(() => 1);")).toBeNull();
-    expect(getGuard("/* requirePlanner(event) */ const url = \"https://example.org\"; requireMember(event);")).toBe("Member");
+    expect(getGuard('/* requirePlanner(event) */ const url = "https://example.org"; requireMember(event);')).toBe("Member");
   });
 
   it("names only routes and prefixes that have a handler", () => {
@@ -72,10 +72,16 @@ describe("route policy coverage", () => {
     }
     for (const prefix of [...ROUTE_POLICY.teamReadPrefixes, ...ROUTE_POLICY.publicReadPrefixes]) {
       if (MODULE_PREFIXES.includes(prefix)) continue;
-      expect(readRoutes.some((route) => matchesPrefix(route, [prefix])), prefix).toBe(true);
+      expect(
+        readRoutes.some((route) => matchesPrefix(route, [prefix])),
+        prefix
+      ).toBe(true);
     }
     for (const prefix of [ROUTE_POLICY.memberPrefix, ROUTE_POLICY.legalPrefix]) {
-      expect(routes.some((route) => route.startsWith(prefix)), prefix).toBe(true);
+      expect(
+        routes.some((route) => route.startsWith(prefix)),
+        prefix
+      ).toBe(true);
     }
   });
 });

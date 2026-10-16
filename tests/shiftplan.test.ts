@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import {
-  setupTestDatabase,
-  cleanupTestDatabase,
-  getTestDatabase,
-  insertTestData,
-} from "./setup";
+import { setupTestDatabase, cleanupTestDatabase, getTestDatabase, insertTestData } from "./setup";
 
 describe("Shiftplan Operations", () => {
   beforeEach(() => {
@@ -57,7 +52,8 @@ describe("Shiftplan Operations", () => {
       db.prepare("INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)").run(weekId, 1, 1);
 
       const plan = db
-        .prepare(`
+        .prepare(
+          `
           SELECT
             s.shift_id,
             s.name as shift_name,
@@ -68,7 +64,8 @@ describe("Shiftplan Operations", () => {
           LEFT JOIN staff st ON sa.staff_id = st.staff_id
           WHERE s.active = 1
           ORDER BY s.sort_order
-        `)
+        `
+        )
         .all(weekId) as any[];
 
       expect(plan.length).toBeGreaterThan(0);

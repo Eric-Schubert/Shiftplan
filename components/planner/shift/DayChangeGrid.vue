@@ -49,7 +49,9 @@ function toggleLabel(staffId: number, name: string, date: string): string {
         <tr v-for="row in rows" :key="row.staff_id">
           <th class="max-w-[10rem] truncate pr-2 text-left font-medium text-[var(--text-1)]" scope="row">
             {{ row.name }}
-            <span v-if="!assigned.has(row.staff_id)" class="block text-xs font-normal text-[var(--text-3)]">{{ t("planner.shift.dayChange.notInPlan") }}</span>
+            <span v-if="!assigned.has(row.staff_id)" class="block text-xs font-normal text-[var(--text-3)]">{{
+              t("planner.shift.dayChange.notInPlan")
+            }}</span>
           </th>
           <td v-for="date in days" :key="date" class="text-center">
             <button

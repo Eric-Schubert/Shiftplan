@@ -6,16 +6,13 @@ async function fetchGithubReleaseBody(tagName) {
 
   if (!repository || !token || typeof fetch !== "function") return "";
 
-  const response = await fetch(
-    `https://api.github.com/repos/${repository}/releases/tags/${encodeURIComponent(tagName)}`,
-    {
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
+  const response = await fetch(`https://api.github.com/repos/${repository}/releases/tags/${encodeURIComponent(tagName)}`, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
     },
-  );
+  });
 
   if (!response.ok) {
     console.log(`[changelog] GitHub release body unavailable for ${tagName}: ${response.status}`);

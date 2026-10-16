@@ -35,10 +35,7 @@ export default defineEventHandler(async (event) => {
       staffId,
       source: requestSource(event),
     });
-    PushService.queueShiftChange(
-      { year, week, shiftId, staffId, action: "assign" },
-      getHeader(event, "origin")
-    );
+    PushService.queueShiftChange({ year, week, shiftId, staffId, action: "assign" }, getHeader(event, "origin"));
   }
 
   return { success: true };

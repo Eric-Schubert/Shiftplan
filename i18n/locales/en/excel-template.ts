@@ -15,16 +15,14 @@ export default {
   startYearHint: "Year in which pattern week 1 applies for the first time",
   startWeekHint: "Calendar week in which pattern week 1 applies for the first time",
   cycleLengthHint: "After this many weeks the plan starts again at pattern week 1",
-  incomplete:
-    "Not everything is set up yet: first add staff members and shifts in the app, then download the template again.",
+  incomplete: "Not everything is set up yet: first add staff members and shifts in the app, then download the template again.",
   // {week} is the calendar week with its year: „KW 42/2026“.
   current: "This week ({week}) is pattern week {patternWeek}.",
   time: "Time",
   minStaff: "Minimum staffing",
   dropdown: {
     prompt: "Choose a shift or leave it empty (= off).",
-    warning:
-      "This shift is not in the list. For two shifts in one week, separate them with a comma, e.g. “{shifts}”.",
+    warning: "This shift is not in the list. For two shifts in one week, separate them with a comma, e.g. “{shifts}”.",
   },
   // Stand-ins for the instructions while no person or shift exists yet.
   example: {

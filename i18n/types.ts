@@ -5,11 +5,7 @@ export type Messages = typeof de;
 
 /** Dotted paths to the string messages, e.g. "common.meta.description". Arrays are left out. */
 type MessagePaths<T, Prefix extends string = ""> = {
-  [K in keyof T & string]: T[K] extends string
-    ? `${Prefix}${K}`
-    : T[K] extends readonly unknown[]
-      ? never
-      : MessagePaths<T[K], `${Prefix}${K}.`>;
+  [K in keyof T & string]: T[K] extends string ? `${Prefix}${K}` : T[K] extends readonly unknown[] ? never : MessagePaths<T[K], `${Prefix}${K}.`>;
 }[keyof T & string];
 
 export type MessageKey = MessagePaths<Messages>;

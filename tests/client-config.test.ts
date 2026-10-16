@@ -53,17 +53,13 @@ describe("client config", () => {
 
   it("checks passwords against the loaded policy", () => {
     const store = useConfigStore();
-    expect(german(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy))).toBe(
-      "Passwort muss mindestens 8 Zeichen haben"
-    );
+    expect(german(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy))).toBe("Passwort muss mindestens 8 Zeichen haben");
 
     store.apply({ passwordPolicy: LOOSE_POLICY });
 
     expect(store.passwordPolicy.hint).toBe("Mindestens 4 Zeichen");
     expect(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy)).toBeNull();
-    expect(german(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store))).toBe(
-      "Passwort muss mindestens 4 Zeichen haben"
-    );
+    expect(german(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store))).toBe("Passwort muss mindestens 4 Zeichen haben");
   });
 
   it("checks user names and contact requests against the loaded lengths", () => {

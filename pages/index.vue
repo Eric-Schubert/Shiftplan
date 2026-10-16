@@ -10,10 +10,7 @@ const { inviteCode } = usePlannerDeepLinks(redeemAccessCode);
 const { t } = useI18n();
 
 const { member, load: loadMember } = useMember();
-await Promise.all([
-  useAsyncData("viewer-status", () => loadViewerStatus()),
-  useAsyncData("member", () => loadMember()),
-]);
+await Promise.all([useAsyncData("viewer-status", () => loadViewerStatus()), useAsyncData("member", () => loadMember())]);
 const needsAccessCode = computed(() => viewerStatus.value?.hasAccess === false);
 const accessError = ref("");
 watchAccessGranted(needsAccessCode, onAccessGranted);
@@ -88,17 +85,9 @@ async function generateFromPattern() {
 
 <template>
   <div>
-    <PlannerInviteNotice
-      v-model:invite-code="inviteCode"
-      :has-member="Boolean(member)"
-      @signed-in="onMemberSignedIn"
-    />
+    <PlannerInviteNotice v-model:invite-code="inviteCode" :has-member="Boolean(member)" @signed-in="onMemberSignedIn" />
 
-    <TeamAccessGate
-      v-if="needsAccessCode"
-      :key="accessError"
-      :initial-error="accessError"
-    />
+    <TeamAccessGate v-if="needsAccessCode" :key="accessError" :initial-error="accessError" />
 
     <PlannerWeekShell
       v-else

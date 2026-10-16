@@ -65,13 +65,7 @@ async function handleLogin() {
         {{ t("settings.auth.login.sessionExpired") }}
       </p>
 
-      <DemoLoginHint
-        v-if="hasDemoLogin"
-        :username="demoLogin.username"
-        :password="demoLogin.password"
-        :disabled="loading"
-        @fill="fillDemoLogin"
-      />
+      <DemoLoginHint v-if="hasDemoLogin" :username="demoLogin.username" :password="demoLogin.password" :disabled="loading" @fill="fillDemoLogin" />
 
       <form class="space-y-4" @submit.prevent="handleLogin">
         <div class="space-y-1.5">
@@ -107,23 +101,12 @@ async function handleLogin() {
             autocomplete="current-password"
             :aria-describedby="error ? loginErrorId : undefined"
           />
-          <small
-            v-if="error"
-            :id="loginErrorId"
-            class="block mt-1 text-sm text-[var(--danger-ink)]"
-            role="alert"
-          >
+          <small v-if="error" :id="loginErrorId" class="block mt-1 text-sm text-[var(--danger-ink)]" role="alert">
             {{ error }}
           </small>
         </div>
 
-        <PrimeButton
-          type="submit"
-          :label="t('common.actions.signIn')"
-          icon="pi pi-lock-open"
-          class="w-full min-h-11"
-          :loading="loading"
-        />
+        <PrimeButton type="submit" :label="t('common.actions.signIn')" icon="pi pi-lock-open" class="w-full min-h-11" :loading="loading" />
 
         <div class="pt-2 text-center">
           <NuxtLink

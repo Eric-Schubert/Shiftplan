@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findGerman, findGermanInFiles, isGermanIdentifier, isGermanProse } from "../scripts/check-english.js";
 
-const kinds = (file: string, source: string) =>
-  findGerman(file, source).map(({ line, kind }: { line: number; kind: string }) => `${line}:${kind}`);
+const kinds = (file: string, source: string) => findGerman(file, source).map(({ line, kind }: { line: number; kind: string }) => `${line}:${kind}`);
 
 describe("English check rules", () => {
   it("flags German prose by umlauts or two stopwords", () => {
@@ -14,7 +13,7 @@ describe("English check rules", () => {
 
   it("ignores quoted text, but not apostrophes", () => {
     expect(isGermanProse("// Anna works the „Frühschicht“ in week 41")).toBe(false);
-    expect(isGermanProse('// Matches headers like "Woche 2 (KW 43)" and \'für\'')).toBe(false);
+    expect(isGermanProse("// Matches headers like \"Woche 2 (KW 43)\" and 'für'")).toBe(false);
     expect(isGermanProse("// Don't touch die Werte, it's der Plan")).toBe(true);
   });
 
@@ -34,12 +33,9 @@ describe("English check rules", () => {
 
 describe("English check scanner", () => {
   it("reports comments and identifiers with their line, but not strings or regex literals", () => {
-    const source = [
-      'const label = "Urlaub für alle";',
-      "const header = /^woche (\\d+)$/i;",
-      "// Kürzel des Mitarbeiters",
-      "const firstKw = 1;",
-    ].join("\n");
+    const source = ['const label = "Urlaub für alle";', "const header = /^woche (\\d+)$/i;", "// Kürzel des Mitarbeiters", "const firstKw = 1;"].join(
+      "\n"
+    );
 
     expect(kinds("a.ts", source)).toEqual(["3:comment", "4:identifier"]);
   });
@@ -105,8 +101,6 @@ describe("English check scanner", () => {
     const german = "# Die Datei ist nicht englisch\n// Die Datei ist nicht englisch\n";
     const files = ["a.ts", "public/sw.js", "types/a.d.ts", "docs/api/app-v1.yaml", "README.md", "b.mjs"];
 
-    expect(findGermanInFiles(files, () => german).map(({ file }: { file: string }) => file)).toEqual(
-      files.filter((file) => file !== "README.md")
-    );
+    expect(findGermanInFiles(files, () => german).map(({ file }: { file: string }) => file)).toEqual(files.filter((file) => file !== "README.md"));
   });
 });

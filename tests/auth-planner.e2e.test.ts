@@ -8,9 +8,7 @@ describe("auth and planner e2e", () => {
     const publicPlan = await client.request<{
       week: { week_id: number; year: number; week_number: number };
     }>("GET", "/api/shiftplan?year=2026&week=12");
-    const weekCount = client.mainDb
-      .prepare("SELECT COUNT(*) AS count FROM weeks")
-      .get() as { count: number };
+    const weekCount = client.mainDb.prepare("SELECT COUNT(*) AS count FROM weeks").get() as { count: number };
     const mutation = await client.request("POST", "/api/shiftplan/assign", {
       body: { staff_id: 1, shift_id: 1, year: 2026, week: 12 },
     });
@@ -39,12 +37,14 @@ describe("auth and planner e2e", () => {
       body: { staff_id: 1, shift_id: 1, year: 2026, week: 14 },
     });
     const assigned = client.mainDb
-      .prepare(`
+      .prepare(
+        `
         SELECT COUNT(*) AS count
         FROM shift_assignments sa
         JOIN weeks w ON w.week_id = sa.week_id
         WHERE sa.staff_id = 1 AND sa.shift_id = 1 AND w.year = 2026 AND w.week_number = 14
-      `)
+      `
+      )
       .get() as { count: number };
     const publicPlan = await client.request<{
       shifts: Array<{ assigned_staff: Array<{ name: string }> }>;
@@ -54,15 +54,15 @@ describe("auth and planner e2e", () => {
       csrf: true,
       body: { staff_id: 1, shift_id: 1, year: 2026, week: 14 },
     });
-    const remaining = client.mainDb
-      .prepare("SELECT COUNT(*) AS count FROM shift_assignments")
-      .get() as { count: number };
+    const remaining = client.mainDb.prepare("SELECT COUNT(*) AS count FROM shift_assignments").get() as { count: number };
     const auditEntries = client.mainDb
-      .prepare(`
+      .prepare(
+        `
         SELECT username, action, year, week_number, shift_name, staff_name
         FROM audit_log
         ORDER BY audit_id ASC
-      `)
+      `
+      )
       .all();
 
     expect(forbiddenStaffCreate.status).toBe(403);
@@ -70,9 +70,7 @@ describe("auth and planner e2e", () => {
     expect(assign.json).toEqual({ success: true });
     expect(assigned.count).toBe(1);
     expect(publicPlan.status).toBe(200);
-    expect(publicPlan.json?.shifts[0]?.assigned_staff).toEqual([
-      expect.objectContaining({ name: "Planner Test Staff" }),
-    ]);
+    expect(publicPlan.json?.shifts[0]?.assigned_staff).toEqual([expect.objectContaining({ name: "Planner Test Staff" })]);
     expect(unassign.status).toBe(200);
     expect(unassign.json).toEqual({ success: true });
     expect(remaining.count).toBe(0);

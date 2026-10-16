@@ -46,9 +46,7 @@ function excelTextFindings(file: string, source: string): string[] {
 function foreignTexts(file: Buffer): string[] {
   const workbook = parseXlsx(file);
   const sheetXml = [...readZip(file).entries()].filter(([path]) => path.startsWith("xl/worksheets/"));
-  const validations = sheetXml.flatMap(([, xml]) =>
-    [...xml.toString("utf-8").matchAll(/ (?:prompt|error)="([^"]*)"/g)].map((match) => match[1]!)
-  );
+  const validations = sheetXml.flatMap(([, xml]) => [...xml.toString("utf-8").matchAll(/ (?:prompt|error)="([^"]*)"/g)].map((match) => match[1]!));
   const texts = [
     ...workbook.sheets.map((sheet) => sheet.name),
     ...workbook.sheets.flatMap((sheet) => sheet.rows.flat()).filter((value) => typeof value === "string"),
@@ -83,9 +81,7 @@ describe("Rotation Excel text guard", () => {
     const files = repoFiles().filter((file: string) => EXCEL_CODE.some((pattern) => pattern.test(file)));
     const found = files.flatMap((file: string) => excelTextFindings(file, fs.readFileSync(file, "utf-8")));
 
-    expect(files).toEqual(
-      expect.arrayContaining(["server/services/rotation-excel/instructions.ts", "server/lib/xlsx/write.ts"])
-    );
+    expect(files).toEqual(expect.arrayContaining(["server/services/rotation-excel/instructions.ts", "server/lib/xlsx/write.ts"]));
     expect(found).toEqual([]);
   });
 
@@ -99,7 +95,7 @@ describe("Rotation Excel text guard", () => {
     ['name: sheet.name || "Tabelle",', "Tabelle"],
     ['return `KW ${parts.join(", ")}`;', "KW {}"],
     ["const match = header.match(/^woche (\\d+)$/);", "/^woche (\\d+)$/"],
-    ['const staffName = headers.findIndex((header) => /^mitarbeiter$/.test(header));', "/^mitarbeiter$/"],
+    ["const staffName = headers.findIndex((header) => /^mitarbeiter$/.test(header));", "/^mitarbeiter$/"],
     ['const hint = "Mehr dazu im Blatt";', "Mehr dazu im Blatt"],
     ['return normalizeHeader(value).replace(/ä/g, "ae");', null],
     ['const weeks = "kw";', null],

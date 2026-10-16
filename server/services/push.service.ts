@@ -5,12 +5,7 @@ import { countSubscriptions, subscribe, unsubscribe } from "~/server/services/pu
 import { getPublicKey } from "~/server/services/push/vapid";
 import { sendWebPush } from "~/server/services/push/web";
 
-export type {
-  DevicePlatform,
-  DeviceScope,
-  PushPayload,
-  PushSubscriptionInput,
-} from "~/server/services/push/types";
+export type { DevicePlatform, DeviceScope, PushPayload, PushSubscriptionInput } from "~/server/services/push/types";
 export { buildChangePayload } from "~/server/services/push/messages";
 export { buildNativeMessages } from "~/server/services/push/native-messages";
 export { getNotifiableWeeks } from "~/server/services/push/weeks";

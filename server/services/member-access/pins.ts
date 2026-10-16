@@ -15,9 +15,7 @@ export function hasPin(staffId: number): boolean {
 
 /** Staff ids that have a PIN, for the planner overview. */
 export function staffWithPin(): number[] {
-  return (getAdminDatabase().prepare("SELECT staff_id FROM member_pins").all() as Array<{ staff_id: number }>).map(
-    (row) => row.staff_id
-  );
+  return (getAdminDatabase().prepare("SELECT staff_id FROM member_pins").all() as Array<{ staff_id: number }>).map((row) => row.staff_id);
 }
 
 export async function setPin(staffId: number, pin: string): Promise<void> {
@@ -46,9 +44,7 @@ export async function verifyPin(staffId: number | null, pin: string): Promise<bo
   const row =
     staffId === null
       ? undefined
-      : (getAdminDatabase().prepare("SELECT pin_hash FROM member_pins WHERE staff_id = ?").get(staffId) as
-          | { pin_hash: string }
-          | undefined);
+      : (getAdminDatabase().prepare("SELECT pin_hash FROM member_pins WHERE staff_id = ?").get(staffId) as { pin_hash: string } | undefined);
   const pinHash = row && isValidPin(pin) ? row.pin_hash : null;
   const matches = await bcrypt.compare(pin, pinHash ?? DUMMY_PIN_HASH);
   return pinHash !== null && matches;
@@ -59,16 +55,11 @@ export function clearPin(staffId: number): boolean {
 }
 
 /** Short code + PIN from any device. Returns null for an unknown short code or a wrong PIN alike. */
-export async function loginWithPin(
-  shortCode: string,
-  pin: string,
-  deviceName: string | null
-): Promise<{ token: string; member: Member } | null> {
+export async function loginWithPin(shortCode: string, pin: string, deviceName: string | null): Promise<{ token: string; member: Member } | null> {
   const code = normalizeShortCode(shortCode);
   const staff = code
     ? (getDatabase().prepare("SELECT staff_id, name FROM staff WHERE short_code = ? AND active = 1").get(code) as
-        | { staff_id: number; name: string }
-        | undefined)
+        { staff_id: number; name: string } | undefined)
     : undefined;
   if (!(await verifyPin(staff?.staff_id ?? null, pin)) || !staff) return null;
   return createSession(staff.staff_id, staff.name, deviceName);

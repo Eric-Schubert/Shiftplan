@@ -18,12 +18,7 @@ const visible = computed({
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="visible"
-    :header="$t('absence.remove.header')"
-    modal
-    :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="visible" :header="$t('absence.remove.header')" modal :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <p class="text-sm leading-6">{{ notice ? $t(notice.text.key, notice.text.params ?? {}) : "" }}</p>
     <template #footer>
       <PrimeButton :label="$t('common.actions.cancel')" text @click="absence = null" />

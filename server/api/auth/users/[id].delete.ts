@@ -18,18 +18,14 @@ export default defineEventHandler((event) => {
 
   const db = getAdminDatabase();
 
-  const user = db
-    .prepare("SELECT role FROM users WHERE user_id = ?")
-    .get(id) as { role: string } | undefined;
+  const user = db.prepare("SELECT role FROM users WHERE user_id = ?").get(id) as { role: string } | undefined;
 
   if (!user) {
     throw apiError(event, 404, "errors.auth.userNotFound");
   }
 
   if (user.role === "admin") {
-    const adminCount = db
-      .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND active = 1")
-      .get() as { count: number };
+    const adminCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND active = 1").get() as { count: number };
 
     if (adminCount.count <= 1) {
       throw apiError(event, 400, "errors.auth.lastAdmin");

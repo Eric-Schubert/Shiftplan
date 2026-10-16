@@ -58,9 +58,7 @@ export function revertableChanges(request: ShiftRequest, movedMessage: MessageKe
   const first = today();
   const upcoming = recorded.filter((change) => change.date >= first);
   if (recorded.length > 0 && upcoming.length === 0) conflict("errors.requests.daysPassed");
-  const changes = upcoming.filter(
-    (change) => exists("staff", "staff_id", change.staffId) && exists("shifts", "shift_id", change.shiftId)
-  );
+  const changes = upcoming.filter((change) => exists("staff", "staff_id", change.staffId) && exists("shifts", "shift_id", change.shiftId));
   if (changes.some(moved)) conflict(movedMessage);
   return changes;
 }

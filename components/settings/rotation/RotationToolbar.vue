@@ -26,11 +26,7 @@ const { t } = useI18n();
           </strong>
           {{
             t("settings.rotation.toolbar.start", {
-              week: weekOfYearLabel(
-                localeTag,
-                dataStore.rotationPattern.config.start_year,
-                dataStore.rotationPattern.config.start_week
-              ),
+              week: weekOfYearLabel(localeTag, dataStore.rotationPattern.config.start_year, dataStore.rotationPattern.config.start_week),
             })
           }}
         </p>
@@ -53,12 +49,11 @@ const { t } = useI18n();
       tag="div"
       class="rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-3 text-sm leading-6 text-[var(--accent-strong)]"
     >
-      <template #resume><strong>{{ t("settings.rotation.toolbar.resumeWizard") }}</strong></template>
+      <template #resume
+        ><strong>{{ t("settings.rotation.toolbar.resumeWizard") }}</strong></template
+      >
     </i18n-t>
-    <div
-      v-else
-      class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]"
-    >
+    <div v-else class="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--text-2)]">
       {{ t("settings.rotation.toolbar.hint") }}
     </div>
   </div>

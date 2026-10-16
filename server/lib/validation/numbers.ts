@@ -6,11 +6,7 @@ type IntegerOptions = { required?: boolean; min?: number; max?: number };
 // With `required: true` the validators throw instead of returning undefined.
 export function validateInteger(value: unknown, field: FieldKey, options: IntegerOptions & { required: true }): number;
 export function validateInteger(value: unknown, field: FieldKey, options?: IntegerOptions): number | undefined;
-export function validateInteger(
-  value: unknown,
-  field: FieldKey,
-  options: IntegerOptions = {}
-): number | undefined {
+export function validateInteger(value: unknown, field: FieldKey, options: IntegerOptions = {}): number | undefined {
   const { required = false, min, max } = options;
 
   if (value === undefined || value === null) {
@@ -39,11 +35,7 @@ export function validateInteger(
 
 export function validateBoolean(value: unknown, field: FieldKey, options: { required: true }): number;
 export function validateBoolean(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
-export function validateBoolean(
-  value: unknown,
-  field: FieldKey,
-  options: { required?: boolean } = {}
-): number | undefined {
+export function validateBoolean(value: unknown, field: FieldKey, options: { required?: boolean } = {}): number | undefined {
   const { required = false } = options;
 
   if (value === undefined || value === null) {
@@ -61,11 +53,7 @@ export function validateBoolean(
 
 export function validateYear(value: unknown, field: FieldKey, options: { required: true }): number;
 export function validateYear(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
-export function validateYear(
-  value: unknown,
-  field: FieldKey,
-  options: { required?: boolean } = {}
-): number | undefined {
+export function validateYear(value: unknown, field: FieldKey, options: { required?: boolean } = {}): number | undefined {
   const range = getValidationConfig().year;
 
   return validateInteger(value, field, {
@@ -77,11 +65,7 @@ export function validateYear(
 
 export function validateWeek(value: unknown, field: FieldKey, options: { required: true }): number;
 export function validateWeek(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
-export function validateWeek(
-  value: unknown,
-  field: FieldKey,
-  options: { required?: boolean } = {}
-): number | undefined {
+export function validateWeek(value: unknown, field: FieldKey, options: { required?: boolean } = {}): number | undefined {
   const range = getValidationConfig().week;
 
   return validateInteger(value, field, {

@@ -28,11 +28,6 @@ function editInBoard() {
       <RotationPatternBoard />
     </div>
 
-    <RotationWizardDialog
-      :visible="showWizardDialog"
-      :start-step="resumeStep ?? 0"
-      @update:visible="handleWizardVisible"
-      @edit-board="editInBoard"
-    />
+    <RotationWizardDialog :visible="showWizardDialog" :start-step="resumeStep ?? 0" @update:visible="handleWizardVisible" @edit-board="editInBoard" />
   </div>
 </template>

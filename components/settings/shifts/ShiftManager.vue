@@ -30,10 +30,7 @@ async function toggleActive(shift: Shift) {
 
 <template>
   <div class="space-y-4">
-    <ShiftManagementHeader
-      :count="dataStore.shifts.length"
-      @create="openCreateDialog"
-    />
+    <ShiftManagementHeader :count="dataStore.shifts.length" @create="openCreateDialog" />
 
     <ShiftManagementList
       :shifts="dataStore.shifts"
@@ -50,10 +47,6 @@ async function toggleActive(shift: Shift) {
       @update:visible="showFormDialog = $event"
     />
 
-    <ShiftDeleteDialog
-      :visible="showDeleteDialog"
-      :shift="shiftToDelete"
-      @update:visible="showDeleteDialog = $event"
-    />
+    <ShiftDeleteDialog :visible="showDeleteDialog" :shift="shiftToDelete" @update:visible="showDeleteDialog = $event" />
   </div>
 </template>

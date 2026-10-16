@@ -6,18 +6,12 @@ const VAPID_PUBLIC_SETTING = "vapid_public_key";
 const VAPID_PRIVATE_SETTING = "vapid_private_key";
 
 function getSetting(key: string): string | null {
-  const row = getAdminDatabase()
-    .prepare("SELECT value FROM settings WHERE key = ?")
-    .get(key) as { value: string } | undefined;
+  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(key) as { value: string } | undefined;
   return row?.value || null;
 }
 
 function setSetting(key: string, value: string): void {
-  getAdminDatabase()
-    .prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    )
-    .run(key, value);
+  getAdminDatabase().prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value);
 }
 
 function getVapidSubject(): string {

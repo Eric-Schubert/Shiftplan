@@ -10,11 +10,6 @@ const emit = defineEmits<{
       {{ $t("settings.users.intro") }}
     </p>
 
-    <PrimeButton
-      :label="$t('settings.users.create')"
-      icon="pi pi-user-plus"
-      class="min-h-11"
-      @click="emit('create')"
-    />
+    <PrimeButton :label="$t('settings.users.create')" icon="pi pi-user-plus" class="min-h-11" @click="emit('create')" />
   </div>
 </template>

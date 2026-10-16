@@ -12,11 +12,9 @@ export default {
   nameAmbiguous: "{label} '{name}' in {location} ist mehrfach vorhanden",
   shiftIdUnknown: "Schicht-ID {id} in Zeile {row} ist unbekannt oder inaktiv",
   staffNameMissing: "In Zeile {row} fehlt der Name in der Spalte „Mitarbeiter“",
-  weekColumnBeyondCycle:
-    "Die Spalte „Woche {week}“ passt nicht zur Zykluslänge {cycle}. Zykluslänge erhöhen oder die Spalte löschen.",
+  weekColumnBeyondCycle: "Die Spalte „Woche {week}“ passt nicht zur Zykluslänge {cycle}. Zykluslänge erhöhen oder die Spalte löschen.",
   weekColumnTwice: "Die Spalte „Woche {week}“ gibt es doppelt",
-  weekColumnMissing:
-    "Die Spalte „Woche {week}“ fehlt. Bei Zykluslänge {cycle} braucht es die Spalten Woche 1 bis Woche {cycle}.",
+  weekColumnMissing: "Die Spalte „Woche {week}“ fehlt. Bei Zykluslänge {cycle} braucht es die Spalten Woche 1 bis Woche {cycle}.",
   // Written into the template and read back by the import, in every language. The import ignores
   // case, spaces, „(…)“ and „-“ and takes „ae“ for „ä“. Pattern week and shift ID: earlier template.
   labels: {

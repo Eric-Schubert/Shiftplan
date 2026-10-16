@@ -127,7 +127,14 @@ describe("boundary check rules", () => {
 
 describe("boundary check cycles", () => {
   it("finds import cycles once, including type-only imports", () => {
-    expect(findCycles([{ from: "a", to: "b" }, { from: "b", to: "c" }, { from: "c", to: "a" }, { from: "c", to: "d" }])).toEqual([["a", "b", "c"]]);
+    expect(
+      findCycles([
+        { from: "a", to: "b" },
+        { from: "b", to: "c" },
+        { from: "c", to: "a" },
+        { from: "c", to: "d" },
+      ])
+    ).toEqual([["a", "b", "c"]]);
     expect(findCycles([{ from: "a", to: "a" }])).toEqual([["a"]]);
     expect(findCycles([{ from: "a", to: "b" }])).toEqual([]);
 

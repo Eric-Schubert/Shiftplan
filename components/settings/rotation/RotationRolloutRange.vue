@@ -14,35 +14,18 @@ const weekCount = defineModel<number>("weekCount", { required: true });
 const localeTag = useLocaleTag();
 const { t } = useI18n();
 const today = isoWeekOfDate(new Date());
-const startsInPast = computed(
-  () => startYear.value < today.year || (startYear.value === today.year && startWeek.value < today.week)
-);
+const startsInPast = computed(() => startYear.value < today.year || (startYear.value === today.year && startWeek.value < today.week));
 </script>
 
 <template>
   <div class="grid grid-cols-2 gap-3">
     <div class="flex flex-col gap-2">
       <label for="rollout-week" class="text-sm font-medium text-[var(--text-1)]">{{ t("settings.rollout.range.fromWeek") }}</label>
-      <PrimeInputNumber
-        v-model="startWeek"
-        input-id="rollout-week"
-        fluid
-        :min="1"
-        :max="maxWeekInStartYear"
-        show-buttons
-      />
+      <PrimeInputNumber v-model="startWeek" input-id="rollout-week" fluid :min="1" :max="maxWeekInStartYear" show-buttons />
     </div>
     <div class="flex flex-col gap-2">
       <label for="rollout-year" class="text-sm font-medium text-[var(--text-1)]">{{ t("validation.fields.year") }}</label>
-      <PrimeInputNumber
-        v-model="startYear"
-        input-id="rollout-year"
-        fluid
-        :min="2020"
-        :max="2100"
-        :use-grouping="false"
-        show-buttons
-      />
+      <PrimeInputNumber v-model="startYear" input-id="rollout-year" fluid :min="2020" :max="2100" :use-grouping="false" show-buttons />
     </div>
   </div>
 

@@ -10,20 +10,12 @@ export function workDates(year: number, week: number, weekends: boolean): string
 /** Whether an absence takes the person out of this shift (shift-less absences count everywhere). */
 export function absentFrom(absences: Absence[], shiftId: number, staffId: number, date: string): boolean {
   return absences.some(
-    (absence) =>
-      absence.staff_id === staffId &&
-      absence.absence_date === date &&
-      (absence.shift_id === null || absence.shift_id === shiftId)
+    (absence) => absence.staff_id === staffId && absence.absence_date === date && (absence.shift_id === null || absence.shift_id === shiftId)
   );
 }
 
 /** Who actually works the shift on one day after day changes and absences. */
-export function staffOnDay(
-  shift: ShiftWithStaff,
-  date: string,
-  dayChanges: ShiftDayChange[],
-  absences: Absence[]
-): number[] {
+export function staffOnDay(shift: ShiftWithStaff, date: string, dayChanges: ShiftDayChange[], absences: Absence[]): number[] {
   const staff = new Set(shift.assigned_staff.map((member) => member.staff_id));
   for (const change of dayChanges) {
     if (change.shift_id !== shift.shift_id || change.change_date !== date) continue;
@@ -34,11 +26,6 @@ export function staffOnDay(
 }
 
 /** Work days on which the shift has fewer people than it needs. */
-export function understaffedDates(
-  shift: ShiftWithStaff,
-  dates: string[],
-  dayChanges: ShiftDayChange[],
-  absences: Absence[]
-): string[] {
+export function understaffedDates(shift: ShiftWithStaff, dates: string[], dayChanges: ShiftDayChange[], absences: Absence[]): string[] {
   return dates.filter((date) => staffOnDay(shift, date, dayChanges, absences).length < shift.min_staff);
 }

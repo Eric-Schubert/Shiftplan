@@ -1,8 +1,6 @@
 import type { SessionUser } from "~/types/auth";
 
-export type AuthSessionResponse =
-  | { authenticated: false }
-  | { authenticated: true; user: SessionUser; csrfToken?: string | null };
+export type AuthSessionResponse = { authenticated: false } | { authenticated: true; user: SessionUser; csrfToken?: string | null };
 
 export type LoginResponse = {
   success: boolean;

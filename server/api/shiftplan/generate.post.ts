@@ -9,8 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
 
-  const hasWeeksParameter =
-    body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
+  const hasWeeksParameter = body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
 
   if (!hasWeeksParameter) {
     const year = validateYear(body.year, "year", { required: true });
@@ -27,11 +26,7 @@ export default defineEventHandler(async (event) => {
   if (result.generated > 0 && last) {
     // Overwriting and skipping exclude each other: the overwrite flag decides.
     const key =
-      result.overwritten > 0
-        ? "audit.reason.generatedOverwritten"
-        : result.skipped > 0
-          ? "audit.reason.generatedSkipped"
-          : "audit.reason.generated";
+      result.overwritten > 0 ? "audit.reason.generatedOverwritten" : result.skipped > 0 ? "audit.reason.generatedSkipped" : "audit.reason.generated";
 
     AuditService.log({
       userId: user.userId,

@@ -1,14 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  ANNA,
-  FCM_ENDPOINT,
-  MAX,
-  THURSDAY,
-  bearer,
-  client,
-  inviteAndRedeem,
-  useMemberAccessClient,
-} from "./helpers/member-access";
+import { ANNA, FCM_ENDPOINT, MAX, THURSDAY, bearer, client, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
 import { relayCalls } from "./helpers/relay-stub";
 import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 
@@ -52,9 +43,7 @@ describe("absences", () => {
 
     const foreign = await client.request("DELETE", `/api/member/absences/${id}`, { headers: bearer(max.token) });
     const own = await client.request("DELETE", `/api/member/absences/${id}`, { headers: bearer(anna.token) });
-    const audit = client.mainDb
-      .prepare("SELECT username, action, source, shift_name, staff_name, reason FROM audit_log ORDER BY audit_id")
-      .all();
+    const audit = client.mainDb.prepare("SELECT username, action, source, shift_name, staff_name, reason FROM audit_log ORDER BY audit_id").all();
 
     expect(foreign.status).toBe(404);
     expect(own.status).toBe(200);

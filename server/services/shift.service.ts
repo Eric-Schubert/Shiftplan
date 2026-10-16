@@ -21,9 +21,7 @@ export const ShiftService = {
   create(data: ShiftCreateDTO): Shift {
     const db = getDatabase();
     const defaults = getShiftDefaults();
-    const stmt = db.prepare(
-      "INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)"
-    );
+    const stmt = db.prepare("INSERT INTO shifts (name, start_time, end_time, color, min_staff, sort_order) VALUES (?, ?, ?, ?, ?, ?)");
     const result = stmt.run(
       data.name,
       data.start_time,
@@ -40,9 +38,7 @@ export const ShiftService = {
     const current = this.getById(id);
     if (!current) return undefined;
 
-    db.prepare(
-      "UPDATE shifts SET name = ?, active = ?, start_time = ?, end_time = ?, color = ?, min_staff = ?, sort_order = ? WHERE shift_id = ?"
-    ).run(
+    db.prepare("UPDATE shifts SET name = ?, active = ?, start_time = ?, end_time = ?, color = ?, min_staff = ?, sort_order = ? WHERE shift_id = ?").run(
       data.name ?? current.name,
       data.active ?? current.active,
       data.start_time ?? current.start_time,

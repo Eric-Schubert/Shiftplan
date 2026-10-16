@@ -1,12 +1,6 @@
 import type { AnalyticsSettings } from "./types/analytics";
 import type { ContactMailSettings, ContactSettings } from "./types/contact";
-import type {
-  AuditSettings,
-  RotationSettings,
-  ShiftplanSettings,
-  ValidationSettings,
-  XlsxSettings,
-} from "./types/domain";
+import type { AuditSettings, RotationSettings, ShiftplanSettings, ValidationSettings, XlsxSettings } from "./types/domain";
 import type { HolidaySettings } from "./types/holidays";
 import type { AuthSettings, DatabaseSettings } from "./types/system";
 

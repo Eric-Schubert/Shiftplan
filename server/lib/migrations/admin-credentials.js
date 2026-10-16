@@ -13,9 +13,7 @@ import { tableExists } from "./schema.js";
  */
 function getLegacyAdminPassword(database) {
   if (!tableExists(database, "settings")) return undefined;
-  const row = /** @type {{ value: string } | undefined} */ (
-    database.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get()
-  );
+  const row = /** @type {{ value: string } | undefined} */ (database.prepare("SELECT value FROM settings WHERE key = 'admin_password'").get());
   return row?.value;
 }
 
@@ -46,9 +44,7 @@ function resolveSeedPasswordHash(database, options = {}) {
 function getDefaultAdminUser(database) {
   if (!tableExists(database, "users")) return undefined;
   return /** @type {AdminUserRow | undefined} */ (
-    database
-      .prepare("SELECT user_id, username, password_hash, active FROM users WHERE username = ? LIMIT 1")
-      .get(DEFAULT_ADMIN_USERNAME)
+    database.prepare("SELECT user_id, username, password_hash, active FROM users WHERE username = ? LIMIT 1").get(DEFAULT_ADMIN_USERNAME)
   );
 }
 
@@ -76,7 +72,5 @@ export function requireBootstrapPasswordHash(database, options = {}, contextMess
   const passwordHash = resolveSeedPasswordHash(database, options);
   if (passwordHash) return passwordHash;
 
-  throw new Error(
-    `${contextMessage} Set ${BOOTSTRAP_ADMIN_PASSWORD_ENV} to a strong password and run setup.js again.`
-  );
+  throw new Error(`${contextMessage} Set ${BOOTSTRAP_ADMIN_PASSWORD_ENV} to a strong password and run setup.js again.`);
 }

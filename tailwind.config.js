@@ -2,13 +2,7 @@ import colors from "tailwindcss/colors";
 import primeui from "tailwindcss-primeui";
 
 export default {
-  content: [
-    "./components/**/*.{js,vue,ts}",
-    "./layouts/**/*.vue",
-    "./pages/**/*.vue",
-    "./plugins/**/*.{js,ts}",
-    "./app.vue",
-  ],
+  content: ["./components/**/*.{js,vue,ts}", "./layouts/**/*.vue", "./pages/**/*.vue", "./plugins/**/*.{js,ts}", "./app.vue"],
   darkMode: "class",
   theme: {
     extend: {

@@ -17,10 +17,7 @@ export async function fetchStaffData(store: StaffStoreContext): Promise<void> {
   }
 }
 
-export async function createStaffRecord(
-  store: StaffStoreContext,
-  data: StaffCreateDTO
-): Promise<Staff> {
+export async function createStaffRecord(store: StaffStoreContext, data: StaffCreateDTO): Promise<Staff> {
   const newStaff = await $fetch<Staff>("/api/staff", {
     method: "POST",
     body: data,
@@ -31,11 +28,7 @@ export async function createStaffRecord(
   return newStaff;
 }
 
-export async function updateStaffRecord(
-  store: StaffStoreContext,
-  id: number,
-  data: StaffUpdateDTO
-): Promise<Staff | null> {
+export async function updateStaffRecord(store: StaffStoreContext, id: number, data: StaffUpdateDTO): Promise<Staff | null> {
   const updated = await $fetch<Staff>(`/api/staff/${id}`, {
     method: "PATCH",
     body: data,
@@ -50,10 +43,7 @@ export async function updateStaffRecord(
   return updated;
 }
 
-export async function deleteStaffRecord(
-  store: StaffStoreContext,
-  id: number
-): Promise<boolean> {
+export async function deleteStaffRecord(store: StaffStoreContext, id: number): Promise<boolean> {
   await $fetch(`/api/staff/${id}`, {
     method: "DELETE",
     headers: getDataStoreCsrfHeaders(),
@@ -64,10 +54,7 @@ export async function deleteStaffRecord(
   return true;
 }
 
-export async function toggleStaffActiveStatus(
-  store: StaffStoreContext,
-  id: number
-): Promise<void> {
+export async function toggleStaffActiveStatus(store: StaffStoreContext, id: number): Promise<void> {
   const staff = store.getStaffById(id);
   if (!staff) return;
 

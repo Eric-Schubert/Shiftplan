@@ -33,9 +33,8 @@ function maxAttempts(bucket: AttemptBucket): number {
 }
 
 function readAttempts(key: string): PersistedAttempts | undefined {
-  return getAdminDatabase()
-    .prepare("SELECT count, first_attempt, blocked_until FROM login_rate_limits WHERE ip = ?")
-    .get(key) as PersistedAttempts | undefined;
+  return getAdminDatabase().prepare("SELECT count, first_attempt, blocked_until FROM login_rate_limits WHERE ip = ?").get(key) as
+    PersistedAttempts | undefined;
 }
 
 /**
@@ -74,13 +73,13 @@ export function settleAttempt(buckets: AttemptBucket[], succeeded: boolean): voi
       if (succeeded && bucket.resetOnSuccess) {
         db.prepare("DELETE FROM login_rate_limits WHERE ip = ?").run(bucket.key);
       } else if (succeeded) {
-        db.prepare(
-          "UPDATE login_rate_limits SET count = MAX(count - 1, 0) WHERE ip = ? AND blocked_until IS NULL"
-        ).run(bucket.key);
+        db.prepare("UPDATE login_rate_limits SET count = MAX(count - 1, 0) WHERE ip = ? AND blocked_until IS NULL").run(bucket.key);
       } else {
-        db.prepare(
-          "UPDATE login_rate_limits SET blocked_until = ? WHERE ip = ? AND blocked_until IS NULL AND count >= ?"
-        ).run(blockedUntil, bucket.key, maxAttempts(bucket));
+        db.prepare("UPDATE login_rate_limits SET blocked_until = ? WHERE ip = ? AND blocked_until IS NULL AND count >= ?").run(
+          blockedUntil,
+          bucket.key,
+          maxAttempts(bucket)
+        );
       }
     }
   })();

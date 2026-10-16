@@ -19,12 +19,7 @@ export default {
         "expires_at",
         "last_activity",
       ]) ||
-      hasMissingColumns(database, "login_rate_limits", [
-        "ip",
-        "count",
-        "first_attempt",
-        "blocked_until",
-      ]) ||
+      hasMissingColumns(database, "login_rate_limits", ["ip", "count", "first_attempt", "blocked_until"]) ||
       !indexExists(database, "idx_auth_sessions_expires_at") ||
       !indexExists(database, "idx_login_rate_limits_blocked_until")
     );
@@ -50,9 +45,7 @@ export default {
     addColumnIfMissing(database, "auth_sessions", "created_at", "INTEGER NOT NULL DEFAULT 0");
     addColumnIfMissing(database, "auth_sessions", "expires_at", "INTEGER NOT NULL DEFAULT 0");
     addColumnIfMissing(database, "auth_sessions", "last_activity", "INTEGER NOT NULL DEFAULT 0");
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at)");
 
     database.exec(`
         CREATE TABLE IF NOT EXISTS login_rate_limits (
@@ -66,8 +59,6 @@ export default {
     addColumnIfMissing(database, "login_rate_limits", "count", "INTEGER NOT NULL DEFAULT 0");
     addColumnIfMissing(database, "login_rate_limits", "first_attempt", "INTEGER NOT NULL DEFAULT 0");
     addColumnIfMissing(database, "login_rate_limits", "blocked_until", "INTEGER");
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_login_rate_limits_blocked_until ON login_rate_limits(blocked_until)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_login_rate_limits_blocked_until ON login_rate_limits(blocked_until)");
   },
 };

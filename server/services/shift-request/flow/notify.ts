@@ -36,15 +36,7 @@ export async function notify(task: Promise<unknown>): Promise<void> {
 }
 
 /** Push to the given staff with a link to the requests view, on each device in its language. */
-export function notifyStaff(
-  staffIds: number[],
-  request: ShiftRequest,
-  text: RequestText,
-  name: string,
-  note?: string | null
-): Promise<void> {
+export function notifyStaff(staffIds: number[], request: ShiftRequest, text: RequestText, name: string, note?: string | null): Promise<void> {
   const render = requestText(request, text, name, note);
-  return notify(
-    PushService.sendToStaff(staffIds, (locale) => ({ ...render(locale), url: REQUESTS_URL, kind: "requests" }))
-  );
+  return notify(PushService.sendToStaff(staffIds, (locale) => ({ ...render(locale), url: REQUESTS_URL, kind: "requests" })));
 }

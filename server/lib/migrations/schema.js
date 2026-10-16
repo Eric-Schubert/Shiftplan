@@ -7,9 +7,7 @@
  * @param {string} table
  */
 export function tableExists(database, table) {
-  const row = database
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-    .get(table);
+  const row = database.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
   return Boolean(row);
 }
 
@@ -18,9 +16,7 @@ export function tableExists(database, table) {
  * @param {string} index
  */
 export function indexExists(database, index) {
-  const row = database
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
-    .get(index);
+  const row = database.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get(index);
   return Boolean(row);
 }
 

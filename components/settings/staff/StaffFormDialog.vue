@@ -77,11 +77,7 @@ async function saveStaff() {
     <div class="space-y-4">
       <div class="flex flex-col gap-2">
         <label for="staff-name" class="font-medium">{{ t("validation.fields.name") }}</label>
-        <PrimeInputText
-          id="staff-name"
-          v-model="form.name"
-          :placeholder="t('settings.staff.form.namePlaceholder')"
-        />
+        <PrimeInputText id="staff-name" v-model="form.name" :placeholder="t('settings.staff.form.namePlaceholder')" />
       </div>
 
       <div class="flex flex-col gap-2">
@@ -97,13 +93,7 @@ async function saveStaff() {
       </div>
 
       <div class="flex items-center gap-2">
-        <PrimeCheckbox
-          v-model="form.is_parttime"
-          input-id="parttime"
-          :binary="true"
-          :true-value="1"
-          :false-value="0"
-        />
+        <PrimeCheckbox v-model="form.is_parttime" input-id="parttime" :binary="true" :true-value="1" :false-value="0" />
         <label for="parttime">{{ t("settings.staff.partTime") }}</label>
       </div>
 

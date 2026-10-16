@@ -15,10 +15,7 @@ export async function fetchRotationData(store: RotationStoreContext): Promise<vo
   }
 }
 
-export async function updateRotationConfigData(
-  store: RotationStoreContext,
-  data: Partial<RotationConfig>
-): Promise<void> {
+export async function updateRotationConfigData(store: RotationStoreContext, data: Partial<RotationConfig>): Promise<void> {
   await $fetch("/api/rotation/config", {
     method: "PATCH",
     body: data,
@@ -28,12 +25,7 @@ export async function updateRotationConfigData(
   await fetchRotationData(store);
 }
 
-export async function assignToRotationData(
-  store: RotationStoreContext,
-  patternWeek: number,
-  staffId: number,
-  shiftId: number
-): Promise<void> {
+export async function assignToRotationData(store: RotationStoreContext, patternWeek: number, staffId: number, shiftId: number): Promise<void> {
   await $fetch("/api/rotation/assign", {
     method: "POST",
     body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },
@@ -43,12 +35,7 @@ export async function assignToRotationData(
   await fetchRotationData(store);
 }
 
-export async function unassignFromRotationData(
-  store: RotationStoreContext,
-  patternWeek: number,
-  staffId: number,
-  shiftId: number
-): Promise<void> {
+export async function unassignFromRotationData(store: RotationStoreContext, patternWeek: number, staffId: number, shiftId: number): Promise<void> {
   await $fetch("/api/rotation/unassign", {
     method: "POST",
     body: { pattern_week: patternWeek, staff_id: staffId, shift_id: shiftId },

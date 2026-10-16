@@ -9,12 +9,6 @@ const value = defineModel<string>({ required: true });
     <label :for="inputId" class="block text-sm font-medium text-[var(--text-2)]">
       {{ label }}
     </label>
-    <PrimeInputText
-      v-model="value"
-      :id="inputId"
-      type="password"
-      :placeholder="placeholder"
-      :aria-describedby="describedBy"
-    />
+    <PrimeInputText v-model="value" :id="inputId" type="password" :placeholder="placeholder" :aria-describedby="describedBy" />
   </div>
 </template>

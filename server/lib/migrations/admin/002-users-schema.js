@@ -47,14 +47,8 @@ export default {
 
     const missingPasswordHashCount = getMissingPasswordHashCount(database);
     if (missingPasswordHashCount > 0) {
-      const fallbackPasswordHash = requireBootstrapPasswordHash(
-        database,
-        options,
-        "Some users have no password hash."
-      );
-      database
-        .prepare("UPDATE users SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''")
-        .run(fallbackPasswordHash);
+      const fallbackPasswordHash = requireBootstrapPasswordHash(database, options, "Some users have no password hash.");
+      database.prepare("UPDATE users SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''").run(fallbackPasswordHash);
     }
 
     database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)");

@@ -76,9 +76,10 @@ export const TeamAccessService = {
 
     const normalized = normalizeCode(code);
     db.transaction(() => {
-      db.prepare(
-        "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-      ).run(ACCESS_CODE_SETTING, normalized);
+      db.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(
+        ACCESS_CODE_SETTING,
+        normalized
+      );
       db.prepare("DELETE FROM viewer_sessions").run();
       db.prepare("DELETE FROM push_subscriptions WHERE member_session IS NULL").run();
       db.prepare("DELETE FROM push_devices WHERE member_session IS NULL").run();
@@ -105,9 +106,6 @@ export const TeamAccessService = {
     if (!this.isCodeRequired()) return true;
     if (getSessionData(getSessionToken(event))) return true;
     if (MemberAccessService.getMember(event)) return true;
-    return (
-      this.validateViewerSession(getBearerToken(event)) ||
-      this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME))
-    );
+    return this.validateViewerSession(getBearerToken(event)) || this.validateViewerSession(getCookie(event, VIEWER_COOKIE_NAME));
   },
 };

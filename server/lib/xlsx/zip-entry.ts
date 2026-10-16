@@ -1,11 +1,7 @@
 import { Buffer } from "node:buffer";
 import { inflateRawSync } from "node:zlib";
 import { XlsxError } from "./error";
-import {
-  MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE,
-  MAX_ZIP_EXPANSION_RATIO,
-  MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE,
-} from "./limits";
+import { MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE, MAX_ZIP_EXPANSION_RATIO, MAX_ZIP_TOTAL_UNCOMPRESSED_SIZE } from "./limits";
 
 export type ParsedZipEntry = {
   method: number;
@@ -14,11 +10,7 @@ export type ParsedZipEntry = {
   localHeaderOffset: number;
 };
 
-export function validateZipEntry(
-  name: string,
-  entry: ParsedZipEntry,
-  totalUncompressedSize: number
-): number {
+export function validateZipEntry(name: string, entry: ParsedZipEntry, totalUncompressedSize: number): number {
   if (entry.uncompressedSize > MAX_ZIP_ENTRY_UNCOMPRESSED_SIZE) {
     throw new XlsxError("excel.file.entryTooLarge", { name });
   }
@@ -33,10 +25,7 @@ export function validateZipEntry(
       throw new XlsxError("excel.file.entryInvalid", { name });
     }
 
-    if (
-      entry.compressedSize > 0 &&
-      entry.uncompressedSize / entry.compressedSize > MAX_ZIP_EXPANSION_RATIO
-    ) {
+    if (entry.compressedSize > 0 && entry.uncompressedSize / entry.compressedSize > MAX_ZIP_EXPANSION_RATIO) {
       throw new XlsxError("excel.file.entryExpands", { name });
     }
   }

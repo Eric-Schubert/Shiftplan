@@ -12,9 +12,7 @@ onMounted(() => {
   }
 });
 
-const visible = computed(
-  () => !dismissed.value && (state.value === "off" || state.value === "needs-install")
-);
+const visible = computed(() => !dismissed.value && (state.value === "off" || state.value === "needs-install"));
 
 function dismiss() {
   dismissed.value = true;

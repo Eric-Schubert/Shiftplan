@@ -18,8 +18,6 @@ describe("file length check", () => {
       "d.md": long,
     };
 
-    expect(findLongFiles(Object.keys(contents), (file: string) => contents[file] ?? "")).toEqual([
-      { file: "a.vue", lines: MAX_LINES + 1 },
-    ]);
+    expect(findLongFiles(Object.keys(contents), (file: string) => contents[file] ?? "")).toEqual([{ file: "a.vue", lines: MAX_LINES + 1 }]);
   });
 });

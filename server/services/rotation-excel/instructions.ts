@@ -30,9 +30,7 @@ function exampleText({ locale, config, calendarWeeks, example }: InstructionInpu
   const { name, values } = example;
   const tag = localeTag(locale);
   const shown = (value: string | undefined) =>
-    value
-      ? t(locale, "excelTemplate.instructions.example.quoted", { shift: value })
-      : t(locale, "excelTemplate.instructions.example.nothing");
+    value ? t(locale, "excelTemplate.instructions.example.quoted", { shift: value }) : t(locale, "excelTemplate.instructions.example.nothing");
   const worked = (value: string | undefined) => value || t(locale, "excel.labels.free");
   // Pattern week 2 right after the next pattern week 1, so the example reads forward in time.
   const order = (entry: ISOWeek) => entry.year * 100 + entry.week;
@@ -85,10 +83,7 @@ export function createInstructionRows(input: InstructionInput): XlsxCell[][] {
     value,
   ];
   const item = (name: Item, params?: MessageParams) => labeled(name, text(`excelTemplate.instructions.${name}.text`, params));
-  const twoShifts =
-    shiftNames.length >= 2
-      ? shiftNames.slice(0, 2)
-      : [text("excelTemplate.example.early"), text("excelTemplate.example.late")];
+  const twoShifts = shiftNames.length >= 2 ? shiftNames.slice(0, 2) : [text("excelTemplate.example.early"), text("excelTemplate.example.late")];
 
   return [
     [{ value: text("excelTemplate.instructions.title"), style: "title" }],

@@ -9,17 +9,13 @@ const EXCEL_IMPORT_PATH = "/api/rotation/excel-import";
 const PAYLOAD_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 export function getBodyLimit(path: string): number {
-  return path === EXCEL_IMPORT_PATH
-    ? getRotationValidationConfig().excelImportMaxBytes + MULTIPART_OVERHEAD_BYTES
-    : MAX_BODY_BYTES;
+  return path === EXCEL_IMPORT_PATH ? getRotationValidationConfig().excelImportMaxBytes + MULTIPART_OVERHEAD_BYTES : MAX_BODY_BYTES;
 }
 
 // The Excel import shows this message as is, so it keeps the wording of the handler's own check.
 function tooLarge(event: H3Event, path: string) {
   const excelMegabytes = Math.floor(getRotationValidationConfig().excelImportMaxBytes / 1024 / 1024);
-  return path === EXCEL_IMPORT_PATH
-    ? apiError(event, 413, "excel.fileTooLarge", { mb: excelMegabytes })
-    : apiError(event, 413, "errors.common.tooLarge");
+  return path === EXCEL_IMPORT_PATH ? apiError(event, 413, "excel.fileTooLarge", { mb: excelMegabytes }) : apiError(event, 413, "errors.common.tooLarge");
 }
 
 /** Buffers a chunked body up to the limit. Beyond it the rest is discarded, never kept. */

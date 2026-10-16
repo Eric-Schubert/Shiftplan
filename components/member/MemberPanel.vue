@@ -39,9 +39,7 @@ async function act(request: ShiftRequest, action: RequestAction) {
       method: "POST",
       body: { action },
     });
-    notice.value = t(
-      NOTICES[action] ?? (result.request.status === "pending_approval" ? "requests.notice.accepted" : "requests.notice.done")
-    );
+    notice.value = t(NOTICES[action] ?? (result.request.status === "pending_approval" ? "requests.notice.accepted" : "requests.notice.done"));
     await refresh();
     emit("updated");
   } catch (cause: any) {
@@ -54,11 +52,7 @@ async function act(request: ShiftRequest, action: RequestAction) {
 
 async function onAbsence(result: { notified: boolean; takeovers: boolean }) {
   notice.value = t(
-    result.takeovers
-      ? "absence.member.reported.takeovers"
-      : result.notified
-        ? "absence.member.reported.notified"
-        : "absence.member.reported.plain"
+    result.takeovers ? "absence.member.reported.takeovers" : result.notified ? "absence.member.reported.notified" : "absence.member.reported.plain"
   );
   await refresh();
   emit("updated");

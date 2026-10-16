@@ -67,12 +67,7 @@ async function createUser() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    modal
-    :header="t('settings.users.create')"
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" modal :header="t('settings.users.create')" :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <form :id="formId" class="space-y-4" @submit.prevent="createUser">
       <div>
         <label for="create-username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -131,14 +126,7 @@ async function createUser() {
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text @click="dialogVisible = false" />
-      <PrimeButton
-        type="submit"
-        :form="formId"
-        :label="t('common.actions.create')"
-        icon="pi pi-check"
-        class="min-h-11"
-        :loading="creating"
-      />
+      <PrimeButton type="submit" :form="formId" :label="t('common.actions.create')" icon="pi pi-check" class="min-h-11" :loading="creating" />
     </template>
   </PrimeDialog>
 </template>

@@ -7,13 +7,7 @@ import type { RotationConfig } from "~/types/rotation";
 import { badRequest, normalizeName } from "~/server/services/rotation-excel/cells";
 import { ROTATION_SHEET_NAMES } from "~/server/services/rotation-excel/labels";
 import { makeNameLookup } from "~/server/services/rotation-excel/lookup";
-import {
-  readGridRows,
-  readListRows,
-  type Lookups,
-  type ReadContext,
-  type RotationExcelEntry,
-} from "~/server/services/rotation-excel/rows";
+import { readGridRows, readListRows, type Lookups, type ReadContext, type RotationExcelEntry } from "~/server/services/rotation-excel/rows";
 import { findGridColumns, findHeaderColumns, parseConfig } from "~/server/services/rotation-excel/sheet";
 
 export type RotationExcelImportResult = {
@@ -25,14 +19,9 @@ export type RotationExcelImportResult = {
 };
 
 /** Reads a filled template and replaces the pattern; with dryRun it only validates and counts. */
-export function importRotationTemplate(
-  fileData: Buffer,
-  options: { dryRun?: boolean } = {}
-): RotationExcelImportResult {
+export function importRotationTemplate(fileData: Buffer, options: { dryRun?: boolean } = {}): RotationExcelImportResult {
   const workbook = parseXlsx(fileData);
-  const rotationSheet =
-    workbook.sheets.find((sheet) => ROTATION_SHEET_NAMES.includes(normalizeName(sheet.name))) ||
-    workbook.sheets[0];
+  const rotationSheet = workbook.sheets.find((sheet) => ROTATION_SHEET_NAMES.includes(normalizeName(sheet.name))) || workbook.sheets[0];
 
   if (!rotationSheet) {
     badRequest("excel.noSheet");

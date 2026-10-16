@@ -13,17 +13,14 @@ export default defineEventHandler(async (event) => {
   const body = await readJsonBody<{ shortCode: unknown; pin: unknown; deviceName: unknown; client: unknown }>(event);
   const shortCode = typeof body?.shortCode === "string" ? normalizeShortCode(body.shortCode).slice(0, 8) : "";
   const pin = typeof body?.pin === "string" ? body.pin.trim().slice(0, 64) : "";
-  const deviceName =
-    typeof body?.deviceName === "string" ? body.deviceName.trim().slice(0, DEVICE_NAME_MAX_LENGTH) || null : null;
+  const deviceName = typeof body?.deviceName === "string" ? body.deviceName.trim().slice(0, DEVICE_NAME_MAX_LENGTH) || null : null;
 
   // The network bucket brakes guessing; the wider short-code bucket caps guessing from many networks.
   const buckets: AttemptBucket[] = [{ key: `member-pin:${getClientNetwork(event)}` }];
   if (shortCode) {
     buckets.push({ key: `member-pin-code:${shortCode}`, factor: SHORT_CODE_ATTEMPTS_FACTOR, resetOnSuccess: true });
   }
-  const result = await limitAttempt(event, buckets, () =>
-    shortCode && pin ? MemberAccessService.loginWithPin(shortCode, pin, deviceName) : null
-  );
+  const result = await limitAttempt(event, buckets, () => (shortCode && pin ? MemberAccessService.loginWithPin(shortCode, pin, deviceName) : null));
   if (!result) {
     throw apiError(event, 401, "errors.member.loginFailed");
   }

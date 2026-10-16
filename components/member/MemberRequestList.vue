@@ -16,23 +16,22 @@ const { t } = useI18n();
 const openTakeovers = computed(() =>
   props.requests.filter((r) => r.kind === "takeover" && r.status === "open" && r.requester_staff_id !== props.memberId)
 );
-const swapsForMe = computed(() =>
-  props.requests.filter((r) => r.kind === "swap" && r.status === "open" && r.partner_staff_id === props.memberId)
-);
+const swapsForMe = computed(() => props.requests.filter((r) => r.kind === "swap" && r.status === "open" && r.partner_staff_id === props.memberId));
 const undoForMe = computed(() =>
   props.requests.filter((r) => r.status === "done" && r.undo_requested_by !== null && r.undo_requested_by !== props.memberId)
 );
 const mine = computed(() =>
   props.requests.filter(
-    (r) => !openTakeovers.value.includes(r) && !swapsForMe.value.includes(r) && !undoForMe.value.includes(r) &&
+    (r) =>
+      !openTakeovers.value.includes(r) &&
+      !swapsForMe.value.includes(r) &&
+      !undoForMe.value.includes(r) &&
       (r.requester_staff_id === props.memberId || r.partner_staff_id === props.memberId)
   )
 );
 
 function title(request: ShiftRequest): string {
-  return request.kind === "takeover"
-    ? `${request.requester_name} · ${request.shift_name}`
-    : `${request.requester_name} ↔ ${request.partner_name ?? "?"}`;
+  return request.kind === "takeover" ? `${request.requester_name} · ${request.shift_name}` : `${request.requester_name} ↔ ${request.partner_name ?? "?"}`;
 }
 
 function detail(request: ShiftRequest): string {
@@ -56,8 +55,20 @@ function ownAction(request: ShiftRequest): { label: MessageKey; action: RequestA
         <p class="text-[var(--text-2)]">{{ t("requests.list.undoDetail", { period: formatRequestPeriod(localeTag, request) }) }}</p>
       </div>
       <div class="flex gap-1.5">
-        <PrimeButton :label="t('common.actions.decline')" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline_undo')" />
-        <PrimeButton :label="t('requests.list.confirmUndo')" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'confirm_undo')" />
+        <PrimeButton
+          :label="t('common.actions.decline')"
+          size="small"
+          text
+          :disabled="busy === request.request_id"
+          @click="emit('act', request, 'decline_undo')"
+        />
+        <PrimeButton
+          :label="t('requests.list.confirmUndo')"
+          size="small"
+          class="min-h-9"
+          :loading="busy === request.request_id"
+          @click="emit('act', request, 'confirm_undo')"
+        />
       </div>
     </div>
   </div>
@@ -83,8 +94,20 @@ function ownAction(request: ShiftRequest): { label: MessageKey; action: RequestA
         <p v-if="request.message" class="italic text-[var(--text-3)]">{{ request.message }}</p>
       </div>
       <div class="flex gap-1.5">
-        <PrimeButton :label="t('common.actions.decline')" size="small" text :disabled="busy === request.request_id" @click="emit('act', request, 'decline')" />
-        <PrimeButton :label="t('requests.list.accept')" size="small" class="min-h-9" :loading="busy === request.request_id" @click="emit('act', request, 'accept')" />
+        <PrimeButton
+          :label="t('common.actions.decline')"
+          size="small"
+          text
+          :disabled="busy === request.request_id"
+          @click="emit('act', request, 'decline')"
+        />
+        <PrimeButton
+          :label="t('requests.list.accept')"
+          size="small"
+          class="min-h-9"
+          :loading="busy === request.request_id"
+          @click="emit('act', request, 'accept')"
+        />
       </div>
     </div>
   </div>

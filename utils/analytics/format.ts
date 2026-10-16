@@ -17,11 +17,7 @@ function countryName(locale: string, countryCode: string | null): string | null 
 
 /** City, region and country, or null when the location is unknown. */
 export function formatLocation(locale: string, location: AnalyticsLocationMetric): string | null {
-  const parts = [
-    location.city,
-    location.region,
-    countryName(locale, location.countryCode) || location.countryCode,
-  ].filter(Boolean);
+  const parts = [location.city, location.region, countryName(locale, location.countryCode) || location.countryCode].filter(Boolean);
 
   return parts.length > 0 ? parts.join(", ") : null;
 }

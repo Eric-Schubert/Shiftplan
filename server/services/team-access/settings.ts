@@ -9,9 +9,7 @@ const INSTANCE_ID_SETTING = "instance_uid";
 const NEXT_WEEK_FROM_SATURDAY_SETTING = "next_week_from_saturday";
 
 export function getSetting(key: string): string | null {
-  const row = getAdminDatabase()
-    .prepare("SELECT value FROM settings WHERE key = ?")
-    .get(key) as { value: string } | undefined;
+  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(key) as { value: string } | undefined;
   return row?.value || null;
 }
 
@@ -21,9 +19,7 @@ export function getInstanceId(): string {
   if (existing) return existing;
 
   const id = randomBytes(12).toString("base64url");
-  getAdminDatabase()
-    .prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)")
-    .run(INSTANCE_ID_SETTING, id);
+  getAdminDatabase().prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run(INSTANCE_ID_SETTING, id);
   return getSetting(INSTANCE_ID_SETTING)!;
 }
 
@@ -37,9 +33,7 @@ export function getInstanceName(locale: string = instanceLocale()): string {
 
 export function setInstanceName(name: string): void {
   getAdminDatabase()
-    .prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    )
+    .prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
     .run(INSTANCE_NAME_SETTING, name);
 }
 
@@ -50,17 +44,13 @@ export function getNextWeekFromSaturday(): boolean {
 
 export function setNextWeekFromSaturday(enabled: boolean): void {
   getAdminDatabase()
-    .prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    )
+    .prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
     .run(NEXT_WEEK_FROM_SATURDAY_SETTING, enabled ? "1" : "0");
 }
 
 /** The instance's language; instanceLocale() in server/utils/locale.ts reads it for every feature. */
 export function setInstanceLocale(locale: AppLocale): void {
   getAdminDatabase()
-    .prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    )
+    .prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
     .run(INSTANCE_LOCALE_SETTING, locale);
 }

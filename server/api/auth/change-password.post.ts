@@ -3,11 +3,7 @@ import { getSessionUser } from "~/server/utils/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { isDemoAccount } from "~/server/utils/demo";
 import { deleteUserSessions, getSessionToken, limitAttempt } from "~/server/utils/session";
-import {
-  getMaxPasswordLength,
-  getPasswordHashCost,
-  passwordPolicyError,
-} from "~/server/config/auth-config";
+import { getMaxPasswordLength, getPasswordHashCost, passwordPolicyError } from "~/server/config/auth-config";
 import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
@@ -36,9 +32,8 @@ export default defineEventHandler(async (event) => {
   if (weakPassword) throw weakPassword;
 
   const db = getAdminDatabase();
-  const user = db
-    .prepare("SELECT password_hash FROM users WHERE user_id = ? AND active = 1")
-    .get(currentUser.userId) as { password_hash: string } | undefined;
+  const user = db.prepare("SELECT password_hash FROM users WHERE user_id = ? AND active = 1").get(currentUser.userId) as
+    { password_hash: string } | undefined;
 
   if (!user) {
     throw apiError(event, 401, "errors.auth.loginRequired");

@@ -47,7 +47,9 @@ watch(
       <span class="font-normal text-[var(--text-3)]">{{ t("settings.wizard.excel.optional") }}</span>
     </p>
     <i18n-t keypath="settings.wizard.excel.intro" tag="p" class="mt-1 max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">
-      <template #next><strong>{{ t("common.actions.next") }}</strong></template>
+      <template #next
+        ><strong>{{ t("common.actions.next") }}</strong></template
+      >
     </i18n-t>
     <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
       <li v-for="step in HOW_TO" :key="step">{{ t(step) }}</li>
@@ -88,27 +90,12 @@ watch(
         }}
       </p>
       <div class="mt-3 flex flex-wrap gap-2">
-        <PrimeButton
-          :label="t('settings.wizard.excel.replace')"
-          icon="pi pi-check"
-          class="min-h-11"
-          :loading="importing"
-          @click="emit('confirm')"
-        />
-        <PrimeButton
-          :label="t('common.actions.cancel')"
-          severity="secondary"
-          text
-          class="min-h-11"
-          @click="emit('cancel')"
-        />
+        <PrimeButton :label="t('settings.wizard.excel.replace')" icon="pi pi-check" class="min-h-11" :loading="importing" @click="emit('confirm')" />
+        <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text class="min-h-11" @click="emit('cancel')" />
       </div>
     </div>
 
-    <p
-      v-if="error"
-      class="mt-4 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]"
-    >
+    <p v-if="error" class="mt-4 rounded-xl bg-[var(--danger-soft)] px-4 py-3 text-sm text-[var(--danger-ink)]">
       {{ error }}
     </p>
   </div>

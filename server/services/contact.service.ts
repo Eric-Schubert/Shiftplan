@@ -35,17 +35,12 @@ function normalizeStoredText(value: string | undefined, maxLength: number): stri
 
 function getContactSalt(): string {
   const db = getAdminDatabase();
-  const existing = db
-    .prepare("SELECT value FROM settings WHERE key = ?")
-    .get(CONTACT_SALT_KEY) as { value: string } | undefined;
+  const existing = db.prepare("SELECT value FROM settings WHERE key = ?").get(CONTACT_SALT_KEY) as { value: string } | undefined;
 
   if (existing?.value) return existing.value;
 
   const salt = randomBytes(32).toString("hex");
-  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(
-    CONTACT_SALT_KEY,
-    salt
-  );
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(CONTACT_SALT_KEY, salt);
   return salt;
 }
 
@@ -112,9 +107,7 @@ export class ContactService {
     const limit = normalizeLimit(options?.limit);
     const offset = normalizeOffset(options?.offset);
 
-    const total = db
-      .prepare("SELECT COUNT(*) AS count FROM contact_messages")
-      .get() as { count: number };
+    const total = db.prepare("SELECT COUNT(*) AS count FROM contact_messages").get() as { count: number };
 
     const messages = db
       .prepare(

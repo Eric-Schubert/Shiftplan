@@ -52,11 +52,9 @@ export async function inviteAndRedeem(staffId: number, deviceName = "iPhone von 
     body: { staffId },
   });
   expect(invite.status).toBe(200);
-  const redeem = await client.request<{ token: string; staff: { id: number; name: string } }>(
-    "POST",
-    "/api/member/redeem",
-    { body: { code: invite.json!.code, deviceName } }
-  );
+  const redeem = await client.request<{ token: string; staff: { id: number; name: string } }>("POST", "/api/member/redeem", {
+    body: { code: invite.json!.code, deviceName },
+  });
   expect(redeem.status).toBe(200);
   return { code: invite.json!.code, path: invite.json!.path, token: redeem.json!.token, staff: redeem.json!.staff };
 }
@@ -68,7 +66,10 @@ export async function teamMessage(planner: CookieJar) {
   await client.request("POST", "/api/push/notify", { jar: planner, csrf: true, body: { message: "Wer kann Samstag?" } });
   return {
     browsers: sendNotification.mock.calls.map(([subscription]) => subscription.endpoint),
-    apps: relayCalls.filter((call) => call.url.endsWith("/v1/send")).flatMap((call) => call.body.tokens).sort(),
+    apps: relayCalls
+      .filter((call) => call.url.endsWith("/v1/send"))
+      .flatMap((call) => call.body.tokens)
+      .sort(),
   };
 }
 

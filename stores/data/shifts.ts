@@ -17,10 +17,7 @@ export async function fetchShiftsData(store: ShiftStoreContext): Promise<void> {
   }
 }
 
-export async function createShiftRecord(
-  store: ShiftStoreContext,
-  data: ShiftCreateDTO
-): Promise<Shift> {
+export async function createShiftRecord(store: ShiftStoreContext, data: ShiftCreateDTO): Promise<Shift> {
   const newShift = await $fetch<Shift>("/api/shift", {
     method: "POST",
     body: data,
@@ -32,11 +29,7 @@ export async function createShiftRecord(
   return newShift;
 }
 
-export async function updateShiftRecord(
-  store: ShiftStoreContext,
-  id: number,
-  data: ShiftUpdateDTO
-): Promise<Shift | null> {
+export async function updateShiftRecord(store: ShiftStoreContext, id: number, data: ShiftUpdateDTO): Promise<Shift | null> {
   const updated = await $fetch<Shift>(`/api/shift/${id}`, {
     method: "PATCH",
     body: data,
@@ -55,10 +48,7 @@ export async function updateShiftRecord(
   return updated;
 }
 
-export async function deleteShiftRecord(
-  store: ShiftStoreContext,
-  id: number
-): Promise<boolean> {
+export async function deleteShiftRecord(store: ShiftStoreContext, id: number): Promise<boolean> {
   await $fetch(`/api/shift/${id}`, {
     method: "DELETE",
     headers: getDataStoreCsrfHeaders(),
@@ -69,10 +59,7 @@ export async function deleteShiftRecord(
   return true;
 }
 
-export async function toggleShiftActiveStatus(
-  store: ShiftStoreContext,
-  id: number
-): Promise<void> {
+export async function toggleShiftActiveStatus(store: ShiftStoreContext, id: number): Promise<void> {
   const shift = store.getShiftById(id);
   if (!shift) return;
 

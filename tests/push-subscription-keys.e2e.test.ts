@@ -36,9 +36,7 @@ describe("push subscription keys", () => {
 
   it("drops stored subscriptions whose keys can never work", async () => {
     await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
-    client.adminDb
-      .prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth) VALUES (?, 'AAAA', ?)")
-      .run(APPLE_ENDPOINT, KEYS.auth);
+    client.adminDb.prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth) VALUES (?, 'AAAA', ?)").run(APPLE_ENDPOINT, KEYS.auth);
     sendNotification.mockImplementation(async (subscription: { keys: { p256dh: string } }) => {
       if (subscription.keys.p256dh === "AAAA") throw new Error("The subscription p256dh value should be 65 bytes long.");
       return { statusCode: 201 };
@@ -65,8 +63,9 @@ describe("push subscription keys", () => {
     });
 
     await client.push.PushService.sendWebPush({ title: "Test", body: "Test", url: "/" });
-    const left = (client.adminDb.prepare("SELECT endpoint FROM push_subscriptions ORDER BY endpoint").all() as Array<{ endpoint: string }>)
-      .map((row) => row.endpoint.split("/").at(-1));
+    const left = (client.adminDb.prepare("SELECT endpoint FROM push_subscriptions ORDER BY endpoint").all() as Array<{ endpoint: string }>).map((row) =>
+      row.endpoint.split("/").at(-1)
+    );
 
     expect(left).toEqual(["413", "500", "ok"]);
   });

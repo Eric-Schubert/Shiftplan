@@ -38,29 +38,21 @@ export function serviceFeature(file) {
   return /^server\/services\/([^/]+?)(?:\.service)?(?:\.[cm]?[jt]s)?(?:\/|$)/.exec(file ?? "")?.[1] ?? null;
 }
 
-const isFacade = (file, feature) =>
-  file === `server/services/${feature}.service.ts` || file === `server/services/${feature}/index.ts`;
+const isFacade = (file, feature) => file === `server/services/${feature}.service.ts` || file === `server/services/${feature}/index.ts`;
 
 /**
  * [rule, (from, to, spec) => broken]. `to` is a repo path, or null for packages and virtual modules.
  * @type {Array<[string, (from: string, to: string | null, spec: string) => boolean]>}
  */
 export const RULES = [
-  [
-    "app code or types/ imports server code",
-    (from, to) => (APP_CODE.test(from) || inside(from, "types")) && inside(to, "server"),
-  ],
+  ["app code or types/ imports server code", (from, to) => (APP_CODE.test(from) || inside(from, "types")) && inside(to, "server")],
   ["server code imports app code", (from, to) => inside(from, "server") && APP_CODE.test(to ?? "")],
   // The SSR build keeps shared/ external and rewrites relative paths wrongly, and vitest only knows ~.
-  [
-    "imports shared/ without ~/shared/",
-    (from, to, spec) => !inside(from, "shared") && inside(to, "shared") && !spec.startsWith("~/shared/"),
-  ],
+  ["imports shared/ without ~/shared/", (from, to, spec) => !inside(from, "shared") && inside(to, "shared") && !spec.startsWith("~/shared/")],
   ["shared code imports outside shared/", (from, to) => inside(from, "shared") && !inside(to, "shared")],
   [
     "i18n code imports outside i18n/, shared/ or its packages",
-    (from, to, spec) =>
-      inside(from, "i18n") && (to === null ? !I18N_PACKAGES.has(spec) : !inside(to, "i18n") && !inside(to, "shared")),
+    (from, to, spec) => inside(from, "i18n") && (to === null ? !I18N_PACKAGES.has(spec) : !inside(to, "i18n") && !inside(to, "shared")),
   ],
   ["server/utils imports a service", (from, to) => inside(from, "server/utils") && inside(to, "server/services")],
   [

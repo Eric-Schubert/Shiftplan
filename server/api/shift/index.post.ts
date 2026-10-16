@@ -1,11 +1,6 @@
 import { ShiftService } from "~/server/services/shift.service";
 import { requireAdmin } from "~/server/utils/auth";
-import {
-  validateName,
-  validateTime,
-  validateColor,
-  validateInteger,
-} from "~/server/utils/validation";
+import { validateName, validateTime, validateColor, validateInteger } from "~/server/utils/validation";
 import { getShiftDefaults, getShiftValidationConfig } from "~/server/config/domain-config";
 
 export default defineEventHandler(async (event) => {

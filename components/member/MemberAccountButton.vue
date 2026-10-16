@@ -67,24 +67,11 @@ async function onSignedIn() {
 </script>
 
 <template>
-  <button
-    v-if="member"
-    type="button"
-    class="app-icon-button !px-2.5"
-    :title="t('member.account.signedInAs', { name: member.name })"
-    @click="openAccount"
-  >
+  <button v-if="member" type="button" class="app-icon-button !px-2.5" :title="t('member.account.signedInAs', { name: member.name })" @click="openAccount">
     <i class="pi pi-user text-[0.8rem]" aria-hidden="true"></i>
     <span class="max-w-[7rem] truncate text-[0.8125rem] font-medium">{{ member.name.split(" ")[0] }}</span>
   </button>
-  <button
-    v-else
-    type="button"
-    class="app-icon-button"
-    :title="t('member.login.title')"
-    :aria-label="t('member.login.title')"
-    @click="showLogin = true"
-  >
+  <button v-else type="button" class="app-icon-button" :title="t('member.login.title')" :aria-label="t('member.login.title')" @click="showLogin = true">
     <i class="pi pi-user text-[0.8rem]" aria-hidden="true"></i>
     <span class="hidden text-[0.8125rem] sm:inline">{{ t("common.actions.signIn") }}</span>
   </button>
@@ -106,7 +93,15 @@ async function onSignedIn() {
             {{ t("member.shortCode") }} <span class="font-mono font-semibold text-[var(--text-2)]">{{ member.shortCode ?? "–" }}</span>
           </p>
         </div>
-        <PrimeButton :label="t('common.actions.signOut')" icon="pi pi-sign-out" size="small" severity="secondary" outlined :loading="busy" @click="signOut" />
+        <PrimeButton
+          :label="t('common.actions.signOut')"
+          icon="pi pi-sign-out"
+          size="small"
+          severity="secondary"
+          outlined
+          :loading="busy"
+          @click="signOut"
+        />
       </div>
 
       <form class="space-y-3" @submit.prevent="savePin">

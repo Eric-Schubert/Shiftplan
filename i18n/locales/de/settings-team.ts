@@ -23,8 +23,7 @@ export default {
     remove: "Entfernen",
     first: "Code setzen",
     change: "Code ändern",
-    removeText:
-      "Der Schichtplan ist danach wieder für alle mit dem Link lesbar. Bestehende Benachrichtigungen bleiben aktiv.",
+    removeText: "Der Schichtplan ist danach wieder für alle mit dem Link lesbar. Bestehende Benachrichtigungen bleiben aktiv.",
     firstText:
       "Benachrichtigungen, die ohne persönlichen Zugang aktiviert wurden, werden gelöscht. Das Team gibt den Code einmal ein und aktiviert sie erneut. {keepsPersonal}",
     changeText:

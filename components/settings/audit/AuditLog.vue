@@ -59,14 +59,7 @@ onMounted(fetchEntries);
         {{ t("audit.empty") }}
       </div>
 
-      <SettingsPager
-        v-if="totalPages > 1"
-        :page="page"
-        :total-pages="totalPages"
-        class="dark:border-gray-700"
-        @prev="prevPage"
-        @next="nextPage"
-      >
+      <SettingsPager v-if="totalPages > 1" :page="page" :total-pages="totalPages" class="dark:border-gray-700" @prev="prevPage" @next="nextPage">
         <span class="text-sm text-gray-500">
           {{ t("audit.page", { page: page + 1, pages: totalPages, total }) }}
         </span>

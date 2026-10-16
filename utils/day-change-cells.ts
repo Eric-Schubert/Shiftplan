@@ -22,11 +22,7 @@ export function isCellPresent(
 }
 
 /** Drops saved cells once the refreshed day changes show the same; the others stay until theirs arrive. */
-export function pruneSaved(
-  saved: Record<string, boolean>,
-  assigned: Set<number>,
-  dayChanges: ShiftDayChange[]
-): Record<string, boolean> {
+export function pruneSaved(saved: Record<string, boolean>, assigned: Set<number>, dayChanges: ShiftDayChange[]): Record<string, boolean> {
   const left: Record<string, boolean> = {};
   for (const [key, present] of Object.entries(saved)) {
     const [staffId, ...date] = key.split("-");

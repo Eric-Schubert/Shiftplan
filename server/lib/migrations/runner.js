@@ -33,9 +33,7 @@ function ensureSchemaMigrationsTable(database) {
  */
 function recordMigration(database, migration) {
   database
-    .prepare(
-      "INSERT OR REPLACE INTO schema_migrations (id, description, applied_at) VALUES (?, ?, datetime('now'))"
-    )
+    .prepare("INSERT OR REPLACE INTO schema_migrations (id, description, applied_at) VALUES (?, ?, datetime('now'))")
     .run(migration.id, migration.description);
 }
 

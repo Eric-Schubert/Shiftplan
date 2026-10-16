@@ -39,15 +39,11 @@ export const AbsenceService = {
   },
 
   getById(absenceId: number): Absence | undefined {
-    return getDatabase()
-      .prepare(`${SELECT_ABSENCE} WHERE a.absence_id = ? AND a.cancelled_at IS NULL`)
-      .get(absenceId) as Absence | undefined;
+    return getDatabase().prepare(`${SELECT_ABSENCE} WHERE a.absence_id = ? AND a.cancelled_at IS NULL`).get(absenceId) as Absence | undefined;
   },
 
   listBatch(batchId: string): Absence[] {
-    return getDatabase()
-      .prepare(`${SELECT_ABSENCE} WHERE a.batch_id = ? AND a.cancelled_at IS NULL ORDER BY a.absence_date`)
-      .all(batchId) as Absence[];
+    return getDatabase().prepare(`${SELECT_ABSENCE} WHERE a.batch_id = ? AND a.cancelled_at IS NULL ORDER BY a.absence_date`).all(batchId) as Absence[];
   },
 
   create(input: CreateInput): { absences: Absence[]; skipped: string[] } {

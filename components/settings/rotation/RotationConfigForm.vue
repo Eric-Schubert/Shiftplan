@@ -108,12 +108,7 @@ async function save() {
     </div>
 
     <div class="flex flex-wrap gap-1.5 text-xs">
-      <span
-        v-for="item in configPreview"
-        :key="`${item.year}-${item.week}`"
-        class="planner-chip"
-        :class="item.isStart ? 'planner-chip--accent' : ''"
-      >
+      <span v-for="item in configPreview" :key="`${item.year}-${item.week}`" class="planner-chip" :class="item.isStart ? 'planner-chip--accent' : ''">
         {{ t("settings.rotation.config.preview", { week: weekOfYearLabel(localeTag, item.year, item.week), pattern: item.patternWeek }) }}
       </span>
     </div>

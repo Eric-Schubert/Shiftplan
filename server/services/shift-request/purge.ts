@@ -9,7 +9,5 @@ export function purgeOldMessages(now = Date.now()): void {
   if (now - lastPurge < PURGE_INTERVAL_MS) return;
   lastPurge = now;
   const cutoff = new Date(now - REQUEST_MESSAGE_RETENTION_DAYS * DAY_MS).toISOString().slice(0, 10);
-  getDatabase()
-    .prepare("UPDATE shift_requests SET message = NULL WHERE message IS NOT NULL AND date_to < ?")
-    .run(cutoff);
+  getDatabase().prepare("UPDATE shift_requests SET message = NULL WHERE message IS NOT NULL AND date_to < ?").run(cutoff);
 }

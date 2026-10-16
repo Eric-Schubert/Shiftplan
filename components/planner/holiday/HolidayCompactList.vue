@@ -11,29 +11,16 @@ const { t } = useI18n();
 
 <template>
   <div class="space-y-1">
-    <div
-      v-for="holiday in holidays"
-      :key="holiday.date"
-      class="flex items-center gap-2 text-xs text-[var(--text-2)]"
-    >
-      <span
-        class="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-        :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"
-      ></span>
+    <div v-for="holiday in holidays" :key="holiday.date" class="flex items-center gap-2 text-xs text-[var(--text-2)]">
+      <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full" :class="holiday.type === 'national' ? 'bg-rose-500' : 'bg-amber-500'"></span>
       <span class="truncate">{{ shortenHolidayName(holiday.name, t) }}</span>
     </div>
 
-    <div
-      v-for="period in schoolHolidays"
-      :key="`${period.name}-${period.start}`"
-      class="flex items-center gap-2 text-xs text-[var(--text-2)]"
-    >
+    <div v-for="period in schoolHolidays" :key="`${period.name}-${period.start}`" class="flex items-center gap-2 text-xs text-[var(--text-2)]">
       <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500"></span>
       <span class="truncate">
         {{ period.name }}
-        <span class="text-[10px] text-[var(--text-3)]">
-          ({{ period.states.map((state) => state.code).join("/") }})
-        </span>
+        <span class="text-[10px] text-[var(--text-3)]"> ({{ period.states.map((state) => state.code).join("/") }}) </span>
       </span>
     </div>
   </div>

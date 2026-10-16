@@ -33,18 +33,13 @@ export default defineEventHandler(async (event) => {
 
   // One bucket per network and a wider one per account, so guessing from many addresses
   // still hits a limit. A success clears only the account it proved.
-  const buckets = [
-    { key: `login:${getClientNetwork(event)}` },
-    { key: `login-user:${username}`, factor: ACCOUNT_ATTEMPTS_FACTOR, resetOnSuccess: true },
-  ];
+  const buckets = [{ key: `login:${getClientNetwork(event)}` }, { key: `login-user:${username}`, factor: ACCOUNT_ATTEMPTS_FACTOR, resetOnSuccess: true }];
   const user = await limitAttempt(
     event,
     buckets,
     async () => {
       const row = getAdminDatabase()
-        .prepare(
-          "SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ? AND active = 1"
-        )
+        .prepare("SELECT user_id, username, role, active, created_at, password_hash FROM users WHERE username = ? AND active = 1")
         .get(username) as UserWithHash | undefined;
       return (await checkPassword(password, row?.password_hash)) ? row! : null;
     },

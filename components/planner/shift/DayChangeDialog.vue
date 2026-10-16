@@ -59,9 +59,7 @@ const rows = computed(() => {
 
 const addOptions = computed(() => {
   const inGrid = new Set(rows.value.map((row) => row.staff_id));
-  return dataStore.activeStaff
-    .filter((staff) => !inGrid.has(staff.staff_id))
-    .map((staff) => ({ label: staff.name, value: staff.staff_id }));
+  return dataStore.activeStaff.filter((staff) => !inGrid.has(staff.staff_id)).map((staff) => ({ label: staff.name, value: staff.staff_id }));
 });
 
 async function toggle(staffId: number, date: string, present: boolean) {

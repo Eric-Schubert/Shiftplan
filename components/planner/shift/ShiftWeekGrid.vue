@@ -58,7 +58,9 @@ function dayLabel(date: string): string {
       </colgroup>
       <thead>
         <tr>
-          <th scope="col"><span class="sr-only">{{ t("planner.shift.grid.shift") }}</span></th>
+          <th scope="col">
+            <span class="sr-only">{{ t("planner.shift.grid.shift") }}</span>
+          </th>
           <th
             v-for="date in workdays"
             :key="date"

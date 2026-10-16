@@ -23,12 +23,7 @@ function clearFields() {
 }
 
 async function changePassword() {
-  const problem = passwordChangeProblem(
-    currentPassword.value,
-    newPassword.value,
-    confirmPassword.value,
-    configStore.passwordPolicy
-  );
+  const problem = passwordChangeProblem(currentPassword.value, newPassword.value, confirmPassword.value, configStore.passwordPolicy);
   error.value = problem ? t(problem.key, problem.params ?? {}) : "";
   success.value = false;
   if (problem) return;
@@ -74,10 +69,7 @@ function onHide() {
     @hide="onHide"
   >
     <form :id="formId" class="space-y-4" @submit.prevent="changePassword">
-      <div
-        v-if="success"
-        class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center"
-      >
+      <div v-if="success" class="rounded-xl border border-[var(--border-soft)] bg-[var(--positive-soft)] px-4 py-5 text-center">
         <i class="pi pi-check-circle mb-2 text-3xl text-[var(--positive-ink)]" aria-hidden="true"></i>
         <p class="font-medium text-[var(--positive-ink)]">
           {{ t("settings.auth.changePassword.done") }}
@@ -107,12 +99,7 @@ function onHide() {
           :described-by="error ? passwordErrorId : undefined"
         />
 
-        <small
-          v-if="error"
-          :id="passwordErrorId"
-          class="block text-sm text-[var(--danger-ink)]"
-          role="alert"
-        >
+        <small v-if="error" :id="passwordErrorId" class="block text-sm text-[var(--danger-ink)]" role="alert">
           {{ error }}
         </small>
       </template>
@@ -120,14 +107,7 @@ function onHide() {
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="visible = false" />
-      <PrimeButton
-        v-if="!success"
-        type="submit"
-        :form="formId"
-        :label="t('app.settingsPage.changePassword')"
-        class="min-h-11"
-        :loading="loading"
-      />
+      <PrimeButton v-if="!success" type="submit" :form="formId" :label="t('app.settingsPage.changePassword')" class="min-h-11" :loading="loading" />
     </template>
   </PrimeDialog>
 </template>

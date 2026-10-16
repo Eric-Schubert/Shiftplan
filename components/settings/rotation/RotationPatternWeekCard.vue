@@ -55,16 +55,11 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
         @drop="emit('drop-staff', dropPayload($event, assignment.shift.shift_id))"
       >
         <div class="flex min-w-[150px] items-center gap-2">
-          <div
-            class="h-3 w-3 rounded-full"
-            :style="{ backgroundColor: assignment.shift.color }"
-          />
+          <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: assignment.shift.color }" />
           <span class="font-medium text-gray-700 dark:text-gray-300">
             {{ assignment.shift.name }}
           </span>
-          <span class="text-sm text-gray-500">
-            ({{ assignment.shift.start_time }} - {{ assignment.shift.end_time }})
-          </span>
+          <span class="text-sm text-gray-500"> ({{ assignment.shift.start_time }} - {{ assignment.shift.end_time }}) </span>
         </div>
 
         <div class="flex flex-1 flex-wrap items-center gap-2">
@@ -86,10 +81,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
             </button>
           </span>
 
-          <span
-            v-if="isDragTarget(assignment.shift.shift_id) && assignment.staff.length === 0"
-            class="text-xs italic text-blue-500 dark:text-blue-400"
-          >
+          <span v-if="isDragTarget(assignment.shift.shift_id) && assignment.staff.length === 0" class="text-xs italic text-blue-500 dark:text-blue-400">
             {{ t("settings.rotation.week.dropHere") }}
           </span>
 
@@ -104,10 +96,7 @@ function handleOpenAssign(shiftId: number, shiftName: string) {
           />
         </div>
 
-        <div
-          v-if="assignment.staff.length < assignment.shift.min_staff"
-          class="flex items-center gap-1 text-yellow-600 dark:text-yellow-400"
-        >
+        <div v-if="assignment.staff.length < assignment.shift.min_staff" class="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
           <span class="text-lg" aria-hidden="true">!</span>
           <span class="text-sm">{{ t("settings.rotation.week.missing", { count: assignment.shift.min_staff - assignment.staff.length }) }}</span>
         </div>

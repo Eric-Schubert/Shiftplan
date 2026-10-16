@@ -1,11 +1,6 @@
 import type { H3Event } from "h3";
 import { getAuthConfig } from "~/server/config/auth-config";
-import {
-  MEMBER_COOKIE_DAYS,
-  MEMBER_COOKIE_NAME,
-  MemberAccessService,
-  type Member,
-} from "~/server/services/member-access.service";
+import { MEMBER_COOKIE_DAYS, MEMBER_COOKIE_NAME, MemberAccessService, type Member } from "~/server/services/member-access.service";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { getDatabase } from "~/server/utils/database";
 import { resolveLocale } from "~/server/utils/locale";
@@ -47,8 +42,6 @@ export function clearMemberCookie(event: H3Event): void {
 }
 
 export function shortCodeOf(staffId: number): string | null {
-  const row = getDatabase().prepare("SELECT short_code FROM staff WHERE staff_id = ?").get(staffId) as
-    | { short_code: string | null }
-    | undefined;
+  const row = getDatabase().prepare("SELECT short_code FROM staff WHERE staff_id = ?").get(staffId) as { short_code: string | null } | undefined;
   return row?.short_code ?? null;
 }

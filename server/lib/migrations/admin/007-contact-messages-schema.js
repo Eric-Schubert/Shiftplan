@@ -8,16 +8,7 @@ export default {
   shouldRun(database) {
     return (
       !tableExists(database, "contact_messages") ||
-      hasMissingColumns(database, "contact_messages", [
-        "name",
-        "reply_to",
-        "subject",
-        "message",
-        "ip_hash",
-        "user_agent",
-        "created_at",
-        "read_at",
-      ]) ||
+      hasMissingColumns(database, "contact_messages", ["name", "reply_to", "subject", "message", "ip_hash", "user_agent", "created_at", "read_at"]) ||
       !indexExists(database, "idx_contact_messages_created_at") ||
       !indexExists(database, "idx_contact_messages_read_at")
     );
@@ -48,11 +39,7 @@ export default {
     }
     addColumnIfMissing(database, "contact_messages", "read_at", "TEXT");
 
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at)"
-    );
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_contact_messages_read_at ON contact_messages(read_at)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at)");
+    database.exec("CREATE INDEX IF NOT EXISTS idx_contact_messages_read_at ON contact_messages(read_at)");
   },
 };

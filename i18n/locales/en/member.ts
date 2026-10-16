@@ -6,17 +6,14 @@ export default {
   shortCode: "Short code",
   login: {
     title: "Personal sign-in",
-    pinIntro:
-      "With your short code and PIN you can see your shifts, report absences, and give away or swap shifts.",
+    pinIntro: "With your short code and PIN you can see your shifts, report absences, and give away or swap shifts.",
     pin: "PIN",
     noPin: "No PIN yet?",
     useCode: "Sign in with the code from your planners",
-    codeIntro:
-      "You get your personal code from your planners (Settings → App access). After that, you set your PIN.",
+    codeIntro: "You get your personal code from your planners (Settings → App access). After that, you set your PIN.",
     code: "Personal code",
     havePin: "I already have a PIN",
-    setPinIntro:
-      "You are signed in. Set a PIN now, then you can sign in on any device with your short code {code}.",
+    setPinIntro: "You are signed in. Set a PIN now, then you can sign in on any device with your short code {code}.",
     later: "Later",
     missingPin: "Please enter your short code and PIN",
     missingCode: "Please enter the code",

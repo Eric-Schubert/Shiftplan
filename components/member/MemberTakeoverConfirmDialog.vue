@@ -28,12 +28,7 @@ const localeTag = useLocaleTag();
     </p>
     <template #footer>
       <PrimeButton :label="$t('common.actions.cancel')" text @click="request = null" />
-      <PrimeButton
-        :label="$t('requests.list.take')"
-        icon="pi pi-check"
-        :loading="busy"
-        @click="request && emit('confirm', request)"
-      />
+      <PrimeButton :label="$t('requests.list.take')" icon="pi pi-check" :loading="busy" @click="request && emit('confirm', request)" />
     </template>
   </PrimeDialog>
 </template>

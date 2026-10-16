@@ -58,10 +58,7 @@ function onActivity() {
         </NuxtLink>
 
         <div class="flex items-center gap-1.5 sm:gap-2">
-          <span
-            v-if="authStore.isAuthenticated"
-            class="planner-chip !hidden sm:!inline-flex"
-          >
+          <span v-if="authStore.isAuthenticated" class="planner-chip !hidden sm:!inline-flex">
             <i class="pi pi-shield text-[0.7rem]" aria-hidden="true"></i>
             <span>{{ authStore.isAdmin ? t("app.layout.roles.admin") : t("app.layout.roles.planner") }}</span>
           </span>

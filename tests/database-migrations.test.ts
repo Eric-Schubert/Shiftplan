@@ -23,17 +23,11 @@ describe("database migrations", () => {
       "010_main_audit_reason_keys",
     ]);
     expect(second.applied).toHaveLength(0);
-    expect(columnNames(db, "absences")).toEqual(
-      expect.arrayContaining(["staff_id", "absence_date", "shift_id", "reason", "source", "cancelled_at"])
-    );
+    expect(columnNames(db, "absences")).toEqual(expect.arrayContaining(["staff_id", "absence_date", "shift_id", "reason", "source", "cancelled_at"]));
     expect(columnNames(db, "audit_log")).toContain("source");
-    expect(columnNames(db, "staff")).toEqual(
-      expect.arrayContaining(["staff_id", "name", "active", "is_parttime"])
-    );
+    expect(columnNames(db, "staff")).toEqual(expect.arrayContaining(["staff_id", "name", "active", "is_parttime"]));
     expect(columnNames(db, "audit_log")).toContain("created_at");
-    expect(columnNames(db, "page_visits")).toEqual(
-      expect.arrayContaining(["visit_date", "path", "visitor_hash", "country_code", "created_at"])
-    );
+    expect(columnNames(db, "page_visits")).toEqual(expect.arrayContaining(["visit_date", "path", "visitor_hash", "country_code", "created_at"]));
 
     db.close();
   });
@@ -65,12 +59,8 @@ describe("database migrations", () => {
     const result = migrateMainDatabase(db);
 
     expect(result.applied.map((migration) => migration.id)).toEqual(["006_main_absence_ranges_day_changes"]);
-    expect(db.prepare("SELECT absence_id, reason, batch_id FROM absences").all()).toEqual([
-      { absence_id: 1, reason: "sonstiges", batch_id: null },
-    ]);
-    expect(() =>
-      db.prepare("INSERT INTO absences (staff_id, absence_date, reason, created_by) VALUES (1, '2026-10-09', 'krank', 'x')").run()
-    ).toThrow();
+    expect(db.prepare("SELECT absence_id, reason, batch_id FROM absences").all()).toEqual([{ absence_id: 1, reason: "sonstiges", batch_id: null }]);
+    expect(() => db.prepare("INSERT INTO absences (staff_id, absence_date, reason, created_by) VALUES (1, '2026-10-09', 'krank', 'x')").run()).toThrow();
     db.close();
   });
 
@@ -90,9 +80,7 @@ describe("database migrations", () => {
 
     migrateMainDatabase(db);
 
-    expect(columnNames(db, "audit_log")).toEqual(
-      expect.arrayContaining(["created_at", "reason", "shift_id", "staff_id"])
-    );
+    expect(columnNames(db, "audit_log")).toEqual(expect.arrayContaining(["created_at", "reason", "shift_id", "staff_id"]));
 
     db.close();
   });

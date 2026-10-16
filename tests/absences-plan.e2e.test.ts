@@ -33,7 +33,10 @@ describe("absences and the plan", () => {
     const anna = await member(ANNA, "anna:tok");
     await report(anna, { date: THURSDAY, notifyTeam: false });
     const planner = await client.loginAs("planner", "planner1234");
-    for (const [shiftId, present] of [[EARLY, false], [LATE, true]] as const) {
+    for (const [shiftId, present] of [
+      [EARLY, false],
+      [LATE, true],
+    ] as const) {
       await client.request("POST", "/api/shiftplan/day-change", {
         jar: planner,
         csrf: true,

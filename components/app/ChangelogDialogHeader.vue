@@ -11,10 +11,7 @@ defineProps<{
 <template>
   <div class="changelog-dialog__header">
     <div class="changelog-dialog__icon">
-      <i
-        :class="[history ? 'pi pi-history' : 'pi pi-info-circle', 'text-xl']"
-        aria-hidden="true"
-      ></i>
+      <i :class="[history ? 'pi pi-history' : 'pi pi-info-circle', 'text-xl']" aria-hidden="true"></i>
     </div>
 
     <div class="min-w-0 flex-1">
@@ -28,10 +25,7 @@ defineProps<{
         <span class="changelog-badge changelog-badge--accent">
           {{ $t("changelog.installed", { version }) }}
         </span>
-        <span
-          v-if="hasBuildMetadata"
-          class="changelog-badge"
-        >
+        <span v-if="hasBuildMetadata" class="changelog-badge">
           {{ $t("changelog.development") }}
         </span>
       </div>

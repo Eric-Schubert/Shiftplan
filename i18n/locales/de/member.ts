@@ -4,17 +4,14 @@ export default {
   shortCode: "Kürzel",
   login: {
     title: "Persönlich anmelden",
-    pinIntro:
-      "Mit deinem Kürzel und deiner PIN siehst du deine Schichten und kannst Ausfälle melden, Schichten abgeben und tauschen.",
+    pinIntro: "Mit deinem Kürzel und deiner PIN siehst du deine Schichten und kannst Ausfälle melden, Schichten abgeben und tauschen.",
     pin: "PIN",
     noPin: "Noch keine PIN?",
     useCode: "Mit dem Code der Planung anmelden",
-    codeIntro:
-      "Den persönlichen Code bekommst du von deiner Schichtplanung (Einstellungen → App-Zugänge). Danach legst du deine PIN fest.",
+    codeIntro: "Den persönlichen Code bekommst du von deiner Schichtplanung (Einstellungen → App-Zugänge). Danach legst du deine PIN fest.",
     code: "Persönlicher Code",
     havePin: "Ich habe schon eine PIN",
-    setPinIntro:
-      "Du bist angemeldet. Lege jetzt eine PIN fest, dann kannst du dich auf jedem Gerät mit deinem Kürzel {code} anmelden.",
+    setPinIntro: "Du bist angemeldet. Lege jetzt eine PIN fest, dann kannst du dich auf jedem Gerät mit deinem Kürzel {code} anmelden.",
     later: "Später",
     missingPin: "Bitte Kürzel und PIN eingeben",
     missingCode: "Bitte den Code eingeben",

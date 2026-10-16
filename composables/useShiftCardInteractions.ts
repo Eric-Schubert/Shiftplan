@@ -9,12 +9,7 @@ interface ShiftCardInteractionOptions {
   onUpdated: () => void;
 }
 
-export function useShiftCardInteractions({
-  shift,
-  year,
-  week,
-  onUpdated,
-}: ShiftCardInteractionOptions) {
+export function useShiftCardInteractions({ shift, year, week, onUpdated }: ShiftCardInteractionOptions) {
   const dataStore = useDataStore();
   const { authFetch } = useAuthFetch();
 

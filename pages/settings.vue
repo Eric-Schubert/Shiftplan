@@ -35,12 +35,7 @@ watch(
         </p>
         <div class="mt-5 flex flex-col gap-2">
           <NuxtLink to="/">
-            <PrimeButton
-              :label="t('common.actions.toPlan')"
-              icon="pi pi-arrow-left"
-              severity="secondary"
-              class="w-full min-h-11"
-            />
+            <PrimeButton :label="t('common.actions.toPlan')" icon="pi pi-arrow-left" severity="secondary" class="w-full min-h-11" />
           </NuxtLink>
           <PrimeButton
             :label="t('common.actions.signOut')"

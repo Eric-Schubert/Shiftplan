@@ -18,11 +18,7 @@ const localeTag = useLocaleTag();
       </p>
 
       <ul class="divide-y divide-[var(--border-soft)]">
-        <li
-          v-for="holiday in holidays"
-          :key="holiday.date"
-          class="flex items-start justify-between gap-3 py-2 first:pt-0 last:pb-0"
-        >
+        <li v-for="holiday in holidays" :key="holiday.date" class="flex items-start justify-between gap-3 py-2 first:pt-0 last:pb-0">
           <div class="flex min-w-0 items-start gap-2">
             <span
               class="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -56,11 +52,7 @@ const localeTag = useLocaleTag();
       </p>
 
       <ul class="divide-y divide-[var(--border-soft)]">
-        <li
-          v-for="period in schoolHolidays"
-          :key="`${period.name}-${period.start}`"
-          class="py-2 first:pt-0 last:pb-0"
-        >
+        <li v-for="period in schoolHolidays" :key="`${period.name}-${period.start}`" class="py-2 first:pt-0 last:pb-0">
           <div class="flex items-start justify-between gap-3">
             <p class="text-sm font-medium leading-5 text-[var(--text-1)]">{{ period.name }}</p>
             <span class="flex-shrink-0 text-xs tabular-nums text-[var(--text-3)]">

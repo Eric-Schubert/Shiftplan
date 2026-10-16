@@ -21,8 +21,7 @@ function scriptBlocks(file, source) {
   });
 }
 
-const literal = (token) =>
-  token?.kind === "string" && !token.text.startsWith("`") ? token.text.slice(1, -1) : null;
+const literal = (token) => (token?.kind === "string" && !token.text.startsWith("`") ? token.text.slice(1, -1) : null);
 
 /** Static and dynamic import specifiers of a file, as { spec, line }. Comments and strings are skipped. */
 export function findImports(file, source) {

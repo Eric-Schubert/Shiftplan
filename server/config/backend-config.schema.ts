@@ -1,13 +1,7 @@
 import type { BackendConfig } from "./backend-config.types";
 import { validateAnalytics } from "./schema/analytics";
 import { validateContact, validateContactMail } from "./schema/contact";
-import {
-  validateAudit,
-  validateRotation,
-  validateShiftplan,
-  validateValidation,
-  validateXlsx,
-} from "./schema/domain";
+import { validateAudit, validateRotation, validateShiftplan, validateValidation, validateXlsx } from "./schema/domain";
 import { objectAt, type MutableErrorList } from "./schema/fields";
 import { validateHolidays } from "./schema/holidays";
 import { validateAuth, validateDatabase } from "./schema/system";

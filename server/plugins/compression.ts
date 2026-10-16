@@ -1,22 +1,9 @@
 import { Buffer } from "node:buffer";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
-import {
-  appendResponseHeader,
-  getRequestHeader,
-  getResponseHeader,
-  removeResponseHeader,
-  setResponseHeader,
-} from "h3";
+import { appendResponseHeader, getRequestHeader, getResponseHeader, removeResponseHeader, setResponseHeader } from "h3";
 
 const MIN_COMPRESS_BYTES = 1024;
-const TEXT_TYPES = [
-  "text/",
-  "application/javascript",
-  "application/json",
-  "application/manifest+json",
-  "application/xml",
-  "image/svg+xml",
-];
+const TEXT_TYPES = ["text/", "application/javascript", "application/json", "application/manifest+json", "application/xml", "image/svg+xml"];
 
 function isCompressible(eventPath: string, contentType: string, body: string | Buffer): boolean {
   if (contentType && TEXT_TYPES.some((type) => contentType.includes(type))) {

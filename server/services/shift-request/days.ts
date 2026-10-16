@@ -12,7 +12,5 @@ export function isOffDay(date: string): boolean {
 export function requestDays(from: string, to: string): string[] {
   const first = today();
   const weekdaysOnly = TeamAccessService.getNextWeekFromSaturday();
-  return (datesBetween(from, to, SWAP_MAX_DAYS) ?? []).filter(
-    (date) => date >= first && !(weekdaysOnly && isWeekendDate(date))
-  );
+  return (datesBetween(from, to, SWAP_MAX_DAYS) ?? []).filter((date) => date >= first && !(weekdaysOnly && isWeekendDate(date)));
 }

@@ -25,11 +25,7 @@ describe("Rotation Excel template", () => {
     expect(rotation?.rows[3]?.slice(0, 2)).toEqual(["Startwoche", 1]);
     expect(rotation?.rows[4]?.slice(0, 2)).toEqual(["Zykluslänge", 2]);
     expect(rotation?.rows[5]).toEqual(["Gerade (KW 42/2026) läuft Woche 2."]);
-    expect(rotation?.rows[6]).toEqual([
-      "Mitarbeiter",
-      "Woche 1\n(KW 43, 45, 47)",
-      "Woche 2\n(KW 42, 44, 46)",
-    ]);
+    expect(rotation?.rows[6]).toEqual(["Mitarbeiter", "Woche 1\n(KW 43, 45, 47)", "Woche 2\n(KW 42, 44, 46)"]);
     expect(rotation?.rows[7]).toEqual(["Anna Becker", "Früh", ""]);
     expect(rotation?.rows[8]).toEqual(["Ben Wagner", "", ""]);
     expect(rotation?.rows.flat()).not.toContain("Inactive Staff");
@@ -66,9 +62,7 @@ describe("Rotation Excel template", () => {
     const result = RotationExcelService.importTemplate(RotationExcelService.createTemplate());
 
     expect(result).toMatchObject({ importedRows: 2, importedAssignments: 3 });
-    expect(db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern ORDER BY 1, 2, 3").all()).toEqual(
-      before
-    );
+    expect(db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern ORDER BY 1, 2, 3").all()).toEqual(before);
   });
 
   it("rejects oversized compressed worksheet entries before import", () => {

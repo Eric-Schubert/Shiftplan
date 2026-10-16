@@ -33,23 +33,12 @@ async function deleteShift() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('settings.shifts.delete')"
-    modal
-    :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('settings.shifts.delete')" modal :style="{ width: '26rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <p>{{ t("settings.shifts.deleteText", { name: shift?.name ?? "" }) }}</p>
 
     <template #footer>
       <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
-      <PrimeButton
-        :label="t('settings.shifts.delete')"
-        severity="danger"
-        class="min-h-11"
-        :loading="deleting"
-        @click="deleteShift"
-      />
+      <PrimeButton :label="t('settings.shifts.delete')" severity="danger" class="min-h-11" :loading="deleting" @click="deleteShift" />
     </template>
   </PrimeDialog>
 </template>

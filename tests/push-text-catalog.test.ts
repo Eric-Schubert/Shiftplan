@@ -26,7 +26,7 @@ describe("push text catalog guard", () => {
     ['const body = "„Neu ist der Plan und nicht alt“";', "„Neu ist der Plan und nicht alt“"],
     ["const body = `${name} kann ${request} nicht tauschen.`;", "{} kann {} nicht tauschen."],
     ["const body = `${name} fällt ${label} aus${shift}`;", "{} fällt {} aus{}"],
-    ['const more = `… und ${count} weitere Änderungen`;', "… und {} weitere Änderungen"],
+    ["const more = `… und ${count} weitere Änderungen`;", "… und {} weitere Änderungen"],
     ["const line = `${a} ${b ? `neu: ${b}` : 'entfällt'}`;", "entfällt"],
     ["// Die Planung hat die Übernahme nicht freigegeben.", null],
     ['const title = t(locale, "push.requests.cancelled.title");', null],

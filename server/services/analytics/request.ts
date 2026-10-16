@@ -3,8 +3,7 @@ import type { H3Event } from "h3";
 const BOT_USER_AGENT_PATTERN =
   /(bot|crawler|spider|crawling|headless|preview|facebookexternalhit|slurp|bingpreview|duckduckbot|baiduspider|yandex|semrush|ahrefs|mj12bot|dotbot|petalbot|bytespider|uptime|monitor|lighthouse|pagespeed|curl|wget|python-requests|httpclient|libwww|node-fetch|go-http-client|java\/)/i;
 
-const STATIC_ASSET_PATTERN =
-  /\.(?:avif|css|gif|ico|jpg|jpeg|js|json|map|png|svg|txt|webmanifest|woff2?)$/i;
+const STATIC_ASSET_PATTERN = /\.(?:avif|css|gif|ico|jpg|jpeg|js|json|map|png|svg|txt|webmanifest|woff2?)$/i;
 
 export function isLikelyBot(userAgent: string): boolean {
   return !userAgent || BOT_USER_AGENT_PATTERN.test(userAgent);

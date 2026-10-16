@@ -19,16 +19,12 @@ export function useImprintContactForm() {
 
   const contactValidation = computed<ContactValidation>(() => {
     const problems = validateContactForm(contactForm, configStore.contactForm);
-    return Object.fromEntries(
-      Object.entries(problems).map(([field, problem]) => [field, t(problem.key, problem.params ?? {})])
-    );
+    return Object.fromEntries(Object.entries(problems).map(([field, problem]) => [field, t(problem.key, problem.params ?? {})]));
   });
   const hasValidationErrors = computed(() => Object.keys(contactValidation.value).length > 0);
   const canSubmit = computed(() => !hasValidationErrors.value && !sending.value);
   const showValidation = computed(() => submitAttempted.value);
-  const messageCharactersRemaining = computed(() =>
-    Math.max(0, configStore.contactForm.message.minLength - contactForm.message.trim().length)
-  );
+  const messageCharactersRemaining = computed(() => Math.max(0, configStore.contactForm.message.minLength - contactForm.message.trim().length));
   const messageHelpText = computed(() => {
     if (messageCharactersRemaining.value > 0 && contactForm.message.trim().length > 0) {
       return t("contact.form.remaining", { remaining: messageCharactersRemaining.value });
@@ -44,9 +40,7 @@ export function useImprintContactForm() {
 
     if (!canSubmit.value) {
       await nextTick();
-      const firstInvalidField = Object.keys(contactValidation.value)[0] as
-        | keyof ContactValidation
-        | undefined;
+      const firstInvalidField = Object.keys(contactValidation.value)[0] as keyof ContactValidation | undefined;
       if (firstInvalidField) {
         document.getElementById(CONTACT_FIELD_IDS[firstInvalidField])?.focus();
       }
@@ -75,10 +69,7 @@ export function useImprintContactForm() {
       submitAttempted.value = false;
       sent.value = true;
     } catch (contactError: any) {
-      error.value =
-        contactError?.data?.statusMessage ||
-        contactError?.data?.message ||
-        t("contact.form.sendFailed");
+      error.value = contactError?.data?.statusMessage || contactError?.data?.message || t("contact.form.sendFailed");
     } finally {
       sending.value = false;
     }

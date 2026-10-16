@@ -87,17 +87,16 @@ async function remove(absence: Absence) {
 
     <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)] bg-[var(--surface)]">
       <li v-for="absence in sorted" :key="absence.absence_id" class="flex items-center gap-3 px-4 py-2.5 text-sm">
-        <span
-          class="flex-shrink-0 font-semibold tabular-nums text-[var(--text-1)]"
-          :class="isRange(absence) ? 'w-40' : 'w-20'"
-        >
+        <span class="flex-shrink-0 font-semibold tabular-nums text-[var(--text-1)]" :class="isRange(absence) ? 'w-40' : 'w-20'">
           {{ isRange(absence) ? formatDayRange(localeTag, absence.range_from, absence.range_to) : formatDay(localeTag, absence.absence_date) }}
         </span>
         <span class="min-w-0 flex-1">
           <span class="font-medium text-[var(--text-1)]">{{ absence.staff_name }}</span>
           <!-- The leading spaces separate the parts; Vue drops a bare space at the start of an element. -->
           <span class="text-[var(--text-2)]">{{ " " + t("absence.panel.isOut") }}</span>
-          <span v-if="absence.shift_name && !isRange(absence)" class="text-[var(--text-2)]">{{ " " + t("absence.panel.shiftOpen", { shift: absence.shift_name }) }}</span>
+          <span v-if="absence.shift_name && !isRange(absence)" class="text-[var(--text-2)]">{{
+            " " + t("absence.panel.shiftOpen", { shift: absence.shift_name })
+          }}</span>
           <span v-if="absence.reason" class="ml-1 text-[var(--text-3)]">· {{ t(ABSENCE_REASON_KEYS[absence.reason]) }}</span>
           <span v-if="absence.note" class="ml-1 italic text-[var(--text-3)]">· {{ absence.note }}</span>
         </span>

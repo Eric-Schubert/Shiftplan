@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import {
-  setupTestDatabase,
-  cleanupTestDatabase,
-  getTestDatabase,
-  insertTestData,
-} from "./setup";
+import { setupTestDatabase, cleanupTestDatabase, getTestDatabase, insertTestData } from "./setup";
 
 const INSERT_WEEK = "INSERT INTO weeks (year, week_number) VALUES (?, ?)";
 const INSERT_ASSIGNMENT = "INSERT INTO shift_assignments (week_id, staff_id, shift_id) VALUES (?, ?, ?)";
@@ -70,9 +65,7 @@ describe("Shiftplan Operations", () => {
       db.prepare(INSERT_ASSIGNMENT).run(weekId, 1, 1);
       db.prepare("DELETE FROM shift_assignments WHERE week_id = ? AND staff_id = ? AND shift_id = ?").run(weekId, 1, 1);
 
-      const assignment = db
-        .prepare("SELECT * FROM shift_assignments WHERE week_id = ? AND staff_id = ? AND shift_id = ?")
-        .get(weekId, 1, 1);
+      const assignment = db.prepare("SELECT * FROM shift_assignments WHERE week_id = ? AND staff_id = ? AND shift_id = ?").get(weekId, 1, 1);
 
       expect(assignment).toBeUndefined();
     });

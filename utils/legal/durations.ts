@@ -29,14 +29,10 @@ export function daysText(days: number, grammaticalCase: GrammaticalCase = "accus
 
 /** In whole years where the days add up to them: 365 → "ein Jahr", 730 → "2 Jahre", 90 → "90 Tage". */
 export function periodText(days: number, grammaticalCase: GrammaticalCase = "accusative"): string {
-  return days % DAYS_PER_YEAR === 0
-    ? amount(days / DAYS_PER_YEAR, YEAR, grammaticalCase)
-    : amount(days, DAY, grammaticalCase);
+  return days % DAYS_PER_YEAR === 0 ? amount(days / DAYS_PER_YEAR, YEAR, grammaticalCase) : amount(days, DAY, grammaticalCase);
 }
 
 /** In whole hours where the minutes add up to them: 30 → "30 Minuten", 120 → "2 Stunden". */
 export function minutesText(minutes: number, grammaticalCase: GrammaticalCase = "accusative"): string {
-  return minutes % MINUTES_PER_HOUR === 0
-    ? amount(minutes / MINUTES_PER_HOUR, HOUR, grammaticalCase)
-    : amount(minutes, MINUTE, grammaticalCase);
+  return minutes % MINUTES_PER_HOUR === 0 ? amount(minutes / MINUTES_PER_HOUR, HOUR, grammaticalCase) : amount(minutes, MINUTE, grammaticalCase);
 }

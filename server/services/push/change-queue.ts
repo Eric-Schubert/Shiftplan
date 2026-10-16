@@ -25,18 +25,13 @@ let firstPendingAt = 0;
  * both stay silent.
  */
 export function queueShiftChange(change: ShiftChange, origin?: string): void {
-  const isNotifiable = getNotifiableWeeks().some(
-    (week) => week.year === change.year && week.week === change.week
-  );
+  const isNotifiable = getNotifiableWeeks().some((week) => week.year === change.year && week.week === change.week);
   if (!isNotifiable || (change.date && change.date < planningToday())) return;
 
   const db = getDatabase();
-  const shift = db
-    .prepare("SELECT name, sort_order FROM shifts WHERE shift_id = ?")
-    .get(change.shiftId) as { name: string; sort_order: number } | undefined;
-  const staff = db
-    .prepare("SELECT name FROM staff WHERE staff_id = ?")
-    .get(change.staffId) as { name: string } | undefined;
+  const shift = db.prepare("SELECT name, sort_order FROM shifts WHERE shift_id = ?").get(change.shiftId) as
+    { name: string; sort_order: number } | undefined;
+  const staff = db.prepare("SELECT name FROM staff WHERE staff_id = ?").get(change.staffId) as { name: string } | undefined;
   if (!shift || !staff) return;
 
   if (origin) rememberOrigin(origin);

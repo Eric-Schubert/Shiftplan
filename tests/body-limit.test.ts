@@ -1,16 +1,6 @@
 import { request as httpRequest, createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import {
-  createApp,
-  createError,
-  defineEventHandler,
-  getHeader,
-  getMethod,
-  getRequestURL,
-  readBody,
-  readRawBody,
-  toNodeListener,
-} from "h3";
+import { createApp, createError, defineEventHandler, getHeader, getMethod, getRequestURL, readBody, readRawBody, toNodeListener } from "h3";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 let server: Server;

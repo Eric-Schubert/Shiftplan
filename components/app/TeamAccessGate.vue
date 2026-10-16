@@ -65,13 +65,7 @@ async function submit() {
           </small>
         </div>
 
-        <PrimeButton
-          type="submit"
-          :label="t('app.teamAccess.open')"
-          icon="pi pi-lock-open"
-          class="min-h-11 w-full"
-          :loading="loading"
-        />
+        <PrimeButton type="submit" :label="t('app.teamAccess.open')" icon="pi pi-lock-open" class="min-h-11 w-full" :loading="loading" />
 
         <div class="flex flex-col items-center gap-2 pt-2 text-center">
           <button

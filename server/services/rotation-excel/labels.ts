@@ -29,9 +29,7 @@ export const ROTATION_SHEET_NAMES = textsInEveryLocale("excelTemplate.sheets.rot
 export const FREE_MARKERS = new Set(["-", "–", ...textsInEveryLocale("excel.labels.free").map(normalizeName)]);
 
 // The week column label split around its number: "Woche {week}" gives ["woche ", ""].
-const WEEK_LABELS = textsInEveryLocale("excel.labels.week", { week: "#" }).map((text) =>
-  normalizeLabel(text).split("#")
-);
+const WEEK_LABELS = textsInEveryLocale("excel.labels.week", { week: "#" }).map((text) => normalizeLabel(text).split("#"));
 
 /** The pattern week of a normalized header like "woche 2", in any locale, or null. */
 export function patternWeekOf(header: string): number | null {

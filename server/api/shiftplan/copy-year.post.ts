@@ -19,12 +19,14 @@ export default defineEventHandler(async (event) => {
   const db = getDatabase();
 
   const sourceWeeks = db
-    .prepare(`
+    .prepare(
+      `
       SELECT w.week_id, w.week_number
       FROM weeks w
       WHERE w.year = ?
       ORDER BY w.week_number
-    `)
+    `
+    )
     .all(sourceYear) as Array<{ week_id: number; week_number: number }>;
 
   if (sourceWeeks.length === 0) {
@@ -32,9 +34,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const weeksWithAssignments = sourceWeeks.filter((w) => {
-    const count = db
-      .prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?")
-      .get(w.week_id) as { cnt: number };
+    const count = db.prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?").get(w.week_id) as { cnt: number };
     return count.cnt > 0;
   });
 
@@ -48,16 +48,13 @@ export default defineEventHandler(async (event) => {
 
   const copyTransaction = db.transaction(() => {
     for (const sourceWeek of weeksWithAssignments) {
-      db.prepare("INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)")
-        .run(targetYear, sourceWeek.week_number);
+      db.prepare("INSERT OR IGNORE INTO weeks (year, week_number) VALUES (?, ?)").run(targetYear, sourceWeek.week_number);
 
-      const targetWeek = db
-        .prepare("SELECT week_id FROM weeks WHERE year = ? AND week_number = ?")
-        .get(targetYear, sourceWeek.week_number) as { week_id: number };
+      const targetWeek = db.prepare("SELECT week_id FROM weeks WHERE year = ? AND week_number = ?").get(targetYear, sourceWeek.week_number) as {
+        week_id: number;
+      };
 
-      const existingCount = db
-        .prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?")
-        .get(targetWeek.week_id) as { cnt: number };
+      const existingCount = db.prepare("SELECT COUNT(*) as cnt FROM shift_assignments WHERE week_id = ?").get(targetWeek.week_id) as { cnt: number };
 
       if (existingCount.cnt > 0 && !overwrite) {
         skippedWeeks++;
@@ -65,17 +62,15 @@ export default defineEventHandler(async (event) => {
       }
 
       if (existingCount.cnt > 0 && overwrite) {
-        db.prepare("DELETE FROM shift_assignments WHERE week_id = ?")
-          .run(targetWeek.week_id);
+        db.prepare("DELETE FROM shift_assignments WHERE week_id = ?").run(targetWeek.week_id);
       }
 
-      const assignments = db
-        .prepare("SELECT staff_id, shift_id FROM shift_assignments WHERE week_id = ?")
-        .all(sourceWeek.week_id) as Array<{ staff_id: number; shift_id: number }>;
+      const assignments = db.prepare("SELECT staff_id, shift_id FROM shift_assignments WHERE week_id = ?").all(sourceWeek.week_id) as Array<{
+        staff_id: number;
+        shift_id: number;
+      }>;
 
-      const insertStmt = db.prepare(
-        "INSERT OR IGNORE INTO shift_assignments (staff_id, shift_id, week_id) VALUES (?, ?, ?)"
-      );
+      const insertStmt = db.prepare("INSERT OR IGNORE INTO shift_assignments (staff_id, shift_id, week_id) VALUES (?, ?, ?)");
 
       for (const assignment of assignments) {
         insertStmt.run(assignment.staff_id, assignment.shift_id, targetWeek.week_id);

@@ -53,8 +53,7 @@ describe("sign-in with short code and PIN", () => {
 
   it("rejects short or trivial PINs and needs the current PIN to change it", async () => {
     const browser = await browserWithInvite(ANNA);
-    const setPin = (body: Record<string, string>) =>
-      client.request<any>("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body });
+    const setPin = (body: Record<string, string>) => client.request<any>("PUT", "/api/member/pin", { jar: browser, headers: SAME_ORIGIN, body });
     const tooShort = await setPin({ pin: "1234" });
     const trivial = await Promise.all(["000000", "123456", "987654", "121212", "123123"].map((pin) => setPin({ pin })));
     await setPin({ pin: "482913" });

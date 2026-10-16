@@ -17,7 +17,9 @@ const { t } = useI18n();
       <div class="text-sm text-gray-700 dark:text-gray-300">
         <p class="mb-1 font-medium">{{ t("settings.rotation.intro.title") }}</p>
         <i18n-t keypath="settings.rotation.intro.text" tag="p" class="mb-2">
-          <template #weeks><strong>{{ t("settings.rotation.intro.weeks", { count: cycleLength }) }}</strong></template>
+          <template #weeks
+            ><strong>{{ t("settings.rotation.intro.weeks", { count: cycleLength }) }}</strong></template
+          >
         </i18n-t>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           <i class="pi pi-calendar mr-1" aria-hidden="true"></i>

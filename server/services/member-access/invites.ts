@@ -22,11 +22,7 @@ function demoStaffId(code: string): number | null {
   if (!demoCode || normalizeCode(code) !== normalizeCode(demoCode)) return null;
   const name = process.env.SHIFTPLAN_DEMO_MEMBER_NAME?.trim();
   const row = getDatabase()
-    .prepare(
-      name
-        ? "SELECT staff_id FROM staff WHERE active = 1 AND name = ?"
-        : "SELECT staff_id FROM staff WHERE active = 1 ORDER BY staff_id LIMIT 1"
-    )
+    .prepare(name ? "SELECT staff_id FROM staff WHERE active = 1 AND name = ?" : "SELECT staff_id FROM staff WHERE active = 1 ORDER BY staff_id LIMIT 1")
     .get(...(name ? [name] : [])) as { staff_id: number } | undefined;
   return row?.staff_id ?? null;
 }
@@ -45,13 +41,14 @@ export function createInvite(staffId: number, createdBy: string): { code: string
   const db = getAdminDatabase();
   // A new code replaces the person's open ones, so reissuing a leaked or mis-sent QR code closes it.
   db.transaction(() => {
-    db.prepare("DELETE FROM member_invites WHERE expires_at <= ? OR used_at IS NOT NULL OR staff_id = ?").run(
+    db.prepare("DELETE FROM member_invites WHERE expires_at <= ? OR used_at IS NOT NULL OR staff_id = ?").run(now, staffId);
+    db.prepare("INSERT INTO member_invites (staff_id, code_hash, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)").run(
+      staffId,
+      sha256(code),
+      createdBy,
       now,
-      staffId
+      now + INVITE_VALID_MS
     );
-    db.prepare(
-      "INSERT INTO member_invites (staff_id, code_hash, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)"
-    ).run(staffId, sha256(code), createdBy, now, now + INVITE_VALID_MS);
   })();
 
   return { code, expiresAt: now + INVITE_VALID_MS };
@@ -65,9 +62,7 @@ export function redeem(code: string, deviceName: string | null): { token: string
     demoStaff !== null
       ? { invite_id: null, staff_id: demoStaff }
       : (db
-          .prepare(
-            "SELECT invite_id, staff_id FROM member_invites WHERE code_hash = ? AND used_at IS NULL AND expires_at > ?"
-          )
+          .prepare("SELECT invite_id, staff_id FROM member_invites WHERE code_hash = ? AND used_at IS NULL AND expires_at > ?")
           .get(sha256(normalizeCode(code)), now) as { invite_id: number; staff_id: number } | undefined);
   if (!invite) return null;
 

@@ -39,8 +39,7 @@ export default {
   },
   review: {
     imported: "Pattern imported: {assignments}.",
-    understaffed:
-      "{count} shift in the pattern is below minimum staffing. | {count} shifts in the pattern are below minimum staffing.",
+    understaffed: "{count} shift in the pattern is below minimum staffing. | {count} shifts in the pattern are below minimum staffing.",
     allStaffed: "All shifts in the pattern are staffed.",
     editBoard: "Edit on the board",
     thisWeek: "this week",

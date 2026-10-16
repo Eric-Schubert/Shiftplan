@@ -1,17 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  ANNA,
-  EARLY,
-  LATE,
-  MAX,
-  THURSDAY,
-  bearer,
-  client,
-  member,
-  sends,
-  staffOn,
-  useShiftRequestClient,
-} from "./helpers/shift-requests";
+import { ANNA, EARLY, LATE, MAX, THURSDAY, bearer, client, member, sends, staffOn, useShiftRequestClient } from "./helpers/shift-requests";
 import { webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);

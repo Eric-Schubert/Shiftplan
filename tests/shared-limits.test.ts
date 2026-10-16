@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { passwordPolicyError } from "~/server/config/auth-config";
 import { t } from "~/i18n/server";
-import {
-  PIN_MAX_LENGTH,
-  PIN_MIN_LENGTH,
-  isValidPin,
-  isWeakPin,
-  validatePasswordStrength,
-} from "~/shared/utils/limits";
+import { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPin, isWeakPin, validatePasswordStrength } from "~/shared/utils/limits";
 import { passwordChangeProblem } from "~/utils/account-forms";
 import { pinProblem } from "~/utils/member-pin";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";
@@ -16,25 +10,11 @@ describe("shared PIN rules", () => {
   it("accepts 6 to 12 digits and nothing else", () => {
     expect([PIN_MIN_LENGTH, PIN_MAX_LENGTH]).toEqual([6, 12]);
     expect(["583920", "583920174625"].map(isValidPin)).toEqual([true, true]);
-    expect(["58392", "5839201746251", "58392a", " 583920", 583920, null].map(isValidPin)).toEqual([
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    ]);
+    expect(["58392", "5839201746251", "58392a", " 583920", 583920, null].map(isValidPin)).toEqual([false, false, false, false, false, false]);
   });
 
   it("finds the PINs anyone tries first", () => {
-    expect(["111111", "123456", "987654", "121212", "123123", "456789012"].map(isWeakPin)).toEqual([
-      true,
-      true,
-      true,
-      true,
-      true,
-      false,
-    ]);
+    expect(["111111", "123456", "987654", "121212", "123123", "456789012"].map(isWeakPin)).toEqual([true, true, true, true, true, false]);
     expect(isWeakPin("583920")).toBe(false);
   });
 
@@ -56,9 +36,7 @@ describe("shared password check", () => {
     const policy = DEFAULT_CLIENT_CONFIG.passwordPolicy;
     for (const password of ["kurz", "geheim12", "GEHEIM12", "Geheimnis", "x".repeat(257), "Geheim12"]) {
       const problem = passwordChangeProblem("alt", password, password, policy);
-      expect(passwordPolicyError(null, password)?.statusMessage ?? "").toBe(
-        problem ? t("de", problem.key, problem.params) : ""
-      );
+      expect(passwordPolicyError(null, password)?.statusMessage ?? "").toBe(problem ? t("de", problem.key, problem.params) : "");
     }
     expect(passwordPolicyError(null, "kurz")?.statusMessage).toBe("Passwort muss mindestens 8 Zeichen haben");
   });

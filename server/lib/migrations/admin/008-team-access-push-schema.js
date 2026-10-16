@@ -20,9 +20,7 @@ export default {
           expires_at INTEGER NOT NULL
         )
       `);
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_viewer_sessions_expires_at ON viewer_sessions(expires_at)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_viewer_sessions_expires_at ON viewer_sessions(expires_at)");
 
     database.exec(`
         CREATE TABLE IF NOT EXISTS push_subscriptions (

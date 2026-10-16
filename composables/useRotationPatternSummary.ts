@@ -9,10 +9,7 @@ export function useRotationPatternSummary(today = isoWeekOfDate(new Date())) {
   const patternWeeks = computed(() => dataStore.rotationPattern?.weeks ?? []);
 
   const assignmentCount = computed(() =>
-    patternWeeks.value.reduce(
-      (total, week) => total + week.assignments.reduce((sum, assignment) => sum + assignment.staff.length, 0),
-      0
-    )
+    patternWeeks.value.reduce((total, week) => total + week.assignments.reduce((sum, assignment) => sum + assignment.staff.length, 0), 0)
   );
 
   const currentPatternWeek = computed(() => {
@@ -23,8 +20,7 @@ export function useRotationPatternSummary(today = isoWeekOfDate(new Date())) {
 
   const understaffedCount = computed(() =>
     patternWeeks.value.reduce(
-      (total, week) =>
-        total + week.assignments.filter((assignment) => assignment.staff.length < assignment.shift.min_staff).length,
+      (total, week) => total + week.assignments.filter((assignment) => assignment.staff.length < assignment.shift.min_staff).length,
       0
     )
   );

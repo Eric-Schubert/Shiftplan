@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  ContactMailService,
-  resetContactMailTokenCacheForTests,
-} from "~/server/services/contact-mail.service";
+import { ContactMailService, resetContactMailTokenCacheForTests } from "~/server/services/contact-mail.service";
 import type { ContactMessage } from "~/types/contact";
 
 const MAIL_ENV_KEYS = [
@@ -95,18 +92,10 @@ describe("ContactMailService", () => {
       throw new Error("Microsoft Graph sendMail request was not made");
     }
 
-    expect(String(sendMailCall[0])).toContain(
-      "https://graph.microsoft.com/v1.0/users/postfach%40example.com/sendMail"
-    );
+    expect(String(sendMailCall[0])).toContain("https://graph.microsoft.com/v1.0/users/postfach%40example.com/sendMail");
     expect(sendMailPayload?.message.subject).toBe("[Shiftplan] Dienstplan");
-    expect(sendMailPayload?.message.toRecipients).toEqual([
-      { emailAddress: { address: "ziel@example.com" } },
-    ]);
-    expect(sendMailPayload?.message.replyTo).toEqual([
-      { emailAddress: { address: "antwort@example.com", name: "Eric Schuber" } },
-    ]);
-    expect(sendMailPayload?.message.body.content).toContain(
-      "Hallo, ich habe eine Frage zum Dienstplan."
-    );
+    expect(sendMailPayload?.message.toRecipients).toEqual([{ emailAddress: { address: "ziel@example.com" } }]);
+    expect(sendMailPayload?.message.replyTo).toEqual([{ emailAddress: { address: "antwort@example.com", name: "Eric Schuber" } }]);
+    expect(sendMailPayload?.message.body.content).toContain("Hallo, ich habe eine Frage zum Dienstplan.");
   });
 });

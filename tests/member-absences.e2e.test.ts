@@ -1,16 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  ANNA,
-  EARLY,
-  FCM_ENDPOINT,
-  MAX,
-  THURSDAY,
-  bearer,
-  client,
-  allowWeekends,
-  inviteAndRedeem,
-  useMemberAccessClient,
-} from "./helpers/member-access";
+import { ANNA, EARLY, FCM_ENDPOINT, MAX, THURSDAY, bearer, client, allowWeekends, inviteAndRedeem, useMemberAccessClient } from "./helpers/member-access";
 import { relayCalls } from "./helpers/relay-stub";
 import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 
@@ -113,11 +102,9 @@ describe("absences", () => {
       headers: bearer(anna.token),
     });
     const afterSingle = await client.request<any[]>("GET", "/api/absences?year=2026&week=42");
-    const whole = await client.request<{ cancelled: number }>(
-      "DELETE",
-      `/api/member/absences/${report.json!.absences[6].absence_id}?range=1`,
-      { headers: bearer(anna.token) }
-    );
+    const whole = await client.request<{ cancelled: number }>("DELETE", `/api/member/absences/${report.json!.absences[6].absence_id}?range=1`, {
+      headers: bearer(anna.token),
+    });
     const remaining = client.mainDb.prepare("SELECT COUNT(*) AS count FROM absences WHERE cancelled_at IS NULL").get() as {
       count: number;
     };

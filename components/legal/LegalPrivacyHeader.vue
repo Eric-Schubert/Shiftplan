@@ -10,12 +10,9 @@ const lastUpdated = "Oktober 2026";
 
 <template>
   <header class="max-w-[44rem]">
-    <h2 class="text-[clamp(2rem,1.5rem+2vw,2.875rem)] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--text-1)]">
-      Datenschutzerklärung
-    </h2>
+    <h2 class="text-[clamp(2rem,1.5rem+2vw,2.875rem)] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--text-1)]">Datenschutzerklärung</h2>
     <p class="mt-4 text-[1.0625rem] leading-7 text-[var(--text-2)]">
-      Welche personenbezogenen Daten Shiftplan verarbeitet, wofür sie genutzt werden, wie lange
-      sie bleiben und welche Rechte du hast.
+      Welche personenbezogenen Daten Shiftplan verarbeitet, wofür sie genutzt werden, wie lange sie bleiben und welche Rechte du hast.
     </p>
     <p class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--text-3)]">
       <span>Stand: {{ lastUpdated }}</span>
@@ -29,8 +26,7 @@ const lastUpdated = "Oktober 2026";
     class="mt-8 max-w-[44rem] border-l-4 border-[var(--brand-red)] bg-[var(--surface)] py-3 pl-4 pr-4 text-[0.9375rem] leading-7 text-[var(--text-1)]"
   >
     <strong>Das ist eine öffentliche Demo.</strong>
-    Was du hier einträgst, sehen alle anderen Besucherinnen und Besucher. Alle 30 Minuten wird die
-    Demo komplett zurückgesetzt: Plan-Daten, Anmeldungen, Push-Registrierungen und
-    Kontaktanfragen werden gelöscht. Bitte gib hier keine echten personenbezogenen Daten ein.
+    Was du hier einträgst, sehen alle anderen Besucherinnen und Besucher. Alle 30 Minuten wird die Demo komplett zurückgesetzt: Plan-Daten, Anmeldungen,
+    Push-Registrierungen und Kontaktanfragen werden gelöscht. Bitte gib hier keine echten personenbezogenen Daten ein.
   </aside>
 </template>

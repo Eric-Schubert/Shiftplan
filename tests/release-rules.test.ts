@@ -1,12 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import {
-  evaluateCommitMessage,
-  getDeployPrefixes,
-  getHiddenPrefixes,
-  getVisiblePrefixes,
-  loadReleaseRules,
-} from "../scripts/release-rules.js";
+import { evaluateCommitMessage, getDeployPrefixes, getHiddenPrefixes, getVisiblePrefixes, loadReleaseRules } from "../scripts/release-rules.js";
 
 function normalizeCliffPattern(pattern: string) {
   return pattern.replace(/^\^/, "").replace(/\?$/, "");
@@ -45,10 +39,12 @@ describe("release rules", () => {
 
   it("keeps git-cliff parser prefixes in sync", () => {
     const cliff = fs.readFileSync("cliff.toml", "utf-8");
-    const visible = [...cliff.matchAll(/\{\s*message\s*=\s*"([^"]+)",\s*group\s*=/g)]
-      .flatMap((match) => match[1] ? [normalizeCliffPattern(match[1])] : []);
-    const hidden = [...cliff.matchAll(/\{\s*message\s*=\s*"([^"]+)",\s*skip\s*=\s*true/g)]
-      .flatMap((match) => match[1] ? [normalizeCliffPattern(match[1])] : []);
+    const visible = [...cliff.matchAll(/\{\s*message\s*=\s*"([^"]+)",\s*group\s*=/g)].flatMap((match) =>
+      match[1] ? [normalizeCliffPattern(match[1])] : []
+    );
+    const hidden = [...cliff.matchAll(/\{\s*message\s*=\s*"([^"]+)",\s*skip\s*=\s*true/g)].flatMap((match) =>
+      match[1] ? [normalizeCliffPattern(match[1])] : []
+    );
     const rules = loadReleaseRules();
 
     expect(visible).toEqual(getVisiblePrefixes());

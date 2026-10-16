@@ -8,14 +8,7 @@ export default {
   shouldRun(database) {
     return (
       !tableExists(database, "audit_log") ||
-      hasMissingColumns(database, "audit_log", [
-        "shift_id",
-        "shift_name",
-        "staff_id",
-        "staff_name",
-        "reason",
-        "created_at",
-      ])
+      hasMissingColumns(database, "audit_log", ["shift_id", "shift_name", "staff_id", "staff_name", "reason", "created_at"])
     );
   },
   up(database) {

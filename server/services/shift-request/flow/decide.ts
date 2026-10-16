@@ -11,8 +11,7 @@ export async function decideRequest(
   planner: { userId: number; username: string; source: "web" | "app" },
   origin?: string
 ): Promise<ShiftRequest> {
-  const people = (done: ShiftRequest) =>
-    [done.requester_staff_id, done.partner_staff_id].filter((id): id is number => id !== null);
+  const people = (done: ShiftRequest) => [done.requester_staff_id, done.partner_staff_id].filter((id): id is number => id !== null);
   const takeover = request.kind === "takeover";
   const decidedBy = planner.username;
 

@@ -30,15 +30,9 @@ function seedDatabase(database: DatabaseType) {
   database.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Anna Becker");
   database.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Ben Wagner");
   database
-    .prepare(
-      "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES (?, 1, ?, ?, ?, 1, 1)"
-    )
+    .prepare("INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES (?, 1, ?, ?, ?, 1, 1)")
     .run("Früh", "06:00", "14:00", "#22c55e");
-  database
-    .prepare(
-      "INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 2, 2026, 1)"
-    )
-    .run();
+  database.prepare("INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week) VALUES (1, 2, 2026, 1)").run();
   database.prepare("UPDATE rotation_config SET cycle_length = 2, start_year = 2026, start_week = 1").run();
   database.prepare("INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (1, 1, 1)").run();
   database.prepare("INSERT INTO rotation_pattern (pattern_week, staff_id, shift_id) VALUES (2, 2, 1)").run();
@@ -66,9 +60,7 @@ describe("Rollout from the rotation pattern", () => {
     // Week 2 is already planned by hand with Anna; the pattern would put Ben there.
     const week = ShiftplanService.getOrCreateWeek(2026, 2);
     ShiftplanService.assignStaff(1, 1, week.week_id);
-    db.prepare(
-      "INSERT INTO shift_day_changes (staff_id, shift_id, change_date, kind, created_by) VALUES (2, 1, '2026-01-07', 'add', 'test')"
-    ).run();
+    db.prepare("INSERT INTO shift_day_changes (staff_id, shift_id, change_date, kind, created_by) VALUES (2, 1, '2026-01-07', 'add', 'test')").run();
   });
 
   afterEach(() => {

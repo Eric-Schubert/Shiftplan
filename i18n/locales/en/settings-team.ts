@@ -25,10 +25,8 @@ export default {
     remove: "Remove",
     first: "Set code",
     change: "Change code",
-    removeText:
-      "Anyone with the link can then read the shift plan again. Existing notifications stay active.",
-    firstText:
-      "Notifications turned on without a personal sign-in are deleted. The team enters the code once and turns them on again. {keepsPersonal}",
+    removeText: "Anyone with the link can then read the shift plan again. Existing notifications stay active.",
+    firstText: "Notifications turned on without a personal sign-in are deleted. The team enters the code once and turns them on again. {keepsPersonal}",
     changeText:
       "All devices using the old code are signed out and their notifications deleted. The team has to enter the new code once and turn on notifications again. {keepsPersonal}",
     keepsPersonal: "Devices with a personal sign-in stay signed in and keep their notifications.",

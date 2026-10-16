@@ -51,13 +51,11 @@ export function purgeMemberAccess(now = Date.now()): void {
   db.prepare("DELETE FROM member_invites WHERE expires_at <= ? OR used_at IS NOT NULL").run(now);
 
   const active = new Set(
-    (getDatabase().prepare("SELECT staff_id FROM staff WHERE active = 1").all() as Array<{ staff_id: number }>).map(
-      (row) => row.staff_id
-    )
+    (getDatabase().prepare("SELECT staff_id FROM staff WHERE active = 1").all() as Array<{ staff_id: number }>).map((row) => row.staff_id)
   );
-  const known = db
-    .prepare(STAFF_TABLES.map((table) => `SELECT staff_id FROM ${table} WHERE staff_id IS NOT NULL`).join(" UNION "))
-    .all() as Array<{ staff_id: number }>;
+  const known = db.prepare(STAFF_TABLES.map((table) => `SELECT staff_id FROM ${table} WHERE staff_id IS NOT NULL`).join(" UNION ")).all() as Array<{
+    staff_id: number;
+  }>;
   for (const { staff_id } of known) {
     if (!active.has(staff_id)) removeStaffAccess(staff_id);
   }

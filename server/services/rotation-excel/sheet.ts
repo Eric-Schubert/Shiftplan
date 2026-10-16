@@ -23,10 +23,7 @@ function readConfigValue(rows: XlsxCellValue[][], headerRow: number, labels: str
   return undefined;
 }
 
-export function parseConfig(
-  rows: XlsxCellValue[][],
-  headerRow: number
-): Omit<RotationConfig, "config_id"> {
+export function parseConfig(rows: XlsxCellValue[][], headerRow: number): Omit<RotationConfig, "config_id"> {
   const validation = getValidationConfig();
   const rotation = getRotationValidationConfig();
 

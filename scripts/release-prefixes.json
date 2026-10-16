@@ -17,23 +17,7 @@
       "bump": "patch"
     }
   ],
-  "hidden": [
-    "refactor",
-    "style",
-    "test",
-    "chore",
-    "ci",
-    "docs",
-    "build",
-    "revert"
-  ],
-  "deploy": [
-    "feat",
-    "fix",
-    "perf",
-    "security"
-  ],
-  "skipTokens": [
-    "[skip ci]"
-  ]
+  "hidden": ["refactor", "style", "test", "chore", "ci", "docs", "build", "revert"],
+  "deploy": ["feat", "fix", "perf", "security"],
+  "skipTokens": ["[skip ci]"]
 }

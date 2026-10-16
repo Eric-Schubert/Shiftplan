@@ -5,21 +5,21 @@ import { getDatabase } from "~/server/utils/database";
 import { getConfig } from "~/server/services/rotation/config";
 
 function activeShifts(): Shift[] {
-  return getDatabase()
-    .prepare("SELECT * FROM shifts WHERE active = 1 ORDER BY sort_order")
-    .all() as Shift[];
+  return getDatabase().prepare("SELECT * FROM shifts WHERE active = 1 ORDER BY sort_order").all() as Shift[];
 }
 
 function weekAssignments(shifts: Shift[], patternWeek: number): PatternWeekData["assignments"] {
   const db = getDatabase();
   return shifts.map((shift) => {
     const staff = db
-      .prepare(`
+      .prepare(
+        `
         SELECT s.* FROM staff s
         JOIN rotation_pattern rp ON s.staff_id = rp.staff_id
         WHERE rp.pattern_week = ? AND rp.shift_id = ? AND s.active = 1
         ORDER BY s.name
-      `)
+      `
+      )
       .all(patternWeek, shift.shift_id) as Staff[];
 
     return { shift, staff };
@@ -51,10 +51,12 @@ export function assignToPattern(patternWeek: number, staffId: number, shiftId: n
   }
 
   try {
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO rotation_pattern (pattern_week, staff_id, shift_id)
       VALUES (?, ?, ?)
-    `).run(patternWeek, staffId, shiftId);
+    `
+    ).run(patternWeek, staffId, shiftId);
     return true;
   } catch {
     return false;
@@ -64,10 +66,12 @@ export function assignToPattern(patternWeek: number, staffId: number, shiftId: n
 export function unassignFromPattern(patternWeek: number, staffId: number, shiftId: number): boolean {
   const db = getDatabase();
   const result = db
-    .prepare(`
+    .prepare(
+      `
       DELETE FROM rotation_pattern
       WHERE pattern_week = ? AND staff_id = ? AND shift_id = ?
-    `)
+    `
+    )
     .run(patternWeek, staffId, shiftId);
   return result.changes > 0;
 }
@@ -80,11 +84,13 @@ export function replacePattern(
   const current = getConfig();
 
   const replaceTransaction = db.transaction(() => {
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE rotation_config
       SET cycle_length = ?, start_year = ?, start_week = ?
       WHERE config_id = ?
-    `).run(config.cycle_length, config.start_year, config.start_week, current.config_id);
+    `
+    ).run(config.cycle_length, config.start_year, config.start_week, current.config_id);
 
     db.prepare("DELETE FROM rotation_pattern").run();
 

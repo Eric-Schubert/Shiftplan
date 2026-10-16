@@ -69,12 +69,7 @@ async function save() {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('requests.dialog.header')"
-    modal
-    :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('requests.dialog.header')" modal :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <form class="space-y-4 text-sm" @submit.prevent="save">
       <MemberRequestKindSwitch v-model="kind" />
 
@@ -87,14 +82,7 @@ async function save() {
           </div>
           <div class="space-y-1.5">
             <label for="request-shift" class="block font-medium text-[var(--text-2)]">{{ t("requests.dialog.shift") }}</label>
-            <PrimeSelect
-              v-model="shiftId"
-              input-id="request-shift"
-              :options="shiftOptions"
-              option-label="label"
-              option-value="value"
-              class="w-full"
-            />
+            <PrimeSelect v-model="shiftId" input-id="request-shift" :options="shiftOptions" option-label="label" option-value="value" class="w-full" />
           </div>
         </div>
       </template>

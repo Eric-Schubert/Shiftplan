@@ -20,10 +20,7 @@ function passwordProblem(password: string, policy: PasswordRules): MessageRef | 
 }
 
 /** Checks the new-user form before it is sent; returns the error message or null. */
-export function newUserProblem(
-  form: UserCreatePayload,
-  config: Pick<ClientConfig, "passwordPolicy" | "username">
-): MessageRef | null {
+export function newUserProblem(form: UserCreatePayload, config: Pick<ClientConfig, "passwordPolicy" | "username">): MessageRef | null {
   if (!form.username || !form.password) return { key: "settings.users.form.required" };
   const min = config.username.minLength;
   if (form.username.trim().length < min) return { key: "settings.users.form.usernameTooShort", params: { min } };
@@ -31,12 +28,7 @@ export function newUserProblem(
 }
 
 /** Checks the change-password form before it is sent; returns the error message or null. */
-export function passwordChangeProblem(
-  current: string,
-  next: string,
-  repeat: string,
-  policy: PasswordPolicy
-): MessageRef | null {
+export function passwordChangeProblem(current: string, next: string, repeat: string, policy: PasswordPolicy): MessageRef | null {
   if (!current || !next || !repeat) return { key: "settings.auth.changePassword.allFields" };
   if (next !== repeat) return { key: "settings.auth.changePassword.mismatch" };
   return passwordProblem(next, policy);

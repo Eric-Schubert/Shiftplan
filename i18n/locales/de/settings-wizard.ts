@@ -37,8 +37,7 @@ export default {
   },
   review: {
     imported: "Muster übernommen: {assignments}.",
-    understaffed:
-      "{count} Schicht ist im Muster unter der Mindestbesetzung. | {count} Schichten sind im Muster unter der Mindestbesetzung.",
+    understaffed: "{count} Schicht ist im Muster unter der Mindestbesetzung. | {count} Schichten sind im Muster unter der Mindestbesetzung.",
     allStaffed: "Alle Schichten sind im Muster besetzt.",
     editBoard: "Im Board bearbeiten",
     thisWeek: "diese Woche",

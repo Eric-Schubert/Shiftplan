@@ -1,9 +1,4 @@
-import {
-  AnalyticsService,
-  isLikelyBot,
-  normalizeAnalyticsPath,
-  readDecodedHeader,
-} from "~/server/services/analytics.service";
+import { AnalyticsService, isLikelyBot, normalizeAnalyticsPath, readDecodedHeader } from "~/server/services/analytics.service";
 import { getClientIP } from "~/server/utils/session";
 
 export default defineEventHandler(async (event) => {
@@ -32,11 +27,7 @@ export default defineEventHandler(async (event) => {
         "x-appengine-country",
         "x-country-code",
       ]),
-      region: readDecodedHeader(event, [
-        "x-vercel-ip-country-region",
-        "x-appengine-region",
-        "x-region",
-      ]),
+      region: readDecodedHeader(event, ["x-vercel-ip-country-region", "x-appengine-region", "x-region"]),
       city: readDecodedHeader(event, ["x-vercel-ip-city", "x-appengine-city", "x-city"]),
     });
   } catch (error) {

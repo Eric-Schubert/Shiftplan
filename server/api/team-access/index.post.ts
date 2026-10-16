@@ -1,9 +1,4 @@
-import {
-  ACCESS_CODE_MAX_LENGTH,
-  ACCESS_CODE_MIN_LENGTH,
-  INSTANCE_NAME_MAX_LENGTH,
-  TeamAccessService,
-} from "~/server/services/team-access.service";
+import { ACCESS_CODE_MAX_LENGTH, ACCESS_CODE_MIN_LENGTH, INSTANCE_NAME_MAX_LENGTH, TeamAccessService } from "~/server/services/team-access.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
 import { apiError, messageRef } from "~/server/utils/api-error";

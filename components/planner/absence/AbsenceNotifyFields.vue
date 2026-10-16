@@ -11,12 +11,7 @@ const message = defineModel<string>("message", { required: true });
       {{ $t("absence.notify.label") }}
     </label>
     <template v-if="notifyTeam">
-      <PrimeInputText
-        v-model="message"
-        maxlength="160"
-        :placeholder="$t('absence.notify.placeholder')"
-        class="w-full"
-      />
+      <PrimeInputText v-model="message" maxlength="160" :placeholder="$t('absence.notify.placeholder')" class="w-full" />
       <p class="text-xs text-[var(--text-3)]">{{ $t("absence.teamSeesHint") }}</p>
     </template>
   </div>

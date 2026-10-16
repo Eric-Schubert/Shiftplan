@@ -22,11 +22,35 @@ function shift(shiftId: number, staffIds: number[], minStaff = 1): ShiftWithStaf
 }
 
 function change(shiftId: number, staffId: number, date: string, kind: "add" | "remove"): ShiftDayChange {
-  return { change_id: 0, staff_id: staffId, staff_name: "", shift_id: shiftId, shift_name: "", change_date: date, kind, source: "web", created_by: "", created_at: "" };
+  return {
+    change_id: 0,
+    staff_id: staffId,
+    staff_name: "",
+    shift_id: shiftId,
+    shift_name: "",
+    change_date: date,
+    kind,
+    source: "web",
+    created_by: "",
+    created_at: "",
+  };
 }
 
 function absence(staffId: number, date: string, shiftId: number | null = null): Absence {
-  return { absence_id: 0, staff_id: staffId, staff_name: "", absence_date: date, shift_id: shiftId, shift_name: null, batch_id: null, range_from: date, range_to: date, source: "web", created_by: "", created_at: "" };
+  return {
+    absence_id: 0,
+    staff_id: staffId,
+    staff_name: "",
+    absence_date: date,
+    shift_id: shiftId,
+    shift_name: null,
+    batch_id: null,
+    range_from: date,
+    range_to: date,
+    source: "web",
+    created_by: "",
+    created_at: "",
+  };
 }
 
 describe("shift coverage", () => {

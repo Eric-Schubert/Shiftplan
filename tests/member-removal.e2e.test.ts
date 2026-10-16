@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CookieJar } from "./helpers/api-harness";
-import {
-  ANNA,
-  MAX,
-  SAME_ORIGIN,
-  bearer,
-  client,
-  inviteAndRedeem,
-  teamMessage,
-  useMemberAccessClient,
-} from "./helpers/member-access";
+import { ANNA, MAX, SAME_ORIGIN, bearer, client, inviteAndRedeem, teamMessage, useMemberAccessClient } from "./helpers/member-access";
 import { KEYS, webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
@@ -34,8 +25,7 @@ async function annaWithEverything() {
 
   const planner = await client.loginAs("planner", "planner1234");
   const invite = async () =>
-    (await client.request<{ code: string }>("POST", "/api/member-invites", { jar: planner, csrf: true, body: { staffId: ANNA } }))
-      .json!.code;
+    (await client.request<{ code: string }>("POST", "/api/member-invites", { jar: planner, csrf: true, body: { staffId: ANNA } })).json!.code;
   const browser: CookieJar = new Map();
   await client.request("POST", "/api/member/redeem", { jar: browser, headers: SAME_ORIGIN, body: { code: await invite(), client: "web" } });
   await client.request("POST", "/api/push/subscribe", {
@@ -53,10 +43,7 @@ function tablesWith(staffId: number): string[] {
 
 const REMOVALS = [
   ["deleted", (admin: CookieJar) => client.request("DELETE", `/api/staff/${ANNA}`, { jar: admin, csrf: true })],
-  [
-    "deactivated",
-    (admin: CookieJar) => client.request("PATCH", `/api/staff/${ANNA}`, { jar: admin, csrf: true, body: { active: false } }),
-  ],
+  ["deactivated", (admin: CookieJar) => client.request("PATCH", `/api/staff/${ANNA}`, { jar: admin, csrf: true, body: { active: false } })],
 ] as const;
 
 describe("removing a person", () => {
@@ -92,9 +79,7 @@ describe("cleanup of personal access", () => {
     session.run("idle", "hash-idle", ANNA, now - 400 * DAY_MS, now - 366 * DAY_MS);
     session.run("recent", "hash-recent", ANNA, now - 400 * DAY_MS, now - 300 * DAY_MS);
     session.run("inactive", "hash-inactive", 3, now, now);
-    const device = client.adminDb.prepare(
-      "INSERT INTO push_devices (platform, token, staff_id, scope, member_session) VALUES ('ios', ?, ?, 'all', ?)"
-    );
+    const device = client.adminDb.prepare("INSERT INTO push_devices (platform, token, staff_id, scope, member_session) VALUES ('ios', ?, ?, 'all', ?)");
     device.run("idle:APA91b", ANNA, "idle");
     device.run("deleted:APA91b", 99, null);
     client.adminDb.prepare("INSERT INTO member_pins (staff_id, pin_hash, updated_at) VALUES (99, 'hash', 0)").run();

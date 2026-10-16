@@ -1,13 +1,5 @@
 import { Buffer } from "node:buffer";
-import {
-  appPropsXml,
-  contentTypesXml,
-  corePropsXml,
-  rootRelsXml,
-  stylesXml,
-  workbookRelsXml,
-  workbookXml,
-} from "./package-xml";
+import { appPropsXml, contentTypesXml, corePropsXml, rootRelsXml, stylesXml, workbookRelsXml, workbookXml } from "./package-xml";
 import type { XlsxSheetInput, XlsxWorkbookInput } from "./types";
 import { worksheetXml } from "./worksheet-xml";
 import { createZip, type ZipEntry } from "./zip-write";

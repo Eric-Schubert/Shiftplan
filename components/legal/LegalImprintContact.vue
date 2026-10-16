@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import type { ContactValidation } from "~/utils/legal/contact-form";
 
-const {
-  contactForm,
-  sending,
-  sent,
-  error,
-  contactValidation,
-  hasValidationErrors,
-  showValidation,
-  messageHelpText,
-  submitContact,
-} = useImprintContactForm();
+const { contactForm, sending, sent, error, contactValidation, hasValidationErrors, showValidation, messageHelpText, submitContact } =
+  useImprintContactForm();
 
 function fieldError(field: keyof ContactValidation): string | undefined {
   return showValidation.value ? contactValidation.value[field] : undefined;
@@ -25,22 +16,13 @@ function fieldError(field: keyof ContactValidation): string | undefined {
         <p class="planner-kicker">Kontakt</p>
         <h3 class="mt-2 text-xl font-semibold text-[var(--text-1)]">Nachricht senden</h3>
       </div>
-      <span class="planner-chip planner-chip--muted">
-        Formular
-      </span>
+      <span class="planner-chip planner-chip--muted"> Formular </span>
     </div>
 
     <form class="space-y-4" @submit.prevent="submitContact">
       <div class="hidden" aria-hidden="true">
         <label for="contact-company">Firma</label>
-        <input
-          id="contact-company"
-          v-model="contactForm.company"
-          type="text"
-          name="company"
-          tabindex="-1"
-          autocomplete="off"
-        >
+        <input id="contact-company" v-model="contactForm.company" type="text" name="company" tabindex="-1" autocomplete="off" />
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -105,22 +87,15 @@ function fieldError(field: keyof ContactValidation): string | undefined {
               to="/datenschutz"
               class="font-medium text-[var(--accent-strong)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
             >
-              Datenschutzerklärung
-            </NuxtLink>.
+              Datenschutzerklärung </NuxtLink
+            >.
           </p>
         </template>
       </LegalImprintContactField>
 
       <LegalImprintContactAlerts :invalid="showValidation && hasValidationErrors" :sent="sent" :error="error" />
 
-      <PrimeButton
-        type="submit"
-        label="Nachricht senden"
-        icon="pi pi-send"
-        class="min-h-11 w-full sm:w-auto"
-        :loading="sending"
-        :disabled="sending"
-      />
+      <PrimeButton type="submit" label="Nachricht senden" icon="pi pi-send" class="min-h-11 w-full sm:w-auto" :loading="sending" :disabled="sending" />
     </form>
   </section>
 </template>

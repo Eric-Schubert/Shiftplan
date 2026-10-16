@@ -14,9 +14,7 @@ export function withLabels(changes: PendingChange[], locale: string): LabeledCha
   const tag = localeTag(locale);
   return changes.map((change) => ({
     ...change,
-    label: change.date
-      ? t(locale, "push.change.dayShift", { shift: change.shiftName, day: formatDay(tag, change.date) })
-      : change.shiftName,
+    label: change.date ? t(locale, "push.change.dayShift", { shift: change.shiftName, day: formatDay(tag, change.date) }) : change.shiftName,
   }));
 }
 
@@ -34,7 +32,13 @@ export function sortChanges(changes: LabeledChange[], locale: string): LabeledCh
 
 /** The browser push about plan changes in `locale`; null when the changes cancel out. */
 export function buildChangePayload(changes: PendingChange[], locale: string): PushPayload | null {
-  const effective = sortChanges(withLabels(changes.filter((change) => change.delta !== 0), locale), locale);
+  const effective = sortChanges(
+    withLabels(
+      changes.filter((change) => change.delta !== 0),
+      locale
+    ),
+    locale
+  );
   if (effective.length === 0) return null;
 
   const groups = new Map<string, { label: string; added: string[]; removed: string[] }>();

@@ -117,9 +117,7 @@ export function findGerman(file, source) {
 }
 
 export function findGermanInFiles(files, readFile = (file) => fs.readFileSync(file, "utf-8")) {
-  return files
-    .filter((file) => CHECKED.test(file))
-    .flatMap((file) => findGerman(file, readFile(file)).map((finding) => ({ file, ...finding })));
+  return files.filter((file) => CHECKED.test(file)).flatMap((file) => findGerman(file, readFile(file)).map((finding) => ({ file, ...finding })));
 }
 
 function main() {

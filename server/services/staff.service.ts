@@ -42,9 +42,7 @@ export const StaffService = {
 
   create(data: StaffCreateDTO): Staff {
     const db = getDatabase();
-    const shortCode = data.short_code
-      ? checkShortCode(data.short_code)
-      : suggestShortCode(data.name, takenShortCodes());
+    const shortCode = data.short_code ? checkShortCode(data.short_code) : suggestShortCode(data.name, takenShortCodes());
     const stmt = db.prepare("INSERT INTO staff (name, active, is_parttime, short_code) VALUES (?, ?, ?, ?)");
     const result = stmt.run(data.name, data.active ?? 1, data.is_parttime ?? 0, shortCode);
     return this.getById(result.lastInsertRowid as number)!;

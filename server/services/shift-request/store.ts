@@ -12,17 +12,13 @@ const APPROVAL_SETTING = "requests_require_approval";
  */
 export const ShiftRequestService = {
   requiresApproval(): boolean {
-    const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(APPROVAL_SETTING) as
-      | { value: string }
-      | undefined;
+    const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(APPROVAL_SETTING) as { value: string } | undefined;
     return row?.value === "1";
   },
 
   setRequiresApproval(required: boolean): void {
     getAdminDatabase()
-      .prepare(
-        "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-      )
+      .prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value")
       .run(APPROVAL_SETTING, required ? "1" : "0");
   },
 

@@ -14,9 +14,14 @@ describe("push locale migration", () => {
   it("gives existing subscriptions and devices German", () => {
     const db = new Database(":memory:");
     const pushLocale = ADMIN_MIGRATIONS.find((migration) => migration.id === "013_admin_push_locale")!;
-    runMigrations(db, "admin", ADMIN_MIGRATIONS.filter((migration) => migration !== pushLocale), {
-      bootstrapAdminPassword: "BootstrapPass1",
-    });
+    runMigrations(
+      db,
+      "admin",
+      ADMIN_MIGRATIONS.filter((migration) => migration !== pushLocale),
+      {
+        bootstrapAdminPassword: "BootstrapPass1",
+      }
+    );
     db.prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?)").run(FCM_ENDPOINT, KEYS.p256dh, KEYS.auth);
     db.prepare("INSERT INTO push_devices (platform, token, scope) VALUES ('ios', 'token-old:1', 'all')").run();
 
@@ -25,7 +30,10 @@ describe("push locale migration", () => {
     expect(applied.map((migration) => migration.id)).toEqual(["013_admin_push_locale"]);
     expect(pushLocale.shouldRun(db)).toBe(false);
     for (const table of ["push_subscriptions", "push_devices"]) {
-      const column = db.prepare(`PRAGMA table_info(${table})`).all().find((entry: any) => entry.name === "locale");
+      const column = db
+        .prepare(`PRAGMA table_info(${table})`)
+        .all()
+        .find((entry: any) => entry.name === "locale");
       expect(column).toMatchObject({ type: "TEXT", notnull: 1, dflt_value: "'de'" });
       expect(db.prepare(`SELECT locale FROM ${table}`).all()).toEqual([{ locale: "de" }]);
     }

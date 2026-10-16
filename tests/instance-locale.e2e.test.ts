@@ -53,8 +53,7 @@ describe("instance language", () => {
   it("words server texts in it when the request names no supported language", async () => {
     const admin = await client.loginAs("admin", "admin1234");
     await setLocale(admin, "en");
-    const login = (headers: Record<string, string>) =>
-      client.request("POST", "/api/member/login", { headers, body: { shortCode: "XX", pin: "482917" } });
+    const login = (headers: Record<string, string>) => client.request("POST", "/api/member/login", { headers, body: { shortCode: "XX", pin: "482917" } });
 
     const plain = await login({});
     const french = await login({ "accept-language": "fr-FR" });

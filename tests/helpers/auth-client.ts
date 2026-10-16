@@ -35,21 +35,23 @@ export function useAuthClient() {
       ROUTES,
       (db) => {
         db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES (?, 1, 0)").run("Planner Test Staff");
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order)
           VALUES (?, 1, ?, ?, ?, 1, 1)
-        `).run("Planner Test Shift", "06:00", "14:00", "#22c55e");
-        db.prepare(`
+        `
+        ).run("Planner Test Shift", "06:00", "14:00", "#22c55e");
+        db.prepare(
+          `
           INSERT OR IGNORE INTO rotation_config (config_id, cycle_length, start_year, start_week)
           VALUES (1, 4, 2026, 1)
-        `).run();
+        `
+        ).run();
       },
       { "x-forwarded-for": "127.0.0.1" }
     );
     client.adminDb
-      .prepare(
-        "INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, 'planner', 0, datetime('now'))"
-      )
+      .prepare("INSERT INTO users (username, password_hash, role, active, created_at) VALUES (?, ?, 'planner', 0, datetime('now'))")
       .run("disabled", bcrypt.hashSync("disabled1234", 8));
   });
 

@@ -56,24 +56,15 @@ const { t } = useI18n();
       </p>
     </div>
 
-    <div
-      class="-mt-2 ml-7 text-xs"
-      :class="overwrite ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'"
-    >
+    <div class="-mt-2 ml-7 text-xs" :class="overwrite ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'">
       {{ t(overwrite ? "settings.yearCopy.overwriteWarning" : "settings.yearCopy.skipNote", { year: targetYear }) }}
     </div>
 
-    <div
-      v-if="error"
-      class="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20"
-    >
+    <div v-if="error" class="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
       <p class="text-sm text-red-700 dark:text-red-300">{{ error }}</p>
     </div>
 
-    <div
-      v-if="result?.success"
-      class="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20"
-    >
+    <div v-if="result?.success" class="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
       <p class="mb-1 text-sm font-medium text-green-700 dark:text-green-400">
         {{ t("settings.yearCopy.done") }}
       </p>

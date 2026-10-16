@@ -1,10 +1,5 @@
 import { getAuthConfig } from "~/server/config/auth-config";
-import {
-  ACCESS_CODE_MAX_LENGTH,
-  TeamAccessService,
-  VIEWER_COOKIE_NAME,
-  VIEWER_SESSION_DAYS,
-} from "~/server/services/team-access.service";
+import { ACCESS_CODE_MAX_LENGTH, TeamAccessService, VIEWER_COOKIE_NAME, VIEWER_SESSION_DAYS } from "~/server/services/team-access.service";
 import { getClientNetwork, limitAttempt } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
 import { apiError } from "~/server/utils/api-error";

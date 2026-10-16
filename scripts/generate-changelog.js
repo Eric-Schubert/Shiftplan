@@ -1,16 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import {
-  evaluateCommitMessage,
-  getVisiblePrefixes,
-} from "./release-rules.js";
-import {
-  addUniqueChanges,
-  bodyToChanges,
-  capitalizeFirst,
-  cleanChangeLine,
-  getCommitMessageParts,
-} from "./changelog/commit-text.js";
+import { evaluateCommitMessage, getVisiblePrefixes } from "./release-rules.js";
+import { addUniqueChanges, bodyToChanges, capitalizeFirst, cleanChangeLine, getCommitMessageParts } from "./changelog/commit-text.js";
 import { loadContext } from "./changelog/context.js";
 import { mergeGithubReleaseBodies } from "./changelog/github-releases.js";
 import { compareChangelogEntries } from "./changelog/versions.js";
@@ -19,10 +10,7 @@ export { compareChangelogEntries, compareVersions } from "./changelog/versions.j
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUTPUT_PATH = path.join(ROOT, "utils", "changelog.generated.json");
-const VISIBLE_PREFIX_PATTERN = new RegExp(
-  `^(${getVisiblePrefixes().map(escapeRegex).join("|")})(\\(.+?\\))?!?:\\s*`,
-  "i",
-);
+const VISIBLE_PREFIX_PATTERN = new RegExp(`^(${getVisiblePrefixes().map(escapeRegex).join("|")})(\\(.+?\\))?!?:\\s*`, "i");
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

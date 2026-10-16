@@ -10,22 +10,11 @@ interface ShiftCardDragDropOptions {
 
 /** Drag handlers of one shift card: people can be dragged from one shift onto another. */
 export function useShiftCardDragDrop({ shift, onMove }: ShiftCardDragDropOptions) {
-  const {
-    state: dragState,
-    startDrag,
-    endDrag,
-    setHoverShift,
-    getPayload,
-    isValidDrop,
-  } = useDragDrop();
+  const { state: dragState, startDrag, endDrag, setHoverShift, getPayload, isValidDrop } = useDragDrop();
 
-  const isDropTarget = computed(
-    () => dragState.isDragging && isValidDrop(shift.value.shift_id)
-  );
+  const isDropTarget = computed(() => dragState.isDragging && isValidDrop(shift.value.shift_id));
 
-  const isHovering = computed(
-    () => dragState.hoverShiftId === shift.value.shift_id
-  );
+  const isHovering = computed(() => dragState.hoverShiftId === shift.value.shift_id);
 
   function onDragStart(event: DragEvent, staffId: number, staffName: string) {
     startDrag(event, {

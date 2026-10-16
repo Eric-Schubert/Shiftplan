@@ -46,9 +46,7 @@ export function instanceLocale(): AppLocale {
   // Without an admin database (before setup.js, in tests without one) there is no setting to read,
   // and opening it here would create one.
   if (!fs.existsSync(getDatabasePaths().admin)) return DEFAULT_LOCALE;
-  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(INSTANCE_LOCALE_SETTING) as
-    | { value: string }
-    | undefined;
+  const row = getAdminDatabase().prepare("SELECT value FROM settings WHERE key = ?").get(INSTANCE_LOCALE_SETTING) as { value: string } | undefined;
   return isAppLocale(row?.value) ? row.value : DEFAULT_LOCALE;
 }
 

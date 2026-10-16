@@ -14,7 +14,9 @@ export function getCommitMessageParts(commit) {
   }
 
   return {
-    subject: String(commit.message || "").split(/\r?\n/)[0].trim(),
+    subject: String(commit.message || "")
+      .split(/\r?\n/)[0]
+      .trim(),
     body: String(commit.body || "").trim(),
   };
 }

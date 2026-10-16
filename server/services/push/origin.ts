@@ -11,13 +11,7 @@ function toOrigin(value: string): URL | null {
 
 /** A public name: no localhost, IP address or single-label host that push services reject. */
 function isPublicHost(host: string): boolean {
-  return (
-    host.includes(".") &&
-    !host.endsWith(".localhost") &&
-    !host.endsWith(".local") &&
-    !host.startsWith("[") &&
-    !/^[\d.]+$/.test(host)
-  );
+  return host.includes(".") && !host.endsWith(".localhost") && !host.endsWith(".local") && !host.startsWith("[") && !/^[\d.]+$/.test(host);
 }
 
 /**

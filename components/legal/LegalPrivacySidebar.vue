@@ -12,10 +12,7 @@ const hasController = computed(() => controllerLines.value.length > 0);
 <template>
   <aside class="lg:sticky lg:top-24 lg:h-fit">
     <h3 class="text-sm font-semibold text-[var(--text-1)]">Verantwortlich</h3>
-    <address
-      v-if="hasController"
-      class="mt-2 not-italic text-[0.9375rem] leading-6 text-[var(--text-2)]"
-    >
+    <address v-if="hasController" class="mt-2 not-italic text-[0.9375rem] leading-6 text-[var(--text-2)]">
       <span v-for="line in controllerLines" :key="line" class="block">{{ line }}</span>
     </address>
     <p v-else class="mt-2 text-[0.9375rem] leading-6 text-[var(--text-2)]">
@@ -24,9 +21,7 @@ const hasController = computed(() => controllerLines.value.length > 0);
     <p v-if="imprint.publicEmail" class="mt-2 text-[0.9375rem] leading-6">
       <a :href="`mailto:${imprint.publicEmail}`" :class="linkClass">{{ imprint.publicEmail }}</a>
     </p>
-    <p class="mt-2 text-sm leading-6 text-[var(--text-3)]">
-      Datenschutzanfragen gehen per E-Mail oder über das Kontaktformular im Impressum.
-    </p>
+    <p class="mt-2 text-sm leading-6 text-[var(--text-3)]">Datenschutzanfragen gehen per E-Mail oder über das Kontaktformular im Impressum.</p>
 
     <nav aria-label="Inhalt" class="mt-8 hidden lg:block">
       <h3 class="text-sm font-semibold text-[var(--text-1)]">Inhalt</h3>

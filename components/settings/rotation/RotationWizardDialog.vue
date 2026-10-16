@@ -69,12 +69,7 @@ watch(activeStep, () => {
 </script>
 
 <template>
-  <PrimeDialog
-    v-model:visible="dialogVisible"
-    :header="t('settings.wizard.header')"
-    modal
-    :style="{ width: '52rem', maxWidth: 'calc(100vw - 1.5rem)' }"
-  >
+  <PrimeDialog v-model:visible="dialogVisible" :header="t('settings.wizard.header')" modal :style="{ width: '52rem', maxWidth: 'calc(100vw - 1.5rem)' }">
     <div class="space-y-5">
       <input
         ref="excelFileInput"
@@ -101,30 +96,16 @@ watch(activeStep, () => {
         />
       </section>
 
-      <RotationWizardStepReview
-        v-else-if="activeStep === 1"
-        :import-done="importDone"
-        :today="today"
-        @edit-board="emit('edit-board')"
-      />
+      <RotationWizardStepReview v-else-if="activeStep === 1" :import-done="importDone" :today="today" @edit-board="emit('edit-board')" />
 
       <section v-else class="space-y-4">
         <p class="max-w-[65ch] text-sm leading-6 text-[var(--text-2)]">{{ t("settings.wizard.rolloutIntro") }}</p>
-        <RotationRolloutPanel
-          :initial-year="today.year"
-          :initial-week="today.week"
-          @generated="rolledOut = true"
-        />
+        <RotationRolloutPanel :initial-year="today.year" :initial-week="today.week" @generated="rolledOut = true" />
       </section>
     </div>
 
     <template #footer>
-      <RotationWizardFooter
-        v-model:active-step="activeStep"
-        :step-count="steps.length"
-        :rolled-out="rolledOut"
-        @close="dialogVisible = false"
-      />
+      <RotationWizardFooter v-model:active-step="activeStep" :step-count="steps.length" :rolled-out="rolledOut" @close="dialogVisible = false" />
     </template>
   </PrimeDialog>
 </template>

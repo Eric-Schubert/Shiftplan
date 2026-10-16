@@ -24,23 +24,12 @@ export default {
         )
       `);
 
-    addColumnIfMissing(
-      database,
-      "rotation_config",
-      "cycle_length",
-      `INTEGER NOT NULL DEFAULT ${DEFAULT_ROTATION_CYCLE_LENGTH}`
-    );
+    addColumnIfMissing(database, "rotation_config", "cycle_length", `INTEGER NOT NULL DEFAULT ${DEFAULT_ROTATION_CYCLE_LENGTH}`);
     addColumnIfMissing(database, "rotation_config", "start_year", "INTEGER");
     addColumnIfMissing(database, "rotation_config", "start_week", "INTEGER");
-    database
-      .prepare("UPDATE rotation_config SET cycle_length = ? WHERE cycle_length IS NULL")
-      .run(DEFAULT_ROTATION_CYCLE_LENGTH);
-    database.exec(
-      "UPDATE rotation_config SET start_year = CAST(strftime('%Y', 'now') AS INTEGER) WHERE start_year IS NULL"
-    );
-    database
-      .prepare("UPDATE rotation_config SET start_week = ? WHERE start_week IS NULL")
-      .run(DEFAULT_ROTATION_START_WEEK);
+    database.prepare("UPDATE rotation_config SET cycle_length = ? WHERE cycle_length IS NULL").run(DEFAULT_ROTATION_CYCLE_LENGTH);
+    database.exec("UPDATE rotation_config SET start_year = CAST(strftime('%Y', 'now') AS INTEGER) WHERE start_year IS NULL");
+    database.prepare("UPDATE rotation_config SET start_week = ? WHERE start_week IS NULL").run(DEFAULT_ROTATION_START_WEEK);
 
     database.exec(`
         CREATE TABLE IF NOT EXISTS rotation_pattern (
@@ -53,8 +42,6 @@ export default {
           UNIQUE(pattern_week, staff_id, shift_id)
         )
       `);
-    database.exec(
-      "CREATE UNIQUE INDEX IF NOT EXISTS idx_rotation_pattern_unique ON rotation_pattern(pattern_week, staff_id, shift_id)"
-    );
+    database.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_rotation_pattern_unique ON rotation_pattern(pattern_week, staff_id, shift_id)");
   },
 };

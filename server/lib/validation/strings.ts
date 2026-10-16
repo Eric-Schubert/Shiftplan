@@ -14,17 +14,9 @@ type NameOptions = { required?: boolean; maxLength?: number };
 // With `required: true` the validators throw instead of returning undefined.
 export function validateString(value: unknown, field: FieldKey, options: StringOptions & { required: true }): string;
 export function validateString(value: unknown, field: FieldKey, options?: StringOptions): string | undefined;
-export function validateString(
-  value: unknown,
-  field: FieldKey,
-  options: StringOptions = {}
-): string | undefined {
+export function validateString(value: unknown, field: FieldKey, options: StringOptions = {}): string | undefined {
   const stringConfig = getValidationConfig().string;
-  const {
-    required = false,
-    minLength = stringConfig.defaultMinLength,
-    maxLength = stringConfig.defaultMaxLength,
-  } = options;
+  const { required = false, minLength = stringConfig.defaultMinLength, maxLength = stringConfig.defaultMaxLength } = options;
 
   if (value === undefined || value === null) {
     if (required) {
@@ -72,11 +64,7 @@ export function sanitizeString(value: string): string {
 
 export function validateName(value: unknown, field: FieldKey, options: NameOptions & { required: true }): string;
 export function validateName(value: unknown, field: FieldKey, options?: NameOptions): string | undefined;
-export function validateName(
-  value: unknown,
-  field: FieldKey,
-  options: NameOptions = {}
-): string | undefined {
+export function validateName(value: unknown, field: FieldKey, options: NameOptions = {}): string | undefined {
   const { required = false, maxLength = getValidationConfig().name.defaultMaxLength } = options;
 
   const validated = validateString(value, field, {
@@ -92,11 +80,7 @@ export function validateName(
 
 export function validateTime(value: unknown, field: FieldKey, options: { required: true }): string;
 export function validateTime(value: unknown, field: FieldKey, options?: { required?: boolean }): string | undefined;
-export function validateTime(
-  value: unknown,
-  field: FieldKey,
-  options: { required?: boolean } = {}
-): string | undefined {
+export function validateTime(value: unknown, field: FieldKey, options: { required?: boolean } = {}): string | undefined {
   return validateString(value, field, {
     ...options,
     pattern: /^([01]\d|2[0-3]):[0-5]\d$/,
@@ -107,11 +91,7 @@ export function validateTime(
 
 export function validateColor(value: unknown, field: FieldKey, options: { required: true }): string;
 export function validateColor(value: unknown, field: FieldKey, options?: { required?: boolean }): string | undefined;
-export function validateColor(
-  value: unknown,
-  field: FieldKey,
-  options: { required?: boolean } = {}
-): string | undefined {
+export function validateColor(value: unknown, field: FieldKey, options: { required?: boolean } = {}): string | undefined {
   const defaultColor = getValidationConfig().shift.defaultColor;
 
   return validateString(value, field, {

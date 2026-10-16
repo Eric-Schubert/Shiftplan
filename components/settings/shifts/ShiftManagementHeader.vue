@@ -11,11 +11,6 @@ const emit = defineEmits<{
 <template>
   <div class="flex items-center justify-between">
     <p class="text-gray-600 dark:text-gray-400">{{ $t("settings.shifts.count", { count }) }}</p>
-    <PrimeButton
-      :label="$t('settings.shifts.create')"
-      icon="pi pi-plus"
-      class="min-h-11"
-      @click="emit('create')"
-    />
+    <PrimeButton :label="$t('settings.shifts.create')" icon="pi pi-plus" class="min-h-11" @click="emit('create')" />
   </div>
 </template>

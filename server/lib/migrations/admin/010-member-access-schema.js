@@ -37,9 +37,7 @@ export default {
           revoked_at INTEGER
         )
       `);
-    database.exec(
-      "CREATE INDEX IF NOT EXISTS idx_member_sessions_staff ON member_sessions(staff_id)"
-    );
+    database.exec("CREATE INDEX IF NOT EXISTS idx_member_sessions_staff ON member_sessions(staff_id)");
 
     addColumnIfMissing(database, "push_devices", "member_session", "TEXT");
     addColumnIfMissing(database, "auth_sessions", "client", "TEXT NOT NULL DEFAULT 'web'");

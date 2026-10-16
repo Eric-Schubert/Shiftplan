@@ -20,8 +20,7 @@ vi.mock("~/i18n/config", async (importOriginal) => ({
 }));
 vi.mock("~/i18n/server", async (importOriginal) => {
   const actual = await importOriginal<typeof import("~/i18n/server")>();
-  const fill = (text: string, params: Record<string, unknown> = {}) =>
-    text.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name]));
+  const fill = (text: string, params: Record<string, unknown> = {}) => text.replace(/\{(\w+)\}/g, (_, name: string) => String(params[name]));
   return {
     ...actual,
     t: (locale: string, key: string, params?: Record<string, string | number>) =>
@@ -44,11 +43,7 @@ function gridFile(labels: { sheet: string; config: string[]; staff: string; week
 }
 
 function assignments() {
-  return db
-    .prepare(
-      "SELECT pattern_week, staff_id, shift_id FROM rotation_pattern ORDER BY pattern_week, staff_id, shift_id"
-    )
-    .all();
+  return db.prepare("SELECT pattern_week, staff_id, shift_id FROM rotation_pattern ORDER BY pattern_week, staff_id, shift_id").all();
 }
 
 const EXPECTED = [
