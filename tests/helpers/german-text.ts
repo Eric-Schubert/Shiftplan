@@ -21,6 +21,11 @@ export function isGermanText(text: string): boolean {
   return UMLAUTS.test(text) || isGermanProse(unquoted) || (!NOT_TEXT.test(text) && (WORD_STEMS.test(text) || WORDS.test(text)));
 }
 
+/** One German UI word or stem, without the umlaut and stopword checks: for regex literals, where „ä“ may be fine. */
+export function hasGermanWord(text: string): boolean {
+  return WORD_STEMS.test(text) || WORDS.test(text);
+}
+
 /**
  * String literals outside comments as [line, text]. A template literal is one text with `{}` for
  * each expression, so „{} kann {} nicht tauschen.“ still shows its two stopwords.

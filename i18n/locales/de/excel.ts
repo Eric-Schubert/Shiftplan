@@ -17,12 +17,18 @@ export default {
   weekColumnTwice: "Die Spalte „Woche {week}“ gibt es doppelt",
   weekColumnMissing:
     "Die Spalte „Woche {week}“ fehlt. Bei Zykluslänge {cycle} braucht es die Spalten Woche 1 bis Woche {cycle}.",
+  // Written into the template and read back by the import, in every language. The import ignores
+  // case, spaces, „(…)“ and „-“ and takes „ae“ for „ä“. Pattern week and shift ID: earlier template.
   labels: {
     staff: "Mitarbeiter",
     shift: "Schicht",
     startYear: "Startjahr",
     startWeek: "Startwoche",
     cycleLength: "Zykluslänge",
+    week: "Woche {week}",
+    free: "frei",
+    patternWeek: "Musterwoche",
+    shiftId: "Schicht-ID",
     shiftIdInRow: "Schicht-ID in Zeile {row}",
     patternWeekInRow: "Musterwoche in Zeile {row}",
   },

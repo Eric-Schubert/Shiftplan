@@ -1,3 +1,6 @@
+import { localeTag, type AppLocale } from "~/i18n/config";
+import { t } from "~/i18n/server";
+import { weekLabel, weekOfYearLabel } from "~/shared/utils/format/week";
 import { isoWeekMonday, isoWeekOfDate, isoWeeksBetween, toISOWeek, type ISOWeek } from "~/shared/utils/week";
 import type { RotationConfig } from "~/types/rotation";
 
@@ -26,7 +29,7 @@ export function upcomingCalendarWeeks(
 }
 
 /** "KW 42, 46, 50", with a short year only when the weeks span two years: "KW 50/26, 2/27". */
-export function formatCalendarWeeks(weeks: ISOWeek[]): string {
+export function formatCalendarWeeks(locale: AppLocale, weeks: ISOWeek[]): string {
   if (weeks.length === 0) return "";
 
   const sameYear = weeks.every((entry) => entry.year === weeks[0]?.year);
@@ -34,5 +37,11 @@ export function formatCalendarWeeks(weeks: ISOWeek[]): string {
     sameYear ? `${entry.week}` : `${entry.week}/${String(entry.year).slice(-2)}`
   );
 
-  return `KW ${parts.join(", ")}`;
+  return weekLabel(localeTag(locale), parts.join(", "));
+}
+
+/** "Gerade (KW 42/2026) läuft Woche 2." */
+export function currentWeekText(locale: AppLocale, current: { week: ISOWeek; patternWeek: number }): string {
+  const week = weekOfYearLabel(localeTag(locale), current.week.year, current.week.week);
+  return t(locale, "excelTemplate.current", { week, patternWeek: current.patternWeek });
 }
