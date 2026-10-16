@@ -48,6 +48,7 @@ export default {
   fill: {
     header: "Fill the week from the pattern?",
     text: "This week differs from the rotation pattern. Filling replaces its one assignment with pattern week {week}. Single-day changes stay. | This week differs from the rotation pattern. Filling replaces all {count} assignments with pattern week {week}. Single-day changes stay.",
+    unknown: "This week's plan is not loaded yet. Filling replaces all of the week's assignments with the rotation pattern. Single-day changes stay.",
     confirm: "Replace",
     failed: "The week could not be filled from the pattern",
   },

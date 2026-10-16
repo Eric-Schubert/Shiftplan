@@ -50,7 +50,14 @@ const { weekPreviewSentinel, showWeekPreview } = useWeekPreviewReveal();
 const planRevision = ref(0);
 // The skeleton only covers a week whose plan is not there yet, not a reload after a change.
 const showSkeleton = computed(() => pending.value && !planShowsWeek(shiftplan.value, appStore.selectedYear, appStore.selectedWeek));
-const replacedByFill = computed(() => assignmentsReplacedByFill(shiftplan.value, dataStore.rotationPattern));
+// Unknown (null) while the selected week's plan loads or failed: the hero button waits, any other trigger asks.
+const replacedByFill = computed(() =>
+  assignmentsReplacedByFill(shiftplan.value, dataStore.rotationPattern, {
+    year: appStore.selectedYear,
+    week: appStore.selectedWeek,
+    loading: pending.value,
+  })
+);
 
 async function refreshWeek() {
   await Promise.all([refresh(), refreshAbsences()]);
@@ -86,8 +93,8 @@ async function redeemAccessCode(code: string) {
 }
 
 function requestFill() {
-  if (replacedByFill.value > 0) confirmFill.value = true;
-  else void generateFromPattern();
+  if (replacedByFill.value === 0) void generateFromPattern();
+  else confirmFill.value = true;
 }
 
 async function generateFromPattern() {
@@ -116,6 +123,7 @@ async function generateFromPattern() {
       :absences="absences ?? []"
       :member="member"
       :generating="generating"
+      :fill-ready="replacedByFill !== null"
       @updated="refreshWeek"
       @generate="requestFill"
       @generated="refreshWeek"

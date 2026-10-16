@@ -46,6 +46,8 @@ export default {
   fill: {
     header: "Woche aus dem Muster füllen?",
     text: "Diese Woche weicht vom Rotationsmuster ab. Das Füllen ersetzt ihre eine Zuweisung durch Muster {week}. Einzelne Tagesänderungen bleiben. | Diese Woche weicht vom Rotationsmuster ab. Das Füllen ersetzt alle {count} Zuweisungen durch Muster {week}. Einzelne Tagesänderungen bleiben.",
+    unknown:
+      "Der Plan dieser Woche ist noch nicht geladen. Das Füllen ersetzt alle Zuweisungen der Woche durch das Rotationsmuster. Einzelne Tagesänderungen bleiben.",
     confirm: "Ersetzen",
     failed: "Die Woche konnte nicht aus dem Muster gefüllt werden",
   },
