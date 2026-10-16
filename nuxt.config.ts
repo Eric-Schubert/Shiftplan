@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { appHead } from "./config/nuxt/head";
+import { i18nConfig } from "./config/nuxt/i18n";
 import { nitroConfig } from "./config/nuxt/nitro";
 import { primevueLocale } from "./config/nuxt/primevue-locale";
 import { publicRuntimeEnv } from "./config/nuxt/runtime";
@@ -57,7 +58,10 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
+    "@nuxtjs/i18n",
   ],
+
+  i18n: i18nConfig,
 
   components: [
     {
