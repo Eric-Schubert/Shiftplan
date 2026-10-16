@@ -23,6 +23,8 @@ export default {
     startYear: "Startjahr",
     startWeek: "Startwoche",
     cycleLength: "Zykluslänge",
+    week: "Woche {week}",
+    free: "frei",
     shiftIdInRow: "Schicht-ID in Zeile {row}",
     patternWeekInRow: "Musterwoche in Zeile {row}",
   },

@@ -2,8 +2,8 @@ import { isoWeekRange } from "../week";
 import { formatDayRange } from "./day";
 import { fill, patternsFor } from "./patterns";
 
-/** „KW 41“ */
-export function weekLabel(locale: string, week: number): string {
+/** „KW 41“, or for a list of weeks „KW 41, 45“ */
+export function weekLabel(locale: string, week: number | string): string {
   return fill(patternsFor(locale).week, { week });
 }
 

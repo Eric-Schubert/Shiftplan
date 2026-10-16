@@ -1,8 +1,16 @@
+import { localeTag, type AppLocale } from "~/i18n/config";
+import { t, type MessageParams } from "~/i18n/server";
+import type { MessageKey, Messages } from "~/i18n/types";
 import type { XlsxCell } from "~/server/utils/xlsx";
+import { weekLabel, weekOfYearLabel } from "~/shared/utils/format/week";
 import type { ISOWeek } from "~/shared/utils/week";
 import type { RotationConfig } from "~/types/rotation";
+import { currentWeekText } from "~/server/services/rotation-excel/calendar";
 
 type InstructionInput = {
+  locale: AppLocale;
+  /** Name of the sheet to fill in, which the steps point to. */
+  rotationSheet: string;
   config: Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">;
   staffCount: number;
   /** Upcoming calendar weeks per pattern week, index 0 = pattern week 1. */
@@ -13,111 +21,96 @@ type InstructionInput = {
   shiftNames: string[];
 };
 
-function section(title: string): XlsxCell[] {
-  return [
-    { value: title, style: "header" },
-    { value: "", style: "header" },
-  ];
-}
+type Catalog = Messages["excelTemplate"]["instructions"];
+// Items with a label and a text in the catalog; the contents and the example text are built here.
+type Item = Exclude<keyof Catalog, "title" | "sections" | "contents" | "example">;
+type Section = keyof Catalog["sections"];
 
-function item(label: string, text: string): XlsxCell[] {
-  return [{ value: label, style: "label" }, text];
-}
-
-function exampleText({ config, calendarWeeks, example }: InstructionInput): string {
+function exampleText({ locale, config, calendarWeeks, example }: InstructionInput): string {
   const { name, values } = example;
-  const shown = (value: string | undefined) => (value ? `„${value}“` : "nichts (frei)");
-  const worked = (value: string | undefined) => value || "frei";
+  const tag = localeTag(locale);
+  const shown = (value: string | undefined) =>
+    value
+      ? t(locale, "excelTemplate.instructions.example.quoted", { shift: value })
+      : t(locale, "excelTemplate.instructions.example.nothing");
+  const worked = (value: string | undefined) => value || t(locale, "excel.labels.free");
   // Pattern week 2 right after the next pattern week 1, so the example reads forward in time.
   const order = (entry: ISOWeek) => entry.year * 100 + entry.week;
   const first = calendarWeeks[0]?.[0];
-  const firstWeek = first?.week;
-  const secondWeek = calendarWeeks[1]?.find((entry) => first && order(entry) > order(first))?.week;
-  const repeatWeek = calendarWeeks[0]?.[1]?.week;
+  const second = calendarWeeks[1]?.find((entry) => first && order(entry) > order(first));
+  const repeat = calendarWeeks[0]?.[1];
 
-  if (config.cycle_length === 1 || secondWeek === undefined) {
-    return `Steht bei ${name} unter Woche 1 ${shown(values[0])}, dann gilt das jede Woche: ${name} hat immer ${worked(values[0])}.`;
+  if (config.cycle_length === 1 || !first || !second || !repeat) {
+    const firstShift = worked(values[0]);
+    return t(locale, "excelTemplate.instructions.example.oneWeek", { name, first: shown(values[0]), firstShift });
   }
 
-  return (
-    `Steht bei ${name} unter Woche 1 ${shown(values[0])} und unter Woche 2 ${shown(values[1])}, ` +
-    `dann hat ${name} in KW ${firstWeek} ${worked(values[0])} und in KW ${secondWeek} ${worked(values[1])}. ` +
-    `Nach Woche ${config.cycle_length} geht es wieder mit Woche 1 los, also ab KW ${repeatWeek} wieder ${worked(values[0])}.`
-  );
+  return t(locale, "excelTemplate.instructions.example.weeks", {
+    name,
+    first: shown(values[0]),
+    second: shown(values[1]),
+    firstWeek: weekLabel(tag, first.week),
+    firstShift: worked(values[0]),
+    secondWeek: weekLabel(tag, second.week),
+    secondShift: worked(values[1]),
+    cycle: config.cycle_length,
+    repeatWeek: weekLabel(tag, repeat.week),
+  });
 }
 
 /** What the file was built from, so a missing person or shift is noticed before filling it in. */
-function contentsText({ config, staffCount, shiftNames }: InstructionInput): string {
+function contentsText({ locale, config, staffCount, shiftNames }: InstructionInput): string {
   const staff =
     staffCount === 0
-      ? "keine Mitarbeitenden (bitte zuerst in der App anlegen)"
-      : `${staffCount} ${staffCount === 1 ? "Person" : "Mitarbeitende"}`;
+      ? t(locale, "excelTemplate.instructions.contents.noStaff")
+      : t(locale, "excelTemplate.instructions.contents.staff", { count: staffCount });
   const shifts =
     shiftNames.length === 0
-      ? "keine Schichten (bitte zuerst in der App anlegen)"
-      : `${shiftNames.length} ${shiftNames.length === 1 ? "Schicht" : "Schichten"} (${shiftNames.join(", ")})`;
+      ? t(locale, "excelTemplate.instructions.contents.noShifts")
+      : t(locale, "excelTemplate.instructions.contents.shifts", { count: shiftNames.length, names: shiftNames.join(", ") });
+  const startWeek = weekOfYearLabel(localeTag(locale), config.start_year, config.start_week);
 
-  return `${staff}, ${shifts}, ${config.cycle_length}-Wochen-Zyklus ab KW ${config.start_week}/${config.start_year}.`;
+  return t(locale, "excelTemplate.instructions.contents.text", { staff, shifts, cycle: config.cycle_length, startWeek });
 }
 
 export function createInstructionRows(input: InstructionInput): XlsxCell[][] {
-  const { config, current, shiftNames } = input;
-  const twoShifts = shiftNames.length >= 2 ? `${shiftNames[0]}, ${shiftNames[1]}` : "Früh, Spät";
-  const lastWeek = config.cycle_length;
+  const { locale, rotationSheet, config, current, shiftNames } = input;
+  const text = (key: MessageKey, params?: MessageParams) => t(locale, key, params);
+  const section = (name: Section): XlsxCell[] => [
+    { value: text(`excelTemplate.instructions.sections.${name}`), style: "header" },
+    { value: "", style: "header" },
+  ];
+  const labeled = (name: Item | "contents" | "example", value: string): XlsxCell[] => [
+    { value: text(`excelTemplate.instructions.${name}.label`), style: "label" },
+    value,
+  ];
+  const item = (name: Item, params?: MessageParams) => labeled(name, text(`excelTemplate.instructions.${name}.text`, params));
+  const twoShifts =
+    shiftNames.length >= 2
+      ? shiftNames.slice(0, 2)
+      : [text("excelTemplate.example.early"), text("excelTemplate.example.late")];
 
   return [
-    [{ value: "Anleitung: Rotation in Excel ausfüllen", style: "title" }],
+    [{ value: text("excelTemplate.instructions.title"), style: "title" }],
     [],
-    section("Bevor du loslegst"),
-    item(
-      "Erst in der App",
-      "Alle Mitarbeitenden und Schichten anlegen und Startwoche und Zykluslänge festlegen. Erst danach diese Vorlage herunterladen."
-    ),
-    item("In dieser Datei", contentsText(input)),
-    item(
-      "Fehlt etwas?",
-      "Nicht in Excel ergänzen, das klappt beim Hochladen nicht. In der App anlegen und die Vorlage neu herunterladen."
-    ),
+    section("before"),
+    item("app"),
+    labeled("contents", contentsText(input)),
+    item("missing"),
     [],
-    section("In 3 Schritten"),
-    item(
-      "1. Öffnen",
-      "Unten auf den Reiter „Rotation“ klicken. Jede Zeile ist eine Person, jede Spalte eine Woche."
-    ),
-    item(
-      "2. Ausfüllen",
-      "Klick in eine gelbe Zelle und wähl über den kleinen Pfeil die Schicht. Leer lassen heißt: frei. Zum Löschen Entf drücken."
-    ),
-    item(
-      "3. Hochladen",
-      "Datei speichern (als .xlsx) und in der App hochladen. Die App zeigt dir vorher, was übernommen wird."
-    ),
+    section("steps"),
+    item("open", { sheet: rotationSheet }),
+    item("fill"),
+    item("upload"),
     [],
-    section("Was heißt „Woche 1“, „Woche 2“ …?"),
-    item(
-      "Wiederholung",
-      lastWeek === 1
-        ? "Der Plan hat nur eine Woche. Sie gilt jede Woche gleich."
-        : `Der Plan wiederholt sich alle ${lastWeek} Wochen: Woche 1, Woche 2 … Woche ${lastWeek}, dann wieder Woche 1.`
-    ),
-    item(
-      "Kalenderwochen",
-      `Im Kopf jeder Spalte steht, für welche Kalenderwochen (KW) sie als Nächstes gilt. Gerade (KW ${current.week.week}/${current.week.year}) läuft Woche ${current.patternWeek}.`
-    ),
-    item("Beispiel", exampleText(input)),
+    section("weeks"),
+    item("repeat", { count: config.cycle_length }),
+    item("calendarWeeks", { current: currentWeekText(locale, current) }),
+    labeled("example", exampleText(input)),
     [],
-    section("Gut zu wissen"),
-    item(
-      "Zwei Schichten",
-      `Arbeitet jemand in einer Woche zwei Schichten, schreib beide mit Komma: „${twoShifts}“. Excel fragt dann nach, einfach mit „Ja“ bestätigen.`
-    ),
-    item(
-      "Nicht ändern",
-      "Die Namen in Spalte A, die Spaltenköpfe „Woche …“ und den Blattnamen „Rotation“."
-    ),
-    item(
-      "Beim Hochladen",
-      "Die Datei ersetzt das ganze Rotationsmuster in der App. Fertige Wochenpläne ändern sich erst, wenn du das Muster in der App ausrollst."
-    ),
+    section("tips"),
+    item("twoShifts", { shifts: twoShifts.join(", ") }),
+    item("keep", { sheet: rotationSheet }),
+    item("replaces"),
   ];
 }
