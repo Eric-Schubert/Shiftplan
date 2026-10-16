@@ -33,7 +33,9 @@ describe("docs generator", () => {
     expect(apiDocs).toContain("| `POST` | `/api/member/login` | Public | No |");
     expect(apiDocs).toContain("| `GET` | `/api/member/me` | Member | No |");
     expect(apiDocs).toContain("| `POST` | `/api/auth/users` | Admin | Yes |");
-    expect(apiDocs).toContain("| `POST` | `/api/auth/logout` | Login | Yes |");
+    expect(apiDocs).toContain("| `POST` | `/api/auth/logout` | Public | No |");
+    expect(apiDocs).toContain("| `GET` | `/api/holidays/public` | Public | No |");
+    expect(apiDocs).toContain("| `PUT` | `/api/requests/settings` | Admin | Yes |");
   });
 
   it("generates workflow documentation", () => {

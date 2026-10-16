@@ -65,7 +65,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `POST` | `/api/auth/change-password` | Login | Yes | - | `currentPassword`, `newPassword` | Change the current user's password |
 | `POST` | `/api/auth/login` | Public | No | - | `client`, `password`, `username` | Create a session and CSRF token |
-| `POST` | `/api/auth/logout` | Login | Yes | - | - | Clear the current session |
+| `POST` | `/api/auth/logout` | Public | No | - | - | Clear the current session |
 | `GET` | `/api/auth/session` | Public | No | - | - | Read the current session state |
 | `GET` | `/api/auth/users` | Admin | No | - | - | List application users |
 | `POST` | `/api/auth/users` | Admin | Yes | - | `password`, `role`, `username` | Create an application user |
@@ -81,8 +81,8 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 
 | Method | Endpoint | Access | CSRF | Query | Body | Description |
 |--------|----------|--------|------|-------|------|-------------|
-| `GET` | `/api/holidays/public` | Team | No | `week`, `year` | - | Read public holidays |
-| `GET` | `/api/holidays/school` | Team | No | `states`, `week`, `year` | - | Read school holidays |
+| `GET` | `/api/holidays/public` | Public | No | `week`, `year` | - | Read public holidays |
+| `GET` | `/api/holidays/school` | Public | No | `states`, `week`, `year` | - | Read school holidays |
 
 ### Absences
 
@@ -165,7 +165,7 @@ CSRF applies to writes that use the planner session cookie. Requests with a Bear
 |--------|----------|--------|------|-------|------|-------------|
 | `GET` | `/api/requests` | Planner | No | - | - | List requests records |
 | `POST` | `/api/requests/:id` | Planner | Yes | - | - | Create or update requests data |
-| `PUT` | `/api/requests/settings` | Planner | Yes | - | `requiresApproval` | API endpoint |
+| `PUT` | `/api/requests/settings` | Admin | Yes | - | `requiresApproval` | API endpoint |
 
 ### Team-access
 

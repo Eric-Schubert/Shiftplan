@@ -36,15 +36,17 @@ function readStringConst(source, name) {
 // Mirrors the order in server/middleware/auth.ts, which decides who reaches a handler.
 export function loadRouteRules() {
   const middleware = readText("server", "middleware", "auth.ts");
+  const teamAccess = readText("server", "services", "team-access.service.ts");
   const { routes } = JSON.parse(readText("config", "backend.config.json")).auth;
 
   return {
-    public: routes.public,
+    public: [...routes.public, readStringConst(middleware, "LOGOUT_ROUTE")],
     publicGetPrefixes: routes.publicGetPrefixes,
     teamRoutes: readStringArray(middleware, "TEAM_ROUTES"),
     memberPrefix: readStringConst(middleware, "MEMBER_PREFIX"),
     legalPrefix: readStringConst(middleware, "LEGAL_PREFIX"),
     builtinReadPrefixes: readStringArray(middleware, "BUILTIN_READ_PREFIXES"),
+    protectedReadPrefixes: readStringArray(teamAccess, "PROTECTED_READ_PREFIXES"),
   };
 }
 
@@ -53,7 +55,7 @@ function matchesPrefix(route, prefixes) {
 }
 
 export function getAccess(endpoint, content, rules) {
-  if (content.includes("requireAdmin(")) return "Admin";
+  if (content.includes("requireAdmin(") || content.includes('role !== "admin"')) return "Admin";
   if (content.includes("requirePlanner(")) return "Planner";
   if (content.includes("requireMember(")) return "Member";
 
@@ -62,8 +64,9 @@ export function getAccess(endpoint, content, rules) {
   if (method === "GET" && rules.legalPrefix && route.startsWith(rules.legalPrefix)) return "Public";
   if (rules.memberPrefix && route.startsWith(rules.memberPrefix)) return "Public";
   if (rules.teamRoutes.includes(route)) return "Team";
-  if (method === "GET" && matchesPrefix(route, [...rules.publicGetPrefixes, ...rules.builtinReadPrefixes])) {
-    return "Team";
+  if (method === "GET" && matchesPrefix(route, rules.builtinReadPrefixes)) return "Team";
+  if (method === "GET" && matchesPrefix(route, rules.publicGetPrefixes)) {
+    return matchesPrefix(route, rules.protectedReadPrefixes) ? "Team" : "Public";
   }
   return "Login";
 }
