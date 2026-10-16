@@ -92,6 +92,7 @@ export const TeamAccessService = {
 
   createViewerSession,
   destroyViewerSession,
+  getBearerToken,
   getViewerToken,
   validateViewerSession,
 

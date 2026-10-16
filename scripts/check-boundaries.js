@@ -12,7 +12,10 @@ import { tokenize } from "./english/tokenize.js";
 // `npm run typecheck` also checks shared/ against .nuxt/tsconfig.shared.json, which has no auto-imports.
 const CHECKED = /\.(vue|ts|js|mjs)$/;
 const IGNORED = [/\.d\.ts$/];
-const APP = /^(?:components|pages|composables|stores|utils|layouts|plugins|types)\/|^(?:app|error)\.vue$/;
+// App code; types/ counts as app code for the server import rule only, the server may use it.
+const APP_CODE = /^(?:components|pages|composables|stores|utils|layouts|plugins)\/|^(?:app|error)\.vue$/;
+// Request entry points: they reach services only through their facades.
+const HANDLERS = ["server/api", "server/middleware", "server/plugins", "server/routes"];
 // shared/ runs in the browser and in Nitro, so it may not lean on h3, Nitro, Nuxt, Vue, browser or Node globals.
 const RUNTIME_GLOBALS = new Set([
   "defineEventHandler", "eventHandler", "createError", "getQuery", "readBody", "getHeader", "getCookie",
@@ -38,7 +41,11 @@ const isFacade = (file, feature) =>
  * @type {Array<[string, (from: string, to: string | null, spec: string) => boolean]>}
  */
 export const RULES = [
-  ["app code or types/ imports server code", (from, to) => APP.test(from) && inside(to, "server")],
+  [
+    "app code or types/ imports server code",
+    (from, to) => (APP_CODE.test(from) || inside(from, "types")) && inside(to, "server"),
+  ],
+  ["server code imports app code", (from, to) => inside(from, "server") && APP_CODE.test(to ?? "")],
   // The SSR build keeps shared/ external and rewrites relative paths wrongly, and vitest only knows ~.
   [
     "imports shared/ without ~/shared/",
@@ -46,6 +53,13 @@ export const RULES = [
   ],
   ["shared code imports outside shared/", (from, to) => inside(from, "shared") && !inside(to, "shared")],
   ["server/utils imports a service", (from, to) => inside(from, "server/utils") && inside(to, "server/services")],
+  [
+    "handler imports a service's internals instead of its facade",
+    (from, to) => {
+      const feature = serviceFeature(to);
+      return HANDLERS.some((dir) => inside(from, dir)) && !!feature && !isFacade(to, feature);
+    },
+  ],
   [
     "service imports another service's internals instead of its facade",
     (from, to) => {

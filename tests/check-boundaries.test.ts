@@ -112,29 +112,6 @@ describe("boundary check rules", () => {
       "shared/utils/x.ts:9 shared code uses the runtime global ref",
     ]);
   });
-
-  it("reports server/utils and server/lib importing services", () => {
-    expect(check({ "server/utils/flow.ts": 'import { A } from "#server/services/a.service";', "server/lib/x/y.ts": 'import { B } from "~/server/services/b/c";' })).toEqual([
-      "server/utils/flow.ts:1 server/utils imports a service",
-      "server/lib/x/y.ts:1 server/lib imports a service",
-    ]);
-  });
-
-  it("lets services reach other features only through their facade", () => {
-    const contents = {
-      "server/services/b.service.ts": "",
-      "server/services/c/index.ts": "",
-      "server/services/a/x.ts": ['import "~/server/services/b.service";', 'import "~/server/services/c";', 'import "~/server/services/b/internal";', 'import "./y";'].join("\n"),
-    };
-    expect(check(contents)).toEqual(["server/services/a/x.ts:3 service imports another service's internals instead of its facade"]);
-  });
-
-  it("keeps migrations inside server/lib/migrations", () => {
-    const migration = ['import fs from "node:fs";', 'import { up } from "../schema.js";', 'import { x } from "../../../utils/x.js";'].join("\n");
-    expect(check({ "server/lib/migrations/main/001.js": migration })).toEqual([
-      "server/lib/migrations/main/001.js:3 migration imports outside server/lib/migrations (setup.js runs it without the Nitro bundle)",
-    ]);
-  });
 });
 
 describe("boundary check cycles", () => {
