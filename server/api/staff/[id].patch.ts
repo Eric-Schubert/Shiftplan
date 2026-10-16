@@ -5,13 +5,13 @@ import { validateName, validateBoolean, validateId } from "~/server/utils/valida
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
 
-  const id = validateId(getRouterParam(event, "id"), "ID");
+  const id = validateId(getRouterParam(event, "id"), "recordId");
   const body = await readBody(event);
 
 
-  const name = validateName(body.name, "Name", { maxLength: 100 });
-  const active = validateBoolean(body.active, "Aktiv");
-  const is_parttime = validateBoolean(body.is_parttime, "Teilzeit");
+  const name = validateName(body.name, "name", { maxLength: 100 });
+  const active = validateBoolean(body.active, "active");
+  const is_parttime = validateBoolean(body.is_parttime, "partTime");
   const short_code = typeof body.short_code === "string" ? body.short_code : undefined;
 
 

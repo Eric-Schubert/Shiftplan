@@ -1,15 +1,16 @@
 import { getValidationConfig } from "~/server/config/domain-config";
-import { createValidationError } from "./error";
+import { messageRef, type MessageRef } from "~/server/utils/api-error";
+import { createValidationError, fieldError, type FieldKey } from "./error";
 
 export function validateString(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: {
     required?: boolean;
     minLength?: number;
     maxLength?: number;
     pattern?: RegExp;
-    patternMessage?: string;
+    patternMessage?: MessageRef;
   } = {}
 ): string | undefined {
   const stringConfig = getValidationConfig().string;
@@ -21,19 +22,19 @@ export function validateString(
 
   if (value === undefined || value === null) {
     if (required) {
-      throw createValidationError(`${fieldName} ist erforderlich`);
+      throw createValidationError("required", field);
     }
     return undefined;
   }
 
   if (typeof value !== "string") {
-    throw createValidationError(`${fieldName} muss ein Text sein`);
+    throw createValidationError("text", field);
   }
 
   const trimmed = value.trim();
 
   if (trimmed.length === 0 && required) {
-    throw createValidationError(`${fieldName} darf nicht leer sein`);
+    throw createValidationError("empty", field);
   }
 
   if (trimmed.length === 0) {
@@ -41,21 +42,16 @@ export function validateString(
   }
 
   if (trimmed.length < minLength) {
-    throw createValidationError(
-      `${fieldName} muss mindestens ${minLength} Zeichen haben`
-    );
+    throw createValidationError("minLength", field, { min: minLength });
   }
 
   if (trimmed.length > maxLength) {
-    throw createValidationError(
-      `${fieldName} darf maximal ${maxLength} Zeichen haben`
-    );
+    throw createValidationError("maxLength", field, { max: maxLength });
   }
 
   if (options.pattern && !options.pattern.test(trimmed)) {
-    throw createValidationError(
-      options.patternMessage || `${fieldName} hat ein ungültiges Format`
-    );
+    const custom = options.patternMessage;
+    throw custom ? fieldError(custom.key, field, custom.params) : createValidationError("pattern", field);
   }
 
   return trimmed;
@@ -70,12 +66,12 @@ export function sanitizeString(value: string): string {
 
 export function validateName(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean; maxLength?: number } = {}
 ): string | undefined {
   const { required = false, maxLength = getValidationConfig().name.defaultMaxLength } = options;
 
-  const validated = validateString(value, fieldName, {
+  const validated = validateString(value, field, {
     required,
     minLength: 1,
     maxLength,
@@ -88,28 +84,28 @@ export function validateName(
 
 export function validateTime(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean } = {}
 ): string | undefined {
-  return validateString(value, fieldName, {
+  return validateString(value, field, {
     ...options,
     pattern: /^([01]\d|2[0-3]):[0-5]\d$/,
-    patternMessage: `${fieldName} muss im Format HH:MM sein (z.B. 08:00)`,
+    patternMessage: messageRef("validation.time"),
     maxLength: 5,
   });
 }
 
 export function validateColor(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean } = {}
 ): string | undefined {
   const defaultColor = getValidationConfig().shift.defaultColor;
 
-  return validateString(value, fieldName, {
+  return validateString(value, field, {
     ...options,
     pattern: /^#[0-9a-fA-F]{6}$/,
-    patternMessage: `${fieldName} muss ein Hex-Farbwert sein (z.B. ${defaultColor})`,
+    patternMessage: messageRef("validation.color", { example: defaultColor }),
     maxLength: 7,
   });
 }

@@ -25,9 +25,9 @@ export default defineEventHandler(async (event) => {
     to: body?.to ?? null,
     shiftId,
     reason: body.reason as AbsenceReason,
-    note: validateString(body?.note, "Notiz", { maxLength: 200 }) ?? null,
+    note: validateString(body?.note, "note", { maxLength: 200 }) ?? null,
     notifyTeam: body?.notifyTeam === true,
-    message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
+    message: validateString(body?.message, "extraText", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     maxDays: user.role === "admin" ? ABSENCE_ADMIN_MAX_DAYS : undefined,
     actor: { userId: user.userId, username: user.username, source: requestSource(event) },
   });

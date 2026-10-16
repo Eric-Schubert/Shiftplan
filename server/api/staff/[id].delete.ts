@@ -5,7 +5,7 @@ import { validateId } from "~/server/utils/validation";
 export default defineEventHandler((event) => {
   requireAdmin(event);
 
-  const id = validateId(getRouterParam(event, "id"), "ID");
+  const id = validateId(getRouterParam(event, "id"), "recordId");
 
   const deleted = StaffService.delete(id);
   if (!deleted) {

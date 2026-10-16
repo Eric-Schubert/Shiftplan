@@ -1,9 +1,9 @@
 import { getValidationConfig } from "~/server/config/domain-config";
-import { createValidationError } from "./error";
+import { createValidationError, type FieldKey } from "./error";
 
 export function validateInteger(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: {
     required?: boolean;
     min?: number;
@@ -14,7 +14,7 @@ export function validateInteger(
 
   if (value === undefined || value === null) {
     if (required) {
-      throw createValidationError(`${fieldName} ist erforderlich`);
+      throw createValidationError("required", field);
     }
     return undefined;
   }
@@ -22,15 +22,15 @@ export function validateInteger(
   const num = typeof value === "string" ? parseInt(value, 10) : Number(value);
 
   if (!Number.isInteger(num) || isNaN(num)) {
-    throw createValidationError(`${fieldName} muss eine ganze Zahl sein`);
+    throw createValidationError("integer", field);
   }
 
   if (min !== undefined && num < min) {
-    throw createValidationError(`${fieldName} darf nicht kleiner als ${min} sein`);
+    throw createValidationError("min", field, { min });
   }
 
   if (max !== undefined && num > max) {
-    throw createValidationError(`${fieldName} darf nicht größer als ${max} sein`);
+    throw createValidationError("max", field, { max });
   }
 
   return num;
@@ -38,14 +38,14 @@ export function validateInteger(
 
 export function validateBoolean(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean } = {}
 ): number | undefined {
   const { required = false } = options;
 
   if (value === undefined || value === null) {
     if (required) {
-      throw createValidationError(`${fieldName} ist erforderlich`);
+      throw createValidationError("required", field);
     }
     return undefined;
   }
@@ -53,17 +53,17 @@ export function validateBoolean(
   if (value === true || value === 1) return 1;
   if (value === false || value === 0) return 0;
 
-  throw createValidationError(`${fieldName} muss ein Wahrheitswert sein (0 oder 1)`);
+  throw createValidationError("boolean", field);
 }
 
 export function validateYear(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean } = {}
 ): number | undefined {
   const range = getValidationConfig().year;
 
-  return validateInteger(value, fieldName, {
+  return validateInteger(value, field, {
     ...options,
     min: range.min,
     max: range.max,
@@ -72,21 +72,21 @@ export function validateYear(
 
 export function validateWeek(
   value: unknown,
-  fieldName: string,
+  field: FieldKey,
   options: { required?: boolean } = {}
 ): number | undefined {
   const range = getValidationConfig().week;
 
-  return validateInteger(value, fieldName, {
+  return validateInteger(value, field, {
     ...options,
     min: range.min,
     max: range.max,
   });
 }
 
-export function validateId(value: unknown, fieldName: string): number {
+export function validateId(value: unknown, field: FieldKey): number {
   const range = getValidationConfig().id;
-  const id = validateInteger(value, fieldName, {
+  const id = validateInteger(value, field, {
     required: true,
     min: range.min,
     max: range.max,

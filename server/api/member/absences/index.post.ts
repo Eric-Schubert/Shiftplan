@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     reason: body.reason as AbsenceReason,
     notifyTeam: body?.notifyTeam !== false,
     seekTakeover: body?.seekTakeover === true,
-    message: validateString(body?.message, "Zusatztext", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
+    message: validateString(body?.message, "extraText", { maxLength: ABSENCE_MESSAGE_MAX_LENGTH }) ?? null,
     // Teams that open next week on Saturday do not work weekends.
     weekdaysOnly: TeamAccessService.getNextWeekFromSaturday(),
     // Like the app and the web form: staff cannot report days that are already over.

@@ -61,22 +61,22 @@ export default defineEventHandler(async (event) => {
   const formConfig = getContactFormConfig();
 
   // Stored as typed (trimmed): the admin view escapes on render and the mail is plain text.
-  const name = validateString(body.name, "Name", {
+  const name = validateString(body.name, "name", {
     required: true,
     minLength: formConfig.name.minLength,
     maxLength: formConfig.name.maxLength,
   })!;
-  const replyTo = validateString(body.replyTo, "Rückkontakt", {
+  const replyTo = validateString(body.replyTo, "replyTo", {
     required: true,
     minLength: formConfig.replyTo.minLength,
     maxLength: formConfig.replyTo.maxLength,
   })!;
-  const subject = validateString(body.subject, "Betreff", {
+  const subject = validateString(body.subject, "subject", {
     required: false,
     minLength: formConfig.subject.minLength,
     maxLength: formConfig.subject.maxLength,
   });
-  const message = validateString(body.message, "Nachricht", {
+  const message = validateString(body.message, "message", {
     required: true,
     minLength: formConfig.message.minLength,
     maxLength: formConfig.message.maxLength,

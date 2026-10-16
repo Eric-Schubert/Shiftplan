@@ -5,6 +5,6 @@ import { validateId } from "~/server/utils/validation";
 /** Forgotten PIN: the planner removes it, the person sets a new one after the next QR sign-in. */
 export default defineEventHandler((event) => {
   requirePlanner(event);
-  const staffId = validateId(getRouterParam(event, "id"), "ID");
+  const staffId = validateId(getRouterParam(event, "id"), "recordId");
   return { removed: MemberAccessService.clearPin(staffId) };
 });

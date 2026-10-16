@@ -9,12 +9,12 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const rotationConfig = getRotationValidationConfig();
 
-  const cycle_length = validateInteger(body.cycle_length, "Zykluslänge", {
+  const cycle_length = validateInteger(body.cycle_length, "cycleLength", {
     min: rotationConfig.cycleLengthMin,
     max: rotationConfig.cycleLengthMax,
   });
-  const start_year = validateYear(body.start_year, "Startjahr");
-  const start_week = validateWeek(body.start_week, "Startwoche");
+  const start_year = validateYear(body.start_year, "startYear");
+  const start_week = validateWeek(body.start_week, "startWeek");
 
   if (cycle_length === undefined && start_year === undefined && start_week === undefined) {
     throw createError({

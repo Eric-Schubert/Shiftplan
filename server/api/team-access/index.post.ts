@@ -6,6 +6,7 @@ import {
 } from "~/server/services/team-access.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
+import { messageRef } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
   }>(event);
 
   if (body?.instanceName !== undefined) {
-    const instanceName = validateString(body.instanceName, "Name", {
+    const instanceName = validateString(body.instanceName, "name", {
       required: true,
       maxLength: INSTANCE_NAME_MAX_LENGTH,
     })!;
@@ -42,12 +43,12 @@ export default defineEventHandler(async (event) => {
   const code =
     body?.generate === true
       ? TeamAccessService.generateCode()
-      : validateString(body?.code, "Zugangscode", {
+      : validateString(body?.code, "accessCode", {
           required: true,
           minLength: ACCESS_CODE_MIN_LENGTH,
           maxLength: ACCESS_CODE_MAX_LENGTH,
           pattern: /^\S+$/,
-          patternMessage: "Zugangscode darf keine Leerzeichen enthalten",
+          patternMessage: messageRef("errors.team.codeWhitespace"),
         })!;
 
   TeamAccessService.setAccessCode(code);

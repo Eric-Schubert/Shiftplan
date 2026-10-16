@@ -6,7 +6,7 @@ import { validateId, validateString } from "~/server/utils/validation";
 export default defineEventHandler(async (event) => {
   const member = MemberAccessService.requireMember(event);
   const body = await readBody(event);
-  const message = validateString(body?.message, "Nachricht", { maxLength: REQUEST_MESSAGE_MAX_LENGTH }) ?? null;
+  const message = validateString(body?.message, "message", { maxLength: REQUEST_MESSAGE_MAX_LENGTH }) ?? null;
 
   if (body?.kind === "takeover") {
     const shiftId = body?.shiftId === undefined || body?.shiftId === null ? null : validateId(body.shiftId, "shiftId");

@@ -8,9 +8,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
 
-  const sourceYear = validateYear(body.sourceYear, "Quelljahr", { required: true })!;
-  const targetYear = validateYear(body.targetYear, "Zieljahr", { required: true })!;
-  const overwrite = validateBoolean(body.overwrite, "Überschreiben") === 1;
+  const sourceYear = validateYear(body.sourceYear, "sourceYear", { required: true })!;
+  const targetYear = validateYear(body.targetYear, "targetYear", { required: true })!;
+  const overwrite = validateBoolean(body.overwrite, "overwrite") === 1;
 
   if (sourceYear === targetYear) {
     throw createError({
