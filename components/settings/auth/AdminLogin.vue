@@ -6,6 +6,7 @@ const password = ref("");
 const error = ref("");
 const loading = ref(false);
 const loginErrorId = "login-error";
+const { t } = useI18n();
 
 const { demoLogin } = useRuntimeConfig().public;
 const hasDemoLogin = Boolean(demoLogin.username && demoLogin.password);
@@ -18,11 +19,11 @@ function fillDemoLogin() {
 
 async function handleLogin() {
   if (!username.value) {
-    error.value = "Bitte Benutzername eingeben";
+    error.value = t("settings.auth.login.usernameMissing");
     return;
   }
   if (!password.value) {
-    error.value = "Bitte Passwort eingeben";
+    error.value = t("settings.auth.login.passwordMissing");
     return;
   }
 
@@ -32,11 +33,11 @@ async function handleLogin() {
   try {
     const result = await authStore.login(username.value, password.value);
     if (!result.success) {
-      error.value = result.message || "Login fehlgeschlagen";
+      error.value = result.message || t("settings.auth.login.failed");
       password.value = "";
     }
   } catch {
-    error.value = "Fehler beim Login";
+    error.value = t("settings.auth.login.error");
   } finally {
     loading.value = false;
   }
@@ -50,9 +51,9 @@ async function handleLogin() {
         <div class="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent-strong)]">
           <i class="pi pi-lock text-lg" aria-hidden="true"></i>
         </div>
-        <h2 class="text-xl font-semibold text-[var(--text-1)]">Anmelden</h2>
+        <h2 class="text-xl font-semibold text-[var(--text-1)]">{{ t("common.actions.signIn") }}</h2>
         <p class="mt-2 text-sm leading-6 text-[var(--text-2)]">
-          Melde dich an, um Schichten, Muster und Benutzer zu verwalten.
+          {{ t("settings.auth.login.intro") }}
         </p>
       </div>
 
@@ -61,7 +62,7 @@ async function handleLogin() {
         class="mb-5 rounded-xl border border-[var(--border-soft)] bg-[var(--warning-soft)] p-3 text-sm text-[var(--warning-ink)]"
         role="status"
       >
-        Deine Sitzung ist abgelaufen. Bitte melde dich neu an.
+        {{ t("settings.auth.login.sessionExpired") }}
       </p>
 
       <DemoLoginHint
@@ -75,13 +76,13 @@ async function handleLogin() {
       <form class="space-y-4" @submit.prevent="handleLogin">
         <div class="space-y-1.5">
           <label for="login-username" class="block text-sm font-medium text-[var(--text-2)]">
-            Benutzername
+            {{ t("settings.auth.username") }}
           </label>
           <PrimeInputText
             v-model="username"
             id="login-username"
             type="text"
-            placeholder="z. B. schichtleitung"
+            :placeholder="t('settings.auth.login.usernamePlaceholder')"
             class="w-full"
             :disabled="loading"
             autocomplete="username"
@@ -93,13 +94,13 @@ async function handleLogin() {
 
         <div class="space-y-1.5">
           <label for="login-password" class="block text-sm font-medium text-[var(--text-2)]">
-            Passwort
+            {{ t("settings.auth.password") }}
           </label>
           <PrimeInputText
             v-model="password"
             id="login-password"
             type="password"
-            placeholder="Passwort eingeben"
+            :placeholder="t('settings.auth.login.passwordPlaceholder')"
             class="w-full"
             :class="{ 'p-invalid': error }"
             :disabled="loading"
@@ -118,7 +119,7 @@ async function handleLogin() {
 
         <PrimeButton
           type="submit"
-          label="Anmelden"
+          :label="t('common.actions.signIn')"
           icon="pi pi-lock-open"
           class="w-full min-h-11"
           :loading="loading"
@@ -129,7 +130,7 @@ async function handleLogin() {
             to="/"
             class="text-sm font-medium text-[var(--text-2)] underline decoration-transparent underline-offset-4 transition hover:text-[var(--accent-strong)] hover:decoration-current"
           >
-            Zurück zum Schichtplan
+            {{ t("app.layout.settings.back") }}
           </NuxtLink>
         </div>
       </form>

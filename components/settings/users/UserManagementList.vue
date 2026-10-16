@@ -9,13 +9,14 @@ defineProps<{
 const emit = defineEmits<{
   (e: "delete", user: User): void;
 }>();
+const { t } = useI18n();
 
 function roleSeverity(role: UserRole): string {
   return role === "admin" ? "danger" : "info";
 }
 
 function roleLabel(role: UserRole): string {
-  return role === "admin" ? "Admin" : "Planer";
+  return role === "admin" ? t("app.layout.roles.admin") : t("app.layout.roles.planner");
 }
 </script>
 
@@ -51,7 +52,7 @@ function roleLabel(role: UserRole): string {
                 :severity="roleSeverity(user.role)"
                 class="text-xs"
               />
-              <span v-if="!user.active" class="text-xs text-gray-400">Inaktiv</span>
+              <span v-if="!user.active" class="text-xs text-gray-400">{{ t("settings.list.inactive") }}</span>
             </div>
           </div>
         </div>
@@ -60,14 +61,14 @@ function roleLabel(role: UserRole): string {
           icon="pi pi-trash"
           severity="danger"
           outlined
-          label="Löschen"
+          :label="t('common.actions.delete')"
           class="min-h-10"
           @click="emit('delete', user)"
         />
       </div>
 
       <div v-if="users.length === 0" class="py-8 text-center text-gray-400">
-        Keine Benutzer vorhanden
+        {{ t("settings.users.empty") }}
       </div>
     </div>
   </div>

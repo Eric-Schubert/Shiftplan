@@ -9,9 +9,6 @@ export const PENDING_SETTINGS = [
   "components/settings/analytics/VisitAnalyticsStats.vue",
   "components/settings/audit/AuditLog.vue",
   "components/settings/audit/AuditLogEntry.vue",
-  "components/settings/auth/AdminLogin.vue",
-  "components/settings/auth/ChangePasswordDialog.vue",
-  "components/settings/auth/DemoLoginHint.vue",
   "components/settings/contact/ContactMessageCard.vue",
   "components/settings/contact/ContactMessages.vue",
   "components/settings/members/MemberAccessInviteDialog.vue",
@@ -44,17 +41,10 @@ export const PENDING_SETTINGS = [
   "components/settings/team/TeamAccessManager.vue",
   "components/settings/team/TeamAccessNameForm.vue",
   "components/settings/team/TeamAccessWeekStartSetting.vue",
-  "components/settings/users/UserCreateDialog.vue",
-  "components/settings/users/UserDeleteDialog.vue",
-  "components/settings/users/UserManagementHeader.vue",
-  "components/settings/users/UserManagementList.vue",
   "composables/useRotationExcelImport.ts",
   "composables/useRotationRollout.ts",
   "composables/useYearCopy.ts",
-  "stores/auth.store.ts",
-  "utils/account-forms.ts",
   "utils/analytics/format.ts",
-  "utils/client-config.ts",
 ];
 
 /** Legal texts and the contact form: per-language components, step 10. */

@@ -19,16 +19,18 @@ const createErrorId = "create-user-error";
 const formId = "create-user-form";
 const creating = ref(false);
 const form = ref<UserCreatePayload>(createEmptyForm());
+const { t } = useI18n();
+const passwordHint = computed(() => configStore.passwordPolicy.hint || t("settings.auth.passwordHint"));
 
 const dialogVisible = computed({
   get: () => props.visible,
   set: (value: boolean) => emit("update:visible", value),
 });
 
-const roleOptions: Array<{ label: string; value: UserRole }> = [
-  { label: "Planer – Darf Schichtzuweisungen ändern", value: "planner" },
-  { label: "Admin – Vollzugriff", value: "admin" },
-];
+const roleOptions = computed<Array<{ label: string; value: UserRole }>>(() => [
+  { label: t("settings.users.form.roles.planner"), value: "planner" },
+  { label: t("settings.users.form.roles.admin"), value: "admin" },
+]);
 
 function createEmptyForm(): UserCreatePayload {
   return { username: "", password: "", role: "planner" };
@@ -44,7 +46,7 @@ watch(
 
 async function createUser() {
   const problem = newUserProblem(form.value, configStore);
-  createError.value = problem ?? "";
+  createError.value = problem ? t(problem.key, problem.params ?? {}) : "";
   if (problem) return;
 
   creating.value = true;
@@ -57,7 +59,7 @@ async function createUser() {
     dialogVisible.value = false;
     emit("created");
   } catch (error: any) {
-    createError.value = error.data?.statusMessage || "Fehler beim Erstellen";
+    createError.value = error.data?.statusMessage || t("settings.users.form.failed");
   } finally {
     creating.value = false;
   }
@@ -68,19 +70,19 @@ async function createUser() {
   <PrimeDialog
     v-model:visible="dialogVisible"
     modal
-    header="Neuer Benutzer"
+    :header="t('settings.users.create')"
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <form :id="formId" class="space-y-4" @submit.prevent="createUser">
       <div>
         <label for="create-username" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Benutzername
+          {{ t("settings.auth.username") }}
         </label>
         <PrimeInputText
           v-model="form.username"
           id="create-username"
           class="w-full"
-          placeholder="z.B. schichtleitung"
+          :placeholder="t('settings.users.form.usernamePlaceholder')"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
           autocapitalize="none"
@@ -88,20 +90,20 @@ async function createUser() {
           spellcheck="false"
         />
         <small class="mt-1 block text-xs text-gray-500 dark:text-gray-400">
-          Groß- und Kleinschreibung zählt bei der Anmeldung.
+          {{ t("settings.users.form.caseSensitive") }}
         </small>
       </div>
 
       <div>
         <label for="create-password" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Passwort
+          {{ t("settings.auth.password") }}
         </label>
         <PrimeInputText
           v-model="form.password"
           id="create-password"
           type="password"
           class="w-full"
-          :placeholder="configStore.passwordPolicy.hint"
+          :placeholder="passwordHint"
           :disabled="creating"
           :aria-describedby="createError ? createErrorId : undefined"
         />
@@ -109,7 +111,7 @@ async function createUser() {
 
       <div>
         <label for="create-role" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Rolle
+          {{ t("settings.users.form.role") }}
         </label>
         <PrimeSelect
           v-model="form.role"
@@ -128,11 +130,11 @@ async function createUser() {
     </form>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" severity="secondary" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" severity="secondary" text @click="dialogVisible = false" />
       <PrimeButton
         type="submit"
         :form="formId"
-        label="Erstellen"
+        :label="t('common.actions.create')"
         icon="pi pi-check"
         class="min-h-11"
         :loading="creating"

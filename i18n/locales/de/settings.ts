@@ -1,5 +1,7 @@
+import auth from "./settings-auth";
 import shifts from "./settings-shifts";
 import staff from "./settings-staff";
+import users from "./settings-users";
 
 // The settings page: tabs and what several tabs share. Each tab has its own file, read as settings.<tab>.*.
 export default {
@@ -21,4 +23,6 @@ export default {
   loading: "Wird geladen.",
   staff,
   shifts,
+  auth,
+  users,
 };

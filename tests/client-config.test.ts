@@ -1,5 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it } from "vitest";
+import type { MessageRef } from "~/i18n/types";
+import { t } from "~/i18n/server";
 import { validatePasswordStrength } from "~/shared/utils/limits";
 import { useConfigStore } from "~/stores/config.store";
 import { newUserProblem, passwordChangeProblem } from "~/utils/account-forms";
@@ -13,6 +15,9 @@ const LOOSE_POLICY = {
   requireNumber: false,
   hint: "Mindestens 4 Zeichen",
 };
+
+// The form checks return message references; the German text is what the dialogs show.
+const german = (problem: MessageRef | null) => problem && t("de", problem.key, problem.params);
 
 describe("client config", () => {
   beforeEach(() => setActivePinia(createPinia()));
@@ -48,7 +53,7 @@ describe("client config", () => {
 
   it("checks passwords against the loaded policy", () => {
     const store = useConfigStore();
-    expect(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy)).toBe(
+    expect(german(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy))).toBe(
       "Passwort muss mindestens 8 Zeichen haben"
     );
 
@@ -56,7 +61,7 @@ describe("client config", () => {
 
     expect(store.passwordPolicy.hint).toBe("Mindestens 4 Zeichen");
     expect(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy)).toBeNull();
-    expect(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store)).toBe(
+    expect(german(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store))).toBe(
       "Passwort muss mindestens 4 Zeichen haben"
     );
   });
@@ -65,7 +70,7 @@ describe("client config", () => {
     const store = useConfigStore();
     const user = { username: "ab", password: "Geheim12", role: "planner" as const };
     const request = { name: "Eva", replyTo: "eva@example.com", subject: "", message: "Hallo Team", company: "" };
-    expect(newUserProblem(user, store)).toBe("Der Benutzername braucht mindestens 3 Zeichen.");
+    expect(german(newUserProblem(user, store))).toBe("Der Benutzername braucht mindestens 3 Zeichen.");
     expect(validateContactForm(request, store.contactForm)).toEqual({});
 
     store.apply({
