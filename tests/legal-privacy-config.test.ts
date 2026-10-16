@@ -8,7 +8,7 @@ describe("Privacy policy as the instance is set up", () => {
   it("names the configured services", async () => {
     const text = (setup: Partial<LegalSetup>) => renderPrivacy({ ...setup, locale: "en" }).then(({ html }) => textOf(html));
     const plain = await text({ facts: { microsoft: false } });
-    const all = await text({ cloudflare: true, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "Deutschland", facts: { microsoft: true } });
+    const all = await text({ cloudflare: true, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "DE", facts: { microsoft: true } });
 
     expect(plain).not.toContain("Microsoft 365");
     expect(plain).not.toContain("Delivery via Cloudflare");
@@ -16,22 +16,32 @@ describe("Privacy policy as the instance is set up", () => {
     expect(all).toContain("We send notifications of new requests by email via Microsoft 365 (Microsoft Graph).");
     expect(all).toContain("Email delivery via Microsoft 365");
     expect(all).toContain("Delivery via Cloudflare");
-    expect(all).toContain("located on a server of netcup GmbH, Karlsruhe in a data centre in Deutschland");
+    expect(all).toContain("located on a server of netcup GmbH, Karlsruhe in a data centre in Germany");
   });
 
-  it("names the location of the data centre only when it is configured", async () => {
+  it("names the country of the data centre in each language, only when it is configured", async () => {
     const text = (setup: Partial<LegalSetup>) =>
       renderPrivacy({ locale: "en", hoster: "netcup GmbH, Karlsruhe", ...setup }).then(({ html }) => textOf(html));
 
-    expect(await text({ hosterLocation: "Deutschland" })).toContain(
-      "located on a server of netcup GmbH, Karlsruhe in a data centre in Deutschland. The provider acts as a processor"
+    expect(await text({ hosterLocation: "DE" })).toContain(
+      "located on a server of netcup GmbH, Karlsruhe in a data centre in Germany. The provider acts as a processor"
     );
-    expect(await text({})).toContain("located on a server of netcup GmbH, Karlsruhe. The provider acts as a processor");
-    expect(await text({})).not.toContain("data centre");
-    expect(await text({ locale: "de", hosterLocation: "Deutschland" })).toContain(
+    expect(await text({ locale: "de", hosterLocation: "DE" })).toContain(
       "auf einem Server von netcup GmbH, Karlsruhe in einem Rechenzentrum in Deutschland. Der Anbieter handelt"
     );
+    expect(await text({ hosterLocation: "at" })).toContain("in a data centre in Austria.");
+    expect(await text({ locale: "de", hosterLocation: "at" })).toContain("in einem Rechenzentrum in Österreich.");
+    expect(await text({})).toContain("located on a server of netcup GmbH, Karlsruhe. The provider acts as a processor");
+    expect(await text({})).not.toContain("data centre");
     expect(await text({ locale: "de" })).toContain("auf einem Server von netcup GmbH, Karlsruhe. Der Anbieter handelt");
+  });
+
+  it("writes a location that is no country code as it is", async () => {
+    const text = (locale: LegalSetup["locale"]) =>
+      renderPrivacy({ locale, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "Musterland" }).then(({ html }) => textOf(html));
+
+    expect(await text("de")).toContain("in einem Rechenzentrum in Musterland.");
+    expect(await text("en")).toContain("in a data centre in Musterland.");
   });
 
   it("says that the controller is not configured yet, as the legal notice does, instead of naming the country", async () => {

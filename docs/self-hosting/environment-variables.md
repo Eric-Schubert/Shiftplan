@@ -15,6 +15,6 @@ Part of the [self-hosting guide](README.md). A complete `.env` example is in [In
 | `NUXT_PUBLIC_IMPRINT_*` | imprint and controller. Required: name, street, postal code, city and email; for a GmbH, UG etc. also the authorized representatives and the register. If the name, address or email is missing, `/impressum` shows a warning; while the name or address is missing, `/datenschutz` shows it instead of the controller | empty |
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | list Cloudflare in the privacy policy | `false` |
 | `NUXT_PUBLIC_PRIVACY_HOSTER` | list the hosting provider with its address in the privacy policy | empty |
-| `NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION` | country of the hoster's data centre, named in the privacy policy after the hoster, for example `Deutschland`; empty names no country | empty |
+| `NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION` | ISO 3166 country code of the hoster's data centre, for example `DE`; the privacy policy writes it out in each language (Deutschland, Germany) after the hoster. Empty names no country; a value that is no country code appears as written | empty |
 | `CONTACT_MAIL_*` | email notification for contact form requests via Microsoft Graph; the privacy policy then lists Microsoft automatically | off |
 | `NUXT_PUBLIC_DEMO_LOGIN_*`, `SHIFTPLAN_DEMO_MEMBER_*` | public demos only | off |

@@ -1,8 +1,11 @@
 <script setup lang="ts">
-defineProps<{
+import { localeTag } from "~/i18n/config";
+import { regionName } from "~/shared/utils/format/region";
+
+const props = defineProps<{
   /** Hosting provider with address; empty when the operator runs the server themselves. */
   hoster: string;
-  /** Country of the hoster's data centre; empty when unknown, then the text names none. */
+  /** ISO 3166 country code of the hoster's data centre (DE); empty when unknown, then the text names none. */
   hosterLocation: string;
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
@@ -10,6 +13,9 @@ defineProps<{
   defaultRelay: boolean;
   relayHost: string | null;
 }>();
+
+// The code in this language: „Deutschland“ / "Germany"; anything that is no code stays as written.
+const location = computed(() => regionName(localeTag("de"), props.hosterLocation));
 </script>
 
 <template>
@@ -18,7 +24,7 @@ defineProps<{
       <h4>Hosting</h4>
       <p>
         <template v-if="hosterLocation">
-          Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }} in einem Rechenzentrum in {{ hosterLocation }}.
+          Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }} in einem Rechenzentrum in {{ location }}.
         </template>
         <template v-else>Diese Anwendung und ihre Daten liegen auf einem Server von {{ hoster }}.</template>
         Der Anbieter handelt als Auftragsverarbeiter nach Art. 28 DSGVO und verarbeitet die Daten nur, um den Server bereitzustellen. Rechtsgrundlage ist

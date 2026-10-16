@@ -41,7 +41,7 @@ const VARIANTS: Array<[string, Partial<LegalSetup>]> = [
   ["without Microsoft and app pushes", { facts: { microsoft: false, appPush: false, defaultRelay: false } }],
   [
     "with Cloudflare, a hoster and an own relay",
-    { cloudflare: true, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "Deutschland", facts: { defaultRelay: false, relayHost: "push.example.org" } },
+    { cloudflare: true, hoster: "netcup GmbH, Karlsruhe", hosterLocation: "DE", facts: { defaultRelay: false, relayHost: "push.example.org" } },
   ],
   ["without an imprint, with a hoster without location", { imprint: NO_IMPRINT, hoster: "netcup GmbH, Karlsruhe" }],
   ["as the demo", { demo: true }],
