@@ -30,7 +30,6 @@ export type ContactMailSettings = {
   saveToSentItemsDefault: boolean;
   tokenSkewSeconds: number;
   graphScope: string;
-  dateLocale: string;
   timezone: string;
   subjectMaxLength: number;
   errorBodyMaxLength: number;

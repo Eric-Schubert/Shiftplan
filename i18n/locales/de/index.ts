@@ -7,6 +7,7 @@ import errors from "./errors";
 import excel from "./excel";
 import excelTemplate from "./excel-template";
 import holidays from "./holidays";
+import mail from "./mail";
 import member from "./member";
 import planner from "./planner";
 import primevue from "./primevue";
@@ -31,6 +32,7 @@ const de = {
   planner,
   holidays,
   audit,
+  mail,
 };
 
 export default de;

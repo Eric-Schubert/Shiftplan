@@ -127,6 +127,8 @@ CONTACT_MAIL_SAVE_TO_SENT_ITEMS=false
 
 Create a Microsoft Entra app registration with the Microsoft Graph application permission `Mail.Send`, grant admin consent, and ideally restrict the app to the sending mailbox. Without these variables, the contact form still works and stores requests locally only. The privacy policy names Microsoft only when this setup is complete.
 
+The mail is written in the instance's language (German for now), dates included; `contactMail.timezone` in `config/backend.config.json` sets the time zone of the received time. Older config files may still contain `contactMail.dateLocale`. The server ignores it with a warning at startup, so remove it from a mounted copy.
+
 ## Demo Instance
 
 For a public demo instance, set `NUXT_PUBLIC_DEMO_LOGIN_USERNAME` and `NUXT_PUBLIC_DEMO_LOGIN_PASSWORD`. The login page then shows these credentials with a button to fill them in.
