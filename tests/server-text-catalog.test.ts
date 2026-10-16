@@ -36,7 +36,7 @@ describe("server text catalog guard", () => {
         "server/lib/holidays/open-holidays.ts",
         "server/services/public-holiday.service.ts",
         "server/services/school-holiday.service.ts",
-        "server/routes/manifest.json.get.ts",
+        "server/routes/manifest.json.ts",
         "server/services/team-access/settings.ts",
       ])
     );

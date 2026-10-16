@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { createApp, toWebHandler } from "h3";
 import { describe, expect, it, vi } from "vitest";
 import { appHead } from "~/config/nuxt/head";
-import manifestRoute from "~/server/routes/manifest.json.get";
+import manifestRoute from "~/server/routes/manifest.json";
 
 // public/manifest.json as it was shipped until the manifest came from the catalog.
 const SHIPPED = `{
@@ -45,9 +45,9 @@ const SHIPPED = `{
 }
 `;
 
-async function fetchManifest(headers: Record<string, string> = {}) {
+async function fetchManifest(headers: Record<string, string> = {}, method = "GET") {
   const app = createApp().use("/manifest.json", manifestRoute);
-  return toWebHandler(app)(new Request("http://localhost/manifest.json", { headers }));
+  return toWebHandler(app)(new Request("http://localhost/manifest.json", { headers, method }));
 }
 
 describe("web app manifest", () => {
@@ -56,8 +56,25 @@ describe("web app manifest", () => {
 
     expect(await response.text()).toBe(SHIPPED);
     expect(response.headers.get("content-type")).toBe("application/manifest+json; charset=utf-8");
+    expect(response.headers.get("content-length")).toBe(String(Buffer.byteLength(SHIPPED)));
     expect(response.headers.get("cache-control")).toBe("private, max-age=3600");
     expect(response.headers.get("vary")).toBe("Accept-Language, Cookie");
+  });
+
+  it("answers HEAD like the static file did: GET headers, no body", async () => {
+    const [get, head] = await Promise.all([fetchManifest(), fetchManifest({}, "HEAD")]);
+
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect(Object.fromEntries(head.headers)).toEqual(Object.fromEntries(get.headers));
+  });
+
+  it("refuses other methods", async () => {
+    const response = await fetchManifest({}, "POST");
+
+    expect(response.status).toBe(405);
+    expect(response.headers.get("allow")).toBe("GET, HEAD");
+    expect(await response.text()).toBe("");
   });
 
   it("falls back to German for other languages and without a header", async () => {
@@ -68,7 +85,7 @@ describe("web app manifest", () => {
   it("takes its texts from the catalog", async () => {
     vi.resetModules();
     vi.doMock("~/i18n/server", () => ({ t: (locale: string, key: string) => `${locale}:${key}` }));
-    const { default: route } = await import("~/server/routes/manifest.json.get");
+    const { default: route } = await import("~/server/routes/manifest.json");
     const app = createApp().use("/manifest.json", route);
     const manifest = await (await toWebHandler(app)(new Request("http://localhost/manifest.json"))).json();
     vi.doUnmock("~/i18n/server");

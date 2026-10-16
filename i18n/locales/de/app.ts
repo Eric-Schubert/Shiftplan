@@ -56,7 +56,7 @@ export default {
   },
   // Shown and sent to the push relay while the planner has not named the instance; never stored.
   instance: { defaultName: "Schichtplaner" },
-  // Name and description of the installed web app (server/routes/manifest.json.get.ts).
+  // Name and description of the installed web app (server/routes/manifest.json.ts).
   manifest: {
     name: "Shiftplan",
     shortName: "Shiftplan",

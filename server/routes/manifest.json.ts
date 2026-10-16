@@ -1,4 +1,5 @@
-import { defineEventHandler, setResponseHeaders } from "h3";
+import { Buffer } from "node:buffer";
+import { defineEventHandler, setResponseHeader, setResponseHeaders, setResponseStatus } from "h3";
 import { t } from "~/i18n/server";
 import { resolveLocale } from "~/server/utils/locale";
 
@@ -26,12 +27,21 @@ function webManifest(locale: string): string {
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
 
+// GET and HEAD like the static file; a HEAD (uptime monitors, link checkers) gets the headers without the body.
 export default defineEventHandler((event) => {
+  if (event.method !== "GET" && event.method !== "HEAD") {
+    setResponseHeader(event, "allow", "GET, HEAD");
+    setResponseStatus(event, 405);
+    return "";
+  }
+
+  const body = webManifest(resolveLocale(event));
   setResponseHeaders(event, {
     "content-type": "application/manifest+json; charset=utf-8",
+    "content-length": Buffer.byteLength(body),
     // The language comes from the cookie or Accept-Language, so shared caches must not hand it on.
     "cache-control": "private, max-age=3600",
     vary: "Accept-Language, Cookie",
   });
-  return webManifest(resolveLocale(event));
+  return event.method === "HEAD" ? "" : body;
 });
