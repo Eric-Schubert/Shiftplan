@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { t } from "~/i18n/server";
 
 // A small catalog with the message syntax the real catalogs will use.
@@ -9,6 +9,7 @@ vi.mock("~/i18n/locales/de", () => ({
       greeting: "Hallo {name}",
       days: "ein Tag | {count} Tage",
       email: "support{'@'}example.org",
+      broken: "support@example.org",
     },
   },
 }));
@@ -31,5 +32,14 @@ describe("server translator", () => {
     expect(t("fr", key("test.greeting"), { name: "Anna" })).toBe("Hallo Anna");
     expect(t("", key("test.greeting"), { name: "Anna" })).toBe("Hallo Anna");
     expect(t("de", key("test.missing"))).toBe("test.missing");
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("returns the key for a message that does not compile and warns once", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(t("de", key("test.broken"))).toBe("test.broken");
+    expect(t("de", key("test.broken"))).toBe("test.broken");
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 });
