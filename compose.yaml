@@ -14,7 +14,7 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
-      # Quick start keeps the databases in a named volume. docs/self-hosting.md uses a ./db
+      # Quick start keeps the databases in a named volume. docs/self-hosting/install-docker-compose.md uses a ./db
       # folder instead, which its chown, backup and restore steps assume. Do not rename or
       # swap this volume on an existing host, or the container starts with an empty database.
       # Backup here: docker compose stop && docker cp schichtplaner:/app/db ./db-backup && docker compose start

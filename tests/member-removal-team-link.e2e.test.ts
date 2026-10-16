@@ -16,7 +16,7 @@ async function deactivateAnna() {
 }
 
 describe("after removing a person", () => {
-  // Documented in docs/self-hosting.md: only a (new) team code locks someone out completely.
+  // Documented in docs/self-hosting/first-setup-and-app.md: only a (new) team code locks someone out completely.
   it("keeps read access and team pushes through the team link when no code is set", async () => {
     const planner = await client.loginAs("planner", "planner1234");
     const invite = await client.request<{ code: string }>("POST", "/api/member-invites", {

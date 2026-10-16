@@ -1,6 +1,6 @@
 # Configuration
 
-Shiftplan reads non-secret settings from a JSON file and secrets from environment variables. For a complete list of environment variables with defaults, see [Alle Umgebungsvariablen](self-hosting.md#alle-umgebungsvariablen) in the self-hosting guide.
+Shiftplan reads non-secret settings from a JSON file and secrets from environment variables. For a complete list of environment variables with defaults, see [Environment variables](self-hosting/environment-variables.md) in the self-hosting guide.
 
 ## Backend Config File
 

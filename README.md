@@ -31,7 +31,7 @@ Run the published image with Docker Compose:
 docker compose up -d
 ```
 
-For a production setup with HTTPS, the Shiftplan app, push notifications, updates, and backups, follow the [self-hosting guide](docs/self-hosting.md) (German).
+For a production setup with HTTPS, the Shiftplan app, push notifications, updates, and backups, follow the [self-hosting guide](docs/self-hosting/README.md).
 
 To work on the code, see [Development](docs/development.md).
 
@@ -39,7 +39,7 @@ To work on the code, see [Development](docs/development.md).
 
 | Page | Content |
 |------|---------|
-| [Self-hosting](docs/self-hosting.md) | Installation, reverse proxy, app, push, updates, backups (German) |
+| [Self-hosting](docs/self-hosting/README.md) | Installation, reverse proxy, app, push, updates, backups |
 | [Configuration](docs/configuration.md) | Backend config file, environment variables, contact email, demo instance |
 | [Features](docs/features.md) | Roles, team access, push notifications, app access, absences, Excel rotation |
 | [Development](docs/development.md) | Local setup, commands, project layout |
