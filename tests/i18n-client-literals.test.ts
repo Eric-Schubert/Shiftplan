@@ -1,96 +1,68 @@
 import fs from "node:fs";
-import { parse } from "vue/compiler-sfc";
 import { describe, expect, it } from "vitest";
-import { ALLOWED_IDENTIFIERS, isGermanProse } from "../scripts/check-english.js";
-import { tokenize } from "../scripts/english/tokenize.js";
 import { repoFiles } from "../scripts/repo-files.js";
-import { SHORT_NAME_KEYS } from "~/utils/holiday";
+import { germanLiterals } from "./helpers/german-literals";
+import { PENDING_LEGAL, PENDING_SETTINGS } from "./helpers/i18n-pending";
 
-// App code whose texts come from the catalog (i18n/locales). German here is a text that missed it.
-const CONVERTED = /^(?:components\/(?:app|form|member|planner|prime)\/|layouts\/|composables\/|stores\/|types\/|utils\/|plugins\/)|^(?:app|error)\.vue$|^pages\/(?:index|settings)\.vue$/;
-// Still German until their step of the i18n plan: settings features, legal texts, sign-in forms.
-const PENDING = [
-  /^composables\/(?:useRotation\w*|useYearCopy|useImprintContactForm)\.ts$/,
-  /^utils\/(?:account-forms|client-config)\.ts$/,
-  /^utils\/(?:analytics|legal)\//,
-  /^stores\/auth\.store\.ts$/,
-];
-// Wire values and data that stay German: query parameters, absence reasons, holiday names from the API.
-const ALLOWED = new Set([...ALLOWED_IDENTIFIERS, ...Object.keys(SHORT_NAME_KEYS), "Shiftplan"]);
-// Attributes people read; any word in them belongs in the catalog.
-const TEXT_ATTRS = /^(?:label|header|placeholder|title|aria-label|alt|summary|detail)$/;
+// All app code takes its texts from the catalog (i18n/locales). German here is a text that missed it.
+const APP_CODE = /^(?:components|layouts|pages|composables|stores|types|utils|plugins)\/.*\.(?:vue|ts|js)$|^(?:app|error)\.vue$/;
+const PENDING = new Set([...PENDING_SETTINGS, ...PENDING_LEGAL]);
 
-type Finding = { line: number; text: string };
+describe("app code", () => {
+  const files = repoFiles().filter((file) => APP_CODE.test(file));
+  const german = (file: string) => germanLiterals(file, fs.readFileSync(file, "utf-8"));
 
-/** Strings in code: plain literals and the pieces of template literals, without comments. */
-function codeStrings(source: string, firstLine: number): Finding[] {
-  return tokenize(source, firstLine)
-    .filter((token: { kind: string }) => token.kind === "string")
-    .map((token: { text: string; line: number }) => ({ line: token.line, text: token.text.replace(/^[`'"}]|(?:\$\{|[`'"])$/g, "") }));
-}
-
-/** Text nodes and readable attributes of a template, plus the strings in its expressions. */
-function templateTexts(node: any, found: { markup: Finding[]; code: Finding[] }) {
-  for (const prop of node.props ?? []) {
-    const line = prop.loc.start.line;
-    if (prop.type === 6 && prop.value && TEXT_ATTRS.test(prop.name)) found.markup.push({ line, text: prop.value.content });
-    if (prop.type === 7 && prop.exp) found.code.push(...codeStrings(prop.exp.content, line));
-  }
-  for (const child of node.children ?? []) {
-    if (child.type === 2) found.markup.push({ line: child.loc.start.line, text: child.content });
-    else if (child.type === 5) found.code.push(...codeStrings(child.content.content, child.loc.start.line));
-    else templateTexts(child, found);
-  }
-}
-
-/** German strings of one file as "line: text". Markup counts at any word, code by the prose rule. */
-function germanLiterals(file: string, source: string): string[] {
-  const found = { markup: [] as Finding[], code: [] as Finding[] };
-  if (file.endsWith(".vue")) {
-    const { descriptor } = parse(source, { filename: file });
-    for (const block of [descriptor.script, descriptor.scriptSetup]) {
-      if (block) found.code.push(...codeStrings(block.content, block.loc.start.line));
-    }
-    if (descriptor.template?.ast) templateTexts(descriptor.template.ast, found);
-  } else found.code.push(...codeStrings(source, 1));
-
-  const markup = found.markup.filter(({ text }) => /\p{L}{2}/u.test(text) && !ALLOWED.has(text.trim()));
-  const code = found.code.filter(({ text }) => isGermanProse(text) && !ALLOWED.has(text));
-  return [...markup, ...code].sort((a, b) => a.line - b.line).map(({ line, text }) => `${line}: ${text.trim()}`);
-}
-
-describe("converted app code", () => {
-  it("has no German text left outside the catalog", () => {
-    const files = repoFiles().filter((file) => CONVERTED.test(file) && /\.(?:vue|ts)$/.test(file) && !PENDING.some((rule) => rule.test(file)));
-    const findings = files.flatMap((file) => germanLiterals(file, fs.readFileSync(file, "utf-8")).map((found) => `${file}:${found}`));
-    expect(files.length).toBeGreaterThan(100);
+  it("has no German text outside the catalog, except in the pending files", () => {
+    const findings = files.filter((file) => !PENDING.has(file)).flatMap((file) => german(file).map((found) => `${file}:${found}`));
+    expect(files.length).toBeGreaterThan(200);
     expect(findings).toEqual([]);
   });
 
-  it("finds German in template text, attributes, expressions and scripts", () => {
+  it("lists only pending files that exist and still hold German", () => {
+    expect([...PENDING].filter((file) => !files.includes(file) || german(file).length === 0)).toEqual([]);
+  });
+});
+
+describe("German text guard", () => {
+  it("finds any word in markup and readable attributes, technical attributes aside", () => {
+    const source = [
+      '<template><p title="Woche" class="planner-chip">Heute</p><PrimeSelect empty-message="Keine Daten" icon="pi pi-x" />',
+      '<PrimeToggleButton on-label="An" off-label="Aus" id="anfragen" /><!-- Kommentar für Entwickler --></template>',
+    ].join("\n");
+    expect(germanLiterals("components/A.vue", source)).toEqual(["1: Woche", "1: Heute", "1: Keine Daten", "2: An", "2: Aus"]);
+  });
+
+  it("finds German words in scripts and bindings without umlauts or two stopwords", () => {
     const source = [
       "<script setup>",
       "// Kommentar über die Woche",
-      'const fallback = error || "Das hat nicht geklappt";',
+      'const title = "Neue Anfrage"; const options = { open: "Offen" }; const label = "Schicht " + name;',
+      'throw new Error("Speichern fehlgeschlagen");',
       "const greeting = `Hallo ${name}, schön dich zu sehen`;",
       "</script>",
-      '<template><p title="Woche">Heute</p><span :aria-label="open ? \'Schließen\' : t(\'common.actions.close\')"></span>',
-      "<!-- Kommentar für Entwickler --></template>",
+      "<template><PrimeButton :label=\"'Speichern'\" :aria-label=\"open ? 'Schließen' : t('common.actions.close')\" /></template>",
     ].join("\n");
-    expect(germanLiterals("components/A.vue", source)).toEqual([
-      "3: Das hat nicht geklappt",
-      "4: , schön dich zu sehen",
-      "6: Woche",
-      "6: Heute",
-      "6: Schließen",
+    expect(germanLiterals("components/B.vue", source)).toEqual([
+      "3: Neue Anfrage",
+      "3: Offen",
+      "3: Schicht",
+      "4: Speichern fehlgeschlagen",
+      "5: Hallo {}, schön dich zu sehen",
+      "7: Speichern",
+      "7: Schließen",
     ]);
   });
 
-  it("leaves wire values, holiday names from the API, the brand and keys alone", () => {
+  it("checks plain scripts too", () => {
+    expect(germanLiterals("utils/c.js", 'export const hint = "Bitte warten";\n// Hinweis für später')).toEqual(["1: Bitte warten"]);
+  });
+
+  it("leaves wire values, holiday names from the API, the brand, keys and code words alone", () => {
     const source = [
-      '<template><h1>Shiftplan</h1><p>{{ t("app.layout.imprint") }} · {{ count }}</p></template>',
-      '<script setup>const reason = "urlaub"; const query = "?einladung=1"; const name = "Buß- und Bettag";</script>',
+      '<template><h1>Shiftplan</h1><p>{{ t("app.layout.imprint") }} · {{ count }}</p><a href="/impressum" /></template>',
+      '<script setup>const reason = "urlaub"; const query = "?einladung=1"; const name = "Buß- und Bettag";',
+      'const key = "schichtplaner_pushPromptDismissed"; const kind = state === "takeover" ? "updated" : "/settings";</script>',
     ].join("\n");
-    expect(germanLiterals("components/B.vue", source)).toEqual([]);
+    expect(germanLiterals("components/D.vue", source)).toEqual([]);
   });
 });
