@@ -2,6 +2,8 @@
 defineProps<{
   /** Hosting provider with address; empty when the operator runs the server themselves. */
   hoster: string;
+  /** Country of the hoster's data centre; empty when unknown, then the text names none. */
+  hosterLocation: string;
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
   appPush: boolean;
@@ -15,9 +17,12 @@ defineProps<{
     <template v-if="hoster">
       <h4>Hosting</h4>
       <p>
-        This application and its data are located on a server of {{ hoster }} in a data centre in Germany. The provider acts as a processor under Art. 28
-        GDPR and processes the data only in order to provide the server. The legal basis is Art. 6(1)(f) GDPR; our legitimate interest lies in reliable
-        operation.
+        <template v-if="hosterLocation">
+          This application and its data are located on a server of {{ hoster }} in a data centre in {{ hosterLocation }}.
+        </template>
+        <template v-else>This application and its data are located on a server of {{ hoster }}.</template>
+        The provider acts as a processor under Art. 28 GDPR and processes the data only in order to provide the server. The legal basis is Art. 6(1)(f)
+        GDPR; our legitimate interest lies in reliable operation.
       </p>
     </template>
 

@@ -7,13 +7,14 @@ const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
 const hoster = String(privacy?.hoster || "").trim();
+const hosterLocation = String(privacy?.hosterLocation || "").trim();
 
 // Microsoft, the push relay, periods and cookie names as this instance is set up.
 const { data } = await useFetch("/api/legal/privacy");
 const facts = computed(() => toPrivacyFacts(data.value));
 const services = computed(() => {
   const { microsoft, appPush, defaultRelay, relayHost } = facts.value;
-  return { hoster, usesCloudflare, usesMicrosoft: microsoft, appPush, defaultRelay, relayHost };
+  return { hoster, hosterLocation, usesCloudflare, usesMicrosoft: microsoft, appPush, defaultRelay, relayHost };
 });
 
 // German is the binding version; the English one in components/legal/en is a translation of it.

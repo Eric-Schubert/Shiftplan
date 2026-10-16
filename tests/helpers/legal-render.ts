@@ -13,6 +13,8 @@ export type LegalSetup = {
   facts?: Partial<PrivacyFacts>;
   cloudflare?: boolean;
   hoster?: string;
+  hosterLocation?: string;
+  imprint?: typeof IMPRINT;
   demo?: boolean;
 };
 
@@ -31,6 +33,9 @@ export const IMPRINT = {
   registerNumber: "",
   vatId: "DE123456789",
 };
+
+/** A fresh instance: every NUXT_PUBLIC_IMPRINT_* variable empty, the country at its default. */
+export const NO_IMPRINT = Object.fromEntries(Object.keys(IMPRINT).map((key) => [key, key === "country" ? "Deutschland" : ""])) as typeof IMPRINT;
 
 const LEGAL_COMPONENTS = import.meta.glob<Component>("/components/legal/**/*.vue", { eager: true, import: "default" });
 
@@ -56,9 +61,9 @@ function stubNuxt(setup: LegalSetup, render: LegalRender) {
     useFetch: async () => ({ data: ref(setup.facts ?? null) }),
     useRuntimeConfig: () => ({
       public: {
-        imprint: IMPRINT,
+        imprint: setup.imprint ?? IMPRINT,
         demoLogin: setup.demo ? { username: "demo", password: "demo" } : {},
-        privacy: { cloudflare: setup.cloudflare ?? false, hoster: setup.hoster ?? "" },
+        privacy: { cloudflare: setup.cloudflare ?? false, hoster: setup.hoster ?? "", hosterLocation: setup.hosterLocation ?? "" },
       },
     }),
     useImprintContactForm: () => ({

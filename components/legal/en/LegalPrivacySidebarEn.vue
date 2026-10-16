@@ -7,7 +7,10 @@ const runtimeConfig = useRuntimeConfig();
 
 const imprint = computed(() => runtimeConfig.public.imprint || {});
 const controllerLines = computed(() => imprintAddressLines(imprint.value));
-const hasController = computed(() => controllerLines.value.length > 0);
+// The same rule as the legal notice page: the country alone (it has a default) names no controller.
+const hasController = computed(
+  () => Boolean(imprint.value.providerName) && Boolean(imprint.value.streetAddress) && Boolean(imprint.value.postalCode) && Boolean(imprint.value.city)
+);
 </script>
 
 <template>
@@ -16,8 +19,8 @@ const hasController = computed(() => controllerLines.value.length > 0);
     <address v-if="hasController" class="mt-2 not-italic text-[0.9375rem] leading-6 text-[var(--text-2)]">
       <span v-for="line in controllerLines" :key="line" class="block">{{ line }}</span>
     </address>
-    <p v-else class="mt-2 text-[0.9375rem] leading-6 text-[var(--text-2)]">
-      The provider's details are maintained in the application's legal notice configuration.
+    <p v-else class="mt-2 rounded-lg border border-[var(--border-soft)] bg-[var(--warning-soft)] p-4 text-sm leading-6 text-[var(--warning-ink)]">
+      The legal notice has not been fully configured yet.
     </p>
     <p v-if="imprint.publicEmail" class="mt-2 text-[0.9375rem] leading-6">
       <a :href="`mailto:${imprint.publicEmail}`" :class="linkClass">{{ imprint.publicEmail }}</a>
