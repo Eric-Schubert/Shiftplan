@@ -37,12 +37,18 @@ export function readBackendConfigFile(file) {
   if (fs.statSync(file).isDirectory()) {
     throw new Error(`Backend config file ${file} is a directory; Docker creates one when the mounted host file is missing`);
   }
+  let text;
+  try {
+    text = fs.readFileSync(file, "utf-8");
+  } catch (error) {
+    throw new Error(`Backend config file ${file} cannot be read: ${errorMessage(error)}`);
+  }
   /** @type {unknown} */
   let parsed;
   try {
-    parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+    parsed = JSON.parse(text);
   } catch (error) {
-    throw new Error(`Backend config file ${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Backend config file ${file} is not valid JSON: ${errorMessage(error)}`);
   }
   if (!isPlainObject(parsed)) {
     throw new Error(`Backend config file ${file} must hold a JSON object`);
@@ -50,19 +56,27 @@ export function readBackendConfigFile(file) {
   return parsed;
 }
 
+// Settings a file replaces as a whole: holidays.subdivisionNames is the list of states the API accepts,
+// so a file that names two Austrian states must not keep the 16 German ones.
+const REPLACED_WHOLE = new Set(["holidays.subdivisionNames"]);
+
 /**
- * Objects merge key by key; lists and single values from the override replace the base value. Keys the
- * defaults do not know are kept, so the schema can warn about or reject them as before.
+ * Objects merge key by key; lists, single values and the settings above from the override replace the
+ * base value. Keys the defaults do not know are kept, so the schema can warn about or reject them as before.
  * @param {Record<string, unknown>} base
  * @param {Record<string, unknown>} override
+ * @param {string} [prefix] Dotted path of `base` in the config, for REPLACED_WHOLE.
  * @returns {Record<string, unknown>}
  */
-export function mergeBackendConfig(base, override) {
+export function mergeBackendConfig(base, override, prefix = "") {
   /** @type {Record<string, unknown>} */
   const merged = { ...base };
   for (const [key, value] of Object.entries(override)) {
+    if (key === "__proto__") continue; // would set the prototype of the merged object
+    const keyPath = prefix ? `${prefix}.${key}` : key;
     const current = merged[key];
-    merged[key] = isPlainObject(current) && isPlainObject(value) ? mergeBackendConfig(current, value) : value;
+    const mergeInto = !REPLACED_WHOLE.has(keyPath) && isPlainObject(current) && isPlainObject(value);
+    merged[key] = mergeInto ? mergeBackendConfig(current, value, keyPath) : value;
   }
   return merged;
 }
@@ -85,4 +99,9 @@ export function loadBackendConfig(options = {}) {
  */
 function isPlainObject(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** @param {unknown} error */
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
 }

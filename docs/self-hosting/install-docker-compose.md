@@ -150,7 +150,7 @@ Expected: `HTTP/1.1 200 OK`.
 
 ## Optional: backend settings
 
-The German state for public and school holidays, the session duration, rate limits and other non-secret settings have built-in defaults (holidays: Saxony). To change them, mount a `config/backend.config.json` with the keys you want to change; everything else keeps its default. The example file from the repository holds the keys self-hosters typically change:
+The German state for public and school holidays, the session duration, rate limits and other non-secret settings have built-in defaults (holidays: Saxony). To change them, mount a `config/backend.config.json` with the keys you want to change; everything else keeps its default. The example file from the repository names only the holiday states:
 
 ```bash
 mkdir -p /opt/stacks/shiftplan/config

@@ -1,15 +1,4 @@
 {
-  "auth": {
-    "trustProxyHeaders": false,
-    "session": {
-      "durationMinutes": 30
-    },
-    "loginRateLimit": {
-      "maxAttempts": 5,
-      "windowMinutes": 15,
-      "blockMinutes": 15
-    }
-  },
   "holidays": {
     "public": {
       "subdivisionCodes": ["SN"]
@@ -17,8 +6,5 @@
     "school": {
       "defaultSubdivisionCodes": ["SN", "BB"]
     }
-  },
-  "analytics": {
-    "retentionDays": 90
   }
 }
