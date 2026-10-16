@@ -39,6 +39,7 @@ describe("privacy policy periods and cookies", () => {
       memberCookie: 365,
       memberInvite: 7,
       plannerApp: 14,
+      viewerSession: 180,
     });
     expect({ retentionDays: facts.retentionDays, session: facts.session }).toEqual({
       retentionDays: DEFAULT_PRIVACY_FACTS.retentionDays,

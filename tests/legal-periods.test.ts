@@ -3,12 +3,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 // The privacy policy renders its periods from /api/legal/privacy. Only these are written into the
-// text: the team code cookie (team-access), proxy logs (hosting), the demo reset, the app's offline
-// cache and the answer time for deletion requests.
+// text: proxy logs (hosting), the demo reset, the app's offline cache and the answer time for
+// deletion requests.
 const FIXED: Record<string, string[]> = {
   "LegalPrivacyHeader.vue": ["30 Minuten"],
-  "LegalPrivacyProcessing.vue": ["180 Tage", "15 Tagen", "zwei Wochen"],
-  "LegalPrivacyRetention.vue": ["15 Tagen", "180 Tage", "180 Tage", "eines Monats"],
+  "LegalPrivacyProcessing.vue": ["15 Tagen", "zwei Wochen"],
+  "LegalPrivacyRetention.vue": ["15 Tagen", "eines Monats"],
 };
 
 const DIR = path.resolve(__dirname, "../components/legal");
