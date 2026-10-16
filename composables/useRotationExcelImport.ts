@@ -8,6 +8,7 @@ import { dispositionFileName } from "~/shared/utils/http/content-disposition";
 export function useRotationExcelImport(onImported: () => void) {
   const dataStore = useDataStore();
   const { authFetch } = useAuthFetch();
+  const { t } = useI18n();
 
   const downloadingTemplate = ref(false);
   const checkingFile = ref(false);
@@ -36,8 +37,9 @@ export function useRotationExcelImport(onImported: () => void) {
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = url;
-      // The server names the file in the user's language.
-      link.download = dispositionFileName(response.headers.get("content-disposition")) ?? "";
+      // The server names the file in the user's language; without the header the browser would use the blob id.
+      const fileName = dispositionFileName(response.headers.get("content-disposition"));
+      link.download = fileName ?? t("excelTemplate.fileName");
       document.body.appendChild(link);
       link.click();
       link.remove();
