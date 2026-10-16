@@ -1,28 +1,15 @@
 <script setup lang="ts">
-import type { WeeklyShiftplanWithPattern } from "~/types/shiftplan";
-import type { Absence } from "~/types/absence";
 import type { MemberProfile } from "~/composables/useMember";
+import { usePlannerWeek } from "~/composables/usePlannerWeek";
 import { useSwipe } from "~/composables/useSwipe";
 
 defineProps<{
-  shiftplan: WeeklyShiftplanWithPattern | null | undefined;
-  pending: boolean;
-  absences: Absence[];
   member: MemberProfile | null;
-  generating: boolean;
-  /** The selected week's plan is loaded, so filling it knows what it replaces. */
-  fillReady: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: "updated"): void;
-  (e: "generate"): void;
-  /** Weeks were rolled out in the bulk dialog. */
-  (e: "generated"): void;
 }>();
 
 const appStore = useAppStore();
 const authStore = useAuthStore();
+const { shiftplan, generating, fillReady, refreshWeek, requestFill } = usePlannerWeek();
 
 const swipeContainer = ref<HTMLElement | null>(null);
 const showBulkDialog = ref(false);
@@ -64,25 +51,16 @@ function jumpWeeks(offset: number) {
       @today="appStore.goToCurrentWeek"
       @next="appStore.nextWeek"
       @jump="jumpWeeks"
-      @generate="emit('generate')"
+      @generate="requestFill"
       @open-bulk="showBulkDialog = true"
       @notify-team="showNotifyDialog = true"
     />
 
     <PushPromptCard v-if="!authStore.canEditShifts" />
 
-    <MemberPanel v-if="member" :member="member" @updated="emit('updated')" />
+    <MemberPanel v-if="member" :member="member" @updated="refreshWeek" />
 
-    <PlannerWeekBoard
-      :shiftplan="shiftplan"
-      :pending="pending"
-      :absences="absences"
-      :my-staff-id="member?.id ?? null"
-      :swipe-class="contentSlideClass"
-      :swipe-style="contentSlideStyle"
-      @updated="emit('updated')"
-      @generate="emit('generate')"
-    />
+    <PlannerWeekBoard :my-staff-id="member?.id ?? null" :swipe-class="contentSlideClass" :swipe-style="contentSlideStyle" />
 
     <slot />
 
@@ -92,7 +70,7 @@ function jumpWeeks(offset: number) {
       :year="appStore.selectedYear"
       :week="appStore.selectedWeek"
       @update:visible="showBulkDialog = $event"
-      @generated="emit('generated')"
+      @generated="refreshWeek"
     />
 
     <LazyTeamNotifyDialog v-if="showNotifyDialog" :visible="showNotifyDialog" @update:visible="showNotifyDialog = $event" />

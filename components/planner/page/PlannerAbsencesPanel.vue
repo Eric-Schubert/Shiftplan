@@ -2,6 +2,7 @@
 import { formatDay, formatDayRange } from "~/shared/utils/format/day";
 import { collator } from "~/shared/utils/format/number";
 import { ABSENCE_REASON_KEYS, type Absence } from "~/types/absence";
+import { usePlannerWeek } from "~/composables/usePlannerWeek";
 
 const props = defineProps<{
   absences: Absence[];
@@ -12,10 +13,7 @@ const props = defineProps<{
   week: number;
 }>();
 
-const emit = defineEmits<{
-  (e: "updated"): void;
-}>();
-
+const { refreshWeek } = usePlannerWeek();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
@@ -58,7 +56,7 @@ async function remove(absence: Absence) {
     } else {
       await $fetch(`/api/member/absences/${absence.absence_id}${query}`, { method: "DELETE" });
     }
-    emit("updated");
+    void refreshWeek();
   } catch (cause) {
     error.value = requestError(cause, "absence.remove.failed");
   } finally {
@@ -119,13 +117,6 @@ async function remove(absence: Absence) {
 
     <AbsenceRemoveDialog v-model:absence="toRemove" :removing="removing !== null" @confirm="remove" />
 
-    <LazyAbsenceDialog
-      v-if="showDialog"
-      :visible="showDialog"
-      :year="year"
-      :week="week"
-      @update:visible="showDialog = $event"
-      @created="emit('updated')"
-    />
+    <LazyAbsenceDialog v-if="showDialog" :visible="showDialog" :year="year" :week="week" @update:visible="showDialog = $event" @created="refreshWeek" />
   </div>
 </template>
