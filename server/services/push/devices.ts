@@ -1,6 +1,8 @@
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { purgeMemberAccess } from "~/server/services/member-access.service";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
+import { apiError } from "~/server/utils/api-error";
+import type { MessageKey } from "~/server/lib/i18n/translate";
 
 // Team devices without a personal sign-in share this cap; personal ones are capped per person.
 const MAX_TEAM_DEVICES = 5000;
@@ -61,10 +63,10 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
     staffId?: unknown;
     scope?: unknown;
   } | null;
-  const invalid = (message: string) => createError({ statusCode: 400, statusMessage: message });
+  const invalid = (key: MessageKey) => apiError(null, 400, key);
 
   if (device?.platform !== "ios" && device?.platform !== "android") {
-    throw invalid("Unbekannte Plattform");
+    throw invalid("errors.push.unknownPlatform");
   }
   const token = device.token;
   if (
@@ -73,11 +75,11 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
     token.length > MAX_DEVICE_TOKEN_LENGTH ||
     !/^[A-Za-z0-9:_-]+$/.test(token)
   ) {
-    throw invalid("Ungültiges Geräte-Token");
+    throw invalid("errors.push.invalidToken");
   }
 
   if (device.scope !== undefined && device.scope !== "all" && device.scope !== "mine") {
-    throw invalid("Ungültiger Benachrichtigungsumfang");
+    throw invalid("errors.push.invalidScope");
   }
   const scope: DeviceScope = device.scope === "mine" ? "mine" : "all";
 
@@ -87,17 +89,17 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
     const exists =
       Number.isInteger(device.staffId) &&
       getDatabase().prepare("SELECT 1 FROM staff WHERE staff_id = ? AND active = 1").get(device.staffId);
-    if (!exists) throw invalid("Unbekannter Mitarbeiter");
+    if (!exists) throw invalid("errors.common.unknownStaff");
     staffId = device.staffId as number;
   }
   if (scope === "mine" && staffId === null) {
-    throw invalid("Für „nur meine Schichten“ fehlt der Mitarbeiter");
+    throw invalid("errors.push.scopeNeedsStaff");
   }
 
   const db = getAdminDatabase();
   const exists = db.prepare("SELECT 1 FROM push_devices WHERE token = ?").get(token);
   if (!exists && !member && countTeamDevices() >= MAX_TEAM_DEVICES) {
-    throw createError({ statusCode: 429, statusMessage: "Zu viele registrierte Geräte" });
+    throw apiError(null, 429, "errors.push.tooManyDevices");
   }
 
   db.transaction(() => {

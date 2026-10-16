@@ -6,7 +6,7 @@ import {
 } from "~/server/services/team-access.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateString } from "~/server/utils/validation";
-import { messageRef } from "~/server/utils/api-error";
+import { apiError, messageRef } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
   if (body?.nextWeekFromSaturday !== undefined) {
     if (typeof body.nextWeekFromSaturday !== "boolean") {
-      throw createError({ statusCode: 400, statusMessage: "nextWeekFromSaturday muss true oder false sein" });
+      throw apiError(event, 400, "errors.team.nextWeekFromSaturdayBoolean");
     }
     TeamAccessService.setNextWeekFromSaturday(body.nextWeekFromSaturday);
     return { nextWeekFromSaturday: TeamAccessService.getNextWeekFromSaturday() };

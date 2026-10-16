@@ -2,12 +2,13 @@ import { AbsenceService, cancelAbsence } from "~/server/services/absence.service
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler((event) => {
   const user = requirePlanner(event);
   const absence = AbsenceService.getById(validateId(getRouterParam(event, "id"), "id"));
   if (!absence) {
-    throw createError({ statusCode: 404, statusMessage: "Ausfall nicht gefunden" });
+    throw apiError(event, 404, "errors.absences.notFound");
   }
 
   const cancelled = cancelAbsence(

@@ -1,6 +1,7 @@
 import { StaffService } from "~/server/services/staff.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateName, validateBoolean, validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
 
   if (name === undefined && active === undefined && is_parttime === undefined && short_code === undefined) {
-    throw createError({ statusCode: 400, statusMessage: "Keine Änderungen angegeben" });
+    throw apiError(event, 400, "errors.common.noChanges");
   }
 
   const updated = StaffService.update(id, {
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
   });
 
   if (!updated) {
-    throw createError({ statusCode: 404, statusMessage: "Nicht gefunden" });
+    throw apiError(event, 404, "errors.common.notFound");
   }
 
   return updated;

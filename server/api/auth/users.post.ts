@@ -5,8 +5,9 @@ import { getAdminDatabase } from "~/server/utils/database";
 import {
   getPasswordHashCost,
   getUserValidationConfig,
-  validateConfiguredPasswordStrength,
+  passwordPolicyError,
 } from "~/server/config/auth-config";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -18,34 +19,23 @@ export default defineEventHandler(async (event) => {
   }>(event);
 
   if (!body.username || !body.password || !body.role) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Benutzername, Passwort und Rolle erforderlich",
-    });
+    throw apiError(event, 400, "errors.auth.userFieldsRequired");
   }
 
   const username = body.username.trim();
   const userConfig = getUserValidationConfig();
   if (username.length < userConfig.usernameMinLength || username.length > userConfig.usernameMaxLength) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `Benutzername muss zwischen ${userConfig.usernameMinLength} und ${userConfig.usernameMaxLength} Zeichen haben`,
+    throw apiError(event, 400, "errors.auth.usernameLength", {
+      min: userConfig.usernameMinLength,
+      max: userConfig.usernameMaxLength,
     });
   }
 
-  const strength = validateConfiguredPasswordStrength(body.password);
-  if (!strength.valid) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: strength.message,
-    });
-  }
+  const weakPassword = passwordPolicyError(event, body.password);
+  if (weakPassword) throw weakPassword;
 
   if (!["admin", "planner"].includes(body.role)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Ungültige Rolle. Erlaubt: admin, planner",
-    });
+    throw apiError(event, 400, "errors.auth.invalidRole");
   }
 
   const db = getAdminDatabase();
@@ -54,10 +44,7 @@ export default defineEventHandler(async (event) => {
     .get(username);
 
   if (existing) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: "Benutzername bereits vergeben",
-    });
+    throw apiError(event, 409, "errors.auth.usernameTaken");
   }
 
   const passwordHash = await bcrypt.hash(body.password, getPasswordHashCost());

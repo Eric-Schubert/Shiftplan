@@ -1,5 +1,6 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
 import { limitAttempt } from "~/server/utils/session";
+import { apiError } from "~/server/utils/api-error";
 
 /** Sets the personal PIN. Changing an existing PIN needs the current one. */
 export default defineEventHandler(async (event) => {
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
       async () => (await MemberAccessService.verifyPin(member.staffId, currentPin)) || null
     );
     if (!verified) {
-      throw createError({ statusCode: 403, statusMessage: "Die bisherige PIN stimmt nicht" });
+      throw apiError(event, 403, "errors.member.wrongPin");
     }
   }
 

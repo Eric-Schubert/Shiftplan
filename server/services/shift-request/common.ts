@@ -1,12 +1,14 @@
 import { getDatabase } from "~/server/utils/database";
 import { planningToday } from "~/server/utils/planning-date";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError, type ErrorParams } from "~/server/utils/api-error";
 
-export function badRequest(message: string): never {
-  throw createError({ statusCode: 400, statusMessage: message });
+export function badRequest(key: MessageKey, params?: ErrorParams): never {
+  throw apiError(null, 400, key, params);
 }
 
-export function conflict(message: string): never {
-  throw createError({ statusCode: 409, statusMessage: message });
+export function conflict(key: MessageKey, params?: ErrorParams): never {
+  throw apiError(null, 409, key, params);
 }
 
 export function today(): string {

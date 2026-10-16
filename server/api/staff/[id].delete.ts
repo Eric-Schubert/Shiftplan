@@ -1,6 +1,7 @@
 import { StaffService } from "~/server/services/staff.service";
 import { requireAdmin } from "~/server/utils/auth";
 import { validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler((event) => {
   requireAdmin(event);
@@ -9,7 +10,7 @@ export default defineEventHandler((event) => {
 
   const deleted = StaffService.delete(id);
   if (!deleted) {
-    throw createError({ statusCode: 404, statusMessage: "Nicht gefunden" });
+    throw apiError(event, 404, "errors.common.notFound");
   }
 
   return { success: true, id };

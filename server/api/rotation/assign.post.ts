@@ -2,6 +2,7 @@ import { RotationService } from "~/server/services/rotation.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
 import { validateId, validateInteger } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
@@ -20,10 +21,7 @@ export default defineEventHandler(async (event) => {
   const success = RotationService.assignToPattern(pattern_week, staff_id, shift_id);
 
   if (!success) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Zuweisung fehlgeschlagen",
-    });
+    throw apiError(event, 400, "errors.common.assignFailed");
   }
 
   return { success: true };

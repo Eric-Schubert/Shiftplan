@@ -2,6 +2,7 @@ import { DEVICE_NAME_MAX_LENGTH, MemberAccessService } from "~/server/services/m
 import { memberLoginResponse } from "~/server/services/member-login.service";
 import { getClientNetwork, limitAttempt } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const body = await readJsonBody<{ code: unknown; deviceName: unknown; client: unknown }>(event);
@@ -16,10 +17,7 @@ export default defineEventHandler(async (event) => {
     code && code.length <= 32 ? MemberAccessService.redeem(code, deviceName) : null
   );
   if (!result) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: "Der QR-Code ist ungültig, abgelaufen oder wurde schon benutzt",
-    });
+    throw apiError(event, 401, "errors.member.inviteInvalid");
   }
 
   return memberLoginResponse(event, result, body?.client);

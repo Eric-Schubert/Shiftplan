@@ -8,13 +8,14 @@ import {
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId, validateString } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   const user = requirePlanner(event);
   const body = await readBody(event);
 
   if (!ABSENCE_REASONS.includes(body?.reason)) {
-    throw createError({ statusCode: 400, statusMessage: "Ungültiger Grund" });
+    throw apiError(event, 400, "errors.absences.invalidReason");
   }
   const shiftId = body?.shiftId === undefined || body?.shiftId === null ? null : validateId(body.shiftId, "shiftId");
 

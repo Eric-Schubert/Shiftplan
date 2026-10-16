@@ -3,6 +3,7 @@ import { activeStaffName, badRequest, conflict, isAbsent, today } from "~/server
 import { requestDays } from "~/server/services/shift-request/days";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { apiError } from "~/server/utils/api-error";
 
 export type PlannedChange = Omit<AppliedChange, "before" | "inPlan">;
 
@@ -58,37 +59,37 @@ export function isPresent(staffId: number, shiftId: number, date: string): boole
  */
 export function checkApplicable(request: ShiftRequest, partnerId: number): void {
   const partnerName = activeStaffName(partnerId);
-  if (!activeStaffName(request.requester_staff_id) || !partnerName) conflict("Die Anfrage ist nicht mehr offen");
-  if (requestDays(request.date_from, request.date_to).length === 0) conflict("Die Anfrage ist abgelaufen");
+  if (!activeStaffName(request.requester_staff_id) || !partnerName) conflict("errors.requests.notOpen");
+  if (requestDays(request.date_from, request.date_to).length === 0) conflict("errors.requests.expired");
   const changes = plannedChanges(request, partnerId);
   if (request.kind === "takeover") {
     const date = request.date_from;
     if (!isPresent(request.requester_staff_id, request.shift_id!, date)) {
-      conflict(`${request.requester_name} ist an dem Tag nicht mehr in dieser Schicht`);
+      conflict("errors.requests.requesterLeftShift", { name: request.requester_name });
     }
-    if (isPresent(partnerId, request.shift_id!, date)) conflict(`${partnerName} ist an dem Tag schon in dieser Schicht`);
+    if (isPresent(partnerId, request.shift_id!, date)) conflict("errors.requests.partnerInShift", { name: partnerName });
   } else if (changes.length === 0) {
-    conflict("Im Zeitraum gibt es nichts mehr zu tauschen");
+    conflict("errors.requests.nothingLeftToSwap");
   }
   const absent = absentInChanges(changes);
   if (absent) {
     const name = absent.staffId === partnerId ? partnerName : request.requester_name;
-    conflict(`${name} hat am ${formatNoticeDay(absent.date)} einen Ausfall eingetragen`);
+    conflict("errors.requests.absent", { name, day: formatNoticeDay(absent.date) });
   }
 }
 
 /** A colleague says yes. Throws if the request can no longer be accepted by them. */
 export function checkAccept(request: ShiftRequest, staffId: number): void {
-  if (request.status !== "open") conflict("Die Anfrage ist nicht mehr offen");
-  if (!activeStaffName(request.requester_staff_id)) conflict("Die Anfrage ist nicht mehr offen");
-  if (request.date_to < today()) conflict("Die Anfrage ist abgelaufen");
+  if (request.status !== "open") conflict("errors.requests.notOpen");
+  if (!activeStaffName(request.requester_staff_id)) conflict("errors.requests.notOpen");
+  if (request.date_to < today()) conflict("errors.requests.expired");
   if (request.kind === "swap" && request.partner_staff_id !== staffId) {
-    throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+    throw apiError(null, 404, "errors.requests.notFound");
   }
   if (request.kind === "takeover") {
-    if (request.requester_staff_id === staffId) badRequest("Die eigene Schicht kannst du nicht übernehmen");
-    if (isAbsent(staffId, request.date_from)) badRequest("An dem Tag hast du selbst einen Ausfall eingetragen");
-    if (isPresent(staffId, request.shift_id!, request.date_from)) badRequest("Du bist an dem Tag schon in dieser Schicht");
+    if (request.requester_staff_id === staffId) badRequest("errors.requests.ownShift");
+    if (isAbsent(staffId, request.date_from)) badRequest("errors.requests.selfAbsent");
+    if (isPresent(staffId, request.shift_id!, request.date_from)) badRequest("errors.requests.alreadyInShift");
   }
   checkApplicable(request, staffId);
 }

@@ -9,6 +9,7 @@ import {
   requestUndo,
 } from "~/server/services/shift-request.service";
 import { validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 /**
  * accept (take over / agree to swap), decline (swap partner), cancel (own request or a yes waiting for approval)
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
   // Body first: the request is read after the last await, so it is never a stale copy.
   const { action } = (await readBody(event)) ?? {};
   const request = ShiftRequestService.getById(validateId(getRouterParam(event, "id"), "id"));
-  if (!request) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+  if (!request) throw apiError(event, 404, "errors.requests.notFound");
   const actor = { ...member, source: memberSource(event) };
   const origin = getHeader(event, "origin");
 
@@ -37,9 +38,6 @@ export default defineEventHandler(async (event) => {
     case "decline_undo":
       return { request: await declineUndo(request, actor) };
     default:
-      throw createError({
-        statusCode: 400,
-        statusMessage: "action muss accept, decline, cancel, request_undo, confirm_undo oder decline_undo sein",
-      });
+      throw apiError(event, 400, "errors.requests.memberActionInvalid");
   }
 });

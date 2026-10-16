@@ -1,4 +1,5 @@
 import { getBackendConfig } from "./backend-config";
+import { apiError } from "~/server/utils/api-error";
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -40,10 +41,7 @@ export function resolveSchoolHolidaySubdivisionCodes(statesParam?: string): stri
   const unknownCode = codes.find((code) => !knownStates[code]);
 
   if (unknownCode) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: `Unbekanntes Bundesland: ${unknownCode}`,
-    });
+    throw apiError(null, 400, "errors.holidays.unknownState", { code: unknownCode });
   }
 
   return codes;

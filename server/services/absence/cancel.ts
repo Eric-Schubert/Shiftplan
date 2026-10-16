@@ -3,6 +3,7 @@ import type { Absence } from "~/server/services/absence/model";
 import { AbsenceService } from "~/server/services/absence/store";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
 import { planningToday } from "~/server/utils/planning-date";
+import { apiError } from "~/server/utils/api-error";
 
 /**
  * Withdraws one day, or the range when `wholeRange` is set. A range that already began is cut back
@@ -18,7 +19,7 @@ export function cancelAbsence(
   const today = planningToday();
   const upcoming = range.filter((entry) => entry.absence_date >= today);
   if (options.upcomingOnly && upcoming.length === 0) {
-    throw createError({ statusCode: 400, statusMessage: "Vergangene Ausfälle lassen sich nicht zurückziehen" });
+    throw apiError(null, 400, "errors.absences.pastCancel");
   }
   const affected = upcoming.length > 0 ? upcoming : range;
   const ids = affected.map((entry) => entry.absence_id);

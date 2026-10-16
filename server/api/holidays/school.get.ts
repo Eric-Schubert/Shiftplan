@@ -1,6 +1,7 @@
-import { defineEventHandler, getQuery, createError } from "h3";
+import { defineEventHandler, getQuery } from "h3";
 import { resolveSchoolHolidaySubdivisionCodes } from "~/server/config/holiday-config";
 import { SchoolHolidayService } from "~/server/services/school-holiday.service";
+import { apiError } from "~/server/utils/api-error";
 
 export type { SchoolHoliday } from "~/server/services/school-holiday.service";
 export type { SchoolHolidayPeriod } from "~/types/holiday";
@@ -16,19 +17,13 @@ export default defineEventHandler(async (event) => {
   const states = resolveSchoolHolidaySubdivisionCodes(statesParam);
 
   if (!year || isNaN(year)) {
-    throw createError({
-      statusCode: 400,
-      message: 'Parameter "year" ist erforderlich',
-    });
+    throw apiError(event, 400, "errors.holidays.yearRequired");
   }
 
   try {
     return await SchoolHolidayService.list(year, week, states);
   } catch (error: any) {
     console.error("[holidays] Fetching school holidays failed:", error);
-    throw createError({
-      statusCode: 500,
-      message: `Fehler beim Abrufen der Schulferien: ${error.message}`,
-    });
+    throw apiError(event, 500, "errors.holidays.schoolFailed", { detail: error.message });
   }
 });

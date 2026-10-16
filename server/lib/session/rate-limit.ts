@@ -1,5 +1,7 @@
 import { getAdminDatabase } from "~/server/utils/database";
 import { getLoginRateLimitConfig } from "~/server/config/auth-config";
+import type { MessageKey } from "~/server/lib/i18n/translate";
+import { apiError } from "~/server/utils/api-error";
 
 /**
  * One counter of sign-in attempts. `factor` widens the configured limit for a counter that
@@ -90,10 +92,10 @@ export function settleAttempt(buckets: AttemptBucket[], succeeded: boolean): voi
 export async function limitAttempt<T>(
   buckets: AttemptBucket[],
   check: () => T | null | Promise<T | null>,
-  message = "Zu viele Versuche. Bitte warten."
+  message: MessageKey = "errors.common.tooManyAttempts"
 ): Promise<T | null> {
   if (!reserveAttempt(buckets)) {
-    throw createError({ statusCode: 429, statusMessage: message });
+    throw apiError(null, 429, message);
   }
   let result: T | null = null;
   try {

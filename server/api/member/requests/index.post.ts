@@ -1,6 +1,7 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
 import { REQUEST_MESSAGE_MAX_LENGTH, requestSwap, requestTakeover } from "~/server/services/shift-request.service";
 import { validateId, validateString } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 /** A staff member asks the team to take over a shift, or a colleague to swap a range. */
 export default defineEventHandler(async (event) => {
@@ -32,5 +33,5 @@ export default defineEventHandler(async (event) => {
     return { request };
   }
 
-  throw createError({ statusCode: 400, statusMessage: "kind muss takeover oder swap sein" });
+  throw apiError(event, 400, "errors.requests.kindInvalid");
 });

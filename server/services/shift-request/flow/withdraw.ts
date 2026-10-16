@@ -3,18 +3,19 @@ import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { withCurrent } from "./apply";
 import { describeRequest, notifyStaff } from "./notify";
+import { apiError } from "~/server/utils/api-error";
 
 type Member = { staffId: number; staffName: string };
 
 function notFound(): never {
-  throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+  throw apiError(null, 404, "errors.requests.notFound");
 }
 
 /** The asked partner says no to a swap. */
 export async function declineRequest(request: ShiftRequest, staffId: number, staffName: string): Promise<ShiftRequest> {
   if (request.kind !== "swap" || request.partner_staff_id !== staffId) notFound();
   const updated = withCurrent(request, (current) => {
-    if (current.status !== "open") conflict("Die Anfrage ist nicht mehr offen");
+    if (current.status !== "open") conflict("errors.requests.notOpen");
     return ShiftRequestService.setStatus(current.request_id, "declined", { expected: "open" });
   });
   await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request)} nicht tauschen.`);
@@ -48,7 +49,7 @@ export async function cancelRequest(request: ShiftRequest, member: Member): Prom
   }
   if (request.requester_staff_id !== member.staffId) notFound();
   const { updated, partner } = withCurrent(request, (current) => {
-    if (current.status !== "open" && current.status !== "pending_approval") conflict("Die Anfrage ist schon abgeschlossen");
+    if (current.status !== "open" && current.status !== "pending_approval") conflict("errors.requests.alreadyClosed");
     const updated = ShiftRequestService.setStatus(current.request_id, "cancelled", { expected: current.status });
     return { updated, partner: current.partner_staff_id };
   });

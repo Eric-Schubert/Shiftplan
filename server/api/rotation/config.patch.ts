@@ -2,6 +2,7 @@ import { RotationService } from "~/server/services/rotation.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
 import { validateInteger, validateYear, validateWeek } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requirePlanner(event);
@@ -17,10 +18,7 @@ export default defineEventHandler(async (event) => {
   const start_week = validateWeek(body.start_week, "startWeek");
 
   if (cycle_length === undefined && start_year === undefined && start_week === undefined) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Keine Änderungen angegeben",
-    });
+    throw apiError(event, 400, "errors.common.noChanges");
   }
 
   return RotationService.updateConfig({

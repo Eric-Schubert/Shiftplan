@@ -3,6 +3,7 @@ import { memberLoginResponse } from "~/server/services/member-login.service";
 import { getClientNetwork, limitAttempt, type AttemptBucket } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
 import { normalizeShortCode } from "~/server/lib/migrations/staff-short-code.js";
+import { apiError } from "~/server/utils/api-error";
 
 // A short code may see more failures than one network, so a stranger alone cannot lock a colleague out.
 const SHORT_CODE_ATTEMPTS_FACTOR = 3;
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
     shortCode && pin ? MemberAccessService.loginWithPin(shortCode, pin, deviceName) : null
   );
   if (!result) {
-    throw createError({ statusCode: 401, statusMessage: "Kürzel oder PIN stimmt nicht" });
+    throw apiError(event, 401, "errors.member.loginFailed");
   }
 
   return memberLoginResponse(event, result, body?.client);

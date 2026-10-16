@@ -2,6 +2,7 @@ import { ShiftRequestService, decideRequest } from "~/server/services/shift-requ
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
 import { validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 /** Planner: approve or reject a request waiting for approval, or revert a finished one. */
 export default defineEventHandler(async (event) => {
@@ -9,9 +10,9 @@ export default defineEventHandler(async (event) => {
   // Body first: the request is read after the last await, so it is never a stale copy.
   const { action } = (await readBody(event)) ?? {};
   const request = ShiftRequestService.getById(validateId(getRouterParam(event, "id"), "id"));
-  if (!request) throw createError({ statusCode: 404, statusMessage: "Anfrage nicht gefunden" });
+  if (!request) throw apiError(event, 404, "errors.requests.notFound");
   if (action !== "approve" && action !== "reject" && action !== "revert") {
-    throw createError({ statusCode: 400, statusMessage: "action muss approve, reject oder revert sein" });
+    throw apiError(event, 400, "errors.requests.plannerActionInvalid");
   }
   return {
     request: await decideRequest(

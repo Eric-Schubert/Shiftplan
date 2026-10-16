@@ -1,13 +1,14 @@
 import { AbsenceService, cancelAbsence } from "~/server/services/absence.service";
 import { MemberAccessService, memberSource } from "~/server/services/member-access.service";
 import { validateId } from "~/server/utils/validation";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler((event) => {
   const member = MemberAccessService.requireMember(event);
   const absence = AbsenceService.getById(validateId(getRouterParam(event, "id"), "id"));
 
   if (!absence || absence.staff_id !== member.staffId) {
-    throw createError({ statusCode: 404, statusMessage: "Ausfall nicht gefunden" });
+    throw apiError(event, 404, "errors.absences.notFound");
   }
 
   const cancelled = cancelAbsence(

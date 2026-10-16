@@ -9,6 +9,7 @@ import {
   validateBoolean,
 } from "~/server/utils/validation";
 import { getShiftValidationConfig } from "~/server/config/domain-config";
+import { apiError } from "~/server/utils/api-error";
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -43,7 +44,7 @@ export default defineEventHandler(async (event) => {
   });
 
   if (!updated) {
-    throw createError({ statusCode: 404, statusMessage: "Nicht gefunden" });
+    throw apiError(event, 404, "errors.common.notFound");
   }
 
   return updated;
