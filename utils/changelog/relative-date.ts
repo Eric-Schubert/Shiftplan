@@ -1,3 +1,5 @@
+import { formatRelative } from '~/shared/utils/format/time'
+
 interface DateParts {
   year: number
   month: number
@@ -38,11 +40,9 @@ export function getCalendarDayDiff(date: string, today = new Date()): number | n
   return Math.max(0, diff)
 }
 
-export function formatRelativeChangelogDate(date: string, today = new Date()): string {
+export function formatRelativeChangelogDate(locale: string, date: string, today = new Date()): string {
   const diffDays = getCalendarDayDiff(date, today)
   if (diffDays === null) return date
 
-  if (diffDays === 0) return 'heute'
-  if (diffDays === 1) return 'gestern'
-  return `vor ${diffDays} Tagen`
+  return formatRelative(locale, -diffDays, 'day')
 }

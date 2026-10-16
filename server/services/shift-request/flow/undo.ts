@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE } from "~/i18n/config";
 import { activeStaffName, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -46,7 +47,7 @@ export async function requestUndo(request: ShiftRequest, member: Member): Promis
   await notifyStaff(
     [other.id],
     "Storno angefragt",
-    `${member.staffName} möchte ${subject(request)} (${describeRequest(request)}) stornieren. Bitte bestätigen oder ablehnen.`
+    `${member.staffName} möchte ${subject(request)} (${describeRequest(request, DEFAULT_LOCALE)}) stornieren. Bitte bestätigen oder ablehnen.`
   );
   return updated;
 }
@@ -64,7 +65,7 @@ export async function confirmUndo(request: ShiftRequest, member: Member, origin?
   await notifyStaff(
     [other.id],
     "Storno bestätigt",
-    `${member.staffName} hat den Storno bestätigt. ${describeRequest(request)} ist wieder wie vorher.`
+    `${member.staffName} hat den Storno bestätigt. ${describeRequest(request, DEFAULT_LOCALE)} ist wieder wie vorher.`
   );
   return updated;
 }
@@ -81,7 +82,7 @@ export async function declineUndo(request: ShiftRequest, member: Member): Promis
     await notifyStaff(
       [other.id],
       "Storno abgelehnt",
-      `${member.staffName} möchte ${describeRequest(request)} so lassen, wie es ist.`
+      `${member.staffName} möchte ${describeRequest(request, DEFAULT_LOCALE)} so lassen, wie es ist.`
     );
   }
   return updated;

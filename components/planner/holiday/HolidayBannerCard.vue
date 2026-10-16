@@ -23,7 +23,8 @@ const bannerTone = computed(() => {
     : "planner-holiday-banner--school";
 });
 
-const bannerItems = computed(() => buildHolidayBannerItems(props.holidays, props.schoolHolidays));
+const { locale } = useI18n();
+const bannerItems = computed(() => buildHolidayBannerItems(locale.value, props.holidays, props.schoolHolidays));
 </script>
 
 <template>

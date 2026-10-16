@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatNumber } from "~/utils/analytics/format";
+import { formatNumber } from "~/shared/utils/format/number";
 
 defineProps<{
   kicker: string;
@@ -8,6 +8,7 @@ defineProps<{
   emptyIcon: string;
   emptyText: string;
 }>();
+const { locale } = useI18n();
 </script>
 
 <template>
@@ -30,11 +31,11 @@ defineProps<{
             {{ item.label }}
           </p>
           <p class="text-xs text-[var(--text-3)]">
-            {{ formatNumber(item.uniqueVisitors) }} individuelle Zugriffe
+            {{ formatNumber(locale, item.uniqueVisitors) }} individuelle Zugriffe
           </p>
         </div>
         <span class="planner-chip planner-chip--muted flex-shrink-0">
-          {{ formatNumber(item.pageViews) }}
+          {{ formatNumber(locale, item.pageViews) }}
         </span>
       </div>
     </div>

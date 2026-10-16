@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
 import { cellKey, pruneSaved } from "~/utils/day-change-cells";
+import { weekLabel } from "~/shared/utils/format/week";
 import { datesOfISOWeek } from "~/shared/utils/week";
 
 // Planner grid: who works this shift on which day of the week, on top of the weekly plan.
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
+const { locale } = useI18n();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -89,7 +91,7 @@ watch(addStaffId, (staffId) => {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    :header="`${shift.name} · KW ${week}`"
+    :header="`${shift.name} · ${weekLabel(locale, week)}`"
     modal
     :style="{ width: '40rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >

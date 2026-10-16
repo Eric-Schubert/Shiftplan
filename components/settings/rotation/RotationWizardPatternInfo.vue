@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { weekLabel } from "~/shared/utils/format/week";
+
 const props = defineProps<{ today: { year: number; week: number } }>();
 const editing = defineModel<boolean>("editing", { required: true });
 
 const { today, rotationConfig, assignmentCount, currentPatternWeek, assignmentsLabel } =
   useRotationPatternSummary(props.today);
+const { locale } = useI18n();
 </script>
 
 <template>
@@ -12,12 +15,12 @@ const { today, rotationConfig, assignmentCount, currentPatternWeek, assignmentsL
     <div v-if="rotationConfig" class="mt-2 flex flex-wrap items-center gap-2">
       <span class="planner-chip planner-chip--accent">{{ rotationConfig.cycle_length }}-Wochen-Zyklus</span>
       <span class="planner-chip">
-        Musterwoche 1 = KW {{ rotationConfig.start_week }}/{{ rotationConfig.start_year }}
+        Musterwoche 1 = {{ weekLabel(locale, rotationConfig.start_week, rotationConfig.start_year) }}
       </span>
       <span class="planner-chip">{{ assignmentsLabel(assignmentCount) }}</span>
     </div>
     <p v-if="currentPatternWeek" class="mt-3 text-sm text-[var(--text-2)]">
-      Diese Woche (KW {{ today.week }}/{{ today.year }}) ist Musterwoche {{ currentPatternWeek }}.
+      Diese Woche ({{ weekLabel(locale, today.week, today.year) }}) ist Musterwoche {{ currentPatternWeek }}.
       <button
         v-if="!editing"
         type="button"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { weekLabel } from "~/shared/utils/format/week";
 import type { RotationYearCopyPreview, RotationYearCopyResult } from "~/types/rotation";
 
 defineProps<{
@@ -10,6 +11,7 @@ defineProps<{
   targetYear: number;
   overwrite: boolean;
 }>();
+const { locale } = useI18n();
 </script>
 
 <template>
@@ -28,7 +30,7 @@ defineProps<{
           {{ preview.totalWeeks }} Wochen mit {{ preview.totalAssignments }} Zuweisungen in {{ sourceYear }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          KW {{ preview.weeks[0]?.week }} bis KW {{ preview.weeks[preview.weeks.length - 1]?.week }}
+          {{ weekLabel(locale, preview.weeks[0]?.week ?? 0) }} bis {{ weekLabel(locale, preview.weeks.at(-1)?.week ?? 0) }}
         </p>
       </div>
     </div>

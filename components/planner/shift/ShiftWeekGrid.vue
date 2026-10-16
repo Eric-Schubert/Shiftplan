@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ShiftDayChange, ShiftWithStaff } from "~/types/shiftplan";
-import { formatAbsenceDay, type Absence } from "~/types/absence";
+import { formatDay } from "~/shared/utils/format/day";
+import type { Absence } from "~/types/absence";
 import { shortNames, weekGridRow, type GridCell, type GridPerson } from "~/utils/week-grid";
 
 // Week at a glance: who actually works each shift on each work day.
@@ -16,6 +17,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ (e: "edit-days", shiftId: number): void }>();
+const { locale } = useI18n();
 
 const today = todayISO();
 
@@ -23,7 +25,7 @@ const rows = computed(() => {
   const holidayDates = new Set(props.holidays.keys());
   return props.shifts.map((shift) => ({
     shift,
-    cells: weekGridRow(shift, props.workdays, props.dayChanges, props.absences, holidayDates),
+    cells: weekGridRow(shift, props.workdays, props.dayChanges, props.absences, holidayDates, locale.value),
   }));
 });
 
@@ -42,7 +44,7 @@ function personClass(person: GridPerson): string {
 }
 
 function dayLabel(date: string): string {
-  return formatAbsenceDay(date).split(" ")[1]!;
+  return formatDay(locale.value, date, "date");
 }
 </script>
 
@@ -63,7 +65,7 @@ function dayLabel(date: string): string {
             class="px-0.5 py-2 text-center text-xs font-semibold"
             :class="[date === today ? 'text-[var(--accent)]' : 'text-[var(--text-2)]', { 'bg-[var(--positive-soft)]': holidays.has(date) }]"
           >
-            {{ formatAbsenceDay(date, false) }}
+            {{ formatDay(locale, date, "weekday") }}
             <span class="block font-normal tabular-nums">{{ dayLabel(date) }}</span>
             <span v-if="holidays.has(date)" class="block truncate font-normal text-[var(--positive-ink)]" :title="holidays.get(date)">
               {{ holidays.get(date) }}

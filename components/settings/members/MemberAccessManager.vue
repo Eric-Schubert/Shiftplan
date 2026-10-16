@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { collator } from "~/shared/utils/format/number";
 import type { MemberDevice } from "~/types/absence";
 import { renderQrSvg } from "~/utils/qr-code";
 
@@ -6,6 +7,7 @@ type Invite = { staffId: number; staffName: string; code: string; link: string; 
 
 const dataStore = useDataStore();
 const { authFetch } = useAuthFetch();
+const { locale } = useI18n();
 const devices = ref<MemberDevice[]>([]);
 const loading = ref(true);
 const creatingFor = ref<number | null>(null);
@@ -17,7 +19,7 @@ const resettingPin = ref<number | null>(null);
 const revoking = ref(false);
 const error = ref("");
 
-const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => a.name.localeCompare(b.name, "de")));
+const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => collator(locale.value).compare(a.name, b.name)));
 const devicesByStaff = computed(() => {
   const map = new Map<number, MemberDevice[]>();
   for (const device of devices.value) {

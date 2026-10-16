@@ -33,7 +33,7 @@ describe("push helpers", () => {
       delta: 1,
     }));
 
-    const payload = buildChangePayload(changes)!;
+    const payload = buildChangePayload(changes, "de")!;
     expect(payload.body.split("\n")).toHaveLength(5);
     expect(payload.body).toContain("… und 2 weitere Änderungen");
   });

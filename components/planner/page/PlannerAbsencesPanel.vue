@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ABSENCE_REASON_LABELS, formatAbsenceDay, formatAbsenceRange, type Absence } from "~/types/absence";
+import { formatDay, formatDayRange } from "~/shared/utils/format/day";
+import { collator } from "~/shared/utils/format/number";
+import { ABSENCE_REASON_LABELS, type Absence } from "~/types/absence";
 
 const props = defineProps<{
   absences: Absence[];
@@ -15,6 +17,7 @@ const emit = defineEmits<{
 }>();
 
 const { authFetch } = useAuthFetch();
+const { locale } = useI18n();
 const showDialog = ref(false);
 const removing = ref<number | null>(null);
 const toRemove = ref<Absence | null>(null);
@@ -24,7 +27,7 @@ const error = ref("");
 const sorted = computed(() => {
   const seen = new Set<string>();
   return [...props.absences]
-    .sort((a, b) => a.absence_date.localeCompare(b.absence_date) || a.staff_name.localeCompare(b.staff_name, "de"))
+    .sort((a, b) => a.absence_date.localeCompare(b.absence_date) || collator(locale.value).compare(a.staff_name, b.staff_name))
     .filter((absence) => {
       if (!absence.batch_id) return true;
       if (seen.has(absence.batch_id)) return false;
@@ -87,7 +90,7 @@ async function remove(absence: Absence) {
           class="flex-shrink-0 font-semibold tabular-nums text-[var(--text-1)]"
           :class="isRange(absence) ? 'w-40' : 'w-20'"
         >
-          {{ isRange(absence) ? formatAbsenceRange(absence) : formatAbsenceDay(absence.absence_date) }}
+          {{ isRange(absence) ? formatDayRange(locale, absence.range_from, absence.range_to) : formatDay(locale, absence.absence_date) }}
         </span>
         <span class="min-w-0 flex-1">
           <span class="font-medium text-[var(--text-1)]">{{ absence.staff_name }}</span>

@@ -8,7 +8,8 @@ import { sendWebPush } from "~/server/services/push/web";
 import { getNotifiableWeeks } from "~/server/services/push/weeks";
 import { planningToday } from "~/server/utils/planning-date";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
-import { formatNoticeDay } from "~/shared/utils/notice-day";
+import { DEFAULT_LOCALE } from "~/i18n/config";
+import { formatDay } from "~/shared/utils/format/day";
 
 // Changes are bundled so a planner editing several slots sends one push.
 const CHANGE_QUIET_MS = 60 * 1000;
@@ -46,7 +47,7 @@ export function queueShiftChange(change: ShiftChange, origin?: string): void {
     week: change.week,
     date: change.date,
     // A day change reads „Früh Di. 13.10.“ so it groups apart from the whole week.
-    shiftName: change.date ? `${shift.name} ${formatNoticeDay(change.date)}` : shift.name,
+    shiftName: change.date ? `${shift.name} ${formatDay(DEFAULT_LOCALE, change.date)}` : shift.name,
     shiftOrder: shift.sort_order,
     staffId: change.staffId,
     staffName: staff.name,
@@ -71,13 +72,14 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
 
   const changes = [...pendingChanges.values()];
   pendingChanges.clear();
-  const payload = buildChangePayload(changes);
+  // No recipient locale yet: pushes go out in the instance language.
+  const payload = buildChangePayload(changes, DEFAULT_LOCALE);
   if (!payload) return null;
 
   // Browsers and apps go out independently: one channel failing does not cost the other.
   const results = await Promise.allSettled([
     sendWebPush(payload),
-    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId())))(),
+    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId(), DEFAULT_LOCALE)))(),
   ]);
   const counts: SendCounts = { sent: 0, failed: 0 };
   for (const result of results) {

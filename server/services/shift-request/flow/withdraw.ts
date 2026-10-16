@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE } from "~/i18n/config";
 import { conflict } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
 import type { ShiftRequest } from "~/server/services/shift-request/types";
@@ -17,7 +18,7 @@ export async function declineRequest(request: ShiftRequest, staffId: number, sta
     if (current.status !== "open") conflict("Die Anfrage ist nicht mehr offen");
     return ShiftRequestService.setStatus(current.request_id, "declined", { expected: "open" });
   });
-  await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request)} nicht tauschen.`);
+  await notifyStaff([request.requester_staff_id], "Tausch abgelehnt", `${staffName} kann ${describeRequest(request, DEFAULT_LOCALE)} nicht tauschen.`);
   return updated;
 }
 
@@ -35,8 +36,8 @@ async function withdrawAcceptance(request: ShiftRequest, member: Member): Promis
     [request.requester_staff_id],
     "Zusage zurückgezogen",
     takeover
-      ? `${member.staffName} übernimmt ${describeRequest(request)} doch nicht. Die Übernahme ist wieder offen.`
-      : `${member.staffName} möchte ${describeRequest(request)} doch nicht tauschen.`
+      ? `${member.staffName} übernimmt ${describeRequest(request, DEFAULT_LOCALE)} doch nicht. Die Übernahme ist wieder offen.`
+      : `${member.staffName} möchte ${describeRequest(request, DEFAULT_LOCALE)} doch nicht tauschen.`
   );
   return updated;
 }
@@ -54,7 +55,7 @@ export async function cancelRequest(request: ShiftRequest, member: Member): Prom
   });
   // The colleague who agreed, or who was asked to swap, should not wait for it any more.
   if (partner !== null) {
-    await notifyStaff([partner], "Anfrage zurückgezogen", `${member.staffName} hat die Anfrage (${describeRequest(request)}) zurückgezogen.`);
+    await notifyStaff([partner], "Anfrage zurückgezogen", `${member.staffName} hat die Anfrage (${describeRequest(request, DEFAULT_LOCALE)}) zurückgezogen.`);
   }
   return updated;
 }

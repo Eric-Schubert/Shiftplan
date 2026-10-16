@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { weekLabel } from "~/shared/utils/format/week";
 import { isoWeekOfDate } from "~/shared/utils/week";
 
 defineProps<{
@@ -10,6 +11,7 @@ const startYear = defineModel<number>("startYear", { required: true });
 const untilYearEnd = defineModel<boolean>("untilYearEnd", { required: true });
 const weekCount = defineModel<number>("weekCount", { required: true });
 
+const { locale } = useI18n();
 const today = isoWeekOfDate(new Date());
 const startsInPast = computed(
   () => startYear.value < today.year || (startYear.value === today.year && startWeek.value < today.week)
@@ -45,7 +47,7 @@ const startsInPast = computed(
 
   <p v-if="startsInPast" class="text-sm text-[var(--warning-ink)]">
     <i class="pi pi-exclamation-triangle mr-1" aria-hidden="true"></i>
-    Die Startwoche liegt in der Vergangenheit (heute ist KW {{ today.week }}/{{ today.year }}).
+    Die Startwoche liegt in der Vergangenheit (heute ist {{ weekLabel(locale, today.week, today.year) }}).
   </p>
 
   <fieldset class="space-y-2">
@@ -54,7 +56,7 @@ const startsInPast = computed(
       <PrimeRadioButton v-model="untilYearEnd" :value="true" input-id="rollout-year-end" />
       <span>
         Bis Jahresende
-        <span class="text-[var(--text-3)]">(KW {{ maxWeekInStartYear }}/{{ startYear }})</span>
+        <span class="text-[var(--text-3)]">({{ weekLabel(locale, maxWeekInStartYear, startYear) }})</span>
       </span>
     </label>
     <label class="flex cursor-pointer flex-wrap items-center gap-3 text-sm text-[var(--text-2)]">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { weekLabel } from "~/shared/utils/format/week";
 import type { RotationExcelImportResult } from "~/types/rotation";
 
 const props = defineProps<{
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const { assignmentCount, assignmentsLabel } = useRotationPatternSummary();
+const { locale } = useI18n();
 const importConfirm = ref<HTMLElement | null>(null);
 
 watch(
@@ -72,7 +74,7 @@ watch(
       <p class="font-semibold">„{{ pending.file.name }}“ ist in Ordnung.</p>
       <p class="mt-1 leading-6 text-[var(--text-2)]">
         Neues Muster: {{ pending.check.config.cycle_length }}-Wochen-Zyklus, Musterwoche 1 =
-        KW {{ pending.check.config.start_week }}/{{ pending.check.config.start_year }},
+        {{ weekLabel(locale, pending.check.config.start_week, pending.check.config.start_year) }},
         {{ assignmentsLabel(pending.check.importedAssignments) }}.
         Es ersetzt das aktuelle Muster ({{ assignmentsLabel(assignmentCount) }}). Wochenpläne bleiben
         unverändert, bis du sie im letzten Schritt ausrollst.

@@ -33,7 +33,7 @@ describe("plan change texts", () => {
       "2026-10-09": "Fr. 09.10.",
       "2026-10-11": "So. 11.10.",
     };
-    const payload = buildChangePayload(days.map((date) => change({ date, shiftName: `Früh ${labels[date]}` })))!;
+    const payload = buildChangePayload(days.map((date) => change({ date, shiftName: `Früh ${labels[date]}` })), "de")!;
 
     expect(payload.body.split("\n").map((line) => line.split(":")[0])).toEqual([
       "KW 41 · Früh Mo. 05.10.",
@@ -50,7 +50,7 @@ describe("plan change texts", () => {
       change({ date: `2026-10-${String(index + 1).padStart(2, "0")}`, shiftName: `Frühschicht Tag ${index + 1}` })
     );
 
-    const [message] = buildNativeMessages(changes, [{ token: "team", staff_id: null, scope: "all", personal: 0 }], "instance");
+    const [message] = buildNativeMessages(changes, [{ token: "team", staff_id: null, scope: "all", personal: 0 }], "instance", "de");
 
     expect(message!.body).toHaveLength(480);
     expect(message!.body.endsWith("…")).toBe(true);
@@ -66,7 +66,8 @@ describe("plan change texts", () => {
           { token: "team", staff_id: null, scope: "all", personal: 0 },
           ...people(count).map((staffId) => ({ token: `mine-${staffId}`, staff_id: staffId, scope: "mine" as const, personal: 1 as const })),
         ],
-        "instance"
+        "instance",
+        "de"
       );
 
     const few = build(3);
