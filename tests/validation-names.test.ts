@@ -12,6 +12,17 @@ describe("validateName", () => {
     }
   });
 
+  it("treats a name of control characters only as empty", () => {
+    let code: unknown;
+    try {
+      validateName("\u0001\u0002", "name", { required: true });
+    } catch (error) {
+      code = (error as { data?: { code?: string } }).data?.code;
+    }
+    expect(code).toBe("validation.empty");
+    expect(validateName("\u0001", "name")).toBeUndefined();
+  });
+
   it("turns control characters into spaces and trims", () => {
     expect(validateName("  Anna\u000bBecker\t ", "name")).toBe("Anna Becker");
     expect(validateName("Früh\r\nlang", "name")).toBe("Früh lang");

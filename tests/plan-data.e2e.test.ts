@@ -69,6 +69,16 @@ describe("deactivating a person", () => {
       .all();
     expect(weeks).toEqual([{ week_number: 42 }]);
     expect(client.mainDb.prepare("SELECT change_date FROM shift_day_changes WHERE staff_id = 2").all()).toEqual([{ change_date: "2026-10-16" }]);
+    expect(client.mainDb.prepare("SELECT action, staff_id, year, week_number, reason, reason_key FROM audit_log").all()).toEqual([
+      {
+        action: "unassign",
+        staff_id: 2,
+        year: 2026,
+        week_number: 43,
+        reason: "Deaktiviert: 1 Zuweisung ab KW 43/2026 entfernt",
+        reason_key: "audit.reason.staffDeactivated",
+      },
+    ]);
   });
 });
 

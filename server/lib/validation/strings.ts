@@ -76,7 +76,13 @@ export function validateName(value: unknown, field: FieldKey, options: NameOptio
 
   if (validated === undefined) return undefined;
 
-  return sanitizeString(validated);
+  // A name of control characters only is empty once they are gone.
+  const name = sanitizeString(validated);
+  if (name === "") {
+    if (required) throw createValidationError("empty", field);
+    return undefined;
+  }
+  return name;
 }
 
 export function validateTime(value: unknown, field: FieldKey, options: { required: true }): string;

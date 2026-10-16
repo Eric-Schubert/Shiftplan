@@ -19,6 +19,6 @@ export default {
     saveFailed: "Saving failed",
   },
   deactivateText:
-    "Deactivate {name}? This signs out all devices and browsers, deletes the PIN and withdraws open requests. After reactivating, a new QR code is needed.",
+    "Deactivate {name}? This signs out all devices and browsers, deletes the PIN, withdraws open requests and removes them from the plan from next week on. Reactivating does not restore that planning, and a new QR code is needed.",
   deleteText: "Are you sure you want to delete {name}? Shifts already planned for this staff member will be lost.",
 } satisfies typeof de;

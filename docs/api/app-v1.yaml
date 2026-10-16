@@ -537,6 +537,9 @@ paths:
   /api/staff:
     get:
       summary: Employees (for „Ich bin …“, I am …)
+      description: |
+        Without a planner session only active employees, and without `short_code`. Planners get
+        every employee with the short code.
       responses:
         "200":
           description: OK

@@ -26,6 +26,8 @@ export default {
       "1 week copied from {sourceYear} to {targetYear}, {overwritten} of them overwritten | {count} weeks copied from {sourceYear} to {targetYear}, {overwritten} of them overwritten",
     yearCopiedSkipped:
       "1 week copied from {sourceYear} to {targetYear}, {skipped} skipped as already planned | {count} weeks copied from {sourceYear} to {targetYear}, {skipped} skipped as already planned",
+    // Deactivating someone clears their weeks after the current one.
+    staffDeactivated: "Deactivated: 1 assignment from {weekOfYear} on removed | Deactivated: {count} assignments from {weekOfYear} on removed",
   },
   action: {
     assign: "Assigned",

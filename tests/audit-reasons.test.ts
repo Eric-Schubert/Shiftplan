@@ -50,6 +50,7 @@ const CASES: Array<[AuditReason, string]> = [
     { key: "audit.reason.yearCopiedSkipped", params: { count: 40, sourceYear: 2026, targetYear: 2027, overwritten: 0, skipped: 12 } },
     "40 Wochen aus 2026 nach 2027 kopiert, 12 bereits geplante übersprungen",
   ],
+  [{ key: "audit.reason.staffDeactivated", params: { count: 3, days: 1, year: 2026, week: 43 } }, "Deaktiviert: 3 Zuweisungen ab KW 43/2026 entfernt"],
 ];
 
 // The app renders with vue-i18n like AuditLogEntry.vue: the plural count is its own argument.

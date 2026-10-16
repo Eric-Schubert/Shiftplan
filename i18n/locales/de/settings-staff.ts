@@ -17,6 +17,6 @@ export default {
     saveFailed: "Speichern fehlgeschlagen",
   },
   deactivateText:
-    "{name} deaktivieren? Das meldet alle Geräte und Browser ab, löscht die PIN und zieht offene Anfragen zurück. Nach dem Aktivieren ist ein neuer QR-Code nötig.",
+    "{name} deaktivieren? Das meldet alle Geräte und Browser ab, löscht die PIN, zieht offene Anfragen zurück und entfernt die Planung ab der nächsten Woche. Erneutes Aktivieren stellt diese Planung nicht wieder her, und es ist ein neuer QR-Code nötig.",
   deleteText: "{name} wirklich löschen? Bereits geplante Einsätze dieses Mitarbeiters gehen dabei verloren.",
 };

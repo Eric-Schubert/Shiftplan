@@ -24,6 +24,8 @@ export default {
       "1 Woche aus {sourceYear} nach {targetYear} kopiert, {overwritten} davon überschrieben | {count} Wochen aus {sourceYear} nach {targetYear} kopiert, {overwritten} davon überschrieben",
     yearCopiedSkipped:
       "1 Woche aus {sourceYear} nach {targetYear} kopiert, {skipped} bereits geplante übersprungen | {count} Wochen aus {sourceYear} nach {targetYear} kopiert, {skipped} bereits geplante übersprungen",
+    // Deactivating someone clears their weeks after the current one.
+    staffDeactivated: "Deaktiviert: 1 Zuweisung ab {weekOfYear} entfernt | Deaktiviert: {count} Zuweisungen ab {weekOfYear} entfernt",
   },
   action: {
     assign: "Zugewiesen",
