@@ -4,7 +4,7 @@ import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { weekOfDate } from "~/shared/utils/week";
 import { REQUESTS_URL, describeRequest, notify, notifyStaff } from "./notify";
 
-export async function createTakeover(input: {
+export async function requestTakeover(input: {
   staffId: number;
   staffName: string;
   date: string;
@@ -33,7 +33,7 @@ export async function createTakeover(input: {
   return request;
 }
 
-export async function createSwap(input: {
+export async function requestSwap(input: {
   staffId: number;
   staffName: string;
   partnerStaffId: number;

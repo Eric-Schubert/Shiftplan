@@ -3,7 +3,7 @@ import type { Absence, AbsenceReason } from "~/server/services/absence/model";
 import { buildAbsenceNotice } from "~/server/services/absence/notice";
 import { AbsenceService } from "~/server/services/absence/store";
 import { PushService } from "~/server/services/push.service";
-import { createTakeover } from "~/server/services/shift-request.service";
+import { requestTakeover } from "~/server/services/shift-request.service";
 import { planningToday } from "~/server/utils/planning-date";
 
 /** Creates the absence days, logs them and tells the team. A failed push never undoes the absence. */
@@ -46,7 +46,7 @@ export async function reportAbsence(input: {
     for (const absence of absences) {
       if (absence.shift_id === null || absence.absence_date < today) continue;
       try {
-        await createTakeover({
+        await requestTakeover({
           staffId: absence.staff_id,
           staffName: absence.staff_name,
           date: absence.absence_date,

@@ -7,7 +7,7 @@ export {
   type ShiftRequestStatus,
 } from "~/server/services/shift-request/types";
 export { acceptRequest } from "~/server/services/shift-request/flow/accept";
-export { createSwap, createTakeover } from "~/server/services/shift-request/flow/create";
+export { requestSwap, requestTakeover } from "~/server/services/shift-request/flow/create";
 export { decideRequest } from "~/server/services/shift-request/flow/decide";
 export { confirmUndo, declineUndo, requestUndo } from "~/server/services/shift-request/flow/undo";
 export { cancelRequest, declineRequest } from "~/server/services/shift-request/flow/withdraw";
