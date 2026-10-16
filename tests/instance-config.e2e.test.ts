@@ -3,18 +3,21 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import backendConfig from "../config/backend.config.json";
+import type { ClientConfig } from "~/types/instance";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";
 import { createApiClient, type ApiClient, type Route } from "./helpers/api-harness";
 
 const INSTANCE_KEYS = [
   "apiVersion",
   "codeRequired",
+  "contactForm",
   "csrf",
   "instanceId",
   "name",
   "nextWeekFromSaturday",
   "passwordPolicy",
   "shift",
+  "username",
   "version",
 ];
 const ROUTES: Route[] = [
@@ -48,6 +51,8 @@ describe("instance config for the web client", () => {
     expect(Object.keys(instance).sort()).toEqual(INSTANCE_KEYS);
     expect({
       passwordPolicy: instance.passwordPolicy,
+      username: instance.username,
+      contactForm: instance.contactForm,
       shift: instance.shift,
       csrf: instance.csrf,
     }).toEqual(DEFAULT_CLIENT_CONFIG);
@@ -65,6 +70,8 @@ describe("instance config for the web client", () => {
     Object.assign(custom.auth, { routes: { csrfMethods: ["post", "DELETE"] } });
     custom.validation.shift.defaultColor = "#0ea5e9";
     custom.validation.shift.minStaff = { default: 2, min: 1, max: 20 };
+    custom.auth.users.usernameMinLength = 5;
+    custom.contact.form.message.minLength = 20;
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-config-"));
     const configPath = path.join(configDir, "backend.config.json");
     fs.writeFileSync(configPath, JSON.stringify(custom));
@@ -82,6 +89,8 @@ describe("instance config for the web client", () => {
     });
     expect(instance.shift).toEqual({ defaultColor: "#0ea5e9", minStaff: { default: 2, min: 1, max: 20 } });
     expect(instance.csrf).toEqual({ cookieName: "team_csrf", methods: ["POST", "DELETE"] });
+    expect(instance.username).toEqual({ minLength: 5, maxLength: 100 });
+    expect((instance.contactForm as ClientConfig["contactForm"]).message).toEqual({ minLength: 20, maxLength: 4000 });
 
     const admin = await client!.loginAs("admin", "admin1234");
     const withoutToken = await client!.request("POST", "/api/shift", { jar: admin, body: { name: "Spät" } });

@@ -1,15 +1,19 @@
-export interface PasswordPolicy {
+import type { PasswordRules } from "~/shared/utils/limits";
+
+export interface PasswordPolicy extends PasswordRules {
+  hint: string;
+}
+
+export interface LengthLimits {
   minLength: number;
   maxLength: number;
-  requireUppercase: boolean;
-  requireLowercase: boolean;
-  requireNumber: boolean;
-  hint: string;
 }
 
 /** Instance settings from backend.config.json that the web client needs. Served by /api/instance. */
 export interface ClientConfig {
   passwordPolicy: PasswordPolicy;
+  username: LengthLimits;
+  contactForm: { name: LengthLimits; replyTo: LengthLimits; subject: LengthLimits; message: LengthLimits };
   shift: {
     defaultColor: string;
     minStaff: { default: number; min: number; max: number };

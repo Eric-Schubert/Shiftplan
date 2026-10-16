@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import type { RetentionDays } from "~/shared/utils/retention";
+import type { PrivacyFacts } from "~/types/privacy";
+import { daysText, minutesText, periodText } from "~/utils/legal/durations";
+
 defineProps<{
   usesMicrosoft: boolean;
+  retention: RetentionDays;
+  session: PrivacyFacts["session"];
 }>();
 </script>
 
@@ -28,8 +34,9 @@ defineProps<{
   <LegalPrivacySection id="cookies">
     <p>
       Für geschützte Bereiche setzt die Anwendung technisch notwendige Cookies. Das Cookie
-      <code>session_token</code> hält die Anmeldung der Planung für bis zu 30 Minuten aktiv und
-      ist für JavaScript nicht lesbar. Das Cookie <code>csrf_token</code> schützt Formulare und
+      <code>{{ session.cookieName }}</code> hält die Anmeldung der Planung für bis zu
+      {{ minutesText(session.durationMinutes, "dative") }} aktiv und ist für JavaScript nicht
+      lesbar. Das Cookie <code>{{ session.csrfCookieName }}</code> schützt Formulare und
       API-Aufrufe vor missbräuchlicher Nutzung und gilt ebenso lange. Diese Cookies sind für die
       Anmeldung unbedingt erforderlich und benötigen daher keine Einwilligung (§ 25 Abs. 2 Nr. 2
       TDDDG).
@@ -43,8 +50,8 @@ defineProps<{
     <p>
       Meldet sich jemand im Browser persönlich an (Kürzel und PIN oder Einladungslink), setzt
       die Anwendung das Cookie <code>member_token</code>. Es ist für JavaScript nicht lesbar,
-      gilt bis zu 365 Tage und wird beim Abmelden gelöscht. Auch dieses Cookie ist technisch
-      erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+      gilt bis zu {{ daysText(retention.memberCookie) }} und wird beim Abmelden gelöscht. Auch
+      dieses Cookie ist technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
     </p>
     <p>
       Fehlgeschlagene Anmeldeversuche werden zur Angriffserkennung begrenzt. Dafür kann die
@@ -95,8 +102,8 @@ defineProps<{
       Klartext gespeichert.
     </p>
     <p>
-      Die Statistik wird nicht für Werbung eingesetzt. Sie wird automatisch auf maximal 90 Tage
-      begrenzt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse
+      Die Statistik wird nicht für Werbung eingesetzt. Sie wird automatisch auf maximal
+      {{ periodText(retention.analytics) }} begrenzt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse
       liegt im sicheren, nachvollziehbaren und bedarfsgerechten Betrieb der Anwendung.
     </p>
     <p>

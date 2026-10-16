@@ -22,7 +22,7 @@ const EXACT_DESCRIPTIONS = {
   "GET /api/member/me": "Read the signed-in employee",
   "POST /api/member/logout": "Sign out the employee, or end the app's team-code token",
   "POST /api/viewer/login": "Unlock the plan with the team access code",
-  "GET /api/legal/privacy": "Read which optional services and push relay the privacy policy names",
+  "GET /api/legal/privacy": "Read the services, push relay, retention periods and cookies the privacy policy mentions",
 };
 
 export function getDescription(endpoint) {

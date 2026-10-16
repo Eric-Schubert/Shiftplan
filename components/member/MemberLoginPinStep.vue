@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PIN_MAX_LENGTH } from "~/shared/utils/limits";
+
 // Sign-in with short code and PIN, the usual way back in.
 defineProps<{ busy: boolean; error: string }>();
 const emit = defineEmits<{ (e: "submit"): void; (e: "use-code"): void }>();
@@ -31,7 +33,7 @@ const pin = defineModel<string>("pin", { required: true });
           type="password"
           inputmode="numeric"
           autocomplete="current-password"
-          maxlength="12"
+          :maxlength="PIN_MAX_LENGTH"
           class="w-full font-mono tracking-widest"
           :disabled="busy"
         />

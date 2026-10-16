@@ -1,7 +1,6 @@
 import { getAdminDatabase } from "~/server/utils/database";
+import { CONTACT_RETENTION_DAYS } from "~/shared/utils/retention";
 
-// Contact requests are answered by e-mail. After a year the copy in the admin area goes.
-export const CONTACT_RETENTION_DAYS = 365;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;
 let lastPurge = 0;

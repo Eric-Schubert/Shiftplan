@@ -54,6 +54,8 @@ describe("app api e2e", () => {
       codeRequired: false,
       nextWeekFromSaturday: true,
       passwordPolicy: expect.any(Object),
+      username: expect.any(Object),
+      contactForm: expect.any(Object),
       shift: expect.any(Object),
       csrf: expect.any(Object),
     });

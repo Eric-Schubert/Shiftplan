@@ -10,7 +10,7 @@ Secrets intentionally stay in `.env`, for example `SHIFTPLAN_ADMIN_PASSWORD` or 
 
 The Compose file mounts `./config/backend.config.json` to `/app/config/backend.config.json`, so backend settings can be changed without rebuilding the image.
 
-The web client follows the same file. It loads the password policy (`auth.passwordPolicy`, including `hint`), the shift color and minimum staff range (`validation.shift.defaultColor`, `validation.shift.minStaff`) and the CSRF settings (`auth.session.cookies.csrfName`, `auth.routes.csrfMethods`, upper-cased on load) from `GET /api/instance` when the page loads. A restart after editing the mounted file is enough; the prebuilt image does not need a rebuild.
+The web client follows the same file. It loads the password policy (`auth.passwordPolicy`, including `hint`), the user name length (`auth.users`), the contact form lengths (`contact.form`), the shift color and minimum staff range (`validation.shift.defaultColor`, `validation.shift.minStaff`) and the CSRF settings (`auth.session.cookies.csrfName`, `auth.routes.csrfMethods`, upper-cased on load) from `GET /api/instance` when the page loads. The privacy policy names the statistics period (`analytics.retentionDays`), the session duration (`auth.session.durationMinutes`) and the cookie names (`auth.session.cookies`) from `GET /api/legal/privacy`; the other retention periods are fixed in `shared/utils/retention.ts`. A restart after editing the mounted file is enough; the prebuilt image does not need a rebuild.
 
 Holiday example:
 

@@ -1,9 +1,10 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it } from "vitest";
+import { validatePasswordStrength } from "~/shared/utils/limits";
 import { useConfigStore } from "~/stores/config.store";
 import { newUserProblem, passwordChangeProblem } from "~/utils/account-forms";
 import { DEFAULT_CLIENT_CONFIG, toClientConfig } from "~/utils/client-config";
-import { validatePasswordStrength } from "~/utils/password-policy";
+import { validateContactForm } from "~/utils/legal/contact-form";
 
 const LOOSE_POLICY = {
   ...DEFAULT_CLIENT_CONFIG.passwordPolicy,
@@ -32,6 +33,8 @@ describe("client config", () => {
     });
 
     expect(config.passwordPolicy).toEqual(LOOSE_POLICY);
+    expect(config.username).toEqual(DEFAULT_CLIENT_CONFIG.username);
+    expect(config.contactForm).toEqual(DEFAULT_CLIENT_CONFIG.contactForm);
     expect(config.shift).toEqual(DEFAULT_CLIENT_CONFIG.shift);
     expect(config.csrf).toEqual({ cookieName: "csrf_token", methods: ["POST"] });
   });
@@ -53,9 +56,27 @@ describe("client config", () => {
 
     expect(store.passwordPolicy.hint).toBe("Mindestens 4 Zeichen");
     expect(passwordChangeProblem("alt", "abcd", "abcd", store.passwordPolicy)).toBeNull();
-    expect(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store.passwordPolicy)).toBe(
+    expect(newUserProblem({ username: "anna", password: "abc", role: "planner" }, store)).toBe(
       "Passwort muss mindestens 4 Zeichen haben"
     );
+  });
+
+  it("checks user names and contact requests against the loaded lengths", () => {
+    const store = useConfigStore();
+    const user = { username: "ab", password: "Geheim12", role: "planner" as const };
+    const request = { name: "Eva", replyTo: "eva@example.com", subject: "", message: "Hallo Team", company: "" };
+    expect(newUserProblem(user, store)).toBe("Der Benutzername braucht mindestens 3 Zeichen.");
+    expect(validateContactForm(request, store.contactForm)).toEqual({});
+
+    store.apply({
+      username: { minLength: 2, maxLength: 100 },
+      contactForm: { ...store.contactForm, message: { minLength: 20, maxLength: 4000 } },
+    });
+
+    expect(newUserProblem(user, store)).toBeNull();
+    expect(validateContactForm(request, store.contactForm)).toEqual({
+      message: "Die Nachricht braucht mindestens 20 Zeichen.",
+    });
   });
 
   it("keeps the default policy rules", () => {

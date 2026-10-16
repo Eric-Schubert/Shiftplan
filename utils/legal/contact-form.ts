@@ -1,3 +1,5 @@
+import type { ClientConfig } from "~/types/instance";
+
 export type ContactForm = {
   name: string;
   replyTo: string;
@@ -13,8 +15,6 @@ export type ContactValidation = {
   message?: string;
 };
 
-export const MIN_MESSAGE_LENGTH = 10;
-
 export const CONTACT_FIELD_IDS: Record<keyof ContactValidation, string> = {
   name: "contact-name",
   replyTo: "contact-reply-to",
@@ -22,7 +22,8 @@ export const CONTACT_FIELD_IDS: Record<keyof ContactValidation, string> = {
   message: "contact-message",
 };
 
-export function validateContactForm(form: ContactForm): ContactValidation {
+/** Checks the minimum lengths of contact.form in backend.config.json; the server checks them again. */
+export function validateContactForm(form: ContactForm, limits: ClientConfig["contactForm"]): ContactValidation {
   const validation: ContactValidation = {};
   const name = form.name.trim();
   const replyTo = form.replyTo.trim();
@@ -31,24 +32,24 @@ export function validateContactForm(form: ContactForm): ContactValidation {
 
   if (!name) {
     validation.name = "Bitte gib deinen Namen ein.";
-  } else if (name.length < 2) {
-    validation.name = "Der Name braucht mindestens 2 Zeichen.";
+  } else if (name.length < limits.name.minLength) {
+    validation.name = `Der Name braucht mindestens ${limits.name.minLength} Zeichen.`;
   }
 
   if (!replyTo) {
     validation.replyTo = "Bitte gib eine E-Mail-Adresse oder Telefonnummer an.";
-  } else if (replyTo.length < 5) {
+  } else if (replyTo.length < limits.replyTo.minLength) {
     validation.replyTo = "Der Rückkontakt ist zu kurz.";
   }
 
-  if (subject && subject.length < 2) {
-    validation.subject = "Der Betreff braucht mindestens 2 Zeichen.";
+  if (subject && subject.length < limits.subject.minLength) {
+    validation.subject = `Der Betreff braucht mindestens ${limits.subject.minLength} Zeichen.`;
   }
 
   if (!message) {
     validation.message = "Bitte gib eine Nachricht ein.";
-  } else if (message.length < MIN_MESSAGE_LENGTH) {
-    validation.message = `Die Nachricht braucht mindestens ${MIN_MESSAGE_LENGTH} Zeichen.`;
+  } else if (message.length < limits.message.minLength) {
+    validation.message = `Die Nachricht braucht mindestens ${limits.message.minLength} Zeichen.`;
   }
 
   return validation;

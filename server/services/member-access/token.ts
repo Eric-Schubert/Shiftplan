@@ -1,6 +1,8 @@
+import { MEMBER_COOKIE_DAYS } from "~/shared/utils/retention";
+
 /** Browser session of a staff member signed in with short code and PIN. */
 export const MEMBER_COOKIE_NAME = "member_token";
-export const MEMBER_COOKIE_DAYS = 365;
+export { MEMBER_COOKIE_DAYS };
 
 function getBearerToken(event: any): string | undefined {
   const header = getHeader(event, "authorization");

@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import type { RetentionDays } from "~/shared/utils/retention";
+import { periodText } from "~/utils/legal/durations";
+
+defineProps<{
+  retention: RetentionDays;
+}>();
+</script>
+
 <template>
   <section
     aria-labelledby="kurz"
@@ -7,7 +16,7 @@
     <ul class="mt-4 divide-y divide-[var(--border-soft)] text-[0.9375rem] leading-6">
       <li class="py-3 first:pt-0">
         <strong class="text-[var(--text-1)]">Gründe für Ausfälle sieht nur die Planung.</strong>
-        <span class="text-[var(--text-2)]"> Wer den Plan sehen kann, erfährt nur, wer fehlt. Gründe werden nach 90 Tagen gelöscht.</span>
+        <span class="text-[var(--text-2)]"> Wer den Plan sehen kann, erfährt nur, wer fehlt. Gründe werden nach {{ periodText(retention.absenceReasons, "dative") }} gelöscht.</span>
       </li>
       <li class="py-3">
         <strong class="text-[var(--text-1)]">Kein Konto mit E-Mail-Adresse für Mitarbeitende.</strong>
@@ -19,7 +28,7 @@
       </li>
       <li class="py-3">
         <strong class="text-[var(--text-1)]">Keine Werbung, kein Tracking.</strong>
-        <span class="text-[var(--text-2)]"> Die eigene Besuchsstatistik speichert keine IP-Adressen im Klartext und wird nach 90 Tagen bereinigt. Außer den Push-Nachrichten selbst gehen an Google und Apple nur technische Daten für die Push-Anmeldung, den Update-Hinweis und (Android) den QR-Scanner.</span>
+        <span class="text-[var(--text-2)]"> Die eigene Besuchsstatistik speichert keine IP-Adressen im Klartext und wird nach {{ periodText(retention.analytics, "dative") }} bereinigt. Außer den Push-Nachrichten selbst gehen an Google und Apple nur technische Daten für die Push-Anmeldung, den Update-Hinweis und (Android) den QR-Scanner.</span>
       </li>
       <li class="py-3 last:pb-0">
         <strong class="text-[var(--text-1)]">Cookies nur für Anmeldung und Zugang.</strong>

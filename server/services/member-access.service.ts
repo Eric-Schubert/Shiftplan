@@ -16,8 +16,6 @@ import {
 } from "~/server/services/member-access/sessions";
 
 export { purgeMemberAccess, removeStaffAccess } from "~/server/services/member-access/cleanup";
-export { INVITE_VALID_DAYS } from "~/server/services/member-access/invites";
-export { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPin } from "~/server/services/member-access/pins";
 export type { Member, MemberSession } from "~/server/services/member-access/sessions";
 export {
   MEMBER_COOKIE_DAYS,

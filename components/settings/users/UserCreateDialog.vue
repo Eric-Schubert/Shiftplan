@@ -43,7 +43,7 @@ watch(
 );
 
 async function createUser() {
-  const problem = newUserProblem(form.value, configStore.passwordPolicy);
+  const problem = newUserProblem(form.value, configStore);
   createError.value = problem ?? "";
   if (problem) return;
 

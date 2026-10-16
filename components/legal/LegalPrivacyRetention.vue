@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import type { RetentionDays } from "~/shared/utils/retention";
+import type { PrivacyFacts } from "~/types/privacy";
+import { daysText, minutesText, periodText } from "~/utils/legal/durations";
+
+defineProps<{
+  retention: RetentionDays;
+  session: PrivacyFacts["session"];
+}>();
+</script>
+
 <template>
   <LegalPrivacySection id="speicherdauer">
     <p>
@@ -7,17 +18,18 @@
     <dl class="privacy-terms">
       <dt>Anmeldung der Planung</dt>
       <dd>
-        endet im Browser spätestens 30 Minuten nach der Anmeldung, in der App nach 14 Tagen ohne
-        Nutzung. Abmelden beendet sie sofort.
+        endet im Browser spätestens {{ minutesText(session.durationMinutes) }} nach der Anmeldung,
+        in der App nach {{ daysText(retention.plannerApp, "dative") }} ohne Nutzung. Abmelden
+        beendet sie sofort.
       </dd>
       <dt>Login-Sperren und Rate-Limits</dt>
       <dd>werden nur temporär geführt.</dd>
       <dt>Zugriffsprotokolle</dt>
       <dd>werden bei Instanzen unter shiftplan.info spätestens nach 15 Tagen gelöscht.</dd>
       <dt>Kontaktanfragen</dt>
-      <dd>werden ein Jahr nach Eingang gelöscht.</dd>
+      <dd>werden {{ periodText(retention.contactMessages) }} nach Eingang gelöscht.</dd>
       <dt>Besuchsstatistik</dt>
-      <dd>wird spätestens nach 90 Tagen bereinigt.</dd>
+      <dd>wird spätestens nach {{ periodText(retention.analytics, "dative") }} bereinigt.</dd>
       <dt>Team-Zugangscode</dt>
       <dd>
         Zugänge gelten im Browser bis zu 180 Tage ab Eingabe des Codes, in der App bis zu 180
@@ -35,8 +47,9 @@
       <dd>
         gelten, bis sich das Gerät bzw. der Browser abmeldet, die Planung den Zugang sperrt oder
         die Person entfernt oder deaktiviert, und werden dann gelöscht. Im Browser endet die
-        Anmeldung spätestens 365 Tage nach dem Anmelden; Zugänge, die 365 Tage nicht genutzt
-        wurden, werden gelöscht. Ein nicht eingelöster QR-Code verfällt nach 7 Tagen.
+        Anmeldung spätestens {{ daysText(retention.memberCookie) }} nach dem Anmelden; Zugänge, die
+        {{ daysText(retention.memberIdle) }} nicht genutzt wurden, werden gelöscht. Ein nicht
+        eingelöster QR-Code verfällt nach {{ daysText(retention.memberInvite, "dative") }}.
       </dd>
       <dt>Entfernte oder deaktivierte Mitarbeitende</dt>
       <dd>
@@ -48,15 +61,16 @@
         gelöscht.
       </dd>
       <dt>Gründe und Notizen von Ausfällen</dt>
-      <dd>werden 90 Tage nach dem Ausfalltag gelöscht.</dd>
+      <dd>werden {{ periodText(retention.absenceReasons) }} nach dem Ausfalltag gelöscht.</dd>
       <dt>Entfernte Ausfälle</dt>
-      <dd>werden 90 Tage nach dem Ausfalltag endgültig gelöscht.</dd>
+      <dd>werden {{ periodText(retention.absenceReasons) }} nach dem Ausfalltag endgültig gelöscht.</dd>
       <dt>Nachrichten in Anfragen</dt>
-      <dd>werden 90 Tage nach dem letzten Tag der Anfrage gelöscht.</dd>
+      <dd>werden {{ periodText(retention.requestMessages) }} nach dem letzten Tag der Anfrage gelöscht.</dd>
       <dt>Änderungsprotokoll</dt>
       <dd>
-        Einträge werden nach 2 Jahren automatisch gelöscht. Bis dahin bleibt der Name darin auch
-        dann stehen, wenn die Person aus dem Plan entfernt wurde.
+        Einträge werden nach {{ periodText(retention.auditLog, "dative") }} automatisch gelöscht.
+        Bis dahin bleibt der Name darin auch dann stehen, wenn die Person aus dem Plan entfernt
+        wurde.
       </dd>
     </dl>
   </LegalPrivacySection>
@@ -76,7 +90,7 @@
         Löschen kann sie die Planung deiner Firma in Shiftplan, indem sie dich als Mitarbeiter
         entfernt. Damit verschwinden auch die dir zugeordneten Zugänge, deine PIN und die dir
         zugeordneten Push-Registrierungen. Einzelne Ausfälle kann sie entfernen; Shiftplan löscht
-        sie dann 90 Tage nach dem Ausfalltag endgültig.
+        sie dann {{ periodText(retention.absenceReasons) }} nach dem Ausfalltag endgültig.
       </li>
       <li>
         Für Instanzen unter shiftplan.info kannst du die Löschung auch bei ES Software anfordern:
@@ -86,8 +100,10 @@
       </li>
     </ol>
     <p>
+      <!-- One period for both: REQUEST_MESSAGE_RETENTION_DAYS follows ABSENCE_REASON_RETENTION_DAYS. -->
       Gründe und Notizen von Ausfällen sowie Nachrichten in Anfragen werden unabhängig davon nach
-      90 Tagen automatisch gelöscht, Einträge im Änderungsprotokoll nach 2 Jahren.
+      {{ periodText(retention.absenceReasons, "dative") }} automatisch gelöscht, Einträge im
+      Änderungsprotokoll nach {{ periodText(retention.auditLog, "dative") }}.
     </p>
   </LegalPrivacySection>
 </template>

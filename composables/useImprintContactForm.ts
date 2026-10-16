@@ -1,12 +1,9 @@
-import {
-  CONTACT_FIELD_IDS,
-  MIN_MESSAGE_LENGTH,
-  validateContactForm,
-  type ContactValidation,
-} from "~/utils/legal/contact-form";
+import { CONTACT_FIELD_IDS, validateContactForm, type ContactValidation } from "~/utils/legal/contact-form";
+import { useConfigStore } from "~/stores/config.store";
 
 /** State, validation and sending of the contact form on the imprint page. */
 export function useImprintContactForm() {
+  const configStore = useConfigStore();
   const contactForm = reactive({
     name: "",
     replyTo: "",
@@ -19,12 +16,12 @@ export function useImprintContactForm() {
   const error = ref("");
   const submitAttempted = ref(false);
 
-  const contactValidation = computed<ContactValidation>(() => validateContactForm(contactForm));
+  const contactValidation = computed<ContactValidation>(() => validateContactForm(contactForm, configStore.contactForm));
   const hasValidationErrors = computed(() => Object.keys(contactValidation.value).length > 0);
   const canSubmit = computed(() => !hasValidationErrors.value && !sending.value);
   const showValidation = computed(() => submitAttempted.value);
   const messageCharactersRemaining = computed(() =>
-    Math.max(0, MIN_MESSAGE_LENGTH - contactForm.message.trim().length)
+    Math.max(0, configStore.contactForm.message.minLength - contactForm.message.trim().length)
   );
   const messageHelpText = computed(() => {
     if (messageCharactersRemaining.value > 0 && contactForm.message.trim().length > 0) {

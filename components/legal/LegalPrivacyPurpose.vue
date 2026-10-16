@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import type { RetentionDays } from "~/shared/utils/retention";
+import { periodText } from "~/utils/legal/durations";
+
+defineProps<{
+  retention: RetentionDays;
+}>();
+</script>
+
 <template>
   <LegalPrivacySection id="zweck">
     <p>
@@ -17,7 +26,8 @@
       einen Ausfall für einzelne Tage oder einen Zeitraum melden. Gespeichert werden Tage,
       Schicht und eine Kategorie (Urlaub, Privat oder Sonstiges). Gesundheitsangaben werden
       nicht abgefragt. Den Grund sehen nur Planer; wer den Plan sehen kann, erfährt nur, dass
-      jemand ausfällt. Grund und Notiz werden 90 Tage nach dem Ausfalltag automatisch gelöscht.
+      jemand ausfällt. Grund und Notiz werden {{ periodText(retention.absenceReasons) }} nach dem
+      Ausfalltag automatisch gelöscht.
     </p>
   </LegalPrivacySection>
 
