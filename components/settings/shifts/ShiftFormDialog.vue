@@ -38,8 +38,8 @@ function createDefaultForm(nextSortOrder: number): ShiftCreateDTO {
     name: "",
     start_time: "08:00",
     end_time: "16:00",
-    color: configStore.shiftDefaults.color,
-    min_staff: configStore.shiftDefaults.minStaff,
+    color: configStore.shift.defaultColor,
+    min_staff: configStore.shift.minStaff.default,
     sort_order: nextSortOrder,
   };
 }
@@ -109,8 +109,8 @@ async function saveShift() {
         <PrimeInputNumber
           v-model="form.min_staff"
           input-id="shift-min-staff"
-          :min="1"
-          :max="10"
+          :min="configStore.shift.minStaff.min"
+          :max="configStore.shift.minStaff.max"
           show-buttons
         />
       </div>

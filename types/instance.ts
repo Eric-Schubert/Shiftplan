@@ -10,6 +10,9 @@ export interface PasswordPolicy {
 /** Instance settings from backend.config.json that the web client needs. Served by /api/instance. */
 export interface ClientConfig {
   passwordPolicy: PasswordPolicy;
-  shiftDefaults: { color: string; minStaff: number };
+  shift: {
+    defaultColor: string;
+    minStaff: { default: number; min: number; max: number };
+  };
   csrf: { cookieName: string; methods: string[] };
 }

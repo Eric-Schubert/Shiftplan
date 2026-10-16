@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import backendConfig from "../config/backend.config.json";
 import { DEFAULT_CLIENT_CONFIG } from "~/utils/client-config";
-import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { createApiClient, type ApiClient, type Route } from "./helpers/api-harness";
 
 const INSTANCE_KEYS = [
   "apiVersion",
@@ -14,8 +14,13 @@ const INSTANCE_KEYS = [
   "name",
   "nextWeekFromSaturday",
   "passwordPolicy",
-  "shiftDefaults",
+  "shift",
   "version",
+];
+const ROUTES: Route[] = [
+  ["get", "/api/instance", "server/api/instance.get"],
+  ["post", "/api/auth/login", "server/api/auth/login.post"],
+  ["post", "/api/shift", "server/api/shift/index.post"],
 ];
 
 describe("instance config for the web client", () => {
@@ -31,7 +36,7 @@ describe("instance config for the web client", () => {
   });
 
   async function readInstance() {
-    client = await createApiClient([["get", "/api/instance", "server/api/instance.get"]]);
+    client = await createApiClient(ROUTES);
     const response = await client.request<Record<string, unknown>>("GET", "/api/instance");
     expect(response.status).toBe(200);
     return response.json!;
@@ -43,7 +48,7 @@ describe("instance config for the web client", () => {
     expect(Object.keys(instance).sort()).toEqual(INSTANCE_KEYS);
     expect({
       passwordPolicy: instance.passwordPolicy,
-      shiftDefaults: instance.shiftDefaults,
+      shift: instance.shift,
       csrf: instance.csrf,
     }).toEqual(DEFAULT_CLIENT_CONFIG);
   });
@@ -57,9 +62,9 @@ describe("instance config for the web client", () => {
       hint: "Mindestens 12 Zeichen mit Zahl",
     };
     custom.auth.session.cookies.csrfName = "team_csrf";
-    custom.auth.routes.csrfMethods = ["POST", "DELETE"];
+    custom.auth.routes.csrfMethods = ["post", "DELETE"];
     custom.validation.shift.defaultColor = "#0ea5e9";
-    custom.validation.shift.minStaff.default = 2;
+    custom.validation.shift.minStaff = { default: 2, min: 1, max: 20 };
     configDir = fs.mkdtempSync(path.join(os.tmpdir(), "shiftplan-config-"));
     const configPath = path.join(configDir, "backend.config.json");
     fs.writeFileSync(configPath, JSON.stringify(custom));
@@ -75,7 +80,11 @@ describe("instance config for the web client", () => {
       requireNumber: true,
       hint: "Mindestens 12 Zeichen mit Zahl",
     });
-    expect(instance.shiftDefaults).toEqual({ color: "#0ea5e9", minStaff: 2 });
+    expect(instance.shift).toEqual({ defaultColor: "#0ea5e9", minStaff: { default: 2, min: 1, max: 20 } });
     expect(instance.csrf).toEqual({ cookieName: "team_csrf", methods: ["POST", "DELETE"] });
+
+    const admin = await client!.loginAs("admin", "admin1234");
+    const withoutToken = await client!.request("POST", "/api/shift", { jar: admin, body: { name: "Spät" } });
+    expect(withoutToken.status).toBe(403);
   });
 });

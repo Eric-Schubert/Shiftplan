@@ -32,7 +32,7 @@ describe("client config", () => {
     });
 
     expect(config.passwordPolicy).toEqual(LOOSE_POLICY);
-    expect(config.shiftDefaults).toEqual(DEFAULT_CLIENT_CONFIG.shiftDefaults);
+    expect(config.shift).toEqual(DEFAULT_CLIENT_CONFIG.shift);
     expect(config.csrf).toEqual({ cookieName: "csrf_token", methods: ["POST"] });
   });
 

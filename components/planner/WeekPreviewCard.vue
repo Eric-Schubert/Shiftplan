@@ -19,7 +19,7 @@ const shifts = computed(() => {
     .filter((shift) => shift.assigned_staff && shift.assigned_staff.length > 0)
     .map((shift) => ({
       name: shift.name,
-      color: shift.color || configStore.shiftDefaults.color,
+      color: shift.color || configStore.shift.defaultColor,
       staff: shift.assigned_staff.map((staff) => staff.name),
     }));
 

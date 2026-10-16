@@ -10,7 +10,7 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfig = {
     requireNumber: true,
     hint: "Mindestens 8 Zeichen mit Groß-/Kleinbuchstaben und Zahl",
   },
-  shiftDefaults: { color: "#6366f1", minStaff: 1 },
+  shift: { defaultColor: "#6366f1", minStaff: { default: 1, min: 0, max: 50 } },
   csrf: { cookieName: "csrf_token", methods: ["POST", "PATCH", "PUT", "DELETE"] },
 };
 
@@ -19,7 +19,10 @@ export function toClientConfig(response?: Partial<ClientConfig> | null): ClientC
   const defaults = DEFAULT_CLIENT_CONFIG;
   return {
     passwordPolicy: { ...defaults.passwordPolicy, ...response?.passwordPolicy },
-    shiftDefaults: { ...defaults.shiftDefaults, ...response?.shiftDefaults },
+    shift: {
+      defaultColor: response?.shift?.defaultColor || defaults.shift.defaultColor,
+      minStaff: { ...defaults.shift.minStaff, ...response?.shift?.minStaff },
+    },
     csrf: {
       cookieName: response?.csrf?.cookieName || defaults.csrf.cookieName,
       methods: [...(response?.csrf?.methods ?? defaults.csrf.methods)],

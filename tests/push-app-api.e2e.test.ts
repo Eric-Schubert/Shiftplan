@@ -54,7 +54,7 @@ describe("app api e2e", () => {
       codeRequired: false,
       nextWeekFromSaturday: true,
       passwordPolicy: expect.any(Object),
-      shiftDefaults: expect.any(Object),
+      shift: expect.any(Object),
       csrf: expect.any(Object),
     });
     expect(after.json).toMatchObject({ name: "Pflegeteam Nord", codeRequired: true });
