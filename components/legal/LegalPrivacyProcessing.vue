@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LOCALE_COOKIE_MAX_AGE } from "~/i18n/config";
 import type { RetentionDays } from "~/shared/utils/retention";
 import type { PrivacyFacts } from "~/types/privacy";
 import { daysText, minutesText, periodText } from "~/utils/legal/durations";
@@ -8,6 +9,8 @@ defineProps<{
   retention: RetentionDays;
   session: PrivacyFacts["session"];
 }>();
+
+const localeCookieDays = LOCALE_COOKIE_MAX_AGE / (24 * 60 * 60);
 </script>
 
 <template>
@@ -52,6 +55,12 @@ defineProps<{
       die Anwendung das Cookie <code>member_token</code>. Es ist für JavaScript nicht lesbar,
       gilt bis zu {{ daysText(retention.memberCookie) }} und wird beim Abmelden gelöscht. Auch
       dieses Cookie ist technisch erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
+    </p>
+    <p>
+      Wählt jemand in der Fußzeile eine Sprache, speichert die Anwendung diese Wahl für
+      {{ periodText(localeCookieDays) }} im Cookie <code>shiftplan_locale</code>; ohne diese Wahl
+      wird es nicht gesetzt, und als ausdrücklich gewünschte Einstellung ist es technisch
+      erforderlich (§ 25 Abs. 2 Nr. 2 TDDDG).
     </p>
     <p>
       Fehlgeschlagene Anmeldeversuche werden zur Angriffserkennung begrenzt. Dafür kann die
