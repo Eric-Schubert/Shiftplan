@@ -1,7 +1,7 @@
 import { AuditService } from "~/server/services/audit.service";
 import { RotationExcelService } from "~/server/services/rotation-excel.service";
-import { requestSource } from "~/server/utils/absence-flow";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
 
 export default defineEventHandler(async (event) => {

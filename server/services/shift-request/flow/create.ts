@@ -1,15 +1,10 @@
-import { REQUESTS_URL, describeRequest, notify, notifyStaff } from "~/server/lib/shift-requests/notify";
 import { PushService } from "~/server/services/push.service";
-import { ShiftRequestService, type ShiftRequest } from "~/server/services/shift-request.service";
+import { ShiftRequestService } from "~/server/services/shift-request/store";
+import type { ShiftRequest } from "~/server/services/shift-request/types";
 import { weekOfDate } from "~/shared/utils/week";
+import { REQUESTS_URL, describeRequest, notify, notifyStaff } from "./notify";
 
-export { describeRequest } from "~/server/lib/shift-requests/notify";
-export { acceptRequest } from "~/server/lib/shift-requests/accept";
-export { decideRequest } from "~/server/lib/shift-requests/decide";
-export { confirmUndo, declineUndo, requestUndo } from "~/server/lib/shift-requests/undo";
-export { cancelRequest, declineRequest } from "~/server/lib/shift-requests/withdraw";
-
-export async function createTakeover(input: {
+export async function requestTakeover(input: {
   staffId: number;
   staffName: string;
   date: string;
@@ -38,7 +33,7 @@ export async function createTakeover(input: {
   return request;
 }
 
-export async function createSwap(input: {
+export async function requestSwap(input: {
   staffId: number;
   staffName: string;
   partnerStaffId: number;

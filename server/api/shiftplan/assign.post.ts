@@ -1,8 +1,8 @@
 import { AuditService } from "~/server/services/audit.service";
-import { requestSource } from "~/server/utils/absence-flow";
 import { PushService } from "~/server/services/push.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
+import { requestSource } from "~/server/utils/session";
 import { validateId, validateYear, validateWeek } from "~/server/utils/validation";
 
 export default defineEventHandler(async (event) => {

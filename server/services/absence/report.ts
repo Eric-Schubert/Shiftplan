@@ -1,11 +1,10 @@
-import { logPerWeek, type Actor } from "~/server/lib/absences/audit";
-import { AbsenceService, type Absence, type AbsenceReason } from "~/server/services/absence.service";
-import { createTakeover } from "~/server/utils/shift-request-flow";
+import { logPerWeek, type Actor } from "~/server/services/absence/audit";
+import type { Absence, AbsenceReason } from "~/server/services/absence/model";
+import { buildAbsenceNotice } from "~/server/services/absence/notice";
+import { AbsenceService } from "~/server/services/absence/store";
 import { PushService } from "~/server/services/push.service";
-import { buildAbsenceNotice } from "~/server/utils/absence-notice";
+import { requestTakeover } from "~/server/services/shift-request.service";
 import { planningToday } from "~/server/utils/planning-date";
-
-export { cancelAbsence } from "~/server/lib/absences/cancel";
 
 /** Creates the absence days, logs them and tells the team. A failed push never undoes the absence. */
 export async function reportAbsence(input: {
@@ -47,7 +46,7 @@ export async function reportAbsence(input: {
     for (const absence of absences) {
       if (absence.shift_id === null || absence.absence_date < today) continue;
       try {
-        await createTakeover({
+        await requestTakeover({
           staffId: absence.staff_id,
           staffName: absence.staff_name,
           date: absence.absence_date,
@@ -87,9 +86,4 @@ export async function reportAbsence(input: {
   }
 
   return { absences, skipped, notified };
-}
-
-/** Planners use cookies in the browser and a Bearer token in the app. */
-export function requestSource(event: any): "web" | "app" {
-  return getHeader(event, "authorization")?.startsWith("Bearer ") ? "app" : "web";
 }

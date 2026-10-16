@@ -1,8 +1,8 @@
-import { ShiftRequestService, type AppliedChange, type ShiftRequest } from "~/server/services/shift-request.service";
-import { DayChangeService } from "~/server/services/day-change.service";
+import { DayChangeService, applyDayChange, type DayChangeActor } from "~/server/services/day-change.service";
 import { conflict, today } from "~/server/services/shift-request/common";
+import { ShiftRequestService } from "~/server/services/shift-request/store";
+import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
 import { getDatabase } from "~/server/utils/database";
-import { applyDayChange, type DayChangeActor } from "~/server/utils/day-change-flow";
 
 /**
  * Runs a decision on the request as it is stored right now, inside one transaction: never on a copy

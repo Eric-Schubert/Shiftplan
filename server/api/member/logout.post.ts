@@ -1,6 +1,6 @@
 import { MemberAccessService } from "~/server/services/member-access.service";
 import { destroyViewerSession, getBearerToken } from "~/server/services/team-access/viewer-session";
-import { clearMemberCookie } from "~/server/utils/member-login";
+import { clearMemberCookie } from "~/server/services/member-login.service";
 
 export default defineEventHandler((event) => {
   const member = MemberAccessService.getMember(event);

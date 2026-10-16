@@ -19,6 +19,11 @@ export function getCsrfTokenFromRequest(event: any): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
+/** Planners use cookies in the browser and a Bearer token in the app. */
+export function requestSource(event: any): "web" | "app" {
+  return getHeader(event, "authorization")?.startsWith("Bearer ") ? "app" : "web";
+}
+
 const warned = new Set<string>();
 
 function warnOnce(key: string, message: string): void {

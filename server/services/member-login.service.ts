@@ -8,6 +8,8 @@ import {
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { getDatabase } from "~/server/utils/database";
 
+// Not part of member-access: the answer names the instance, and team-access builds on member-access.
+
 /**
  * Answer of a successful personal sign-in. The app keeps the token itself; the browser says
  * `client: "web"`, gets an HttpOnly cookie and never sees the token.

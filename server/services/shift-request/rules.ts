@@ -2,7 +2,7 @@ import { DayChangeService } from "~/server/services/day-change.service";
 import { activeStaffName, badRequest, conflict, isAbsent, today } from "~/server/services/shift-request/common";
 import { requestDays } from "~/server/services/shift-request/days";
 import type { AppliedChange, ShiftRequest } from "~/server/services/shift-request/types";
-import { formatNoticeDay } from "~/server/utils/absence-notice";
+import { formatNoticeDay } from "~/shared/utils/notice-day";
 
 export type PlannedChange = Omit<AppliedChange, "before" | "inPlan">;
 

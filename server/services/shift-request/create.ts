@@ -1,7 +1,7 @@
 import { getDatabase } from "~/server/utils/database";
 import { DayChangeService } from "~/server/services/day-change.service";
-import { formatNoticeDay } from "~/server/utils/absence-notice";
 import { datesBetween, parseISODate } from "~/shared/utils/iso-date";
+import { formatNoticeDay } from "~/shared/utils/notice-day";
 import { activeStaffName, badRequest, conflict, today } from "~/server/services/shift-request/common";
 import { isOffDay, requestDays } from "~/server/services/shift-request/days";
 import { getById } from "~/server/services/shift-request/queries";

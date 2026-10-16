@@ -1,6 +1,6 @@
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
+import { repoFiles } from "./repo-files.js";
 
 // Aim for about 100 lines per file. Above this limit CI fails.
 export const MAX_LINES = 150;
@@ -22,7 +22,7 @@ export function findLongFiles(files, readFile = (file) => fs.readFileSync(file, 
 }
 
 function main() {
-  const files = execFileSync("git", ["ls-files"], { encoding: "utf-8" }).split("\n").filter(Boolean);
+  const files = repoFiles();
   const longFiles = findLongFiles(files);
 
   if (longFiles.length === 0) {
