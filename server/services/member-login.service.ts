@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import { getAuthConfig } from "~/server/config/auth-config";
 import {
   MEMBER_COOKIE_DAYS,
@@ -14,7 +15,7 @@ import { getDatabase } from "~/server/utils/database";
  * Answer of a successful personal sign-in. The app keeps the token itself; the browser says
  * `client: "web"`, gets an HttpOnly cookie and never sees the token.
  */
-export function memberLoginResponse(event: any, result: { token: string; member: Member }, client: unknown) {
+export function memberLoginResponse(event: H3Event, result: { token: string; member: Member }, client: unknown) {
   const isApp = client !== "web";
   if (!isApp) {
     const cookieConfig = getAuthConfig().session.cookies;
@@ -40,7 +41,7 @@ export function memberLoginResponse(event: any, result: { token: string; member:
   };
 }
 
-export function clearMemberCookie(event: any): void {
+export function clearMemberCookie(event: H3Event): void {
   deleteCookie(event, MEMBER_COOKIE_NAME, { path: getAuthConfig().session.cookies.path });
 }
 

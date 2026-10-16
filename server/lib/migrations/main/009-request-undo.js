@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "009_main_request_undo",
   description: "Staff can ask to undo a finished request, the other person confirms",

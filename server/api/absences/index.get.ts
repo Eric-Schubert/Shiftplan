@@ -4,8 +4,8 @@ import { validateWeek, validateYear } from "~/server/utils/validation";
 
 export default defineEventHandler((event) => {
   const query = getQuery(event);
-  const year = validateYear(query.year, "year", { required: true })!;
-  const week = validateWeek(query.week, "week", { required: true })!;
+  const year = validateYear(query.year, "year", { required: true });
+  const week = validateWeek(query.week, "week", { required: true });
 
   // Reasons stay with planners.
   const includeReason = getSessionUser(event) !== null;

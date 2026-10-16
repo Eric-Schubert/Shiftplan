@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { appHead } from "./config/nuxt/head";
 import { i18nConfig } from "./config/nuxt/i18n";
 import { nitroConfig } from "./config/nuxt/nitro";
@@ -7,12 +7,12 @@ import { publicRuntimeEnv } from "./config/nuxt/runtime";
 
 function getAppVersion(): string {
   try {
-    const versionFile = path.resolve(__dirname, ".version");
+    const versionFile = path.resolve(import.meta.dirname, ".version");
     return fs.readFileSync(versionFile, "utf-8").trim();
   } catch {
     try {
       const pkg = JSON.parse(
-        fs.readFileSync(path.resolve(__dirname, "package.json"), "utf-8")
+        fs.readFileSync(path.resolve(import.meta.dirname, "package.json"), "utf-8")
       );
       return pkg.version || "0.0.0";
     } catch {
@@ -21,7 +21,7 @@ function getAppVersion(): string {
   }
 }
 
-const primevueThemePath = path.resolve(__dirname, "theme/primevue-theme.ts");
+const primevueThemePath = path.resolve(import.meta.dirname, "theme/primevue-theme.ts");
 
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",

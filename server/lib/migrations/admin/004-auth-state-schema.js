@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, indexExists, tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "004_admin_auth_state_schema",
   description: "Create persistent auth session and login throttle tables",

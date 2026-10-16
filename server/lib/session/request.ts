@@ -1,7 +1,8 @@
+import type { H3Event } from "h3";
 import { getAuthConfig } from "~/server/config/auth-config";
 import { networkOf } from "~/server/lib/session/network";
 
-export function getSessionToken(event: any): string | undefined {
+export function getSessionToken(event: H3Event): string | undefined {
   const authHeader = getHeader(event, "authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
@@ -15,12 +16,12 @@ export function getSessionToken(event: any): string | undefined {
   return undefined;
 }
 
-export function getCsrfTokenFromRequest(event: any): string | undefined {
+export function getCsrfTokenFromRequest(event: H3Event): string | undefined {
   return getHeader(event, "x-csrf-token") || undefined;
 }
 
 /** Planners use cookies in the browser and a Bearer token in the app. */
-export function requestSource(event: any): "web" | "app" {
+export function requestSource(event: H3Event): "web" | "app" {
   return getHeader(event, "authorization")?.startsWith("Bearer ") ? "app" : "web";
 }
 
@@ -32,7 +33,7 @@ function warnOnce(key: string, message: string): void {
   console.warn(`[auth] ${message}`);
 }
 
-export function getClientIP(event: any): string {
+export function getClientIP(event: H3Event): string {
   const socketIP = event.node?.req?.socket?.remoteAddress || "unknown";
   const trust = getAuthConfig().trustProxyHeaders;
 
@@ -68,6 +69,6 @@ export function getClientIP(event: any): string {
 }
 
 /** Rate-limit key of the client: its address, or its /64 network for IPv6. */
-export function getClientNetwork(event: any): string {
+export function getClientNetwork(event: H3Event): string {
   return networkOf(getClientIP(event));
 }

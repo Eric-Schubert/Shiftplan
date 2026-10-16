@@ -1,7 +1,9 @@
+// @ts-check
 import { BOOTSTRAP_ADMIN_PASSWORD_ENV, DEFAULT_ADMIN_USERNAME } from "../config.js";
 import { hashPassword, readBootstrapAdminPassword } from "../bootstrap-password.js";
 import { hasDefaultAdminCredentials } from "../admin-credentials.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "005_admin_secure_default_credentials",
   description: "Block or rotate default admin credentials",

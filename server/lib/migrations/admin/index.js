@@ -1,3 +1,4 @@
+// @ts-check
 import settingsSchema from "./001-settings-schema.js";
 import usersSchema from "./002-users-schema.js";
 import bootstrapUser from "./003-bootstrap-user.js";
@@ -13,6 +14,7 @@ import pushSubscriptionSession from "./012-push-subscription-session.js";
 import pushLocale from "./013-push-locale.js";
 
 // Order matters: migrations run top to bottom and are recorded by id.
+/** @type {import("../runner.js").Migration[]} */
 export const ADMIN_MIGRATIONS = [
   settingsSchema,
   usersSchema,

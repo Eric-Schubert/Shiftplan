@@ -1,5 +1,7 @@
+// @ts-check
 import { tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "001_admin_settings_schema",
   description: "Create settings table",

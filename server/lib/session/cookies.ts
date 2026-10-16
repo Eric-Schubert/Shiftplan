@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import { getAuthConfig, getSessionCookieMaxAgeSeconds } from "~/server/config/auth-config";
 import { getSessionRecord } from "~/server/lib/session/records";
 
@@ -13,13 +14,13 @@ function cookieOptions(httpOnly: boolean) {
 }
 
 /** The HttpOnly session cookie and the readable CSRF cookie, both with a full lifetime. */
-export function setSessionCookies(event: any, sessionToken: string, csrfToken: string): void {
+export function setSessionCookies(event: H3Event, sessionToken: string, csrfToken: string): void {
   const cookies = getAuthConfig().session.cookies;
   setCookie(event, cookies.sessionName, sessionToken, cookieOptions(true));
   setCookie(event, cookies.csrfName, csrfToken, cookieOptions(false));
 }
 
-export function clearSessionCookies(event: any): void {
+export function clearSessionCookies(event: H3Event): void {
   const cookies = getAuthConfig().session.cookies;
   deleteCookie(event, cookies.sessionName, { path: cookies.path });
   deleteCookie(event, cookies.csrfName, { path: cookies.path });
@@ -30,7 +31,7 @@ export function clearSessionCookies(event: any): void {
  * Otherwise the browser drops them a fixed time after sign-in, however active the planner is.
  * Call only after the session was validated.
  */
-export function refreshSessionCookies(event: any): void {
+export function refreshSessionCookies(event: H3Event): void {
   if (!getAuthConfig().session.extendOnActivity) return;
   if (getHeader(event, "authorization")?.startsWith("Bearer ")) return;
 

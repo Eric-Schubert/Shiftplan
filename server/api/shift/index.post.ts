@@ -15,27 +15,26 @@ export default defineEventHandler(async (event) => {
   const shiftConfig = getShiftValidationConfig();
   const shiftDefaults = getShiftDefaults();
 
-
   const name = validateName(body.name, "name", { required: true, maxLength: 100 });
-  const start_time = validateTime(body.start_time, "startTime", { required: true });
-  const end_time = validateTime(body.end_time, "endTime", { required: true });
+  const startTime = validateTime(body.start_time, "startTime", { required: true });
+  const endTime = validateTime(body.end_time, "endTime", { required: true });
   const color = validateColor(body.color, "color");
-  const min_staff = validateInteger(body.min_staff, "minStaff", {
+  const minStaff = validateInteger(body.min_staff, "minStaff", {
     min: shiftConfig.minStaff.min,
     max: shiftConfig.minStaff.max,
   });
-  const sort_order = validateInteger(body.sort_order, "sortOrder", {
+  const sortOrder = validateInteger(body.sort_order, "sortOrder", {
     min: shiftConfig.sortOrder.min,
     max: shiftConfig.sortOrder.max,
   });
 
   const shift = ShiftService.create({
-    name: name!,
-    start_time: start_time!,
-    end_time: end_time!,
+    name,
+    start_time: startTime,
+    end_time: endTime,
     color: color ?? shiftDefaults.color,
-    min_staff: min_staff ?? shiftDefaults.minStaff,
-    sort_order: sort_order ?? shiftDefaults.sortOrder,
+    min_staff: minStaff ?? shiftDefaults.minStaff,
+    sort_order: sortOrder ?? shiftDefaults.sortOrder,
   });
 
   return shift;

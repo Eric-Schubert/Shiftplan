@@ -1,6 +1,8 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, indexExists, tableExists } from "../schema.js";
 import { DEFAULT_SHIFT_COLOR, DEFAULT_SHIFT_MIN_STAFF, DEFAULT_SHIFT_SORT_ORDER } from "../config.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "001_main_core_schema",
   description: "Create and normalize core planning tables",

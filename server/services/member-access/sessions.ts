@@ -1,4 +1,5 @@
-import { randomBytes } from "crypto";
+import type { H3Event } from "h3";
+import { randomBytes } from "node:crypto";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { deleteSessions, purgeMemberAccess } from "~/server/services/member-access/cleanup";
 import { sha256, staffName } from "~/server/services/member-access/common";
@@ -38,7 +39,7 @@ export function createSession(staffId: number, name: string, deviceName: string 
 }
 
 /** Resolves the app token or the browser cookie to a staff member with an active session. */
-export function getMember(event: any): Member | null {
+export function getMember(event: H3Event): Member | null {
   const token = getMemberToken(event)?.token;
   if (!token) return null;
 
@@ -61,7 +62,7 @@ export function getMember(event: any): Member | null {
   return { sessionId: session.session_id, staffId: session.staff_id, staffName: name };
 }
 
-export function requireMember(event: any): Member {
+export function requireMember(event: H3Event): Member {
   const member = getMember(event);
   if (!member) {
     throw apiError(event, 401, "errors.member.notSignedIn");

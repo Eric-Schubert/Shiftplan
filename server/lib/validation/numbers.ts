@@ -1,14 +1,15 @@
 import { getValidationConfig } from "~/server/config/domain-config";
 import { createValidationError, type FieldKey } from "./error";
 
+type IntegerOptions = { required?: boolean; min?: number; max?: number };
+
+// With `required: true` the validators throw instead of returning undefined.
+export function validateInteger(value: unknown, field: FieldKey, options: IntegerOptions & { required: true }): number;
+export function validateInteger(value: unknown, field: FieldKey, options?: IntegerOptions): number | undefined;
 export function validateInteger(
   value: unknown,
   field: FieldKey,
-  options: {
-    required?: boolean;
-    min?: number;
-    max?: number;
-  } = {}
+  options: IntegerOptions = {}
 ): number | undefined {
   const { required = false, min, max } = options;
 
@@ -36,6 +37,8 @@ export function validateInteger(
   return num;
 }
 
+export function validateBoolean(value: unknown, field: FieldKey, options: { required: true }): number;
+export function validateBoolean(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
 export function validateBoolean(
   value: unknown,
   field: FieldKey,
@@ -56,6 +59,8 @@ export function validateBoolean(
   throw createValidationError("boolean", field);
 }
 
+export function validateYear(value: unknown, field: FieldKey, options: { required: true }): number;
+export function validateYear(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
 export function validateYear(
   value: unknown,
   field: FieldKey,
@@ -70,6 +75,8 @@ export function validateYear(
   });
 }
 
+export function validateWeek(value: unknown, field: FieldKey, options: { required: true }): number;
+export function validateWeek(value: unknown, field: FieldKey, options?: { required?: boolean }): number | undefined;
 export function validateWeek(
   value: unknown,
   field: FieldKey,
@@ -86,10 +93,9 @@ export function validateWeek(
 
 export function validateId(value: unknown, field: FieldKey): number {
   const range = getValidationConfig().id;
-  const id = validateInteger(value, field, {
+  return validateInteger(value, field, {
     required: true,
     min: range.min,
     max: range.max,
   });
-  return id!;
 }

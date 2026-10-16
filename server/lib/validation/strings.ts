@@ -2,16 +2,22 @@ import { getValidationConfig } from "~/server/config/domain-config";
 import { apiError, messageRef, type MessageRef } from "~/server/utils/api-error";
 import { createValidationError, fieldLabel, type FieldKey } from "./error";
 
+type StringOptions = {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  patternMessage?: MessageRef;
+};
+type NameOptions = { required?: boolean; maxLength?: number };
+
+// With `required: true` the validators throw instead of returning undefined.
+export function validateString(value: unknown, field: FieldKey, options: StringOptions & { required: true }): string;
+export function validateString(value: unknown, field: FieldKey, options?: StringOptions): string | undefined;
 export function validateString(
   value: unknown,
   field: FieldKey,
-  options: {
-    required?: boolean;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: RegExp;
-    patternMessage?: MessageRef;
-  } = {}
+  options: StringOptions = {}
 ): string | undefined {
   const stringConfig = getValidationConfig().string;
   const {
@@ -64,10 +70,12 @@ export function sanitizeString(value: string): string {
     .trim();
 }
 
+export function validateName(value: unknown, field: FieldKey, options: NameOptions & { required: true }): string;
+export function validateName(value: unknown, field: FieldKey, options?: NameOptions): string | undefined;
 export function validateName(
   value: unknown,
   field: FieldKey,
-  options: { required?: boolean; maxLength?: number } = {}
+  options: NameOptions = {}
 ): string | undefined {
   const { required = false, maxLength = getValidationConfig().name.defaultMaxLength } = options;
 
@@ -82,6 +90,8 @@ export function validateName(
   return sanitizeString(validated);
 }
 
+export function validateTime(value: unknown, field: FieldKey, options: { required: true }): string;
+export function validateTime(value: unknown, field: FieldKey, options?: { required?: boolean }): string | undefined;
 export function validateTime(
   value: unknown,
   field: FieldKey,
@@ -95,6 +105,8 @@ export function validateTime(
   });
 }
 
+export function validateColor(value: unknown, field: FieldKey, options: { required: true }): string;
+export function validateColor(value: unknown, field: FieldKey, options?: { required?: boolean }): string | undefined;
 export function validateColor(
   value: unknown,
   field: FieldKey,

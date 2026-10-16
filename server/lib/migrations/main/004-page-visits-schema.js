@@ -1,5 +1,7 @@
+// @ts-check
 import { addColumnIfMissing, hasMissingColumns, indexExists, tableExists } from "../schema.js";
 
+/** @type {import("../runner.js").Migration} */
 export default {
   id: "004_main_page_visits_schema",
   description: "Create page visit analytics table",

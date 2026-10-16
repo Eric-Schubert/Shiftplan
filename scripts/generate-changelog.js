@@ -1,6 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   evaluateCommitMessage,
   getVisiblePrefixes,
@@ -18,8 +17,7 @@ import { compareChangelogEntries } from "./changelog/versions.js";
 
 export { compareChangelogEntries, compareVersions } from "./changelog/versions.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const ROOT = path.resolve(path.dirname(__filename), "..");
+const ROOT = path.resolve(import.meta.dirname, "..");
 const OUTPUT_PATH = path.join(ROOT, "utils", "changelog.generated.json");
 const VISIBLE_PREFIX_PATTERN = new RegExp(
   `^(${getVisiblePrefixes().map(escapeRegex).join("|")})(\\(.+?\\))?!?:\\s*`,
@@ -105,7 +103,7 @@ async function main() {
   console.log(`[changelog] Wrote ${OUTPUT_PATH} (${releases.length} entries)`);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+if (process.argv[1] && import.meta.filename === path.resolve(process.argv[1])) {
   main().catch((err) => {
     console.error("[changelog] Fatal error:", err);
     process.exitCode = 1;

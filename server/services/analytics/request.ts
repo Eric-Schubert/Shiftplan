@@ -1,3 +1,5 @@
+import type { H3Event } from "h3";
+
 const BOT_USER_AGENT_PATTERN =
   /(bot|crawler|spider|crawling|headless|preview|facebookexternalhit|slurp|bingpreview|duckduckbot|baiduspider|yandex|semrush|ahrefs|mj12bot|dotbot|petalbot|bytespider|uptime|monitor|lighthouse|pagespeed|curl|wget|python-requests|httpclient|libwww|node-fetch|go-http-client|java\/)/i;
 
@@ -26,7 +28,7 @@ export function normalizeAnalyticsPath(path: string | null | undefined): string 
   return isTrackablePath(cleanPath) ? cleanPath : null;
 }
 
-export function readDecodedHeader(event: any, names: string[]): string | null {
+export function readDecodedHeader(event: H3Event, names: string[]): string | null {
   for (const name of names) {
     const value = getHeader(event, name);
     if (!value) continue;

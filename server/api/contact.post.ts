@@ -64,12 +64,12 @@ export default defineEventHandler(async (event) => {
     required: true,
     minLength: formConfig.name.minLength,
     maxLength: formConfig.name.maxLength,
-  })!;
+  });
   const replyTo = validateString(body.replyTo, "replyTo", {
     required: true,
     minLength: formConfig.replyTo.minLength,
     maxLength: formConfig.replyTo.maxLength,
-  })!;
+  });
   const subject = validateString(body.subject, "subject", {
     required: false,
     minLength: formConfig.subject.minLength,
@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
     required: true,
     minLength: formConfig.message.minLength,
     maxLength: formConfig.message.maxLength,
-  })!;
+  });
 
   const savedMessage = ContactService.createMessage({
     name,

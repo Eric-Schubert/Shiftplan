@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { getDatabase } from "~/server/utils/database";
 
 export function sha256(value: string): string {
