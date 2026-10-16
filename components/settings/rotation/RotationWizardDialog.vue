@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
 import { isoWeekOfDate } from "~/shared/utils/week";
 
 const props = defineProps<{
@@ -16,12 +17,12 @@ const emit = defineEmits<{
 const dataStore = useDataStore();
 const { t } = useI18n();
 
-const steps = computed(() =>
-  (["pattern", "review", "rollout"] as const).map((step) => ({
-    title: t(`settings.wizard.steps.${step}.title`),
-    text: t(`settings.wizard.steps.${step}.text`),
-  }))
-);
+const STEPS = [
+  { title: "settings.wizard.steps.pattern.title", text: "settings.wizard.steps.pattern.text" },
+  { title: "settings.wizard.steps.review.title", text: "settings.wizard.steps.review.text" },
+  { title: "settings.wizard.steps.rollout.title", text: "settings.wizard.steps.rollout.text" },
+] as const satisfies readonly { title: MessageKey; text: MessageKey }[];
+const steps = computed(() => STEPS.map((step) => ({ title: t(step.title), text: t(step.text) })));
 
 const dialogVisible = computed({
   get: () => props.visible,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MessageKey } from "~/i18n/types";
 import { weekOfYearLabel } from "~/shared/utils/format/week";
 import type { RotationExcelImportResult } from "~/types/rotation";
 
@@ -21,7 +22,12 @@ const { assignmentCount } = useRotationPatternSummary();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
 // The four how-to lines, in order.
-const HOW_TO = ["prepare", "download", "fill", "upload"] as const;
+const HOW_TO = [
+  "settings.wizard.excel.howTo.prepare",
+  "settings.wizard.excel.howTo.download",
+  "settings.wizard.excel.howTo.fill",
+  "settings.wizard.excel.howTo.upload",
+] as const satisfies readonly MessageKey[];
 const importConfirm = ref<HTMLElement | null>(null);
 
 watch(
@@ -44,7 +50,7 @@ watch(
       <template #next><strong>{{ t("common.actions.next") }}</strong></template>
     </i18n-t>
     <ol class="mt-3 space-y-1 text-sm text-[var(--text-2)]">
-      <li v-for="step in HOW_TO" :key="step">{{ t(`settings.wizard.excel.howTo.${step}`) }}</li>
+      <li v-for="step in HOW_TO" :key="step">{{ t(step) }}</li>
     </ol>
     <div class="mt-4 flex flex-wrap gap-2">
       <PrimeButton
