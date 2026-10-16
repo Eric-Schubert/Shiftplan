@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+export const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
 export function fileExists(...parts) {
   return fs.existsSync(path.join(ROOT, ...parts));
