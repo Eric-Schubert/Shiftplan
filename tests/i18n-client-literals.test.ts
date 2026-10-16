@@ -2,11 +2,11 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { repoFiles } from "../scripts/repo-files.js";
 import { germanLiterals } from "./helpers/german-literals";
-import { PENDING_LEGAL, PENDING_SETTINGS } from "./helpers/i18n-pending";
+import { PENDING_LEGAL } from "./helpers/i18n-pending";
 
 // All app code takes its texts from the catalog (i18n/locales). German here is a text that missed it.
 const APP_CODE = /^(?:components|layouts|pages|composables|stores|types|utils|plugins)\/.*\.(?:vue|ts|js)$|^(?:app|error)\.vue$/;
-const PENDING = new Set([...PENDING_SETTINGS, ...PENDING_LEGAL]);
+const PENDING = new Set(PENDING_LEGAL);
 
 describe("app code", () => {
   const files = repoFiles().filter((file) => APP_CODE.test(file));

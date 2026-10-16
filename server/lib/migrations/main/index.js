@@ -8,6 +8,7 @@ import absenceRangesDayChanges from "./006-absence-ranges-day-changes.js";
 import shiftRequests from "./007-shift-requests.js";
 import staffShortCode from "./008-staff-short-code.js";
 import requestUndo from "./009-request-undo.js";
+import auditReasonKeys from "./010-audit-reason-keys.js";
 
 // Order matters: migrations run top to bottom and are recorded by id.
 /** @type {import("../runner.js").Migration[]} */
@@ -21,4 +22,5 @@ export const MAIN_MIGRATIONS = [
   shiftRequests,
   staffShortCode,
   requestUndo,
+  auditReasonKeys,
 ];
