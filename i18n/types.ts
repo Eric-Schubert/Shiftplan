@@ -14,6 +14,9 @@ type MessagePaths<T, Prefix extends string = ""> = {
 
 export type MessageKey = MessagePaths<Messages>;
 
+/** A message with its parameters, for code that picks the text and leaves translating to the caller. */
+export type MessageRef = { key: MessageKey; params?: Record<string, string | number> };
+
 // Types the keys of useI18n() and $t() in the app.
 declare module "vue-i18n" {
   export interface DefineLocaleMessage extends Messages {}

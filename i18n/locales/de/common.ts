@@ -4,4 +4,17 @@ export default {
   meta: {
     description: "Shiftplan: Dienstplan im Browser planen, im Team per App ansehen.",
   },
+  // Buttons and placeholders that read the same in every feature.
+  actions: {
+    activate: "Aktivieren",
+    cancel: "Abbrechen",
+    close: "Schließen",
+    decline: "Ablehnen",
+    delete: "Löschen",
+    signIn: "Anmelden",
+    signOut: "Abmelden",
+    toPlan: "Zum Schichtplan",
+  },
+  choose: "Bitte wählen",
+  period: { from: "Von", to: "Bis" },
 };

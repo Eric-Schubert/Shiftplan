@@ -36,6 +36,7 @@ export function usePushNotifications() {
   const state = useState<PushState>("push-state", () => "loading");
   const dialogOpen = useState<boolean>("push-dialog-open", () => false);
   const { status: viewerStatus, load: loadViewerStatus } = useViewerAccess();
+  const { t } = useI18n();
 
   async function detect(): Promise<void> {
     if (!import.meta.client) return;
@@ -68,7 +69,7 @@ export function usePushNotifications() {
 
     const publicKey = viewerStatus.value?.pushPublicKey || (await loadViewerStatus()).pushPublicKey;
     if (!publicKey) {
-      throw new Error("Kein Zugriff auf den Schichtplan");
+      throw new Error(t("app.push.noAccess"));
     }
 
     const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
