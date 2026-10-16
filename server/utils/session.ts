@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from "crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import type { SessionUser } from "~/types/auth";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getAuthConfig } from "~/server/config/auth-config";

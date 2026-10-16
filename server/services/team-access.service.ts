@@ -1,4 +1,4 @@
-import { randomInt, timingSafeEqual } from "crypto";
+import { randomInt, timingSafeEqual } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getSessionData, getSessionToken } from "~/server/utils/session";
 import { MemberAccessService } from "~/server/services/member-access.service";

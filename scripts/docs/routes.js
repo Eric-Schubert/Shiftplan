@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { ROUTE_POLICY, classifyRoute } from "../../server/config/route-policy.ts";
 import { ROOT } from "./files.js";
 

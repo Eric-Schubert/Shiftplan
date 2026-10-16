@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { appHead } from "./config/nuxt/head";
 import { i18nConfig } from "./config/nuxt/i18n";
 import { nitroConfig } from "./config/nuxt/nitro";

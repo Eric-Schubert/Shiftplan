@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { VIEWER_SESSION_DAYS } from "~/shared/utils/retention";
 
