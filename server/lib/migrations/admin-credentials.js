@@ -52,6 +52,6 @@ export function requireBootstrapPasswordHash(database, options = {}, contextMess
   if (passwordHash) return passwordHash;
 
   throw new Error(
-    `${contextMessage} Setze ${BOOTSTRAP_ADMIN_PASSWORD_ENV} auf ein starkes Passwort und fuehre setup.js erneut aus.`
+    `${contextMessage} Set ${BOOTSTRAP_ADMIN_PASSWORD_ENV} to a strong password and run setup.js again.`
   );
 }

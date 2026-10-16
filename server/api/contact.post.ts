@@ -92,7 +92,7 @@ export default defineEventHandler(async (event) => {
   });
 
   await ContactMailService.sendMessageNotification(savedMessage).catch((error) => {
-    console.error("[contact] E-Mail-Benachrichtigung konnte nicht versendet werden", error);
+    console.error("[contact] Email notification could not be sent", error);
   });
 
   return { success: true };

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { XlsxCell } from "../server/utils/xlsx";
 import { RotationExcelService, createXlsx, db, useRotationExcelModules } from "./helpers/rotation-excel";
 
-/** The current template layout: start KW 3/2026, two weeks, one row per person. */
+/** The current template layout: start week 3/2026, two weeks, one row per person. */
 function gridFile(staffRows: XlsxCell[][], weekHeaders = ["Woche 1\n(KW 3, 5, 7)", "Woche 2\n(KW 4, 6, 8)"]) {
   return createXlsx({
     sheets: [

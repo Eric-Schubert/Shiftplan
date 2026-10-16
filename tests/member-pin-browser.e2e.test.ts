@@ -5,7 +5,7 @@ import { KEYS, sendNotification, webPushMock } from "./helpers/web-push-mock";
 vi.mock("web-push", () => webPushMock);
 useMemberPinClient();
 
-describe("sign-in with Kürzel and PIN", () => {
+describe("sign-in with short code and PIN", () => {
   it("only accepts cookie writes from the site itself", async () => {
     const browser = await browserWithInvite(ANNA);
     const body = { date: "2099-01-05", reason: "urlaub", notifyTeam: false };

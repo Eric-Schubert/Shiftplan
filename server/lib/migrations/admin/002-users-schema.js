@@ -47,7 +47,7 @@ export default {
       const fallbackPasswordHash = requireBootstrapPasswordHash(
         database,
         options,
-        "Es existieren Benutzer ohne Passwort-Hash."
+        "Some users have no password hash."
       );
       database
         .prepare("UPDATE users SET password_hash = ? WHERE password_hash IS NULL OR password_hash = ''")

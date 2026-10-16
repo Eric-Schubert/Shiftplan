@@ -29,7 +29,7 @@ export function validateBackendConfig(config: unknown): BackendConfig {
   validateContactMail(root.contactMail, errors);
 
   if (errors.length > 0) {
-    throw new Error(`Ungueltige Backend-Konfiguration:\n- ${errors.join("\n- ")}`);
+    throw new Error(`Invalid backend configuration:\n- ${errors.join("\n- ")}`);
   }
 
   return config as BackendConfig;

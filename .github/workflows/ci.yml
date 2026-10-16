@@ -76,6 +76,10 @@ jobs:
         if: needs.changes.outputs.code != 'false'
         run: npm run lint:length
 
+      - name: Check English
+        if: needs.changes.outputs.code != 'false'
+        run: npm run lint:english
+
       - name: Check generated docs
         run: |
           npm run docs

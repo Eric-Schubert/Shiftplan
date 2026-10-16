@@ -48,7 +48,7 @@ export async function setPin(staffId: number, pin: string): Promise<void> {
 
 /**
  * Always exactly one bcrypt check, also without a person, without a PIN or with a malformed
- * one, so the answer time reveals neither valid Kürzel nor who has a PIN.
+ * one, so the answer time reveals neither valid short codes nor who has a PIN.
  */
 export async function verifyPin(staffId: number | null, pin: string): Promise<boolean> {
   const row =
@@ -66,7 +66,7 @@ export function clearPin(staffId: number): boolean {
   return getAdminDatabase().prepare("DELETE FROM member_pins WHERE staff_id = ?").run(staffId).changes > 0;
 }
 
-/** Kürzel + PIN from any device. Returns null for an unknown Kürzel or a wrong PIN alike. */
+/** Short code + PIN from any device. Returns null for an unknown short code or a wrong PIN alike. */
 export async function loginWithPin(
   shortCode: string,
   pin: string,

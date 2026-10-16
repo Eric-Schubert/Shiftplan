@@ -18,7 +18,7 @@ import { webPushMock } from "./helpers/web-push-mock";
 vi.mock("web-push", () => webPushMock);
 useShiftRequestClient();
 
-/** `from` gives away Früh on Thursday and `helper` takes it over. */
+/** `from` gives away „Früh“ on Thursday and `helper` takes it over. */
 async function takeover(from: string, helper: string) {
   const created = await client.request<any>("POST", "/api/member/requests", {
     headers: bearer(from),
@@ -124,7 +124,7 @@ describe("undo after the plan moved on", () => {
     const anna = await member(ANNA, "anna:tok");
     const max = await member(MAX, "max:tok");
     const id = await takeover(anna, max);
-    // The planner moves Max from Spät to a new night shift for the whole week.
+    // The planner moves Max from „Spät“ to a new night shift for the whole week.
     client.mainDb.prepare("INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Nacht', 1, '22:00', '06:00', '#8b5cf6', 1, 3)").run();
     client.mainDb.prepare("UPDATE shift_assignments SET shift_id = 3 WHERE staff_id = ?").run(MAX);
 

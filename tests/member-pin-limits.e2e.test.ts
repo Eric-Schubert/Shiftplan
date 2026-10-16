@@ -41,7 +41,7 @@ describe("PIN sign-in limits", () => {
     expect((await pinLogin("AW", "482913", "198.51.100.7")).status).toBe(200);
   });
 
-  it("still caps guessing one Kürzel from many networks", async () => {
+  it("still caps guessing one short code from many networks", async () => {
     await annaWithPin();
     for (const ip of ["198.51.100.1", "198.51.100.2", "198.51.100.3"]) {
       for (let attempt = 0; attempt < 5; attempt += 1) await pinLogin("AW", "111111", ip);
@@ -51,7 +51,7 @@ describe("PIN sign-in limits", () => {
     expect((await pinLogin("MM", "482913", "198.51.100.9")).status).toBe(401);
   });
 
-  it("runs one bcrypt check for unknown Kürzel, missing and malformed PINs alike", async () => {
+  it("runs one bcrypt check for unknown short codes, missing and malformed PINs alike", async () => {
     await annaWithPin();
     const compare = vi.spyOn(bcrypt, "compare");
     const compareSync = vi.spyOn(bcrypt, "compareSync");

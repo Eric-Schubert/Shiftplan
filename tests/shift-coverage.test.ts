@@ -3,7 +3,7 @@ import type { Absence } from "../types/absence";
 import type { ShiftDayChange, ShiftWithStaff } from "../types/shiftplan";
 import { formatWeekdays, understaffedDates, workDates } from "../utils/shift-coverage";
 
-// KW 43/2026: Mo 19.10. – So 25.10.
+// Week 43/2026: Monday 19.10. to Sunday 25.10.
 const week = workDates(2026, 43, false);
 const [mon, tue] = week as [string, string];
 

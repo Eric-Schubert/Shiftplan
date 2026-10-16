@@ -87,7 +87,7 @@ export function useRotationPatternDragDrop() {
 
       await dataStore.assignToRotation(patternWeek, data.staffId, shiftId);
     } catch (error) {
-      console.error("Drop fehlgeschlagen:", error);
+      console.error("Drop failed:", error);
     }
   }
 

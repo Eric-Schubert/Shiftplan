@@ -1,4 +1,4 @@
-<!-- QR-Code-Scan und Update-Hinweis der Shiftplan-App. Teil des Abschnitts "dienste". -->
+<!-- QR code scan and update notice of the Shiftplan app. Part of the "dienste" (services) section. -->
 <template>
   <h4>QR-Code-Scan in der App</h4>
   <p>

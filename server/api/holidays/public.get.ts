@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   try {
     return await PublicHolidayService.list(year, week);
   } catch (error: any) {
-    console.error("Fehler beim Abrufen der Feiertage:", error);
+    console.error("[holidays] Fetching public holidays failed:", error);
     throw createError({
       statusCode: 500,
       message: `Fehler beim Abrufen der Feiertage: ${error.message}`,

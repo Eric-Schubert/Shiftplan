@@ -16,7 +16,7 @@ export function makeNameLookup<T extends Staff | Shift>(items: T[], label: strin
   // No names in the log: it is kept longer than the plan data and may outlive a person.
   for (const matches of lookup.values()) {
     if (matches.length > 1) {
-      console.warn(`[rotation-excel] ${label}: ${matches.length} Einträge mit gleichem Namen`);
+      console.warn(`[rotation-excel] ${label}: ${matches.length} entries with the same name`);
     }
   }
 

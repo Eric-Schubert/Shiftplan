@@ -52,8 +52,8 @@ export async function getGraphAccessToken(config: ContactMailConfig): Promise<st
   const tokenResponse = (await response.json().catch(() => ({}))) as GraphTokenResponse;
   if (!response.ok || !tokenResponse.access_token) {
     throw new Error(
-      `Microsoft Graph Token konnte nicht geholt werden (${response.status}): ${
-        tokenResponse.error_description || tokenResponse.error || "Unbekannter Fehler"
+      `Microsoft Graph token could not be fetched (${response.status}): ${
+        tokenResponse.error_description || tokenResponse.error || "Unknown error"
       }`
     );
   }

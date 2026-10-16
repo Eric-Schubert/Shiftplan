@@ -73,9 +73,9 @@ describe("Shiftplan Operations", () => {
 
       expect(plan.length).toBeGreaterThan(0);
 
-      const fruehschicht = plan.find((p) => p.shift_name === "Frühschicht");
-      expect(fruehschicht).toBeDefined();
-      expect(fruehschicht.staff_name).toBe("Max Mustermann");
+      const earlyShift = plan.find((p) => p.shift_name === "Frühschicht");
+      expect(earlyShift).toBeDefined();
+      expect(earlyShift.staff_name).toBe("Max Mustermann");
     });
   });
 });

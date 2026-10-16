@@ -17,7 +17,7 @@ export function validateValidation(value: unknown, errors: MutableErrorList): vo
   const shift = objectAt(config.shift, "validation.shift", errors);
   stringAt(shift.defaultColor, "validation.shift.defaultColor", errors);
   if (typeof shift.defaultColor === "string" && !/^#[0-9a-fA-F]{6}$/.test(shift.defaultColor)) {
-    errors.push("validation.shift.defaultColor muss ein Hex-Farbwert sein");
+    errors.push("validation.shift.defaultColor must be a hex color");
   }
   validateDefaultRange(shift.minStaff, "validation.shift.minStaff", errors);
   validateDefaultRange(shift.sortOrder, "validation.shift.sortOrder", errors);

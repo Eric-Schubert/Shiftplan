@@ -1,5 +1,5 @@
 {
-  "name": "schichtplaner",
+  "name": "shiftplan",
   "version": "0.0.0",
   "private": true,
   "license": "FSL-1.1-MIT",
@@ -20,6 +20,7 @@
     "typecheck": "nuxi typecheck && tsc --noEmit -p .nuxt/tsconfig.server.json",
     "docs": "node scripts/docs-generator.js",
     "lint:length": "node scripts/check-file-length.js",
+    "lint:english": "node scripts/check-english.js",
     "version:check": "node scripts/resolve-version.js && cat .version",
     "changelog": "node scripts/generate-changelog.js"
   },

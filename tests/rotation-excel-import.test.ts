@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RotationExcelService, createXlsx, db, useRotationExcelModules } from "./helpers/rotation-excel";
 
-/** A filled template: start KW 3/2026, cycle of 2 weeks, then the given pattern rows. */
+/** A filled template: start week 3/2026, cycle of 2 weeks, then the given pattern rows. */
 function rotationFile(patternRows: Array<[number, string, string]>) {
   return createXlsx({
     sheets: [

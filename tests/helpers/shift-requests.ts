@@ -30,7 +30,7 @@ export const MAX = 2;
 export const PAUL = 3;
 export const EARLY = 1;
 export const LATE = 2;
-// KW 41/2026: Monday 05.10. to Sunday 11.10. The clock is set to Monday.
+// Week 41/2026: Monday 05.10. to Sunday 11.10. The clock is set to Monday.
 export const THURSDAY = "2026-10-08";
 export const FRIDAY = "2026-10-09";
 
@@ -84,7 +84,7 @@ export function sends() {
   return relayCalls.filter((call) => call.url.endsWith("/v1/send"));
 }
 
-/** Fresh databases for every test: Anna works Früh, Max works Spät in KW 41. */
+/** Fresh databases for every test: Anna works „Früh“, Max works „Spät“ in week 41. */
 export function useShiftRequestClient() {
   stubRelay();
   sendNotification.mockResolvedValue({ statusCode: 201 });

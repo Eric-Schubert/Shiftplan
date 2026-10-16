@@ -69,7 +69,7 @@ describe("takeover requests", () => {
       body: { date: THURSDAY, reason: "urlaub", notifyTeam: false },
     });
     const absent = await client.request<any>("POST", `/api/member/requests/${id}`, { headers: bearer(max), body: { action: "accept" } });
-    // Wednesday: Anna worked Früh on Tuesday, so only the date check can refuse it.
+    // Wednesday: Anna worked „Früh“ on Tuesday, so only the date check can refuse it.
     vi.setSystemTime(new Date("2026-10-07T08:00:00Z"));
     const past = await client.request<any>("POST", "/api/member/requests", {
       headers: bearer(anna),

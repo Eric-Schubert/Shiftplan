@@ -2,7 +2,7 @@ import { integerAt, objectAt, type MutableErrorList } from "./fields";
 
 export function rangeOrder(min: unknown, max: unknown, path: string, errors: MutableErrorList): void {
   if (typeof min === "number" && typeof max === "number" && min > max) {
-    errors.push(`${path}.min darf nicht groesser als ${path}.max sein`);
+    errors.push(`${path}.min must not be greater than ${path}.max`);
   }
 }
 
@@ -23,7 +23,7 @@ export function validateDefaultRange(value: unknown, path: string, errors: Mutab
     typeof range.max === "number" &&
     (range.default < range.min || range.default > range.max)
   ) {
-    errors.push(`${path}.default muss zwischen min und max liegen`);
+    errors.push(`${path}.default must be between min and max`);
   }
 }
 
