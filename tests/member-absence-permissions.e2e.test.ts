@@ -122,7 +122,7 @@ describe("absences", () => {
       .run(ANNA);
     const date = client.mainDb.prepare("SELECT absence_date FROM absences").get() as { absence_date: string };
     const { AbsenceService } = await import("../server/services/absence.service");
-    const { toISOWeek } = await import("../shared/utils/week");
+    const { toISOWeek } = await import("~/shared/utils/week");
     const [year, month, day] = date.absence_date.split("-").map(Number) as [number, number, number];
     const week = toISOWeek(year, month, day);
 

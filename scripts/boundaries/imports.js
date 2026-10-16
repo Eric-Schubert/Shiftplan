@@ -8,7 +8,9 @@ const ALIASES = [
   ["~/", ""],
   ["@/", ""],
   ["#shared/", "shared/"],
+  ["#server/", "server/"],
 ];
+const BARE_ALIASES = { "#shared": "shared", "#server": "server" };
 const EXTENSIONS = ["", ".ts", ".js", ".mjs", ".vue", ".json", "/index.ts", "/index.js"];
 
 function scriptBlocks(file, source) {
@@ -44,7 +46,7 @@ export function findImports(file, source) {
 /** Repo path an import points to, or null for packages and virtual modules. */
 export function resolveImport(file, spec, files = new Set()) {
   let target = null;
-  if (spec === "#shared") target = "shared";
+  if (Object.hasOwn(BARE_ALIASES, spec)) target = BARE_ALIASES[spec];
   else if (spec.startsWith(".")) target = path.posix.join(path.posix.dirname(file), spec);
   else {
     const alias = ALIASES.find(([prefix]) => spec.startsWith(prefix));

@@ -44,10 +44,13 @@ describe("boundary check imports", () => {
   });
 
   it("resolves Nuxt aliases, relative paths and file extensions", () => {
-    const files = new Set(["server/services/push/index.ts", "shared/utils/week.ts", "utils/changelog.ts"]);
+    const files = new Set(["server/services/push/index.ts", "server/services/a.service.ts", "shared/utils/week.ts", "utils/changelog.ts"]);
     expect(resolveImport("components/a.vue", "~/server/services/push", files)).toBe("server/services/push/index.ts");
+    expect(resolveImport("components/a.vue", "#server/services/a.service", files)).toBe("server/services/a.service.ts");
+    expect(resolveImport("components/a.vue", "#server", files)).toBe("server");
     expect(resolveImport("server/x.ts", "~~/shared/utils/week", files)).toBe("shared/utils/week.ts");
     expect(resolveImport("server/x.ts", "#shared/utils/week", files)).toBe("shared/utils/week.ts");
+    expect(resolveImport("shared/x.ts", "#shared", files)).toBe("shared");
     expect(resolveImport("utils/changelog/types.ts", "../changelog", files)).toBe("utils/changelog.ts");
     expect(resolveImport("server/x.ts", "~/server/missing", files)).toBe("server/missing");
     expect(resolveImport("server/x.ts", "h3", files)).toBeNull();
@@ -64,33 +67,54 @@ describe("boundary check rules", () => {
     expect(serviceFeature("server/utils/database.ts")).toBeNull();
   });
 
-  it("reports app code that imports server code", () => {
+  it("reports app code and types that import server code, also through #server", () => {
     const contents = {
       "components/A.vue": '<script setup>\nimport x from "~/server/utils/x";\n</script>',
-      "app.vue": '<script setup>import "~/server/y";</script>',
+      "app.vue": '<script setup>import "#server/y";</script>',
+      "types/a.ts": 'import type { B } from "#server";',
       "server/api/x.get.ts": 'import "~/server/utils/x";',
     };
-    expect(check(contents)).toEqual(["components/A.vue:2 app code imports server code", "app.vue:1 app code imports server code"]);
+    const rule = "app code or types/ imports server code";
+    expect(check(contents)).toEqual([`components/A.vue:2 ${rule}`, `app.vue:1 ${rule}`, `types/a.ts:1 ${rule}`]);
     expect(check({ "pages/index.vue": '<script setup>import x from "~/shared/utils/week";</script>' })).toEqual([]);
   });
 
-  it("reports app code that imports shared/ by a relative path", () => {
-    const contents = { "utils/a.ts": 'import { x } from "../shared/utils/week";\nimport { y } from "~/shared/utils/week";', "server/b.ts": 'import "../shared/utils/week";' };
-    expect(check(contents)).toEqual(["utils/a.ts:1 app code imports shared/ by a relative path instead of ~/shared"]);
+  it("requires ~/shared/ for imports of shared/ from anywhere else", () => {
+    const contents = {
+      "utils/a.ts": 'import { x } from "../shared/utils/week";\nimport { y } from "~/shared/utils/week";',
+      "server/b.ts": 'import "#shared/utils/week";',
+      "tests/c.test.ts": 'await import("../shared/utils/week");',
+      "shared/utils/d.ts": 'import "./week";\nimport "#shared";',
+    };
+    const rule = "imports shared/ without ~/shared/";
+    expect(check(contents)).toEqual([`utils/a.ts:1 ${rule}`, `server/b.ts:1 ${rule}`, `tests/c.test.ts:1 ${rule}`]);
   });
 
   it("keeps shared code free of other folders, packages and runtime globals", () => {
-    const source = ['import { a } from "./a";', 'import b from "~/utils/b";', 'import c from "h3";', "process.env.X;", "throw createError({});", "const ok = date.process;", "// ref() in a comment"].join("\n");
+    const source = [
+      'import { a } from "./a";',
+      'import b from "~/utils/b";',
+      'import c from "h3";',
+      "process.env.X;",
+      "throw createError({});",
+      "const ok = date.process;",
+      "// ref() in a comment",
+      "const width = window.innerWidth + globalThis.process.pid;",
+      "function f(ref: string, watch?: boolean) { return { process: ref }; }",
+    ].join("\n");
     expect(check({ "shared/utils/a.ts": "", "shared/utils/x.ts": source })).toEqual([
       "shared/utils/x.ts:2 shared code imports outside shared/",
       "shared/utils/x.ts:3 shared code imports outside shared/",
       "shared/utils/x.ts:4 shared code uses the runtime global process",
       "shared/utils/x.ts:5 shared code uses the runtime global createError",
+      "shared/utils/x.ts:8 shared code uses the runtime global window",
+      "shared/utils/x.ts:8 shared code uses the runtime global globalThis",
+      "shared/utils/x.ts:9 shared code uses the runtime global ref",
     ]);
   });
 
   it("reports server/utils and server/lib importing services", () => {
-    expect(check({ "server/utils/flow.ts": 'import { A } from "~/server/services/a.service";', "server/lib/x/y.ts": 'import { B } from "~/server/services/b/c";' })).toEqual([
+    expect(check({ "server/utils/flow.ts": 'import { A } from "#server/services/a.service";', "server/lib/x/y.ts": 'import { B } from "~/server/services/b/c";' })).toEqual([
       "server/utils/flow.ts:1 server/utils imports a service",
       "server/lib/x/y.ts:1 server/lib imports a service",
     ]);

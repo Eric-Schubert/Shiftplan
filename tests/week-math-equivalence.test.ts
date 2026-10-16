@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { patternWeekFor } from "../shared/utils/rotation-math";
+import { patternWeekFor } from "~/shared/utils/rotation-math";
 import {
   datesOfISOWeek,
   isoWeekMonday,
@@ -9,7 +9,7 @@ import {
   isoWeeksInYear,
   toISOWeek,
   weekOfDate,
-} from "../shared/utils/week";
+} from "~/shared/utils/week";
 import { getWeekDateRange } from "../stores/app/week";
 import * as legacy from "./helpers/legacy-week-math";
 

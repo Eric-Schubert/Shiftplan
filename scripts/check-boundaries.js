@@ -7,17 +7,23 @@ import { tokenize } from "./english/tokenize.js";
 
 // Import rules between app, shared and server code. Only explicit imports are checked:
 // the server imports everything by path, the app only auto-imports its own utils and composables.
+// shared/ globals are matched by name. Object keys and type annotations (`ref: string`) are skipped,
+// but a variable or untyped parameter named like a global is still reported; rename it.
+// `npm run typecheck` also checks shared/ against .nuxt/tsconfig.shared.json, which has no auto-imports.
 const CHECKED = /\.(vue|ts|js|mjs)$/;
 const IGNORED = [/\.d\.ts$/];
-const APP = /^(?:components|pages|composables|stores|utils|layouts|plugins)\/|^(?:app|error)\.vue$/;
-// shared/ runs in the browser and in Nitro, so it may not lean on h3, Nitro, Nuxt, Vue or Node globals.
+const APP = /^(?:components|pages|composables|stores|utils|layouts|plugins|types)\/|^(?:app|error)\.vue$/;
+// shared/ runs in the browser and in Nitro, so it may not lean on h3, Nitro, Nuxt, Vue, browser or Node globals.
 const RUNTIME_GLOBALS = new Set([
   "defineEventHandler", "eventHandler", "createError", "getQuery", "readBody", "getHeader", "getCookie",
   "setCookie", "deleteCookie", "getRouterParam", "getRequestIP", "setResponseStatus", "sendRedirect",
   "useRuntimeConfig", "useStorage", "useNitroApp", "defineNitroPlugin", "useNuxtApp", "useState", "useFetch",
   "useAsyncData", "useCookie", "useRoute", "useRouter", "navigateTo", "defineNuxtPlugin", "$fetch", "ref",
-  "computed", "reactive", "watch", "process", "Buffer", "require", "__dirname", "__filename", "global",
+  "computed", "reactive", "watch", "onMounted", "process", "Buffer", "require", "__dirname", "__filename",
+  "global", "globalThis", "window", "document", "localStorage", "sessionStorage", "navigator", "location",
 ]);
+
+const inside = (file, dir) => file === dir || !!file?.startsWith(`${dir}/`);
 
 /** Feature of a service file: server/services/push.service.ts and server/services/push/* are "push". */
 export function serviceFeature(file) {
@@ -32,14 +38,14 @@ const isFacade = (file, feature) =>
  * @type {Array<[string, (from: string, to: string | null, spec: string) => boolean]>}
  */
 export const RULES = [
-  ["app code imports server code", (from, to) => APP.test(from) && !!to?.startsWith("server/")],
-  // The SSR build keeps shared/ external and rewrites relative paths wrongly; aliases resolve to absolute paths.
+  ["app code or types/ imports server code", (from, to) => APP.test(from) && inside(to, "server")],
+  // The SSR build keeps shared/ external and rewrites relative paths wrongly, and vitest only knows ~.
   [
-    "app code imports shared/ by a relative path instead of ~/shared",
-    (from, to, spec) => APP.test(from) && !!to?.startsWith("shared/") && spec.startsWith("."),
+    "imports shared/ without ~/shared/",
+    (from, to, spec) => !inside(from, "shared") && inside(to, "shared") && !spec.startsWith("~/shared/"),
   ],
-  ["shared code imports outside shared/", (from, to) => from.startsWith("shared/") && !to?.startsWith("shared/")],
-  ["server/utils imports a service", (from, to) => from.startsWith("server/utils/") && !!to?.startsWith("server/services/")],
+  ["shared code imports outside shared/", (from, to) => inside(from, "shared") && !inside(to, "shared")],
+  ["server/utils imports a service", (from, to) => inside(from, "server/utils") && inside(to, "server/services")],
   [
     "service imports another service's internals instead of its facade",
     (from, to) => {
@@ -47,10 +53,10 @@ export const RULES = [
       return !!own && !!other && own !== other && !isFacade(to, other);
     },
   ],
-  ["server/lib imports a service", (from, to) => from.startsWith("server/lib/") && !!to?.startsWith("server/services/")],
+  ["server/lib imports a service", (from, to) => inside(from, "server/lib") && inside(to, "server/services")],
   [
     "migration imports outside server/lib/migrations (setup.js runs it without the Nitro bundle)",
-    (from, to) => from.startsWith("server/lib/migrations/") && to !== null && !to.startsWith("server/lib/migrations/"),
+    (from, to) => inside(from, "server/lib/migrations") && to !== null && !inside(to, "server/lib/migrations"),
   ],
 ];
 
@@ -58,6 +64,8 @@ function runtimeGlobals(file, source) {
   const tokens = tokenize(source).filter((token) => token.kind !== "comment");
   return tokens.flatMap((token, index) => {
     if (token.kind !== "word" || tokens[index - 1]?.text === ".") return [];
+    const after = tokens[index + 1]?.text === "?" ? tokens[index + 2] : tokens[index + 1];
+    if (after?.text === ":") return [];
     if (token.text === "import" && tokens[index + 1]?.text === ".") return [{ file, line: token.line, rule: "shared code uses import.meta" }];
     return RUNTIME_GLOBALS.has(token.text) ? [{ file, line: token.line, rule: `shared code uses the runtime global ${token.text}` }] : [];
   });

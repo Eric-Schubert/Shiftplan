@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { patternWeekFor } from "../shared/utils/rotation-math";
-import { isoWeeksBetween } from "../shared/utils/week";
+import { patternWeekFor } from "~/shared/utils/rotation-math";
+import { isoWeeksBetween } from "~/shared/utils/week";
 
 /** Pattern week (1-based) for a rotation that starts at the given ISO week. */
 function patternWeekFrom(startYear: number, startWeek: number, cycleLength: number) {
