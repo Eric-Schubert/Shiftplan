@@ -16,12 +16,13 @@ const {
   onChipDragStart,
   onDragOver,
   onDragLeave,
+  onDragEnd,
   onDrop,
 } = useRotationPatternInteractions();
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4" @dragend="onDragEnd">
     <RotationPatternIntro
       :cycle-length="dataStore.rotationPattern?.config.cycle_length || 4"
       :start-week="dataStore.rotationPattern?.config.start_week || 1"
@@ -30,7 +31,8 @@ const {
 
     <RotationStaffPool :staff="dataStore.activeStaff" @drag-start="onPoolDragStart" />
 
-    <div v-if="dataStore.loadingRotation" class="flex justify-center py-8">
+    <!-- Only the first load: reloading after each edit keeps the board, so the page does not jump. -->
+    <div v-if="dataStore.loadingRotation && !dataStore.rotationPattern" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
 

@@ -21,6 +21,7 @@ const error = ref("");
 
 const requests = computed(() => data.value?.requests ?? []);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const NOTICES: Partial<Record<RequestAction, MessageKey>> = {
   cancel: "requests.notice.cancel",
@@ -42,8 +43,8 @@ async function act(request: ShiftRequest, action: RequestAction) {
     notice.value = t(NOTICES[action] ?? (result.request.status === "pending_approval" ? "requests.notice.accepted" : "requests.notice.done"));
     await refresh();
     emit("updated");
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("member.panel.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "member.panel.failed");
   } finally {
     busy.value = null;
     confirming.value = null;

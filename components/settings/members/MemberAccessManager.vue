@@ -18,7 +18,11 @@ const withPin = ref<Set<number>>(new Set());
 const resettingPin = ref<number | null>(null);
 const revoking = ref(false);
 const error = ref("");
+const loadError = ref("");
+// Shown inside the open revoke dialog, which would hide anything below it.
+const revokeError = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const staff = computed(() => [...dataStore.activeStaff].sort((a, b) => collator(localeTag.value).compare(a.name, b.name)));
 const devicesByStaff = computed(() => {
@@ -38,6 +42,7 @@ const inviteVisible = computed({
 
 async function loadDevices() {
   loading.value = true;
+  loadError.value = "";
   try {
     const [sessions, pins] = await Promise.all([
       authFetch<MemberDevice[]>("/api/member-sessions"),
@@ -45,6 +50,8 @@ async function loadDevices() {
     ]);
     devices.value = sessions;
     withPin.value = new Set(pins.staffIds);
+  } catch (cause) {
+    loadError.value = requestError(cause, "settings.loadFailed");
   } finally {
     loading.value = false;
   }
@@ -61,8 +68,8 @@ async function createInvite(staffId: number, staffName: string) {
     const link = `${window.location.origin}${result.path}`;
     qrSvg.value = await renderQrSvg(link);
     invite.value = { staffId, staffName, code: result.code, link, expiresAt: result.expiresAt };
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.members.inviteFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.members.inviteFailed");
   } finally {
     creatingFor.value = null;
   }
@@ -71,12 +78,13 @@ async function createInvite(staffId: number, staffName: string) {
 async function revoke() {
   if (!deviceToRevoke.value) return;
   revoking.value = true;
+  revokeError.value = "";
   try {
     await authFetch(`/api/member-sessions/${deviceToRevoke.value.sessionId}`, { method: "DELETE" });
     deviceToRevoke.value = null;
     await loadDevices();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.members.revokeFailed");
+  } catch (cause) {
+    revokeError.value = requestError(cause, "settings.members.revokeFailed");
   } finally {
     revoking.value = false;
   }
@@ -88,12 +96,14 @@ async function resetPin(staffId: number) {
   try {
     await authFetch(`/api/staff/${staffId}/pin`, { method: "DELETE" });
     await loadDevices();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.members.resetPinFailed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.members.resetPinFailed");
   } finally {
     resettingPin.value = null;
   }
 }
+
+watch(deviceToRevoke, () => (revokeError.value = ""));
 
 onMounted(async () => {
   await Promise.all([dataStore.init(), loadDevices()]);
@@ -108,6 +118,8 @@ onMounted(async () => {
       <PrimeProgressSpinner class="!h-5 !w-5" />
       {{ t("settings.loading") }}
     </div>
+
+    <AppRetryNotice v-else-if="loadError" :message="loadError" @retry="loadDevices" />
 
     <ul v-else class="divide-y divide-[var(--border-soft)] rounded-xl border border-[var(--border-soft)]">
       <MemberAccessStaffRow
@@ -127,6 +139,6 @@ onMounted(async () => {
     <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
 
     <MemberAccessInviteDialog v-model:visible="inviteVisible" :invite="invite" :qr-svg="qrSvg" @done="loadDevices" />
-    <MemberAccessRevokeDialog v-model:device="deviceToRevoke" :revoking="revoking" @confirm="revoke" />
+    <MemberAccessRevokeDialog v-model:device="deviceToRevoke" :revoking="revoking" :error="revokeError" @confirm="revoke" />
   </div>
 </template>

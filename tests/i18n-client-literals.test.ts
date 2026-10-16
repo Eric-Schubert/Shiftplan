@@ -2,7 +2,8 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { repoFiles } from "../scripts/repo-files.js";
 import { germanLiterals } from "./helpers/german-literals";
-import { PENDING_LEGAL } from "./helpers/i18n-pending";
+import { isGermanText } from "./helpers/german-text";
+import { LEGAL_TEXTS, PENDING_LEGAL } from "./helpers/i18n-pending";
 
 // All app code takes its texts from the catalog (i18n/locales). German here is a text that missed it.
 const APP_CODE = /^(?:components|layouts|pages|composables|stores|types|utils|plugins|shared)\/.*\.(?:vue|ts|js)$|^(?:app|error)\.vue$/;
@@ -12,14 +13,23 @@ describe("app code", () => {
   const files = repoFiles().filter((file) => APP_CODE.test(file));
   const german = (file: string) => germanLiterals(file, fs.readFileSync(file, "utf-8"));
 
-  it("has no German text outside the catalog, except in the pending files", () => {
-    const findings = files.filter((file) => !PENDING.has(file)).flatMap((file) => german(file).map((found) => `${file}:${found}`));
+  it("has no German text outside the catalog, except in the legal texts and the pending files", () => {
+    const checked = files.filter((file) => !PENDING.has(file) && !LEGAL_TEXTS.test(file));
+    const findings = checked.flatMap((file) => german(file).map((found) => `${file}:${found}`));
     expect(files.length).toBeGreaterThan(200);
     expect(findings).toEqual([]);
   });
 
   it("lists only pending files that exist and still hold German", () => {
     expect([...PENDING].filter((file) => !files.includes(file) || german(file).length === 0)).toEqual([]);
+  });
+
+  it("keeps the German legal texts in their folder, so the exemption covers nothing else", () => {
+    const germanLegal = files.filter((file) => LEGAL_TEXTS.test(file) && file.includes("/legal/de/"));
+    expect(germanLegal.length).toBeGreaterThan(10);
+    // germanLiterals counts every markup word, English too; only German prose proves a file belongs here.
+    const holdsGerman = (file: string) => german(file).some((found) => isGermanText(found.replace(/^\d+: /, "")));
+    expect(germanLegal.filter((file) => !holdsGerman(file))).toEqual([]);
   });
 });
 

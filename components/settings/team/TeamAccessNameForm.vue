@@ -7,6 +7,7 @@ const { authFetch } = useAuthFetch();
 const saving = ref(false);
 const saved = ref(false);
 const { t } = useI18n();
+const requestError = useRequestError();
 
 async function save() {
   saving.value = true;
@@ -15,8 +16,8 @@ async function save() {
     await authFetch("/api/team-access", { method: "POST", body: { instanceName: name.value } });
     saved.value = true;
     setTimeout(() => (saved.value = false), 2000);
-  } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || t("settings.team.name.failed"));
+  } catch (cause) {
+    emit("error", requestError(cause, "settings.team.name.failed"));
   } finally {
     saving.value = false;
   }

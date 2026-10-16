@@ -19,6 +19,7 @@ export default {
     done: "Done",
     edit: "Edit",
     next: "Next",
+    retry: "Try again",
     save: "Save",
     signIn: "Sign in",
     signOut: "Sign out",

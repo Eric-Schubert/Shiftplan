@@ -54,7 +54,8 @@ The web app is available in German and English; German is the reference and the 
 - Admins set the default language under **Einstellungen → Team-Zugang** (Settings → Team access). It applies to visitors whose browser uses none of the offered languages, to the Shiftplan app (it sends no language yet) and to texts no request asked for, such as contact mails to the operator.
 - Server texts follow the request: API error messages, the Excel template and the web manifest. Pushes are written in the language each browser or app device registered with. The Excel import reads templates of every language.
 - The audit log is stored language-neutral and shown in the reader's language; older entries keep their German text.
-- Staff, shift and instance names are never translated. The imprint and the privacy policy are German only.
+- Staff, shift and instance names are never translated.
+- The imprint and the privacy policy follow the language too. The German version is legally binding; the English one is a translation that says so at the top and links back to the German text. Both stay at `/impressum` and `/datenschutz`, with `/imprint` and `/privacy` as additional paths, and keep their section anchors such as `#app-daten-loeschen`.
 
 ## Version History
 

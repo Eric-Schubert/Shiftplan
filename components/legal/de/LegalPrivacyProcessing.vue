@@ -2,7 +2,7 @@
 import { LOCALE_COOKIE_MAX_AGE } from "~/i18n/config";
 import type { RetentionDays } from "~/shared/utils/retention";
 import type { PrivacyFacts } from "~/types/privacy";
-import { daysText, minutesText, periodText } from "~/utils/legal/durations";
+import { daysText, minutesText, periodText } from "~/utils/legal/de/durations";
 
 defineProps<{
   usesMicrosoft: boolean;

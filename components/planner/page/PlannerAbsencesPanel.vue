@@ -19,6 +19,7 @@ const emit = defineEmits<{
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
+const requestError = useRequestError();
 const showDialog = ref(false);
 const removing = ref<number | null>(null);
 const toRemove = ref<Absence | null>(null);
@@ -58,8 +59,8 @@ async function remove(absence: Absence) {
       await $fetch(`/api/member/absences/${absence.absence_id}${query}`, { method: "DELETE" });
     }
     emit("updated");
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("absence.remove.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "absence.remove.failed");
   } finally {
     removing.value = null;
     toRemove.value = null;

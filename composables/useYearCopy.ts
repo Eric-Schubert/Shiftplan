@@ -4,6 +4,7 @@ import type { RotationYearCopyPreview, RotationYearCopyResult } from "~/types/ro
 export function useYearCopy(isVisible: () => boolean) {
   const { authFetch } = useAuthFetch();
   const { t } = useI18n();
+  const requestError = useRequestError();
 
   const sourceYear = ref(new Date().getFullYear());
   const targetYear = ref(new Date().getFullYear() + 1);
@@ -48,8 +49,8 @@ export function useYearCopy(isVisible: () => boolean) {
       preview.value = await $fetch<RotationYearCopyPreview>("/api/shiftplan/year-summary", {
         query: { year: sourceYear.value },
       });
-    } catch (requestError: any) {
-      error.value = requestError.data?.statusMessage || t("settings.yearCopy.loadFailed");
+    } catch (cause) {
+      error.value = requestError(cause, "settings.yearCopy.loadFailed");
     } finally {
       loading.value = false;
     }
@@ -68,8 +69,8 @@ export function useYearCopy(isVisible: () => boolean) {
           overwrite: overwrite.value,
         },
       });
-    } catch (requestError: any) {
-      error.value = requestError.data?.statusMessage || t("settings.yearCopy.copyFailed");
+    } catch (cause) {
+      error.value = requestError(cause, "settings.yearCopy.copyFailed");
     } finally {
       copying.value = false;
     }

@@ -7,7 +7,8 @@ const { t } = useI18n();
 
 <template>
   <section class="planner-slab !p-0 max-w-full overflow-hidden">
-    <PrimeTabs v-model:value="activeTab" class="max-w-full">
+    <!-- Lazy: a tab mounts when opened, so its lists load fresh instead of keeping what the page saw first. -->
+    <PrimeTabs v-model:value="activeTab" lazy class="max-w-full">
       <PrimeTabList class="max-w-full overflow-x-auto border-b border-[var(--border-soft)] px-2">
         <PrimeTab v-if="authStore.isAdmin" value="0" class="whitespace-nowrap">{{ t("settings.tabs.staff") }}</PrimeTab>
         <PrimeTab v-if="authStore.isAdmin" value="1" class="whitespace-nowrap">{{ t("settings.tabs.shifts") }}</PrimeTab>

@@ -1,11 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./helpers/api-harness";
+import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 
-const ROUTES: Route[] = [
-  ["get", "/api/instance", "server/api/instance.get"],
-  ["get", "/api/team-access", "server/api/team-access/index.get"],
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-];
+const ROUTES = apiRoutes("instance.get.ts", "team-access/index.get.ts", "auth/login.post.ts");
 
 const storedName = (client: ApiClient) =>
   client.adminDb.prepare("SELECT value FROM settings WHERE key = 'instance_name'").get() as { value: string } | undefined;

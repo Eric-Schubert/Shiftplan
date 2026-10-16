@@ -20,11 +20,20 @@ export function useSwipe(elementRef: Ref<HTMLElement | null>, options: SwipeOpti
   let startX = 0;
   let startY = 0;
   let startTime = 0;
+  // A second finger makes it a pinch or zoom, never a week change, until all fingers are lifted.
+  let multiTouch = false;
 
   function handleTouchStart(e: TouchEvent) {
+    if (e.touches.length > 1) {
+      multiTouch = true;
+      isSwiping.value = false;
+      swipeOffset.value = 0;
+      return;
+    }
     const touch = e.touches[0];
     if (!touch) return;
 
+    multiTouch = false;
     startX = touch.clientX;
     startY = touch.clientY;
     startTime = Date.now();
@@ -35,7 +44,7 @@ export function useSwipe(elementRef: Ref<HTMLElement | null>, options: SwipeOpti
 
   function handleTouchMove(e: TouchEvent) {
     const touch = e.touches[0];
-    if (!touch) return;
+    if (!touch || multiTouch) return;
 
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);
@@ -54,7 +63,7 @@ export function useSwipe(elementRef: Ref<HTMLElement | null>, options: SwipeOpti
 
   function handleTouchEnd(e: TouchEvent) {
     const touch = e.changedTouches[0];
-    if (!touch) return;
+    if (!touch || multiTouch) return;
 
     const diffX = touch.clientX - startX;
     const diffY = Math.abs(touch.clientY - startY);

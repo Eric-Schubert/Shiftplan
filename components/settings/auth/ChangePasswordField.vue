@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // One labelled password input of the change-password dialog.
-defineProps<{ inputId: string; label: string; placeholder: string; describedBy?: string }>();
+// `autocomplete` tells password managers which one it is, so they neither fill the old one in twice nor save the wrong one.
+defineProps<{ inputId: string; label: string; placeholder: string; autocomplete: "current-password" | "new-password"; describedBy?: string }>();
 const value = defineModel<string>({ required: true });
 </script>
 
@@ -9,6 +10,13 @@ const value = defineModel<string>({ required: true });
     <label :for="inputId" class="block text-sm font-medium text-[var(--text-2)]">
       {{ label }}
     </label>
-    <PrimeInputText v-model="value" :id="inputId" type="password" :placeholder="placeholder" :aria-describedby="describedBy" />
+    <PrimeInputText
+      v-model="value"
+      :id="inputId"
+      type="password"
+      :autocomplete="autocomplete"
+      :placeholder="placeholder"
+      :aria-describedby="describedBy"
+    />
   </div>
 </template>

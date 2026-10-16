@@ -8,6 +8,7 @@ const locale = defineModel<AppLocale>({ required: true });
 const { authFetch } = useAuthFetch();
 const saving = ref(false);
 const { t } = useI18n();
+const requestError = useRequestError();
 const options = LOCALES.map((code) => ({ code, name: LOCALE_NAMES[code], tag: LOCALE_TAGS[code] }));
 
 async function save(value: unknown) {
@@ -22,8 +23,8 @@ async function save(value: unknown) {
       body: { instanceLocale: value },
     });
     locale.value = result.instanceLocale;
-  } catch (cause: any) {
-    emit("error", cause?.data?.statusMessage || t("settings.settingFailed"));
+  } catch (cause) {
+    emit("error", requestError(cause, "settings.settingFailed"));
     locale.value = previous;
   } finally {
     saving.value = false;

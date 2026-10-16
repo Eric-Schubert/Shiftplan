@@ -1,5 +1,6 @@
 import { vi } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./api-harness";
+import { createApiClient, type ApiClient } from "./api-harness";
+import { apiRoutes } from "./routes";
 
 export const FCM_ENDPOINT = "https://fcm.googleapis.com/fcm/send/device-1";
 export const APPLE_ENDPOINT = "https://web.push.apple.com/device-2";
@@ -7,24 +8,24 @@ export const APPLE_ENDPOINT = "https://web.push.apple.com/device-2";
 /** Every request to the push relay ends up here. */
 export const relayFetch = vi.fn();
 
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
-  ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
-  ["post", "/api/shiftplan/unassign", "server/api/shiftplan/unassign.post"],
-  ["get", "/api/instance", "server/api/instance.get"],
-  ["post", "/api/viewer/login", "server/api/viewer/login.post"],
-  ["post", "/api/viewer/logout", "server/api/viewer/logout.post"],
-  ["post", "/api/push/devices", "server/api/push/devices.post"],
-  ["delete", "/api/push/devices", "server/api/push/devices.delete"],
-  ["get", "/api/viewer/status", "server/api/viewer/status.get"],
-  ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
-  ["post", "/api/push/unsubscribe", "server/api/push/unsubscribe.post"],
-  ["get", "/api/push/status", "server/api/push/status.get"],
-  ["post", "/api/push/notify", "server/api/push/notify.post"],
-  ["get", "/api/team-access", "server/api/team-access/index.get"],
-  ["post", "/api/team-access", "server/api/team-access/index.post"],
-];
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "shiftplan/index.get.ts",
+  "shiftplan/assign.post.ts",
+  "shiftplan/unassign.post.ts",
+  "instance.get.ts",
+  "viewer/login.post.ts",
+  "viewer/logout.post.ts",
+  "push/devices.post.ts",
+  "push/devices.delete.ts",
+  "viewer/status.get.ts",
+  "push/subscribe.post.ts",
+  "push/unsubscribe.post.ts",
+  "push/status.get.ts",
+  "push/notify.post.ts",
+  "team-access/index.get.ts",
+  "team-access/index.post.ts"
+);
 
 export type PushClient = ApiClient & { push: typeof import("../../server/services/push.service") };
 

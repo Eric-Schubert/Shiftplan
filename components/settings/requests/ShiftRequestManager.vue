@@ -6,6 +6,7 @@ const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
+const requestError = useRequestError();
 const requests = ref<ShiftRequest[]>([]);
 const requiresApproval = ref(false);
 const loading = ref(true);
@@ -50,8 +51,8 @@ async function decide(request: ShiftRequest, action: "approve" | "reject" | "rev
   try {
     await authFetch(`/api/requests/${request.request_id}`, { method: "POST", body: { action } });
     await load();
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("settings.requests.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "settings.requests.failed");
   } finally {
     busy.value = null;
   }

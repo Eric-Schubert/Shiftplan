@@ -12,6 +12,7 @@ const emit = defineEmits<{
 const dataStore = useDataStore();
 const localeTag = useLocaleTag();
 const { t } = useI18n();
+const requestError = useRequestError();
 const saving = ref(false);
 const errorMessage = ref<string | null>(null);
 const configForm = ref<Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">>({
@@ -57,8 +58,8 @@ async function save() {
   try {
     await dataStore.updateRotationConfig(configForm.value);
     emit("saved");
-  } catch (error: any) {
-    errorMessage.value = error.data?.statusMessage || t("settings.rotation.config.failed");
+  } catch (error) {
+    errorMessage.value = requestError(error, "settings.rotation.config.failed");
   } finally {
     saving.value = false;
   }

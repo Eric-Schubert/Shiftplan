@@ -80,6 +80,7 @@ function onHide() {
         <ChangePasswordField
           v-model="currentPassword"
           input-id="current-password"
+          autocomplete="current-password"
           :label="t('settings.auth.changePassword.current')"
           :placeholder="t('settings.auth.changePassword.currentPlaceholder')"
           :described-by="error ? passwordErrorId : undefined"
@@ -87,6 +88,7 @@ function onHide() {
         <ChangePasswordField
           v-model="newPassword"
           input-id="new-password"
+          autocomplete="new-password"
           :label="t('settings.auth.changePassword.new')"
           :placeholder="passwordHint"
           :described-by="error ? passwordErrorId : undefined"
@@ -94,6 +96,7 @@ function onHide() {
         <ChangePasswordField
           v-model="confirmPassword"
           input-id="confirm-password"
+          autocomplete="new-password"
           :label="t('settings.auth.changePassword.repeat')"
           :placeholder="t('settings.auth.changePassword.repeatPlaceholder')"
           :described-by="error ? passwordErrorId : undefined"

@@ -44,11 +44,11 @@ describe("auth and planner e2e", () => {
   it("rejects inactive users and invalid credentials", async () => {
     const disabled = await client.request("POST", "/api/auth/login", {
       body: { username: "disabled", password: "disabled1234" },
-      headers: { "x-forwarded-for": "127.0.0.2" },
+      ip: "127.0.0.2",
     });
     const invalid = await client.request("POST", "/api/auth/login", {
       body: { username: "planner", password: "wrong-password" },
-      headers: { "x-forwarded-for": "127.0.0.3" },
+      ip: "127.0.0.3",
     });
 
     expect(disabled.status).toBe(401);

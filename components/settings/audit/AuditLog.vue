@@ -5,17 +5,22 @@ const { t } = useI18n();
 const entries = ref<AuditEntry[]>([]);
 const total = ref(0);
 const loading = ref(true);
+const loadError = ref("");
+const requestError = useRequestError();
 const page = ref(0);
 const limit = 20;
 
 async function fetchEntries() {
   loading.value = true;
+  loadError.value = "";
   try {
     const result = await $fetch<{ entries: AuditEntry[]; total: number }>("/api/audit", {
       query: { limit, offset: page.value * limit },
     });
     entries.value = result.entries;
     total.value = result.total;
+  } catch (cause) {
+    loadError.value = requestError(cause, "settings.loadFailed");
   } finally {
     loading.value = false;
   }
@@ -49,6 +54,8 @@ onMounted(fetchEntries);
     <div v-if="loading" class="flex justify-center py-8">
       <PrimeProgressSpinner />
     </div>
+
+    <AppRetryNotice v-else-if="loadError" :message="loadError" @retry="fetchEntries" />
 
     <template v-else>
       <div v-if="entries.length > 0" class="space-y-2">

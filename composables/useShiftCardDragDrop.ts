@@ -4,7 +4,7 @@ import { useDragDrop } from "~/composables/useDragDrop";
 
 interface ShiftCardDragDropOptions {
   shift: Ref<ShiftWithStaff>;
-  /** Moves a dropped person from their source shift onto this one. */
+  /** Moves a dropped person from their source shift onto this one and reports failures itself. */
   onMove: (staffId: number, sourceShiftId: number) => Promise<void>;
 }
 
@@ -53,11 +53,7 @@ export function useShiftCardDragDrop({ shift, onMove }: ShiftCardDragDropOptions
     const payload = getPayload();
     if (!payload || payload.sourceShiftId === shift.value.shift_id) return;
 
-    try {
-      await onMove(payload.staffId, payload.sourceShiftId);
-    } catch (error) {
-      console.error("Drag and drop failed", error);
-    }
+    await onMove(payload.staffId, payload.sourceShiftId);
   }
 
   return {

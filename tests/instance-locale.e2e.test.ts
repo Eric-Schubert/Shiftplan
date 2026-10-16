@@ -1,13 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./helpers/api-harness";
+import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 
-const ROUTES: Route[] = [
-  ["get", "/api/instance", "server/api/instance.get"],
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["get", "/api/team-access", "server/api/team-access/index.get"],
-  ["post", "/api/team-access", "server/api/team-access/index.post"],
-  ["post", "/api/member/login", "server/api/member/login.post"],
-];
+const ROUTES = apiRoutes("instance.get.ts", "auth/login.post.ts", "team-access/index.get.ts", "team-access/index.post.ts", "member/login.post.ts");
 
 describe("instance language", () => {
   let client: ApiClient;

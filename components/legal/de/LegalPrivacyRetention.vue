@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RetentionDays } from "~/shared/utils/retention";
 import type { PrivacyFacts } from "~/types/privacy";
-import { daysText, minutesText, periodText } from "~/utils/legal/durations";
+import { daysText, minutesText, periodText } from "~/utils/legal/de/durations";
 
 defineProps<{
   retention: RetentionDays;
@@ -97,39 +97,4 @@ defineProps<{
   </LegalPrivacySection>
 </template>
 
-<style scoped>
-.privacy-terms {
-  display: grid;
-  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
-  margin: 0;
-  border-top: 1px solid var(--border-soft);
-}
-
-.privacy-terms dt,
-.privacy-terms dd {
-  margin: 0;
-  padding: 0.625rem 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.privacy-terms dt {
-  padding-right: 1rem;
-  color: var(--text-1);
-  font-weight: 600;
-}
-
-@media (max-width: 640px) {
-  .privacy-terms {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .privacy-terms dt {
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
-
-  .privacy-terms dd {
-    padding-top: 0;
-  }
-}
-</style>
+<style scoped src="~/assets/legal-terms.css"></style>

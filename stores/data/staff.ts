@@ -40,6 +40,8 @@ export async function updateStaffRecord(store: StaffStoreContext, id: number, da
     store.staff[index] = updated;
   }
 
+  // The rotation board carries names and leaves out inactive people, so it reloads with every change.
+  await store.fetchRotation();
   return updated;
 }
 

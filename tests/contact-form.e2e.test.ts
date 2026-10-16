@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 
 const GRAPH_ENV = {
   CONTACT_MAIL_PROVIDER: "graph",
@@ -31,11 +32,7 @@ describe("contact form", () => {
         ? new Response(JSON.stringify({ access_token: "token", expires_in: 3600 }), { status: 200 })
         : new Response(null, { status: 202 });
     });
-    client = await createApiClient([
-      ["post", "/api/auth/login", "server/api/auth/login.post"],
-      ["post", "/api/contact", "server/api/contact.post"],
-      ["get", "/api/contact/messages", "server/api/contact/messages.get"],
-    ]);
+    client = await createApiClient(apiRoutes("auth/login.post.ts", "contact.post.ts", "contact/messages.get.ts"));
   });
 
   afterEach(() => {

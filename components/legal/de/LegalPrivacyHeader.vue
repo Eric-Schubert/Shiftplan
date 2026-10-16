@@ -6,6 +6,12 @@ defineProps<{
 }>();
 
 const lastUpdated = "Oktober 2026";
+
+useSeoMeta({
+  title: "Datenschutz | Shiftplan",
+  description:
+    "Datenschutzerklärung für Shiftplan: welche Daten Planung, Team-App, Kontaktformular und Statistik verarbeiten, wie lange sie gespeichert werden und welche Rechte du hast.",
+});
 </script>
 
 <template>

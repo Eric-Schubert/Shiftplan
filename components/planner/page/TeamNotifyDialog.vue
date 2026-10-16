@@ -16,6 +16,7 @@ const sending = ref(false);
 const error = ref("");
 const result = ref("");
 const { t } = useI18n();
+const requestError = useRequestError();
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -53,8 +54,8 @@ async function send() {
     });
     result.value = t("planner.week.notify.sent", response.sent);
     message.value = "";
-  } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || t("planner.week.notify.failed");
+  } catch (cause) {
+    error.value = requestError(cause, "planner.week.notify.failed");
   } finally {
     sending.value = false;
   }

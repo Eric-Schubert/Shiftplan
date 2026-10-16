@@ -42,6 +42,15 @@ export default {
     title: "Coming weeks",
     assignments: "1 assignment | {count} assignments",
     notPlanned: "Not planned yet.",
+    failed: "Could not be loaded.",
+  },
+  // Asked before filling a week that differs from its pattern week; single-day changes are kept.
+  fill: {
+    header: "Fill the week from the pattern?",
+    text: "This week differs from the rotation pattern. Filling replaces its one assignment with pattern week {week}. Single-day changes stay. | This week differs from the rotation pattern. Filling replaces all {count} assignments with pattern week {week}. Single-day changes stay.",
+    unknown: "This week's plan is not loaded yet. Filling replaces all of the week's assignments with the rotation pattern. Single-day changes stay.",
+    confirm: "Replace",
+    failed: "The week could not be filled from the pattern",
   },
   bulk: { header: "Generate several weeks" },
   notify: {
