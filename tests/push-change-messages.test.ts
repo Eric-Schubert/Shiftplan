@@ -25,15 +25,8 @@ describe("plan change texts", () => {
   it("lists day changes by date, so the earliest days survive shortening", async () => {
     const { buildChangePayload } = await messages();
     const days = ["2026-10-11", "2026-10-07", "2026-10-05", "2026-10-09", "2026-10-06", "2026-10-08"];
-    const labels: Record<string, string> = {
-      "2026-10-05": "Mo. 05.10.",
-      "2026-10-06": "Di. 06.10.",
-      "2026-10-07": "Mi. 07.10.",
-      "2026-10-08": "Do. 08.10.",
-      "2026-10-09": "Fr. 09.10.",
-      "2026-10-11": "So. 11.10.",
-    };
-    const payload = buildChangePayload(days.map((date) => change({ date, shiftName: `Früh ${labels[date]}` })), "de-DE")!;
+    // The queue keeps the raw date; the text adds it in the recipient's language.
+    const payload = buildChangePayload(days.map((date) => change({ date })), "de")!;
 
     expect(payload.body.split("\n").map((line) => line.split(":")[0])).toEqual([
       "KW 41 · Früh Mo. 05.10.",

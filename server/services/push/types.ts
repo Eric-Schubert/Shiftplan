@@ -36,6 +36,7 @@ export type PendingChange = {
   week: number;
   /** YYYY-MM-DD for a change of a single day. */
   date?: string;
+  /** The shift's name; the push adds the date of a day change in the recipient's language. */
   shiftName: string;
   shiftOrder: number;
   staffId: number;

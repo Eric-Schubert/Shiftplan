@@ -1,15 +1,15 @@
 import { getDatabase } from "~/server/utils/database";
 import { TeamAccessService } from "~/server/services/team-access.service";
 import { listDevices } from "~/server/services/push/devices";
-import { buildChangePayload, buildNativeMessages } from "~/server/services/push/messages";
+import { groupByLocale } from "~/server/services/push/locales";
+import { buildChangePayload } from "~/server/services/push/messages";
+import { buildNativeMessages } from "~/server/services/push/native-messages";
 import { rememberOrigin } from "~/server/services/push/origin";
 import { sendNative } from "~/server/services/push/send";
 import { sendWebPush } from "~/server/services/push/web";
 import { getNotifiableWeeks } from "~/server/services/push/weeks";
 import { planningToday } from "~/server/utils/planning-date";
 import type { PendingChange, SendCounts, ShiftChange } from "~/server/services/push/types";
-import { instanceLocaleTag } from "~/server/utils/locale";
-import { formatDay } from "~/shared/utils/format/day";
 
 // Changes are bundled so a planner editing several slots sends one push.
 const CHANGE_QUIET_MS = 60 * 1000;
@@ -45,9 +45,9 @@ export function queueShiftChange(change: ShiftChange, origin?: string): void {
   const pending = pendingChanges.get(key) || {
     year: change.year,
     week: change.week,
+    // Raw data only: the texts are written at the flush, in each recipient's language.
     date: change.date,
-    // A day change reads „Früh Di. 13.10.“ so it groups apart from the whole week.
-    shiftName: change.date ? `${shift.name} ${formatDay(instanceLocaleTag(), change.date)}` : shift.name,
+    shiftName: shift.name,
     shiftOrder: shift.sort_order,
     staffId: change.staffId,
     staffName: staff.name,
@@ -72,14 +72,17 @@ export async function flushPendingChanges(): Promise<SendCounts | null> {
 
   const changes = [...pendingChanges.values()];
   pendingChanges.clear();
-  // No recipient locale yet: pushes go out in the instance language.
-  const payload = buildChangePayload(changes, instanceLocaleTag());
-  if (!payload) return null;
+  if (!changes.some((change) => change.delta !== 0)) return null;
 
   // Browsers and apps go out independently: one channel failing does not cost the other.
+  // Each gets the texts in the language it registered with.
   const results = await Promise.allSettled([
-    sendWebPush(payload),
-    (async () => sendNative(buildNativeMessages(changes, listDevices(), TeamAccessService.getInstanceId(), instanceLocaleTag())))(),
+    sendWebPush((locale) => buildChangePayload(changes, locale)!),
+    (async () => {
+      const instanceId = TeamAccessService.getInstanceId();
+      const groups = [...groupByLocale(listDevices())];
+      return sendNative(groups.flatMap(([locale, devices]) => buildNativeMessages(changes, devices, instanceId, locale)));
+    })(),
   ]);
   const counts: SendCounts = { sent: 0, failed: 0 };
   for (const result of results) {
