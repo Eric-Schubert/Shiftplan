@@ -21,10 +21,14 @@ describe("i18n catalogs", () => {
     expect(broken).toEqual([]);
   });
 
-  it("detects broken messages", () => {
+  it.each([
+    ["an unescaped @", "support@example.org"],
+    ["an unclosed brace", "Hallo {name"],
+    ["a stray closing brace", "Hallo name}"],
+  ])("detects %s", (_, message) => {
     const errors: string[] = [];
     const onError = (error: Error) => void errors.push(error.message);
-    compile("support@example.org {name", { key: "test", locale: "de", onError });
-    expect(errors.length).toBeGreaterThan(0);
+    compile(message, { key: "test", locale: "de", onError });
+    expect(errors).not.toEqual([]);
   });
 });
