@@ -1,9 +1,9 @@
-import { AnalyticsService } from "~/server/services/analytics.service";
 import {
+  AnalyticsService,
   isLikelyBot,
   normalizeAnalyticsPath,
   readDecodedHeader,
-} from "~/server/utils/analytics";
+} from "~/server/services/analytics.service";
 import { getClientIP } from "~/server/utils/session";
 
 export default defineEventHandler(async (event) => {

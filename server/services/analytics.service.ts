@@ -11,6 +11,8 @@ import {
 } from "~/server/services/analytics/visitor";
 import type { AnalyticsSummary } from "~/types/analytics";
 
+export { isLikelyBot, normalizeAnalyticsPath, readDecodedHeader } from "~/server/services/analytics/request";
+
 type VisitRecord = {
   date: string;
   path: string;

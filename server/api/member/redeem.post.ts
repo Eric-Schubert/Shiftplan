@@ -1,5 +1,5 @@
 import { DEVICE_NAME_MAX_LENGTH, MemberAccessService } from "~/server/services/member-access.service";
-import { memberLoginResponse } from "~/server/utils/member-login";
+import { memberLoginResponse } from "~/server/services/member-login.service";
 import { getClientNetwork, limitAttempt } from "~/server/utils/session";
 import { readJsonBody } from "~/server/utils/json-body";
 

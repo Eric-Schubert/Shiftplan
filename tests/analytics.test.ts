@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isLikelyBot,
   normalizeAnalyticsPath,
-} from "../server/utils/analytics";
+} from "../server/services/analytics/request";
 
 describe("analytics helpers", () => {
   it("filters bot user agents", () => {

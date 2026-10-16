@@ -1,6 +1,5 @@
-import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { ShiftplanService, readGenerationRange } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
-import { readGenerationRange } from "~/server/utils/generation-range";
 
 export default defineEventHandler((event) => {
   requirePlanner(event);
