@@ -95,6 +95,23 @@ describe("Rotation Excel import labels", () => {
     expect(assignments()).toEqual(EXPECTED);
   });
 
+  it("keeps a shift that is named like a free word", () => {
+    db.prepare(
+      "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Off', 1, '08:00', '16:00', '#999999', 1, 3)"
+    ).run();
+    const labels = { sheet: "Rotation", config: ["Startjahr", "Startwoche", "Zykluslänge"], staff: "Mitarbeiter" };
+    const file = gridFile({ ...labels, weeks: ["Woche 1", "Woche 2"] }, [
+      ["Anna Becker", "Früh", "off"],
+      ["Ben Wagner", "frei", "-"],
+    ]);
+
+    expect(RotationExcelService.importTemplate(file)).toMatchObject({ importedRows: 2, importedAssignments: 2 });
+    expect(assignments()).toEqual([
+      { pattern_week: 1, staff_id: 1, shift_id: 1 },
+      { pattern_week: 2, staff_id: 1, shift_id: 3 },
+    ]);
+  });
+
   it("still reads a German template while another locale exists", () => {
     const template = RotationExcelService.createTemplate("de");
 
