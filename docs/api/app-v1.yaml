@@ -35,6 +35,10 @@ info:
 
     `apiVersion` only increases with incompatible changes. New fields can be added at any time
     and must be ignored by the app.
+
+    Error responses carry the text for the user in `statusMessage` (German) and, independent of the
+    language, `data.code` (a stable key such as `errors.member.notSignedIn`) with its `data.params`.
+    New codes can be added at any time.
 servers:
   - url: https://{instance}
     variables:
@@ -116,6 +120,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                statusCode: 401
+                statusMessage: Nicht angemeldet oder Zugang gesperrt
+                data:
+                  code: errors.member.notSignedIn
 
   /api/member/logout:
     post:
@@ -712,7 +721,7 @@ components:
               success:
                 type: boolean
     Error:
-      description: Error with a German message in `statusMessage`
+      description: Error with a German message in `statusMessage` and its code in `data.code`
       content:
         application/json:
           schema:
@@ -726,6 +735,17 @@ components:
           type: integer
         statusMessage:
           type: string
+        data:
+          type: object
+          description: Present on errors with a message. Unknown codes are shown by their `statusMessage`.
+          properties:
+            code:
+              type: string
+              description: Stable message key, for example `errors.requests.notFound`
+            params:
+              type: object
+              description: Values filled into the message. A value can itself be `{ key, params }`.
+              additionalProperties: true
 
     Instance:
       type: object
