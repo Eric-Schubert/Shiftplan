@@ -2,6 +2,10 @@ import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
 import { removeStaffAccess } from "~/server/services/member-access.service";
 import { ShiftRequestService } from "~/server/services/shift-request.service";
+import { ShiftplanService } from "~/server/services/shiftplan.service";
+import { DayChangeService } from "~/server/services/day-change.service";
+import { planningWeek } from "~/server/utils/planning-date";
+import { isoWeekRange } from "~/shared/utils/week";
 import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/lib/migrations/staff-short-code.js";
 import { apiError } from "~/server/utils/api-error";
 
@@ -70,6 +74,13 @@ export const StaffService = {
     if (!active) {
       removeStaffAccess(id);
       ShiftRequestService.cancelForStaff(id);
+    }
+    // Leaving also clears the weeks after this one, which no longer count them as staffed.
+    // This week and earlier ones keep them as history; a rollout puts them back once active again.
+    if (current.active && !active) {
+      const thisWeek = planningWeek();
+      ShiftplanService.removeStaffAfterWeek(id, thisWeek);
+      DayChangeService.removeStaffAfter(id, isoWeekRange(thisWeek.year, thisWeek.week).end);
     }
     return this.getById(id);
   },

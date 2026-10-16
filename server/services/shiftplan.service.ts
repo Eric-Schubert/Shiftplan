@@ -1,7 +1,7 @@
 import type { GenerationResult } from "~/types/shiftplan";
 import { getDatabase } from "~/server/utils/database";
 import { RotationService } from "~/server/services/rotation.service";
-import { assignStaff, getOrCreateWeek, getWeek, hasAssignment, unassignStaff } from "~/server/services/shiftplan/weeks";
+import { assignStaff, getOrCreateWeek, getWeek, hasAssignment, removeStaffAfterWeek, unassignStaff } from "~/server/services/shiftplan/weeks";
 import { getWeeklyPlan, getWeeklyPlanReadOnly, type PlanWithPatternWeek } from "~/server/services/shiftplan/weekly-plan";
 import { listWeeks, previewGeneration } from "~/server/services/shiftplan/generation";
 import { copyYear, plannedWeeks } from "~/server/services/shiftplan/copy-year";
@@ -17,6 +17,7 @@ export const ShiftplanService = {
   hasAssignment,
   assignStaff,
   unassignStaff,
+  removeStaffAfterWeek,
 
   generateFromPattern(year: number, weekNumber: number): PlanWithPatternWeek {
     const db = getDatabase();

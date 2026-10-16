@@ -51,9 +51,15 @@ export const ShiftService = {
     return this.getById(id);
   },
 
+  /**
+   * Assignments and day changes of the shift go with it (ON DELETE CASCADE). Its absences have to go
+   * by hand: the foreign key would set them to no shift, which means absent from every shift that day.
+   */
   delete(id: number): boolean {
     const db = getDatabase();
-    const result = db.prepare("DELETE FROM shifts WHERE shift_id = ?").run(id);
-    return result.changes > 0;
+    return db.transaction(() => {
+      db.prepare("DELETE FROM absences WHERE shift_id = ?").run(id);
+      return db.prepare("DELETE FROM shifts WHERE shift_id = ?").run(id).changes > 0;
+    })();
   },
 };

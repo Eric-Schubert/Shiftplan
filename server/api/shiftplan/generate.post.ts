@@ -2,7 +2,7 @@ import { AuditService } from "~/server/services/audit.service";
 import { ShiftplanService, readGenerationRange } from "~/server/services/shiftplan.service";
 import { requirePlanner } from "~/server/utils/auth";
 import { requestSource } from "~/server/utils/session";
-import { validateBoolean, validateYear, validateWeek } from "~/server/utils/validation";
+import { validateBoolean } from "~/server/utils/validation";
 import { readObjectBody } from "~/server/utils/json-body";
 
 export default defineEventHandler(async (event) => {
@@ -10,15 +10,10 @@ export default defineEventHandler(async (event) => {
 
   const body = await readObjectBody(event);
 
+  // Without `weeks` it is the fill-from-pattern button of the week view: one week, with the same checks,
+  // transaction and audit entry as a rollout.
   const hasWeeksParameter = body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
-
-  if (!hasWeeksParameter) {
-    const year = validateYear(body.year, "year", { required: true });
-    const week = validateWeek(body.week, "week", { required: true, year });
-    return ShiftplanService.generateFromPattern(year, week);
-  }
-
-  const { year, week, weeks } = readGenerationRange(body);
+  const { year, week, weeks } = readGenerationRange({ year: body.year, week: body.week, weeks: hasWeeksParameter ? body.weeks : 1 });
   // Older clients sent no flag and always overwrote.
   const overwrite = validateBoolean(body.overwrite, "overwrite") !== 0;
   const result = ShiftplanService.generateMultipleWeeks(year, week, weeks, { overwrite });
