@@ -1,26 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { routeFromApiFile } from "../scripts/docs/routes.js";
-import { createApiClient, type ApiClient, type CookieJar, type Route } from "./helpers/api-harness";
+import { createApiClient, type ApiClient, type CookieJar } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 import { webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
 
 // One case per class in server/config/route-policy.ts, through the real auth middleware.
 // Paths without a handler answer 404 once the middleware lets them through.
-const ROUTES: Route[] = [
-  "server/api/auth/login.post.ts",
-  "server/api/auth/session.get.ts",
-  "server/api/absences/index.get.ts",
-  "server/api/team-access/index.post.ts",
-  "server/api/viewer/login.post.ts",
-  "server/api/member-invites/index.post.ts",
-  "server/api/member/redeem.post.ts",
-  "server/api/member/logout.post.ts",
-  "server/api/shiftplan/assign.post.ts",
-].map((file) => {
-  const { method, route } = routeFromApiFile(file);
-  return [method.toLowerCase(), route, file.replace(/\.ts$/, "")];
-});
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "auth/session.get.ts",
+  "absences/index.get.ts",
+  "team-access/index.post.ts",
+  "viewer/login.post.ts",
+  "member-invites/index.post.ts",
+  "member/redeem.post.ts",
+  "member/logout.post.ts",
+  "shiftplan/assign.post.ts"
+);
 
 const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
 const FOREIGN_ORIGIN = { origin: "https://evil.example", host: "localhost" };

@@ -1,23 +1,24 @@
 import bcrypt from "bcryptjs";
 import { afterEach, beforeEach } from "vitest";
 import backendConfig from "../../config/backend.config.json";
-import { createApiClient, type ApiClient, type Route } from "./api-harness";
+import { createApiClient, type ApiClient } from "./api-harness";
+import { apiRoutes } from "./routes";
 
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["get", "/api/auth/session", "server/api/auth/session.get"],
-  ["post", "/api/auth/logout", "server/api/auth/logout.post"],
-  ["post", "/api/auth/users", "server/api/auth/users.post"],
-  ["delete", "/api/auth/users/:id", "server/api/auth/users/[id].delete"],
-  ["post", "/api/auth/change-password", "server/api/auth/change-password.post"],
-  ["post", "/api/member/login", "server/api/member/login.post"],
-  ["post", "/api/member/redeem", "server/api/member/redeem.post"],
-  ["post", "/api/viewer/login", "server/api/viewer/login.post"],
-  ["post", "/api/staff", "server/api/staff/index.post"],
-  ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
-  ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
-  ["post", "/api/shiftplan/unassign", "server/api/shiftplan/unassign.post"],
-];
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "auth/session.get.ts",
+  "auth/logout.post.ts",
+  "auth/users.post.ts",
+  "auth/users/[id].delete.ts",
+  "auth/change-password.post.ts",
+  "member/login.post.ts",
+  "member/redeem.post.ts",
+  "viewer/login.post.ts",
+  "staff/index.post.ts",
+  "shiftplan/index.get.ts",
+  "shiftplan/assign.post.ts",
+  "shiftplan/unassign.post.ts"
+);
 
 export const sessionCookieName = backendConfig.auth.session.cookies.sessionName;
 export const csrfCookieName = backendConfig.auth.session.cookies.csrfName;

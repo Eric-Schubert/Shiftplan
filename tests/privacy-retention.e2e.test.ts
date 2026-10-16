@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApiClient, type ApiClient } from "./helpers/api-harness";
+import { apiRoutes } from "./helpers/routes";
 
 const MAIL_ENV = [
   "CONTACT_MAIL_PROVIDER",
@@ -16,13 +17,7 @@ beforeEach(async () => {
   vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-05T08:00:00Z") });
   for (const name of MAIL_ENV) vi.stubEnv(name, "");
   client = await createApiClient(
-    [
-      ["post", "/api/auth/login", "server/api/auth/login.post"],
-      ["get", "/api/audit", "server/api/audit/index.get"],
-      ["get", "/api/requests", "server/api/requests/index.get"],
-      ["get", "/api/contact/messages", "server/api/contact/messages.get"],
-      ["get", "/api/legal/privacy", "server/api/legal/privacy.get"],
-    ],
+    apiRoutes("auth/login.post.ts", "audit/index.get.ts", "requests/index.get.ts", "contact/messages.get.ts", "legal/privacy.get.ts"),
     (db) => {
       db.prepare("INSERT INTO staff (name, active, is_parttime) VALUES ('Anna Weber', 1, 0)").run();
     }

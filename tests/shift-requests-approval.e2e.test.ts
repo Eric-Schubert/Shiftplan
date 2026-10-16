@@ -8,7 +8,7 @@ useShiftRequestClient();
 describe("planner approval", () => {
   it("waits for the planner when approval is required, and the planner can revert", async () => {
     const planner = await client.loginAs("admin", "admin1234");
-    const setting = await client.request<any>("POST", "/api/requests/settings", {
+    const setting = await client.request<any>("PUT", "/api/requests/settings", {
       jar: planner,
       csrf: true,
       body: { requiresApproval: true },
@@ -41,7 +41,7 @@ describe("planner approval", () => {
 
   it("keeps the setting for admins only", async () => {
     const planner = await client.loginAs("planner", "planner1234");
-    const response = await client.request("POST", "/api/requests/settings", {
+    const response = await client.request("PUT", "/api/requests/settings", {
       jar: planner,
       csrf: true,
       body: { requiresApproval: true },

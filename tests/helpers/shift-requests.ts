@@ -1,28 +1,29 @@
 import { afterEach, beforeEach, vi } from "vitest";
-import { createApiClient, type ApiClient, type Route } from "./api-harness";
+import { createApiClient, type ApiClient } from "./api-harness";
+import { apiRoutes } from "./routes";
 import { relayCalls, stubRelay } from "./relay-stub";
 import { sendNotification } from "./web-push-mock";
 
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
-  ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
-  ["delete", "/api/shift/:id", "server/api/shift/[id].delete"],
-  ["post", "/api/push/devices", "server/api/push/devices.post"],
-  ["post", "/api/member/redeem", "server/api/member/redeem.post"],
-  ["post", "/api/member/absences", "server/api/member/absences/index.post"],
-  ["delete", "/api/member/absences/:id", "server/api/member/absences/[id].delete"],
-  ["get", "/api/absences", "server/api/absences/index.get"],
-  ["delete", "/api/absences/:id", "server/api/absences/[id].delete"],
-  ["get", "/api/member/requests", "server/api/member/requests/index.get"],
-  ["post", "/api/member/requests", "server/api/member/requests/index.post"],
-  ["post", "/api/member/requests/:id", "server/api/member/requests/[id].post"],
-  ["get", "/api/requests", "server/api/requests/index.get"],
-  ["post", "/api/requests/settings", "server/api/requests/settings.put"],
-  ["post", "/api/requests/:id", "server/api/requests/[id].post"],
-  ["post", "/api/member-invites", "server/api/member-invites/index.post"],
-  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
-];
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "shiftplan/index.get.ts",
+  "shiftplan/day-change.post.ts",
+  "shift/[id].delete.ts",
+  "push/devices.post.ts",
+  "member/redeem.post.ts",
+  "member/absences/index.post.ts",
+  "member/absences/[id].delete.ts",
+  "absences/index.get.ts",
+  "absences/[id].delete.ts",
+  "member/requests/index.get.ts",
+  "member/requests/index.post.ts",
+  "member/requests/[id].post.ts",
+  "requests/index.get.ts",
+  "requests/settings.put.ts",
+  "requests/[id].post.ts",
+  "member-invites/index.post.ts",
+  "staff/[id].patch.ts"
+);
 
 export const ANNA = 1;
 export const MAX = 2;
@@ -76,7 +77,7 @@ export function act(token: string, id: number, action: string) {
 
 export async function requireApproval() {
   const admin = await client.loginAs("admin", "admin1234");
-  await client.request("POST", "/api/requests/settings", { jar: admin, csrf: true, body: { requiresApproval: true } });
+  await client.request("PUT", "/api/requests/settings", { jar: admin, csrf: true, body: { requiresApproval: true } });
   return admin;
 }
 

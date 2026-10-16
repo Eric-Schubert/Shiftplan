@@ -1,33 +1,34 @@
 import { afterEach, beforeEach, expect } from "vitest";
-import { createApiClient, type ApiClient, type CookieJar, type Route } from "./api-harness";
+import { createApiClient, type ApiClient, type CookieJar } from "./api-harness";
+import { apiRoutes } from "./routes";
 import { relayCalls, stubRelay } from "./relay-stub";
 import { sendNotification } from "./web-push-mock";
 
-const ROUTES: Route[] = [
-  ["post", "/api/auth/login", "server/api/auth/login.post"],
-  ["get", "/api/shiftplan", "server/api/shiftplan/index.get"],
-  ["post", "/api/shiftplan/assign", "server/api/shiftplan/assign.post"],
-  ["post", "/api/shiftplan/day-change", "server/api/shiftplan/day-change.post"],
-  ["post", "/api/team-access", "server/api/team-access/index.post"],
-  ["post", "/api/viewer/login", "server/api/viewer/login.post"],
-  ["post", "/api/push/subscribe", "server/api/push/subscribe.post"],
-  ["post", "/api/push/devices", "server/api/push/devices.post"],
-  ["post", "/api/push/notify", "server/api/push/notify.post"],
-  ["patch", "/api/staff/:id", "server/api/staff/[id].patch"],
-  ["delete", "/api/staff/:id", "server/api/staff/[id].delete"],
-  ["post", "/api/member/redeem", "server/api/member/redeem.post"],
-  ["put", "/api/member/pin", "server/api/member/pin.put"],
-  ["get", "/api/member/me", "server/api/member/me.get"],
-  ["post", "/api/member/logout", "server/api/member/logout.post"],
-  ["post", "/api/member/absences", "server/api/member/absences/index.post"],
-  ["delete", "/api/member/absences/:id", "server/api/member/absences/[id].delete"],
-  ["get", "/api/absences", "server/api/absences/index.get"],
-  ["post", "/api/absences", "server/api/absences/index.post"],
-  ["delete", "/api/absences/:id", "server/api/absences/[id].delete"],
-  ["post", "/api/member-invites", "server/api/member-invites/index.post"],
-  ["get", "/api/member-sessions", "server/api/member-sessions/index.get"],
-  ["delete", "/api/member-sessions/:id", "server/api/member-sessions/[id].delete"],
-];
+const ROUTES = apiRoutes(
+  "auth/login.post.ts",
+  "shiftplan/index.get.ts",
+  "shiftplan/assign.post.ts",
+  "shiftplan/day-change.post.ts",
+  "team-access/index.post.ts",
+  "viewer/login.post.ts",
+  "push/subscribe.post.ts",
+  "push/devices.post.ts",
+  "push/notify.post.ts",
+  "staff/[id].patch.ts",
+  "staff/[id].delete.ts",
+  "member/redeem.post.ts",
+  "member/pin.put.ts",
+  "member/me.get.ts",
+  "member/logout.post.ts",
+  "member/absences/index.post.ts",
+  "member/absences/[id].delete.ts",
+  "absences/index.get.ts",
+  "absences/index.post.ts",
+  "absences/[id].delete.ts",
+  "member-invites/index.post.ts",
+  "member-sessions/index.get.ts",
+  "member-sessions/[id].delete.ts"
+);
 
 export const ANNA = 1;
 export const MAX = 2;

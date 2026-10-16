@@ -24,8 +24,10 @@ import path from "node:path";
 import { vi } from "vitest";
 import type { Database as DatabaseType } from "better-sqlite3";
 import { requestWithCookies, type ApiRequest, type CookieJar } from "./http-client";
+import { checkRoute, type Route } from "./routes";
 
 export type { CookieJar, RequestOptions } from "./http-client";
+export type { Route } from "./routes";
 export type ApiClient = {
   mainDb: DatabaseType;
   adminDb: DatabaseType;
@@ -33,9 +35,6 @@ export type ApiClient = {
   loginAs: (username: string, password: string) => Promise<CookieJar>;
   close: () => void;
 };
-
-/** [method, route, handler module relative to the project root] */
-export type Route = [string, string, string];
 
 function installH3Globals() {
   Object.assign(globalThis, {
@@ -87,6 +86,7 @@ export async function createApiClient(
 
   const router = createRouter();
   for (const [method, route, modulePath] of routes) {
+    checkRoute([method, route, modulePath]);
     (router as any)[method](route, await load(modulePath));
   }
   const app = createApp();
