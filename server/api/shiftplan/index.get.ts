@@ -1,21 +1,14 @@
 import { DayChangeService } from "~/server/services/day-change.service";
 import { ShiftplanService } from "~/server/services/shiftplan.service";
 import { validateYear, validateWeek } from "~/server/utils/validation";
+import { isoWeekOfDate } from "~/shared/utils/week";
 
 export default defineEventHandler((event) => {
   const query = getQuery(event);
   const year = validateYear(query.year, "Jahr") || new Date().getFullYear();
-  const week = validateWeek(query.week, "Woche") || getISOWeek(new Date());
+  const week = validateWeek(query.week, "Woche") || isoWeekOfDate(new Date()).week;
   return {
     ...ShiftplanService.getWeeklyPlanReadOnly(year, week),
     day_changes: DayChangeService.listForWeek(year, week),
   };
 });
-
-function getISOWeek(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}

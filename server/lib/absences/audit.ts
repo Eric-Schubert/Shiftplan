@@ -1,7 +1,7 @@
 import type { Absence } from "~/server/services/absence.service";
 import { AuditService } from "~/server/services/audit.service";
 import { formatNoticeDay } from "~/server/utils/absence-notice";
-import { weekOfDate } from "~/server/utils/iso-week";
+import { weekOfDate } from "~/shared/utils/week";
 
 export type Actor = { userId: number; username: string; source: "web" | "app" };
 

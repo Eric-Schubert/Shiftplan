@@ -1,5 +1,5 @@
 import type { GenerationPreviewWeek, GenerationResult } from "~/types/shiftplan";
-import { getIsoWeeksInYear } from "~/utils/rotation";
+import { isoWeeksInYear } from "~/shared/utils/week";
 
 /** Rolls the rotation pattern out into weekly plans, with a debounced preview of the affected weeks. */
 export function useRotationRollout(
@@ -21,7 +21,7 @@ export function useRotationRollout(
   const errorMessage = ref<string | null>(null);
   const result = ref<GenerationResult | null>(null);
 
-  const maxWeekInStartYear = computed(() => getIsoWeeksInYear(startYear.value));
+  const maxWeekInStartYear = computed(() => isoWeeksInYear(startYear.value));
   const weeksToGenerate = computed(() => {
     if (!untilYearEnd.value) return weekCount.value || 1;
     return Math.max(1, maxWeekInStartYear.value - startWeek.value + 1);

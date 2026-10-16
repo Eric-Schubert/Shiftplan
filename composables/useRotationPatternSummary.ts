@@ -1,7 +1,8 @@
-import { getIsoWeekOfDate, getPatternWeekForCalendarWeek } from "~/utils/rotation";
+import { patternWeekFor } from "~/shared/utils/rotation-math";
+import { isoWeekOfDate } from "~/shared/utils/week";
 
 /** Key figures of the stored rotation pattern, shown by the rotation wizard. */
-export function useRotationPatternSummary(today = getIsoWeekOfDate(new Date())) {
+export function useRotationPatternSummary(today = isoWeekOfDate(new Date())) {
   const dataStore = useDataStore();
 
   const rotationConfig = computed(() => dataStore.rotationConfig);
@@ -17,13 +18,7 @@ export function useRotationPatternSummary(today = getIsoWeekOfDate(new Date())) 
   const currentPatternWeek = computed(() => {
     const config = rotationConfig.value;
     if (!config) return null;
-    return getPatternWeekForCalendarWeek(
-      config.cycle_length,
-      config.start_year,
-      config.start_week,
-      today.year,
-      today.week
-    );
+    return patternWeekFor(config.cycle_length, { year: config.start_year, week: config.start_week }, today.year, today.week);
   });
 
   const understaffedCount = computed(() =>

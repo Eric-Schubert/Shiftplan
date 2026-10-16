@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ABSENCE_REASON_LABELS, type AbsenceReason } from "~/types/absence";
+import { datesOfISOWeek } from "~/shared/utils/week";
 
 const props = defineProps<{
   visible: boolean;
@@ -30,7 +31,7 @@ const reasonOptions = (Object.keys(ABSENCE_REASON_LABELS) as AbsenceReason[]).ma
 }));
 
 const staffId = ref<number | null>(null);
-const days = weekDates(props.year, props.week);
+const days = datesOfISOWeek(props.year, props.week);
 const from = ref(days[0]!);
 const to = ref(days[0]!);
 const reason = ref<AbsenceReason>("urlaub");

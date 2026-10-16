@@ -1,11 +1,11 @@
 import type { Absence } from "../types/absence";
 import type { ShiftDayChange, ShiftWithStaff } from "../types/shiftplan";
 import { formatAbsenceDay } from "../types/absence";
-import { weekDates } from "./week-dates";
+import { datesOfISOWeek } from "~/shared/utils/week";
 
 /** Days the team works: Mo–Fr, or the whole week for teams with weekend shifts. */
 export function workDates(year: number, week: number, weekends: boolean): string[] {
-  return weekDates(year, week).slice(0, weekends ? 7 : 5);
+  return datesOfISOWeek(year, week).slice(0, weekends ? 7 : 5);
 }
 
 /** Whether an absence takes the person out of this shift (shift-less absences count everywhere). */

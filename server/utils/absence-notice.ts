@@ -1,4 +1,5 @@
-import { parseISODate, toISOWeek } from "~/server/utils/iso-week";
+import { parseISODate } from "~/shared/utils/iso-date";
+import { toISOWeek } from "~/shared/utils/week";
 
 const WEEKDAYS = ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."];
 export const ABSENCE_MESSAGE_MAX_LENGTH = 160;

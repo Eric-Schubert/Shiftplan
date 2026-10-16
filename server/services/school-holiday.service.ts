@@ -7,7 +7,8 @@ import {
   getSchoolHolidayLookupRange,
   toHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
-import { fetchOpenHolidays, getWeekDateRange, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { fetchOpenHolidays, pickGermanName, type LocalizedName } from "~/server/lib/holidays/open-holidays";
+import { isoWeekRange } from "~/shared/utils/week";
 
 interface OpenSchoolHolidayResponse {
   id: string;
@@ -106,7 +107,7 @@ export const SchoolHolidayService = {
     let holidays = await getSchoolHolidays(year, states);
 
     if (week && !isNaN(week)) {
-      const { start, end } = getWeekDateRange(year, week);
+      const { start, end } = isoWeekRange(year, week);
       holidays = holidays.filter((h) => periodsOverlap(start, end, h.start, h.end));
     }
 

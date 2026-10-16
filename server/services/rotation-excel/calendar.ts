@@ -1,23 +1,16 @@
-import { getISOWeekStartDate, weeksBetween } from "~/server/services/rotation/weeks";
-import { toISOWeek } from "~/server/utils/iso-week";
+import { isoWeekMonday, isoWeekOfDate, isoWeeksBetween, toISOWeek, type ISOWeek } from "~/shared/utils/week";
 import type { RotationConfig } from "~/types/rotation";
-
-export type IsoWeek = { year: number; week: number };
-
-export function currentIsoWeek(today = new Date()): IsoWeek {
-  return toISOWeek(today.getFullYear(), today.getMonth() + 1, today.getDate());
-}
 
 /** The next calendar weeks (from this week on) for every pattern week, index 0 = pattern week 1. */
 export function upcomingCalendarWeeks(
   config: Pick<RotationConfig, "cycle_length" | "start_year" | "start_week">,
   occurrences: number,
   today = new Date()
-): IsoWeek[][] {
-  const current = currentIsoWeek(today);
-  const currentMonday = getISOWeekStartDate(current.year, current.week);
-  const offset = weeksBetween(config.start_year, config.start_week, current.year, current.week);
-  const result: IsoWeek[][] = Array.from({ length: config.cycle_length }, () => []);
+): ISOWeek[][] {
+  const current = isoWeekOfDate(today);
+  const currentMonday = isoWeekMonday(current.year, current.week);
+  const offset = isoWeeksBetween({ year: config.start_year, week: config.start_week }, current);
+  const result: ISOWeek[][] = Array.from({ length: config.cycle_length }, () => []);
 
   for (let index = 0; index < config.cycle_length * occurrences; index++) {
     const monday = new Date(currentMonday);
@@ -33,7 +26,7 @@ export function upcomingCalendarWeeks(
 }
 
 /** "KW 42, 46, 50", with a short year only when the weeks span two years: "KW 50/26, 2/27". */
-export function formatCalendarWeeks(weeks: IsoWeek[]): string {
+export function formatCalendarWeeks(weeks: ISOWeek[]): string {
   if (weeks.length === 0) return "";
 
   const sameYear = weeks.every((entry) => entry.year === weeks[0]?.year);

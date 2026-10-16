@@ -80,6 +80,11 @@ jobs:
         if: needs.changes.outputs.code != 'false'
         run: npm run lint:english
 
+      # Report mode for now: lists the violations without failing.
+      - name: Check import boundaries
+        if: needs.changes.outputs.code != 'false'
+        run: npm run lint:boundaries
+
       - name: Check generated docs
         run: |
           npm run docs
@@ -89,7 +94,7 @@ jobs:
             exit 1
           fi
 
-  # Checks the app with nuxi typecheck and server/** with the Nitro tsconfig.
+  # Checks the app with nuxi typecheck, server/** with the Nitro tsconfig and shared/** without auto-imports.
   typecheck:
     runs-on: ubuntu-latest
     needs: changes

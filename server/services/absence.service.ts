@@ -1,5 +1,5 @@
 import { getDatabase } from "~/server/utils/database";
-import { datesOfISOWeek } from "~/server/utils/iso-week";
+import { datesOfISOWeek } from "~/shared/utils/week";
 import { insertAbsences, type CreateInput } from "~/server/services/absence/create";
 import type { Absence, PublicAbsence } from "~/server/services/absence/model";
 import { purgeOldReasons } from "~/server/services/absence/purge";

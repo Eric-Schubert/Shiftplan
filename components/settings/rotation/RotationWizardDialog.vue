@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getIsoWeekOfDate } from "~/utils/rotation";
+import { isoWeekOfDate } from "~/shared/utils/week";
 
 const props = defineProps<{
   visible: boolean;
@@ -26,7 +26,7 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
-const today = getIsoWeekOfDate(new Date());
+const today = isoWeekOfDate(new Date());
 const excelFileInput = ref<HTMLInputElement | null>(null);
 const activeStep = ref(0);
 const editingConfig = ref(false);

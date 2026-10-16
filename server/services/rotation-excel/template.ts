@@ -3,12 +3,8 @@ import { createXlsx, type XlsxCell } from "~/server/utils/xlsx";
 import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
-import { calculatePatternWeek } from "~/server/services/rotation/weeks";
-import {
-  currentIsoWeek,
-  formatCalendarWeeks,
-  upcomingCalendarWeeks,
-} from "~/server/services/rotation-excel/calendar";
+import { isoWeekOfDate } from "~/shared/utils/week";
+import { formatCalendarWeeks, upcomingCalendarWeeks } from "~/server/services/rotation-excel/calendar";
 import { shiftDropdown } from "~/server/services/rotation-excel/dropdown";
 import { createInstructionRows } from "~/server/services/rotation-excel/instructions";
 
@@ -24,8 +20,8 @@ export function createRotationTemplate(): Buffer {
   const staff = StaffService.getActive();
   const shifts = ShiftService.getActive();
   const calendarWeeks = upcomingCalendarWeeks(config, CALENDAR_WEEKS_SHOWN);
-  const thisWeek = currentIsoWeek();
-  const current = { week: thisWeek, patternWeek: calculatePatternWeek(thisWeek.year, thisWeek.week) };
+  const thisWeek = isoWeekOfDate(new Date());
+  const current = { week: thisWeek, patternWeek: RotationService.calculatePatternWeek(thisWeek.year, thisWeek.week) };
   const weeks = pattern.weeks.map((week) => week.pattern_week);
   const shiftsByCell = new Map<string, string[]>();
 

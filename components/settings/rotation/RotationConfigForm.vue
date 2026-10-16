@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RotationConfig, RotationConfigPreviewItem } from "~/types/rotation";
-import { getIsoWeeksInYear, getPatternWeekForCalendarWeek } from "~/utils/rotation";
+import { patternWeekFor } from "~/shared/utils/rotation-math";
+import { isoWeeksInYear } from "~/shared/utils/week";
 
 const emit = defineEmits<{
   (e: "saved"): void;
@@ -26,19 +27,19 @@ const configPreview = computed<RotationConfigPreviewItem[]>(() => {
 
   while (week < 1) {
     year--;
-    week += getIsoWeeksInYear(year);
+    week += isoWeeksInYear(year);
   }
 
   for (let index = 0; index < 6; index++) {
     preview.push({
       year,
       week,
-      patternWeek: getPatternWeekForCalendarWeek(cycleLength, startYear, startWeek, year, week),
+      patternWeek: patternWeekFor(cycleLength, { year: startYear, week: startWeek }, year, week),
       isStart: year === startYear && week === startWeek,
     });
 
     week++;
-    if (week > getIsoWeeksInYear(year)) {
+    if (week > isoWeeksInYear(year)) {
       week = 1;
       year++;
     }
@@ -85,7 +86,7 @@ async function save() {
           input-id="rotation-start-week"
           fluid
           :min="1"
-          :max="getIsoWeeksInYear(configForm.start_year || new Date().getFullYear())"
+          :max="isoWeeksInYear(configForm.start_year || new Date().getFullYear())"
           show-buttons
         />
       </div>

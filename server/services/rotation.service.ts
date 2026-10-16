@@ -6,7 +6,7 @@ import {
   replacePattern,
   unassignFromPattern,
 } from "~/server/services/rotation/pattern";
-import { calculatePatternWeek, getISOWeekStartDate, weeksBetween } from "~/server/services/rotation/weeks";
+import { calculatePatternWeek } from "~/server/services/rotation/weeks";
 
 export const RotationService = {
   getConfig,
@@ -16,7 +16,5 @@ export const RotationService = {
   unassignFromPattern,
   replacePattern,
   calculatePatternWeek,
-  weeksBetween,
-  getISOWeekStartDate,
   getPatternForWeek,
 };

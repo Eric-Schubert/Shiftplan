@@ -17,10 +17,11 @@
     "test": "vitest",
     "test:run": "vitest run",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxi typecheck && tsc --noEmit -p .nuxt/tsconfig.server.json",
+    "typecheck": "nuxi typecheck && tsc --noEmit -p .nuxt/tsconfig.server.json && tsc --noEmit -p .nuxt/tsconfig.shared.json",
     "docs": "node scripts/docs-generator.js",
     "lint:length": "node scripts/check-file-length.js",
     "lint:english": "node scripts/check-english.js",
+    "lint:boundaries": "node scripts/check-boundaries.js --report",
     "version:check": "node scripts/resolve-version.js && cat .version",
     "changelog": "node scripts/generate-changelog.js"
   },

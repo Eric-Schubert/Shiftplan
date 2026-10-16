@@ -1,7 +1,7 @@
 import { getNextWeekFromSaturday } from "~/server/services/team-access/settings";
 import { today } from "~/server/services/shift-request/common";
 import { SWAP_MAX_DAYS } from "~/server/services/shift-request/types";
-import { datesBetween, isWeekendDate } from "~/server/utils/iso-week";
+import { datesBetween, isWeekendDate } from "~/shared/utils/iso-date";
 
 /** Teams that open next week on Saturday never work weekends. */
 export function isOffDay(date: string): boolean {

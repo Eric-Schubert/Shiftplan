@@ -62,9 +62,9 @@ describe.each(TIME_ZONES)("holiday week range with TZ=$tz", ({ tz, winterOffset,
     expect(new Date(2026, 6, 1).getTimezoneOffset()).toBe(summerOffset);
   });
 
-  it.each(WEEKS)("getWeekDateRange covers Monday to Sunday ($label)", async ({ year, week, monday, sunday }) => {
-    const { getWeekDateRange } = await import("~/server/lib/holidays/open-holidays");
-    expect(getWeekDateRange(year, week)).toEqual({ start: monday, end: sunday });
+  it.each(WEEKS)("isoWeekRange covers Monday to Sunday ($label)", async ({ year, week, monday, sunday }) => {
+    const { isoWeekRange } = await import("~/shared/utils/week");
+    expect(isoWeekRange(year, week)).toEqual({ start: monday, end: sunday });
   });
 
   it.each(WEEKS)("public holidays on Monday and Sunday stay in their week ($label)", async ({ year, week, monday, sunday }) => {

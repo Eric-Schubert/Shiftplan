@@ -1,11 +1,9 @@
 import { defineStore } from "pinia";
+import { isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
 import {
   formatWeekDateRange,
-  getDateOfISOWeek,
   getEffectiveCurrentWeek,
   getEffectiveCurrentYear,
-  getISOWeek,
-  getISOWeeksInYear,
   getUpcomingWeeks,
   getWeekDateRange,
   type UpcomingWeek,
@@ -36,7 +34,7 @@ export const useAppStore = defineStore("app", {
 
     currentWeekLabel(): string | null {
       if (!this.isCurrentWeek) return null;
-      return this.selectedWeek === getISOWeek(new Date()) ? "Diese Woche" : "Ab Montag";
+      return this.selectedWeek === isoWeekOfDate(new Date()).week ? "Diese Woche" : "Ab Montag";
     },
 
     formattedWeekRange(): string {
@@ -84,7 +82,7 @@ export const useAppStore = defineStore("app", {
     },
 
     nextWeek() {
-      const maxWeeks = getISOWeeksInYear(this.selectedYear);
+      const maxWeeks = isoWeeksInYear(this.selectedYear);
       if (this.selectedWeek >= maxWeeks) {
         this.selectedYear++;
         this.selectedWeek = 1;
@@ -96,7 +94,7 @@ export const useAppStore = defineStore("app", {
     previousWeek() {
       if (this.selectedWeek <= 1) {
         this.selectedYear--;
-        this.selectedWeek = getISOWeeksInYear(this.selectedYear);
+        this.selectedWeek = isoWeeksInYear(this.selectedYear);
       } else {
         this.selectedWeek--;
       }
@@ -119,4 +117,3 @@ export const useAppStore = defineStore("app", {
   },
 });
 
-export { getISOWeek, getDateOfISOWeek, getISOWeeksInYear };
