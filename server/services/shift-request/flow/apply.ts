@@ -1,3 +1,4 @@
+import type { AuditReason } from "~/server/services/audit.service";
 import { DayChangeService, applyDayChange, type DayChangeActor } from "~/server/services/day-change.service";
 import { conflict, today } from "~/server/services/shift-request/common";
 import { ShiftRequestService } from "~/server/services/shift-request/store";
@@ -21,10 +22,10 @@ export function withCurrent<T>(request: ShiftRequest, change: (current: ShiftReq
 /** Applies the day changes of a request (only days from today on) and records them for a possible undo. */
 export function applyRequest(request: ShiftRequest, actor: DayChangeActor, origin?: string): AppliedChange[] {
   const planned = ShiftRequestService.plannedChanges(request, request.partner_staff_id!);
-  const note =
+  const note: AuditReason =
     request.kind === "takeover"
-      ? `Übernahme für ${request.requester_name}`
-      : `Tausch ${request.requester_name} ↔ ${request.partner_name}`;
+      ? { key: "audit.reason.takeover", params: { name: request.requester_name } }
+      : { key: "audit.reason.swap", params: { requester: request.requester_name, partner: request.partner_name ?? "" } };
 
   const applied: AppliedChange[] = [];
   for (const change of planned) {
@@ -73,7 +74,7 @@ export function revertRequest(request: ShiftRequest, actor: DayChangeActor, move
       date: change.date,
       present: change.before,
       actor,
-      note: "Anfrage zurückgenommen",
+      note: { key: "audit.reason.requestReverted", params: {} },
       origin,
     });
   }

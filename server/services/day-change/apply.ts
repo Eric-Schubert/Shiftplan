@@ -1,8 +1,6 @@
-import { AuditService } from "~/server/services/audit.service";
+import { AuditService, type AuditReason } from "~/server/services/audit.service";
 import { DayChangeService } from "~/server/services/day-change/store";
 import { PushService } from "~/server/services/push.service";
-import { instanceLocaleTag } from "~/server/utils/locale";
-import { formatDay } from "~/shared/utils/format/day";
 import { weekOfDate } from "~/shared/utils/week";
 
 export type DayChangeActor = { userId: number; username: string; source: "web" | "app" };
@@ -17,8 +15,8 @@ export function applyDayChange(input: {
   date: string;
   present: boolean;
   actor: DayChangeActor;
-  /** Shown in the audit log instead of the plain day, e.g. „Übernahme für Anna Weber“. */
-  note?: string;
+  /** Audit reason instead of the plain day, e.g. the request behind it; it gets the day as `date`. */
+  note?: AuditReason;
   requestId?: number;
   origin?: string;
 }): boolean {
@@ -34,8 +32,9 @@ export function applyDayChange(input: {
   if (!change) return false;
 
   const { year, week } = weekOfDate(input.date);
-  // Stored text, so in the instance language.
-  const day = formatDay(instanceLocaleTag(), input.date);
+  const reason: AuditReason = input.note
+    ? { key: input.note.key, params: { ...input.note.params, date: input.date } }
+    : { key: "audit.reason.day", params: { date: input.date } };
   AuditService.log({
     userId: input.actor.userId,
     username: input.actor.username,
@@ -44,7 +43,7 @@ export function applyDayChange(input: {
     weekNumber: week,
     shiftId: input.shiftId,
     staffId: input.staffId,
-    reason: input.note ? `${input.note}, ${day}` : `nur ${day}`,
+    reason,
     source: input.actor.source,
   });
   PushService.queueShiftChange(

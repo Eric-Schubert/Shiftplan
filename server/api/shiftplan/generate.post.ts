@@ -25,10 +25,13 @@ export default defineEventHandler(async (event) => {
 
   const last = result.weeks.at(-1);
   if (result.generated > 0 && last) {
-    const weeksLabel = result.generated === 1 ? "1 Woche" : `${result.generated} Wochen`;
-    const parts = [`${weeksLabel} bis KW ${last.week}/${last.year} aus dem Rotationsmuster erzeugt`];
-    if (result.overwritten > 0) parts.push(`${result.overwritten} davon überschrieben`);
-    if (result.skipped > 0) parts.push(`${result.skipped} bereits geplante übersprungen`);
+    // Overwriting and skipping exclude each other: the overwrite flag decides.
+    const key =
+      result.overwritten > 0
+        ? "audit.reason.generatedOverwritten"
+        : result.skipped > 0
+          ? "audit.reason.generatedSkipped"
+          : "audit.reason.generated";
 
     AuditService.log({
       userId: user.userId,
@@ -36,7 +39,10 @@ export default defineEventHandler(async (event) => {
       action: "generate",
       year,
       weekNumber: week,
-      reason: parts.join(", "),
+      reason: {
+        key,
+        params: { count: result.generated, year: last.year, week: last.week, overwritten: result.overwritten, skipped: result.skipped },
+      },
       source: requestSource(event),
     });
   }

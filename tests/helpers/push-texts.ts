@@ -4,12 +4,11 @@ import { tokenize } from "../../scripts/english/tokenize.js";
 type Token = { kind: string; text: string; line: number };
 
 // Code that writes push texts; they come from i18n/locales/de/push*.ts so each recipient gets their language.
-// flow/apply.ts only writes audit notes (audit_log.reason); those move to the catalog with the audit log.
 export const PUSH_CODE = [
   /^server\/services\/push\//,
   /^server\/services\/push(?:-relay)?\.service\.ts$/,
   /^server\/services\/absence\/(?:notice|report)\.ts$/,
-  /^server\/services\/shift-request\/flow\/(?!apply\.ts$)/,
+  /^server\/services\/shift-request\/flow\//,
   /^server\/api\/push\//,
 ];
 
@@ -21,10 +20,10 @@ const NOT_TEXT = /^[/?]|^[a-z]\w*(?:\.\w+)+$/;
 // Umlauts and the sharp s, also written as escapes such as \u00e4.
 const UMLAUTS = /[äöüß]|\\u00[c-f][0-9a-f]/i;
 
-function isGerman(text: string): boolean {
-  // isGermanProse skips quoted parts (fine for comments); in a push text the quotes are part of it.
+function isGerman(text: string, words: RegExp): boolean {
+  // isGermanProse skips quoted parts (fine for comments); in a text the quotes are part of it.
   const unquoted = text.replace(/[„“”"'`]/g, "");
-  return UMLAUTS.test(text) || isGermanProse(unquoted) || (PUSH_WORDS.test(text) && !NOT_TEXT.test(text));
+  return UMLAUTS.test(text) || isGermanProse(unquoted) || (words.test(text) && !NOT_TEXT.test(text));
 }
 
 /**
@@ -49,9 +48,14 @@ function stringTexts(source: string): Array<[number, string]> {
   return texts;
 }
 
+/** German text in code whose texts come from the catalog, as "file:line text"; `words` are the area's short words. */
+export function germanTextFindings(file: string, source: string, words: RegExp): string[] {
+  return stringTexts(source)
+    .filter(([, text]) => isGerman(text, words))
+    .map(([line, text]) => `${file}:${line} ${text}`);
+}
+
 /** German text in push code, as "file:line text". */
 export function pushTextFindings(file: string, source: string): string[] {
-  return stringTexts(source)
-    .filter(([, text]) => isGerman(text))
-    .map(([line, text]) => `${file}:${line} ${text}`);
+  return germanTextFindings(file, source, PUSH_WORDS);
 }
