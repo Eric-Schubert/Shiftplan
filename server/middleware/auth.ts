@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import {
   validateSession,
   getSessionToken,
@@ -15,7 +16,7 @@ import { apiError } from "~/server/utils/api-error";
  * A browser signed in with short code and PIN authenticates with a cookie. Writes must then come
  * from this site itself, which the browser states in the Origin header.
  */
-function isSameOriginRequest(event: any): boolean {
+function isSameOriginRequest(event: H3Event): boolean {
   const origin = getHeader(event, "origin");
   if (!origin) return false;
   try {

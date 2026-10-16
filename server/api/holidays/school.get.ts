@@ -22,8 +22,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     return await SchoolHolidayService.list(year, week, states);
-  } catch (error: any) {
+  } catch (error) {
     console.error("[holidays] Fetching school holidays failed:", error);
-    throw apiError(event, 500, "errors.holidays.schoolFailed", { detail: error.message });
+    const detail = error instanceof Error ? error.message : String(error);
+    throw apiError(event, 500, "errors.holidays.schoolFailed", { detail });
   }
 });

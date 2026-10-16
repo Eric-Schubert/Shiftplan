@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import { randomBytes } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { VIEWER_SESSION_DAYS } from "~/shared/utils/retention";
@@ -6,7 +7,7 @@ export { VIEWER_SESSION_DAYS };
 export const VIEWER_COOKIE_NAME = "viewer_token";
 const VIEWER_SESSION_MS = VIEWER_SESSION_DAYS * 24 * 60 * 60 * 1000;
 
-export function getBearerToken(event: any): string | undefined {
+export function getBearerToken(event: H3Event): string | undefined {
   const header = getHeader(event, "authorization");
   return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
 }
@@ -30,7 +31,7 @@ export function destroyViewerSession(token: string | undefined): void {
 }
 
 /** Browser sends the cookie, the app sends the token as Bearer header. */
-export function getViewerToken(event: any): string | undefined {
+export function getViewerToken(event: H3Event): string | undefined {
   return getBearerToken(event) || getCookie(event, VIEWER_COOKIE_NAME);
 }
 

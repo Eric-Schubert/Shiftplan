@@ -1,3 +1,4 @@
+import type { H3Event } from "h3";
 import { randomInt, timingSafeEqual } from "node:crypto";
 import { getAdminDatabase } from "~/server/utils/database";
 import { getSessionData, getSessionToken } from "~/server/utils/session";
@@ -96,7 +97,7 @@ export const TeamAccessService = {
   getViewerToken,
   validateViewerSession,
 
-  hasReadAccess(event: any): boolean {
+  hasReadAccess(event: H3Event): boolean {
     if (!this.isCodeRequired()) return true;
     if (getSessionData(getSessionToken(event))) return true;
     if (MemberAccessService.getMember(event)) return true;
