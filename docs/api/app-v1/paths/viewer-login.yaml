@@ -1,0 +1,41 @@
+post:
+  summary: Sign in with the access code
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [client]
+          properties:
+            code:
+              type: string
+              description: Case and leading or trailing spaces are ignored
+            client:
+              type: string
+              enum: [app]
+  responses:
+    "200":
+      description: Signed in. `token` is null if the instance requires no code.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, token, expiresAt]
+            properties:
+              success:
+                type: boolean
+              token:
+                type: [string, "null"]
+              expiresAt:
+                type: [integer, "null"]
+                description: Unix time in milliseconds. Extended with use.
+    "401":
+      $ref: "../components/responses.yaml#/Error"
+    "429":
+      description: Too many failed attempts, wait 15 minutes
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Error"

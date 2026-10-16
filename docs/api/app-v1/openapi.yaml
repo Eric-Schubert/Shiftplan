@@ -1,0 +1,163 @@
+openapi: 3.1.0
+info:
+  title: Shiftplan App API
+  version: "1"
+  description: |
+    Endpoints used by the Shiftplan app (iOS/Android). Each instance or tenant has its own
+    base URL, for example https://company.shiftplan.info.
+
+    Flow in the app (employees):
+    1. Scan the personal QR code that a planner created for exactly this person:
+       `https://<instance>/?einladung=<CODE>`. The base URL is the origin, the code is in the
+       `einladung` parameter. Valid for 7 days, can be redeemed once.
+    2. `GET /api/instance` checks that this is a Shiftplan instance with a matching `apiVersion`.
+    3. `POST /api/member/redeem` redeems the code and returns a token bound to this person.
+       The app stores it securely and sends it with every request as
+       `Authorization: Bearer <token>`.
+    4. Read the plan, absences and holidays, report your own absences, register the push device.
+
+    Planners sign in with `POST /api/auth/login` and `client: app` and also receive a bearer
+    token (14 days, extended with use). Requests with a bearer token need no CSRF token. With it the
+    app fills weeks from the rotation pattern (`POST /api/shiftplan/generate`).
+
+    `POST /api/viewer/login` (team access code) remains for the read-only view in the browser
+    and for older app versions.
+
+    Pushes to the app arrive through Firebase Cloud Messaging. Title and text are visible,
+    the data fields contain:
+    - `instanceId`: as in `GET /api/instance`, maps the push to the stored instance
+    - `url`: path to open, for example `/?year=2026&week=41`
+    - `year`, `week`: only for plan changes
+    Automatic change pushes only mention calendar weeks and shifts, no names.
+
+    A new access code invalidates all team tokens (`POST /api/viewer/login`) and deletes the
+    devices registered with them. Protected endpoints then return 401 and the app asks for the
+    code again. Personal tokens and their devices stay valid.
+
+    `apiVersion` only increases with incompatible changes. New fields can be added at any time
+    and must be ignored by the app.
+
+    Error responses carry the text for the user in `statusMessage`, in the language of the request
+    (`Accept-Language`, else the instance's `locale` from `GET /api/instance`), and, independent of the
+    language, `data.code` (a stable key such as `errors.member.notSignedIn`) with its `data.params`.
+    New codes can be added at any time. Unhandled 500 errors and errors from the HTTP layer have no `data`.
+servers:
+  - url: https://{instance}
+    variables:
+      instance:
+        default: demo.shiftplan.info
+security:
+  - viewerToken: []
+  - {}
+paths:
+  /api/instance:
+    $ref: "paths/instance.yaml"
+
+  /api/member/redeem:
+    $ref: "paths/member-redeem.yaml"
+
+  /api/member/me:
+    $ref: "paths/member-me.yaml"
+
+  /api/member/logout:
+    $ref: "paths/member-logout.yaml"
+
+  /api/member/absences:
+    $ref: "paths/member-absences.yaml"
+
+  /api/member/absences/{id}:
+    $ref: "paths/member-absences-id.yaml"
+
+  /api/absences:
+    $ref: "paths/absences.yaml"
+
+  /api/absences/{id}:
+    $ref: "paths/absences-id.yaml"
+
+  /api/member-invites:
+    $ref: "paths/member-invites.yaml"
+
+  /api/member-sessions:
+    $ref: "paths/member-sessions.yaml"
+
+  /api/member-sessions/{id}:
+    $ref: "paths/member-sessions-id.yaml"
+
+  /api/viewer/login:
+    $ref: "paths/viewer-login.yaml"
+
+  /api/viewer/logout:
+    $ref: "paths/viewer-logout.yaml"
+
+  /api/viewer/status:
+    $ref: "paths/viewer-status.yaml"
+
+  /api/shiftplan:
+    $ref: "paths/shiftplan.yaml"
+
+  /api/shiftplan/day-change:
+    $ref: "paths/shiftplan-day-change.yaml"
+
+  /api/shiftplan/generate:
+    $ref: "paths/shiftplan-generate.yaml"
+
+  /api/staff:
+    $ref: "paths/staff.yaml"
+
+  /api/holidays/public:
+    $ref: "paths/holidays-public.yaml"
+
+  /api/holidays/school:
+    $ref: "paths/holidays-school.yaml"
+
+  /api/push/devices:
+    $ref: "paths/push-devices.yaml"
+
+components:
+  securitySchemes:
+    viewerToken:
+      type: http
+      scheme: bearer
+
+  responses:
+    Success:
+      $ref: "components/responses.yaml#/Success"
+    Error:
+      $ref: "components/responses.yaml#/Error"
+
+  schemas:
+    Error:
+      $ref: "components/schemas.yaml#/Error"
+
+    Instance:
+      $ref: "components/schemas.yaml#/Instance"
+
+    LengthLimits:
+      $ref: "components/schemas.yaml#/LengthLimits"
+
+    StaffRef:
+      $ref: "components/schemas.yaml#/StaffRef"
+
+    AbsenceReason:
+      $ref: "components/schemas.yaml#/AbsenceReason"
+
+    Absence:
+      $ref: "components/schemas.yaml#/Absence"
+
+    Subdivision:
+      $ref: "components/schemas.yaml#/Subdivision"
+
+    Staff:
+      $ref: "components/schemas.yaml#/Staff"
+
+    Shift:
+      $ref: "components/schemas.yaml#/Shift"
+
+    WeeklyPlan:
+      $ref: "components/schemas.yaml#/WeeklyPlan"
+
+    DayChange:
+      $ref: "components/schemas.yaml#/DayChange"
+
+    GenerationResult:
+      $ref: "components/schemas.yaml#/GenerationResult"

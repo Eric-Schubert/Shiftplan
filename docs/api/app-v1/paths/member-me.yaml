@@ -1,0 +1,23 @@
+get:
+  summary: The person bound to the member token
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              staff:
+                $ref: "../components/schemas.yaml#/StaffRef"
+    "401":
+      description: Token invalid or device revoked, the app has to be set up again
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/Error"
+          example:
+            statusCode: 401
+            statusMessage: Nicht angemeldet oder Zugang gesperrt
+            data:
+              code: errors.member.notSignedIn

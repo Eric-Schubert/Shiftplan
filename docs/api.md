@@ -1,6 +1,6 @@
 # API
 
-The endpoints the Shiftplan app uses are specified in [api/app-v1.yaml](api/app-v1.yaml) (OpenAPI).
+The endpoints the Shiftplan app uses are specified in [api/app-v1.yaml](api/app-v1.yaml) (OpenAPI). That file is generated: `npm run docs` bundles it from [api/app-v1/](api/app-v1/), where `openapi.yaml` holds the `$ref` entries, `paths/` one file per path and `components/` the schemas and responses. Edit the parts, then run `npm run docs`; CI fails on a stale bundle.
 
 The tables below are generated from `server/api/` and the route policy in `server/config/route-policy.ts` by `npm run docs`.
 

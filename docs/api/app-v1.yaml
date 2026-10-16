@@ -1,3 +1,4 @@
+# Generated from docs/api/app-v1/ by `npm run docs`. Edit the files there, not this one.
 openapi: 3.1.0
 info:
   title: Shiftplan App API
@@ -17,7 +18,8 @@ info:
     4. Read the plan, absences and holidays, report your own absences, register the push device.
 
     Planners sign in with `POST /api/auth/login` and `client: app` and also receive a bearer
-    token (14 days, extended with use). Requests with a bearer token need no CSRF token.
+    token (14 days, extended with use). Requests with a bearer token need no CSRF token. With it the
+    app fills weeks from the rotation pattern (`POST /api/shiftplan/generate`).
 
     `POST /api/viewer/login` (team access code) remains for the read-only view in the browser
     and for older app versions.
@@ -534,6 +536,51 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
 
+  /api/shiftplan/generate:
+    post:
+      summary: Fill weeks from the rotation pattern (planner)
+      description: |
+        Needs a planner's bearer token (`POST /api/auth/login` with `client: app`). Fills `weeks`
+        consecutive weeks from `year`/`week` on in one transaction, each from its week of the rotation
+        pattern. A week that is already planned is replaced unless `overwrite` is `false`; then it is
+        skipped and counted in `skipped`. One audit entry per call. `weeks` is capped by the instance's
+        `shiftplan.generateWeeksMax` (53 by default); more is a 400.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [year, week]
+              properties:
+                year:
+                  type: integer
+                week:
+                  type: integer
+                  description: ISO calendar week to start with
+                  minimum: 1
+                  maximum: 53
+                weeks:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: How many consecutive weeks to fill, starting with `week`
+                overwrite:
+                  type: boolean
+                  default: true
+                  description: Replace weeks that are already planned; `false` skips them
+      responses:
+        "200":
+          description: What happened to each week
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerationResult"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+
   /api/staff:
     get:
       summary: Employees (for „Ich bin …“, I am …)
@@ -1042,3 +1089,32 @@ components:
           description: Planners only
         created_at:
           type: string
+
+    GenerationResult:
+      type: object
+      required: [generated, skipped, overwritten, weeks]
+      properties:
+        generated:
+          type: integer
+          description: Weeks filled, the overwritten ones included
+        skipped:
+          type: integer
+          description: Weeks left as they were because `overwrite` was `false`
+        overwritten:
+          type: integer
+        weeks:
+          type: array
+          description: One entry per week of the range, in order
+          items:
+            type: object
+            required: [year, week, pattern_week, status]
+            properties:
+              year:
+                type: integer
+              week:
+                type: integer
+              pattern_week:
+                type: integer
+              status:
+                type: string
+                enum: [generated, overwritten, skipped]

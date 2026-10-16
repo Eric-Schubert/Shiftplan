@@ -1,0 +1,25 @@
+delete:
+  summary: Withdraw your own absence
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    - name: range
+      in: query
+      description: |
+        `1` withdraws the whole period, otherwise only this day. Only days from today on can
+        be withdrawn: if the period has already started, today and the following days are
+        withdrawn, so the absence ends yesterday. If the day or the whole period lies in the
+        past, the response is 400 „Vergangene Ausfälle lassen sich nicht zurückziehen“.
+      schema:
+        type: string
+        enum: ["1"]
+  responses:
+    "200":
+      $ref: "../components/responses.yaml#/Success"
+    "400":
+      $ref: "../components/responses.yaml#/Error"
+    "404":
+      $ref: "../components/responses.yaml#/Error"

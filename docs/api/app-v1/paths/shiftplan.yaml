@@ -1,0 +1,23 @@
+get:
+  summary: Weekly plan
+  parameters:
+    - name: year
+      in: query
+      schema:
+        type: integer
+    - name: week
+      in: query
+      description: ISO calendar week
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 53
+  responses:
+    "200":
+      description: Plan of the week. `week.week_id` is 0 if the week has never been planned.
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas.yaml#/WeeklyPlan"
+    "401":
+      $ref: "../components/responses.yaml#/Error"

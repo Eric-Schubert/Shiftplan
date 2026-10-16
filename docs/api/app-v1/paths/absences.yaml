@@ -1,0 +1,60 @@
+get:
+  summary: Absences of a week
+  description: Reason and note are only included for planners.
+  parameters:
+    - name: year
+      in: query
+      required: true
+      schema:
+        type: integer
+    - name: week
+      in: query
+      required: true
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "../components/schemas.yaml#/Absence"
+post:
+  summary: Record an absence for a person (planner)
+  description: Period of at most 56 days, up to 366 days for admins.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [staffId, from, reason]
+          properties:
+            staffId:
+              type: integer
+            from:
+              type: string
+              format: date
+            to:
+              type: [string, "null"]
+              format: date
+            shiftId:
+              type: [integer, "null"]
+            reason:
+              $ref: "../components/schemas.yaml#/AbsenceReason"
+            note:
+              type: string
+              maxLength: 200
+            notifyTeam:
+              type: boolean
+              default: false
+            message:
+              type: string
+              maxLength: 160
+  responses:
+    "200":
+      description: Recorded
+    "401":
+      $ref: "../components/responses.yaml#/Error"

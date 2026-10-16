@@ -1,0 +1,57 @@
+get:
+  summary: School holidays (public endpoint)
+  security: []
+  parameters:
+    - name: year
+      in: query
+      required: true
+      schema:
+        type: integer
+    - name: week
+      in: query
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: |
+        `grouped` combines the holidays per period (with all states),
+        `holidays` has one entry per state.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              grouped:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    start:
+                      type: string
+                      format: date
+                    end:
+                      type: string
+                      format: date
+                    states:
+                      type: array
+                      items:
+                        $ref: "../components/schemas.yaml#/Subdivision"
+              holidays:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    start:
+                      type: string
+                      format: date
+                    end:
+                      type: string
+                      format: date
+                    state:
+                      type: string
+                    stateName:
+                      type: string

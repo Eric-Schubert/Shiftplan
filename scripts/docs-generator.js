@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { generateApiDocs } from "./docs/api.js";
+import { SPEC_BUNDLE, bundleApiSpec } from "./docs/api-spec.js";
 import { ROOT } from "./docs/files.js";
 import { generateWorkflowDocs } from "./docs/workflows.js";
 
@@ -88,6 +89,17 @@ export function updateDocs() {
     } else {
       console.log(`${name} already up to date.`);
     }
+  }
+
+  // The app API spec: one file for readers, bundled from the parts in docs/api/app-v1/.
+  const bundlePath = path.join(ROOT, SPEC_BUNDLE);
+  const bundle = bundleApiSpec();
+  if (fs.existsSync(bundlePath) && fs.readFileSync(bundlePath, "utf-8") === bundle) {
+    console.log(`${SPEC_BUNDLE} already up to date.`);
+  } else {
+    fs.writeFileSync(bundlePath, bundle, "utf-8");
+    console.log(`${SPEC_BUNDLE} updated.`);
+    changed = true;
   }
 
   return changed;

@@ -1,0 +1,37 @@
+post:
+  summary: Add a person to a shift for one day or take them out (planner)
+  description: |
+    The weekly plan remains the basis. If a day differs from it, the difference is stored as
+    a day change; a person who matches the weekly plan again loses the change. Short-term
+    changes trigger a batched push, just like changes to the week.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [staff_id, shift_id, date, present]
+          properties:
+            staff_id:
+              type: integer
+            shift_id:
+              type: integer
+            date:
+              type: string
+              format: date
+            present:
+              type: boolean
+  responses:
+    "200":
+      description: "`changed` is false if the day already looked like that"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              changed:
+                type: boolean
+    "400":
+      $ref: "../components/responses.yaml#/Error"

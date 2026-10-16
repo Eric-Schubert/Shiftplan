@@ -1,0 +1,27 @@
+post:
+  summary: Create a personal QR code for a person (planner)
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [staffId]
+          properties:
+            staffId:
+              type: integer
+  responses:
+    "200":
+      description: Code, expiry time (Unix milliseconds) and path for the QR link
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+              expiresAt:
+                type: integer
+              path:
+                type: string
+                example: /?einladung=K7M2P9QX4R

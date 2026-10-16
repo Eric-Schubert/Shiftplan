@@ -1,0 +1,39 @@
+post:
+  summary: Redeem a personal QR code
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [code]
+          properties:
+            code:
+              type: string
+              description: Case, spaces and hyphens are ignored
+            deviceName:
+              type: string
+              maxLength: 60
+              description: Shown to planners in the device list, for example „iPhone von Anna“
+  responses:
+    "200":
+      description: Redeemed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [token, staff, instanceId, instanceName]
+            properties:
+              token:
+                type: string
+              staff:
+                $ref: "../components/schemas.yaml#/StaffRef"
+              instanceId:
+                type: string
+              instanceName:
+                type: string
+    "401":
+      $ref: "../components/responses.yaml#/Error"
+    "429":
+      $ref: "../components/responses.yaml#/Error"
