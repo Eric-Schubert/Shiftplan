@@ -13,6 +13,14 @@ export function useMember() {
   const member = useState<MemberProfile | null>("member", () => null);
   const loaded = useState<boolean>("member-loaded", () => false);
   const requestFetch = useRequestFetch();
+  const { t } = useI18n();
+
+  /** „Firefox auf macOS“, shown in the planner's device list. */
+  function deviceName(): string {
+    const { browser, system } = detectDevice();
+    const name = browser ?? t("member.device.browser");
+    return system ? t("member.device.name", { browser: name, system }) : name;
+  }
 
   async function load(): Promise<MemberProfile | null> {
     try {
@@ -61,9 +69,9 @@ export function useMember() {
   return { member, loaded, load, ensureLoaded, login, redeem, setPin, logout };
 }
 
-/** "Firefox auf macOS", shown in the planner's device list. */
-function deviceName(): string {
-  if (import.meta.server) return "Browser";
+/** Browser and system from the user agent; null and "" when unknown. */
+function detectDevice(): { browser: string | null; system: string } {
+  if (import.meta.server) return { browser: null, system: "" };
   const agent = navigator.userAgent;
   const browser = /Edg\//.test(agent)
     ? "Edge"
@@ -73,7 +81,7 @@ function deviceName(): string {
         ? "Chrome"
         : /Safari\//.test(agent)
           ? "Safari"
-          : "Browser";
+          : null;
   const system = /iPhone|iPad/.test(agent)
     ? "iOS"
     : /Android/.test(agent)
@@ -85,5 +93,5 @@ function deviceName(): string {
           : /Linux/.test(agent)
             ? "Linux"
             : "";
-  return system ? `${browser} auf ${system}` : browser;
+  return { browser, system };
 }

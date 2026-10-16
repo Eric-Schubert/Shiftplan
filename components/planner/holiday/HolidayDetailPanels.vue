@@ -14,7 +14,7 @@ const localeTag = useLocaleTag();
     <div v-if="holidays.length > 0">
       <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--text-3)]">
         <i class="pi pi-calendar text-[0.7rem] text-[var(--danger-ink)]" aria-hidden="true"></i>
-        Feiertage
+        {{ $t("holidays.public") }}
       </p>
 
       <ul class="divide-y divide-[var(--border-soft)]">
@@ -52,7 +52,7 @@ const localeTag = useLocaleTag();
     <div v-if="schoolHolidays.length > 0">
       <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[var(--text-3)]">
         <i class="pi pi-book text-[0.7rem] text-[var(--info-ink)]" aria-hidden="true"></i>
-        Schulferien
+        {{ $t("holidays.school") }}
       </p>
 
       <ul class="divide-y divide-[var(--border-soft)]">

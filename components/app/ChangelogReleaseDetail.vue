@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import type { ChangelogEntry } from "~/utils/changelog";
-import {
-  extractVersion,
-  formatReleaseTitle,
-  isCurrentRelease,
-  releaseUrl,
-} from "~/utils/changelog/release-format";
+import { extractVersion, isCurrentRelease, releaseUrl } from "~/utils/changelog/release-format";
 
 defineProps<{
   entry: ChangelogEntry;
   currentVersion: string;
 }>();
+
+const releaseTitle = useReleaseTitle();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -18,7 +16,7 @@ defineProps<{
     <section class="changelog-detail__hero">
       <div class="changelog-detail__copy">
         <p class="changelog-dialog__eyebrow">
-          Veröffentlicht am {{ entry.date }}
+          {{ t("changelog.publishedOn", { date: entry.date }) }}
         </p>
         <a
           v-if="extractVersion(entry.title)"
@@ -27,7 +25,7 @@ defineProps<{
           rel="noopener noreferrer"
           class="changelog-detail__release-link"
         >
-          {{ formatReleaseTitle(entry) }}
+          {{ releaseTitle(entry) }}
         </a>
         <h3
           v-else
@@ -36,7 +34,7 @@ defineProps<{
           {{ entry.title }}
         </h3>
         <p class="changelog-detail__summary">
-          {{ entry.changes.length }} Änderungen in diesem Stand.
+          {{ t("changelog.changeCount", { count: entry.changes.length }) }}
         </p>
       </div>
 
@@ -45,7 +43,7 @@ defineProps<{
           v-if="isCurrentRelease(entry, currentVersion)"
           class="changelog-badge changelog-badge--accent"
         >
-          Aktuell installiert
+          {{ t("changelog.currentInstalled") }}
         </span>
         <a
           v-if="releaseUrl(entry)"
@@ -55,7 +53,7 @@ defineProps<{
           class="changelog-link-button"
         >
           <i class="pi pi-share-alt text-base" aria-hidden="true"></i>
-          Release auf GitHub
+          {{ t("changelog.onGithub") }}
         </a>
       </div>
     </section>
@@ -64,14 +62,14 @@ defineProps<{
       <div class="changelog-detail__panel-header">
         <div>
           <p class="changelog-dialog__eyebrow">
-            Überblick
+            {{ t("changelog.overview") }}
           </p>
           <h4 class="changelog-detail__panel-title">
-            Was neu ist
+            {{ t("changelog.whatsNew") }}
           </h4>
         </div>
         <span class="changelog-badge">
-          {{ entry.changes.length }} Punkte
+          {{ t("changelog.points", { count: entry.changes.length }) }}
         </span>
       </div>
 

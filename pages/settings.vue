@@ -3,6 +3,7 @@ const authStore = useAuthStore();
 
 const activeTab = ref(authStore.isAdmin ? "0" : "2");
 const showChangePasswordDialog = ref(false);
+const { t } = useI18n();
 
 watch(
   () => authStore.user?.role,
@@ -17,7 +18,7 @@ watch(
     <div v-if="authStore.isChecking" class="flex min-h-[60vh] items-center justify-center">
       <div class="planner-slab flex items-center gap-3 px-5 py-4 text-[var(--text-2)]">
         <PrimeProgressSpinner class="!h-6 !w-6" />
-        <span class="text-sm font-semibold">Session wird geprüft.</span>
+        <span class="text-sm font-semibold">{{ t("app.settingsPage.checking") }}</span>
       </div>
     </div>
 
@@ -28,21 +29,21 @@ watch(
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--warning-soft)] text-[var(--warning-ink)]">
           <i class="pi pi-exclamation-triangle text-3xl" aria-hidden="true"></i>
         </div>
-        <h2 class="text-2xl font-semibold text-[var(--text-1)]">Kein Zugriff</h2>
+        <h2 class="text-2xl font-semibold text-[var(--text-1)]">{{ t("app.settingsPage.noAccess") }}</h2>
         <p class="mx-auto mt-3 max-w-[28rem] text-sm leading-6 text-[var(--text-2)]">
-          Dieser Bereich ist nur für Planer und Administratoren verfügbar.
+          {{ t("app.settingsPage.noAccessText") }}
         </p>
         <div class="mt-5 flex flex-col gap-2">
           <NuxtLink to="/">
             <PrimeButton
-              label="Zum Schichtplan"
+              :label="t('common.actions.toPlan')"
               icon="pi pi-arrow-left"
               severity="secondary"
               class="w-full min-h-11"
             />
           </NuxtLink>
           <PrimeButton
-            label="Abmelden"
+            :label="t('common.actions.signOut')"
             icon="pi pi-sign-out"
             severity="secondary"
             outlined
@@ -56,13 +57,13 @@ watch(
     <div v-else class="planner-shell">
       <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div class="space-y-1.5">
-          <h2 class="planner-headline text-[var(--text-1)]">Einstellungen</h2>
+          <h2 class="planner-headline text-[var(--text-1)]">{{ t("app.settingsPage.title") }}</h2>
           <p class="max-w-[50rem] text-sm text-[var(--text-2)]">
             <template v-if="authStore.isAdmin">
-              Mitarbeiter, Schichten, Benutzer und Rotationsmuster werden hier zentral gepflegt.
+              {{ t("app.settingsPage.intro.admin") }}
             </template>
             <template v-else>
-              Rotationsmuster können gepflegt und Schichtpläne aus Vorlagen erzeugt werden.
+              {{ t("app.settingsPage.intro.planner") }}
             </template>
           </p>
         </div>
@@ -73,7 +74,7 @@ watch(
             {{ authStore.username }}
           </span>
           <PrimeButton
-            label="Passwort ändern"
+            :label="t('app.settingsPage.changePassword')"
             icon="pi pi-key"
             severity="secondary"
             size="small"
@@ -82,7 +83,7 @@ watch(
             @click="showChangePasswordDialog = true"
           />
           <PrimeButton
-            label="Abmelden"
+            :label="t('common.actions.signOut')"
             icon="pi pi-sign-out"
             severity="secondary"
             size="small"

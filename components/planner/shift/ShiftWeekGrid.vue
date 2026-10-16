@@ -18,6 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (e: "edit-days", shiftId: number): void }>();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 
 const today = todayISO();
 
@@ -57,7 +58,7 @@ function dayLabel(date: string): string {
       </colgroup>
       <thead>
         <tr>
-          <th scope="col"><span class="sr-only">Schicht</span></th>
+          <th scope="col"><span class="sr-only">{{ t("planner.shift.grid.shift") }}</span></th>
           <th
             v-for="date in workdays"
             :key="date"
@@ -81,7 +82,7 @@ function dayLabel(date: string): string {
               :type="canEdit ? 'button' : undefined"
               class="flex w-full items-center gap-2 text-left"
               :class="{ 'rounded-md hover:bg-[var(--surface-hover)]': canEdit }"
-              :title="canEdit ? `Tage in ${row.shift.name} ändern` : undefined"
+              :title="canEdit ? t('planner.shift.grid.editDays', { shift: row.shift.name }) : undefined"
               @click="canEdit && emit('edit-days', row.shift.shift_id)"
             >
               <span class="h-7 w-1 shrink-0 rounded-full" :style="{ background: row.shift.color }" aria-hidden="true"></span>
@@ -97,14 +98,14 @@ function dayLabel(date: string): string {
             class="border-t border-[var(--border-soft)] px-0.5 py-1.5 text-center align-middle"
             :class="CELL_CLASSES[cell.status]"
           >
-            <span v-if="cell.status === 'open'" class="text-xs font-semibold text-[var(--danger-ink)]">offen</span>
+            <span v-if="cell.status === 'open'" class="text-xs font-semibold text-[var(--danger-ink)]">{{ t("planner.shift.open") }}</span>
             <div v-else class="flex flex-col items-center gap-1">
               <span
                 v-for="person in cell.people"
                 :key="person.staffId"
                 class="max-w-full break-words rounded px-1 py-0.5 text-[0.6875rem] font-medium leading-tight sm:text-xs"
                 :class="personClass(person)"
-                :title="person.guest ? `${person.name} (Vertretung)` : person.name"
+                :title="person.guest ? t('planner.shift.grid.substitute', { name: person.name }) : person.name"
               >
                 <span class="sm:hidden">{{ short.get(person.name) }}</span>
                 <span class="hidden sm:inline">{{ person.name }}</span>

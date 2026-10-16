@@ -48,7 +48,7 @@ const totalAssigned = computed(() =>
 <template>
   <section class="planner-current-week">
     <div class="planner-section-heading !mb-3">
-      <h3 class="text-sm font-semibold text-[var(--text-1)]">Schichten</h3>
+      <h3 class="text-sm font-semibold text-[var(--text-1)]">{{ $t("planner.week.section.shifts") }}</h3>
       <div v-if="shiftList.length > 0" class="flex flex-wrap items-center justify-end gap-2">
         <PlannerViewSwitch v-if="canEditShifts" v-model="view" />
         <span class="planner-chip tabular-nums">{{ coverageNote }}</span>
@@ -61,13 +61,13 @@ const totalAssigned = computed(() =>
       <div v-if="shiftList.length === 0" class="planner-empty">
         <i class="pi pi-calendar text-3xl text-[var(--text-3)]" aria-hidden="true"></i>
         <div class="space-y-1.5">
-          <h4 class="text-base font-semibold text-[var(--text-1)]">Diese Woche hat noch keine Struktur</h4>
+          <h4 class="text-base font-semibold text-[var(--text-1)]">{{ $t("planner.week.section.emptyTitle") }}</h4>
           <p class="mx-auto max-w-[36rem] text-sm leading-6">
-            Lege zuerst die Schichten an. Danach kann das Team verteilt werden.
+            {{ $t("planner.week.section.emptyText") }}
           </p>
         </div>
         <NuxtLink v-if="isAdmin" to="/settings">
-          <PrimeButton label="Zu den Einstellungen" icon="pi pi-arrow-right" icon-pos="right" size="small" class="min-h-9" />
+          <PrimeButton :label="$t('planner.week.section.toSettings')" icon="pi pi-arrow-right" icon-pos="right" size="small" class="min-h-9" />
         </NuxtLink>
       </div>
 
@@ -113,16 +113,16 @@ const totalAssigned = computed(() =>
         class="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text-2)]"
       >
         <span class="rounded-md bg-[var(--warning-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--warning-ink)]">
-          Noch unbesetzt
+          {{ $t("planner.week.section.unassigned") }}
         </span>
-        <span>Die Schichten sind angelegt, aber es wurde noch niemand zugewiesen.</span>
+        <span>{{ $t("planner.week.section.unassignedText") }}</span>
         <button
           v-if="canEditShifts"
           type="button"
           class="font-semibold text-[var(--accent-strong)] hover:underline"
           @click="emit('generate')"
         >
-          Jetzt aus Muster generieren
+          {{ $t("planner.week.section.generateNow") }}
         </button>
       </div>
     </template>
@@ -130,10 +130,10 @@ const totalAssigned = computed(() =>
     <div v-else class="planner-empty" role="alert">
       <i class="pi pi-wifi text-3xl text-[var(--text-3)]" aria-hidden="true"></i>
       <div class="space-y-1.5">
-        <h4 class="text-base font-semibold text-[var(--text-1)]">Plan konnte nicht geladen werden</h4>
-        <p class="mx-auto max-w-[36rem] text-sm leading-6">Prüfe die Verbindung und lade die Woche neu.</p>
+        <h4 class="text-base font-semibold text-[var(--text-1)]">{{ $t("planner.week.section.loadFailed") }}</h4>
+        <p class="mx-auto max-w-[36rem] text-sm leading-6">{{ $t("planner.week.section.loadFailedText") }}</p>
       </div>
-      <PrimeButton label="Erneut laden" icon="pi pi-refresh" size="small" class="min-h-9" @click="emit('updated')" />
+      <PrimeButton :label="$t('planner.week.section.reload')" icon="pi pi-refresh" size="small" class="min-h-9" @click="emit('updated')" />
     </div>
 
     <LazyDayChangeDialog

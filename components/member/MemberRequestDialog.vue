@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
+import { SWAP_MAX_DAYS } from "~/shared/utils/limits";
 
 // New takeover (give away one shift on one day) or swap (all shifts with someone for a period).
 const props = defineProps<{ visible: boolean; staffId: number }>();
@@ -17,8 +18,9 @@ const dialogVisible = computed({
 const { data: shifts } = await useFetch<Shift[]>("/api/shift", { default: () => [] });
 const { data: staff } = await useFetch<Staff[]>("/api/staff", { default: () => [] });
 
+const { t } = useI18n();
 const shiftOptions = computed(() => [
-  { label: "Meine Schicht an dem Tag", value: null },
+  { label: t("requests.dialog.myShift"), value: null },
   ...(shifts.value ?? []).filter((shift) => shift.active).map((shift) => ({ label: shift.name, value: shift.shift_id })),
 ]);
 const partnerOptions = computed(() =>
@@ -43,7 +45,7 @@ const error = ref("");
 
 async function save() {
   if (kind.value === "swap" && !partnerId.value) {
-    error.value = "Bitte wähle, mit wem du tauschen möchtest";
+    error.value = t("requests.dialog.choosePartner");
     return;
   }
   saving.value = true;
@@ -59,7 +61,7 @@ async function save() {
     emit("created");
     dialogVisible.value = false;
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Anfrage konnte nicht gestellt werden";
+    error.value = cause?.data?.statusMessage || t("requests.dialog.failed");
   } finally {
     saving.value = false;
   }
@@ -69,7 +71,7 @@ async function save() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Neue Anfrage"
+    :header="t('requests.dialog.header')"
     modal
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
@@ -77,14 +79,14 @@ async function save() {
       <MemberRequestKindSwitch v-model="kind" />
 
       <template v-if="kind === 'takeover'">
-        <p class="text-[var(--text-2)]">Das Team bekommt Bescheid. Wer zuerst zusagt, übernimmt deine Schicht an diesem Tag.</p>
+        <p class="text-[var(--text-2)]">{{ t("requests.dialog.takeoverIntro") }}</p>
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
-            <label for="request-date" class="block font-medium text-[var(--text-2)]">Tag</label>
+            <label for="request-date" class="block font-medium text-[var(--text-2)]">{{ t("requests.dialog.day") }}</label>
             <input id="request-date" v-model="date" type="date" :min="today" required class="p-inputtext p-component w-full" />
           </div>
           <div class="space-y-1.5">
-            <label for="request-shift" class="block font-medium text-[var(--text-2)]">Schicht</label>
+            <label for="request-shift" class="block font-medium text-[var(--text-2)]">{{ t("requests.dialog.shift") }}</label>
             <PrimeSelect
               v-model="shiftId"
               input-id="request-shift"
@@ -98,33 +100,33 @@ async function save() {
       </template>
 
       <template v-else>
-        <p class="text-[var(--text-2)]">Ihr tauscht im Zeitraum alle Schichten. Erst wenn die andere Person zusagt, ändert sich der Plan.</p>
+        <p class="text-[var(--text-2)]">{{ t("requests.dialog.swapIntro") }}</p>
         <div class="space-y-1.5">
-          <label for="request-partner" class="block font-medium text-[var(--text-2)]">Tauschen mit</label>
+          <label for="request-partner" class="block font-medium text-[var(--text-2)]">{{ t("requests.dialog.partner") }}</label>
           <PrimeSelect
             v-model="partnerId"
             input-id="request-partner"
             :options="partnerOptions"
             option-label="label"
             option-value="value"
-            placeholder="Bitte wählen"
+            :placeholder="t('common.choose')"
             filter
             class="w-full"
           />
         </div>
         <DateRangeFields v-model:from="from" v-model:to="to" id-prefix="request" :min="today" />
         <p class="text-xs text-[var(--text-3)]">
-          Höchstens 8 Wochen am Stück.<template v-if="swapsWeekend"> Samstag und Sonntag werden nicht getauscht.</template>
+          {{ t("common.maxWeeks", { weeks: SWAP_MAX_DAYS / 7 }) }}<template v-if="swapsWeekend">{{ " " + t("requests.dialog.noWeekend") }}</template>
         </p>
       </template>
 
-      <PrimeInputText v-model="message" maxlength="160" placeholder="Nachricht (optional)" class="w-full" />
+      <PrimeInputText v-model="message" maxlength="160" :placeholder="t('requests.dialog.message')" class="w-full" />
       <small v-if="error" class="block text-sm text-[var(--danger-ink)]" role="alert">{{ error }}</small>
     </form>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
-      <PrimeButton label="Anfrage senden" icon="pi pi-send" class="min-h-11" :loading="saving" @click="save" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('requests.dialog.send')" icon="pi pi-send" class="min-h-11" :loading="saving" @click="save" />
     </template>
   </PrimeDialog>
 </template>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ChangelogEntry } from "~/utils/changelog";
-import { formatReleaseTitle, formatVersion } from "~/utils/changelog/release-format";
+import { formatVersion } from "~/utils/changelog/release-format";
 
 const { isVisible, entries, currentVersion, dismiss } = useChangelog();
+const releaseTitle = useReleaseTitle();
+const { t } = useI18n();
 
 const selectedEntry = ref<ChangelogEntry | null>(null);
 
@@ -11,9 +13,9 @@ const hasBuildMetadata = computed(() => /\+\d+$/.test(currentVersion));
 
 const dialogWidth = computed(() => (showReleaseList.value ? "880px" : "720px"));
 const displayCurrentVersion = computed(() => formatVersion(currentVersion));
-const dialogEyebrow = computed(() => (showReleaseList.value ? "Versionsarchiv" : "Änderungsprotokoll"));
+const dialogEyebrow = computed(() => (showReleaseList.value ? t("changelog.eyebrow.history") : t("changelog.eyebrow.detail")));
 const dialogTitle = computed(() =>
-  selectedEntry.value ? formatReleaseTitle(selectedEntry.value) : "Versionsverlauf"
+  selectedEntry.value ? releaseTitle(selectedEntry.value) : t("changelog.title")
 );
 
 watch(isVisible, (visible) => {
@@ -58,14 +60,14 @@ watch(isVisible, (visible) => {
       <div class="changelog-footer">
         <PrimeButton
           v-if="selectedEntry"
-          label="Zurück"
+          :label="t('changelog.back')"
           icon="pi pi-arrow-left"
           severity="secondary"
           outlined
           @click="selectedEntry = null"
         />
         <PrimeButton
-          label="Schliessen"
+          :label="t('changelog.close')"
           severity="secondary"
           outlined
           @click="dismiss"

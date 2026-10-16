@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import type { MessageKey } from "~/i18n/types";
 import { isoWeekOfDate, isoWeeksInYear } from "~/shared/utils/week";
 import { getEffectiveCurrentWeek, getEffectiveCurrentYear, getUpcomingWeeks, type UpcomingWeek } from "./app/week";
 
@@ -21,9 +22,10 @@ export const useAppStore = defineStore("app", {
       );
     },
 
-    currentWeekLabel(): string | null {
+    /** Catalog key of the chip next to the current week, or null for other weeks. */
+    currentWeekLabel(): MessageKey | null {
       if (!this.isCurrentWeek) return null;
-      return this.selectedWeek === isoWeekOfDate(new Date()).week ? "Diese Woche" : "Ab Montag";
+      return this.selectedWeek === isoWeekOfDate(new Date()).week ? "planner.week.hero.thisWeek" : "planner.week.hero.fromMonday";
     },
 
     getUpcomingWeeks(): (count: number) => UpcomingWeek[] {

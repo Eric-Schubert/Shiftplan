@@ -65,7 +65,8 @@ async function loadHolidayWeek(year: number, week: number) {
       entry.loaded = true;
     })
     .catch((error: { message?: string }) => {
-      entry.error = error.message || "Feiertage konnten nicht geladen werden";
+      // An empty message falls back to the catalog text in useHolidayWeek.
+      entry.error = error.message || "";
       entry.loaded = false;
     })
     .finally(() => {
@@ -82,6 +83,7 @@ export function useHolidayWeek(year: number | Ref<number>, week: number | Ref<nu
   const resolvedWeek = computed(() => unref(week));
   const cacheKey = computed(() => getCacheKey(resolvedYear.value, resolvedWeek.value));
   const entry = computed(() => ensureCacheEntry(cacheKey.value));
+  const { t } = useI18n();
 
   watch(
     () => [resolvedYear.value, resolvedWeek.value],
@@ -95,6 +97,6 @@ export function useHolidayWeek(year: number | Ref<number>, week: number | Ref<nu
     holidays: computed(() => entry.value.holidays),
     schoolHolidays: computed(() => entry.value.schoolHolidays),
     loading: computed(() => entry.value.loading),
-    error: computed(() => entry.value.error),
+    error: computed(() => (entry.value.error === null ? null : entry.value.error || t("holidays.loadFailed"))),
   };
 }

@@ -12,6 +12,7 @@ const props = defineProps<{
 }>();
 
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 const shiftChanges = computed(() => (props.dayChanges ?? []).filter((change) => change.shift_id === props.shift.shift_id));
 
 /** Weekdays on which an assigned person is taken out of this shift. */
@@ -66,15 +67,15 @@ const emit = defineEmits<{
       <span
         v-if="removedDays(staff.staff_id)"
         class="rounded bg-[var(--surface-muted)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--text-2)]"
-        :title="`An diesen Tagen nicht in ${props.shift.name}`"
+        :title="t('planner.shift.assignees.notOnDaysHint', { shift: props.shift.name })"
       >
-        nicht {{ removedDays(staff.staff_id) }}
+        {{ t("planner.shift.assignees.notOn", { days: removedDays(staff.staff_id) }) }}
       </span>
       <button
         v-if="canEdit"
         type="button"
         class="inline-flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-3)] transition-colors hover:bg-[var(--danger-soft)] hover:text-[var(--danger-ink)]"
-        :aria-label="`${staff.name} aus ${props.shift.name} entfernen`"
+        :aria-label="t('planner.shift.assignees.remove', { name: staff.name, shift: props.shift.name })"
         @click.stop="emit('unassign', staff.staff_id)"
       >
         <i class="pi pi-times text-[0.625rem]" aria-hidden="true"></i>
@@ -86,11 +87,11 @@ const emit = defineEmits<{
       :key="`guest-${guest.staffId}`"
       class="planner-assignee inline-flex h-8 items-center gap-1 rounded-lg border-dashed px-2.5 text-[0.8125rem]"
       :class="{ 'is-me': guest.staffId === myStaffId }"
-      :title="`Nur an einzelnen Tagen in ${props.shift.name}`"
+      :title="t('planner.shift.assignees.guestHint', { shift: props.shift.name })"
     >
       <span class="planner-assignee__name max-w-[11rem] truncate font-medium sm:max-w-[14rem]">{{ guest.name }}</span>
       <span class="rounded bg-[var(--positive-soft)] px-1 py-px text-[0.6875rem] font-semibold text-[var(--positive-ink)]">
-        nur {{ guest.days }}
+        {{ t("planner.shift.assignees.onlyOn", { days: guest.days }) }}
       </span>
     </span>
 
@@ -98,22 +99,22 @@ const emit = defineEmits<{
       v-if="canEdit"
       type="button"
       class="planner-pill-button"
-      :aria-label="`Mitarbeiter zu ${props.shift.name} hinzufügen`"
+      :aria-label="t('planner.shift.assignees.addHint', { shift: props.shift.name })"
       @click="emit('add')"
     >
       <i class="pi pi-plus text-[0.7rem]" aria-hidden="true"></i>
-      <span>Hinzufügen</span>
+      <span>{{ t("planner.shift.assignees.add") }}</span>
     </button>
 
     <button
       v-if="canEdit && year && week"
       type="button"
       class="planner-pill-button"
-      :aria-label="`Einzelne Tage in ${props.shift.name} ändern`"
+      :aria-label="t('planner.shift.assignees.editDaysHint', { shift: props.shift.name })"
       @click="emit('edit-days')"
     >
       <i class="pi pi-calendar text-[0.7rem]" aria-hidden="true"></i>
-      <span>Tage</span>
+      <span>{{ t("planner.shift.assignees.days") }}</span>
     </button>
   </div>
 </template>

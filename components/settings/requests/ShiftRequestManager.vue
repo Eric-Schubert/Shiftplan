@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { REQUEST_STATUS_LABELS, type ShiftRequest } from "~/types/shift-request";
+import { REQUEST_STATUS_KEYS, type ShiftRequest } from "~/types/shift-request";
 import { formatRequestPeriod } from "~/utils/request-period";
 
 const authStore = useAuthStore();
 const { authFetch } = useAuthFetch();
 const localeTag = useLocaleTag();
+const { t } = useI18n();
 const requests = ref<ShiftRequest[]>([]);
 const requiresApproval = ref(false);
 const loading = ref(true);
@@ -24,7 +25,7 @@ function summary(request: ShiftRequest): string {
 
 function statusLine(request: ShiftRequest): string {
   if (request.status === "done" && request.undo_requested_by !== null) return "Durchgeführt · Storno angefragt";
-  const label = REQUEST_STATUS_LABELS[request.status];
+  const label = t(REQUEST_STATUS_KEYS[request.status]);
   const byStaff = request.status === "reverted" && request.undo_requested_by !== null ? " per Storno" : "";
   return request.decided_by ? `${label} · ${request.decided_by}${byStaff}` : label;
 }

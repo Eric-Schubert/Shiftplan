@@ -13,6 +13,7 @@ describe("personal sign-in in the browser", () => {
       return states.get(key);
     });
     vi.stubGlobal("useRequestFetch", () => requestFetch);
+    vi.stubGlobal("useI18n", () => ({ t: (key: string) => key }));
 
     const member = useMember();
     await member.ensureLoaded();

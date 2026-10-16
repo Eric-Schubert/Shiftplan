@@ -7,6 +7,7 @@ const { authFetch } = useAuthFetch();
 const { status: viewerStatus, load: loadViewerStatus, login: viewerLogin } = useViewerAccess();
 const { detect: detectPush } = usePushNotifications();
 const { inviteCode } = usePlannerDeepLinks(redeemAccessCode);
+const { t } = useI18n();
 
 const { member, load: loadMember } = useMember();
 await Promise.all([
@@ -64,7 +65,7 @@ async function redeemAccessCode(code: string) {
   try {
     await viewerLogin(code);
   } catch {
-    accessError.value = "Der Zugangscode aus dem Link ist nicht mehr gültig.";
+    accessError.value = t("app.teamAccess.linkExpired");
   }
 }
 

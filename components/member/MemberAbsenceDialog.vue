@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ABSENCE_REASON_LABELS, type AbsenceReason } from "~/types/absence";
+import { ABSENCE_REASON_KEYS, type AbsenceReason } from "~/types/absence";
 
 // Staff report their own absence; same options as in the app.
 const props = defineProps<{ visible: boolean }>();
@@ -13,10 +13,10 @@ const dialogVisible = computed({
   set: (value: boolean) => emit("update:visible", value),
 });
 
-const reasonOptions = (Object.keys(ABSENCE_REASON_LABELS) as AbsenceReason[]).map((reason) => ({
-  label: ABSENCE_REASON_LABELS[reason],
-  value: reason,
-}));
+const { t } = useI18n();
+const reasonOptions = computed(() =>
+  (Object.keys(ABSENCE_REASON_KEYS) as AbsenceReason[]).map((reason) => ({ label: t(ABSENCE_REASON_KEYS[reason]), value: reason }))
+);
 
 const appStore = useAppStore();
 // Teams that open next week on Saturday do not work weekends; the server leaves those days out.
@@ -62,7 +62,7 @@ async function save() {
     emit("created", { notified: notifyTeam.value, takeovers: seekTakeover.value });
     dialogVisible.value = false;
   } catch (cause: any) {
-    error.value = cause?.data?.statusMessage || "Ausfall konnte nicht gemeldet werden";
+    error.value = cause?.data?.statusMessage || t("absence.member.failed");
   } finally {
     saving.value = false;
   }
@@ -72,28 +72,28 @@ async function save() {
 <template>
   <PrimeDialog
     v-model:visible="dialogVisible"
-    header="Ausfall melden"
+    :header="t('absence.member.report')"
     modal
     :style="{ width: '28rem', maxWidth: 'calc(100vw - 1.5rem)' }"
   >
     <form class="space-y-4 text-sm" @submit.prevent="save">
       <div class="grid grid-cols-2 gap-3">
         <div class="space-y-1.5">
-          <label for="member-absence-from" class="block font-medium text-[var(--text-2)]">Von</label>
+          <label for="member-absence-from" class="block font-medium text-[var(--text-2)]">{{ t("common.period.from") }}</label>
           <input id="member-absence-from" v-model="from" type="date" :min="today" required class="p-inputtext p-component w-full" />
         </div>
         <div class="space-y-1.5">
-          <label for="member-absence-to" class="block font-medium text-[var(--text-2)]">Bis</label>
+          <label for="member-absence-to" class="block font-medium text-[var(--text-2)]">{{ t("common.period.to") }}</label>
           <input id="member-absence-to" v-model="to" type="date" :min="from" required class="p-inputtext p-component w-full" />
         </div>
       </div>
-      <p v-if="weekend === 'some'" class="text-xs text-[var(--text-3)]">Samstag und Sonntag werden nicht eingetragen.</p>
+      <p v-if="weekend === 'some'" class="text-xs text-[var(--text-3)]">{{ t("absence.member.weekendSome") }}</p>
       <p v-else-if="weekend === 'all'" class="text-xs font-medium text-[var(--warning-ink)]">
-        Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig.
+        {{ t("absence.member.weekendAll") }}
       </p>
 
       <div class="space-y-1.5">
-        <label for="member-absence-reason" class="block font-medium text-[var(--text-2)]">Grund</label>
+        <label for="member-absence-reason" class="block font-medium text-[var(--text-2)]">{{ t("absence.reason") }}</label>
         <PrimeSelect
           v-model="reason"
           input-id="member-absence-reason"
@@ -102,29 +102,29 @@ async function save() {
           option-value="value"
           class="w-full"
         />
-        <p class="text-xs text-[var(--text-3)]">Den Grund sieht nur die Planung.</p>
+        <p class="text-xs text-[var(--text-3)]">{{ t("absence.member.reasonHint") }}</p>
       </div>
 
       <div class="space-y-3 rounded-lg border border-[var(--border-soft)] p-3">
         <label class="flex items-start gap-2">
           <PrimeCheckbox v-model="notifyTeam" binary input-id="member-absence-notify" class="mt-0.5" />
           <span>
-            <span class="block font-medium text-[var(--text-1)]">Team benachrichtigen</span>
-            <span class="text-xs text-[var(--text-3)]">Das Team sieht Name und Zeitraum, nie den Grund.</span>
+            <span class="block font-medium text-[var(--text-1)]">{{ t("absence.member.notify") }}</span>
+            <span class="text-xs text-[var(--text-3)]">{{ t("absence.teamSeesHint") }}</span>
           </span>
         </label>
         <label class="flex items-start gap-2">
           <PrimeCheckbox v-model="seekTakeover" binary input-id="member-absence-takeover" class="mt-0.5" />
           <span>
-            <span class="block font-medium text-[var(--text-1)]">Übernahme suchen</span>
-            <span class="text-xs text-[var(--text-3)]">Kolleginnen und Kollegen können deine Schichten an diesen Tagen übernehmen.</span>
+            <span class="block font-medium text-[var(--text-1)]">{{ t("absence.member.seekTakeover") }}</span>
+            <span class="text-xs text-[var(--text-3)]">{{ t("absence.member.seekTakeoverHint") }}</span>
           </span>
         </label>
         <PrimeInputText
           v-if="notifyTeam"
           v-model="message"
           maxlength="160"
-          placeholder="Zusatztext (optional)"
+          :placeholder="t('absence.member.message')"
           class="w-full"
         />
       </div>
@@ -133,9 +133,9 @@ async function save() {
     </form>
 
     <template #footer>
-      <PrimeButton label="Abbrechen" text @click="dialogVisible = false" />
+      <PrimeButton :label="t('common.actions.cancel')" text @click="dialogVisible = false" />
       <PrimeButton
-        label="Ausfall melden"
+        :label="t('absence.member.report')"
         icon="pi pi-check"
         class="min-h-11"
         :loading="saving"

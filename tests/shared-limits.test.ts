@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { passwordPolicyError } from "~/server/config/auth-config";
+import { t } from "~/i18n/server";
 import {
-  PIN_LENGTH_MESSAGE,
   PIN_MAX_LENGTH,
   PIN_MIN_LENGTH,
-  WEAK_PIN_MESSAGE,
   isValidPin,
   isWeakPin,
   validatePasswordStrength,
@@ -39,10 +38,14 @@ describe("shared PIN rules", () => {
   });
 
   it("gives the web form the same texts as the server", () => {
-    expect(PIN_LENGTH_MESSAGE).toBe("Die PIN braucht 6 bis 12 Ziffern");
-    expect(pinProblem("12345", "12345")).toBe(PIN_LENGTH_MESSAGE);
-    expect(pinProblem("123456", "123456")).toBe(WEAK_PIN_MESSAGE);
-    expect(pinProblem("583920", "583921")).toBe("Die PINs stimmen nicht überein");
+    const german = (pin: string, repeat: string) => {
+      const problem = pinProblem(pin, repeat);
+      return problem && t("de", problem.key, problem.params);
+    };
+    expect(pinProblem("12345", "12345")).toEqual({ key: "errors.member.pinLength", params: { min: 6, max: 12 } });
+    expect(german("12345", "12345")).toBe("Die PIN braucht 6 bis 12 Ziffern");
+    expect(pinProblem("123456", "123456")).toEqual({ key: "errors.member.pinWeak" });
+    expect(german("583920", "583921")).toBe("Die PINs stimmen nicht überein");
     expect(pinProblem("583920", "583920")).toBeNull();
   });
 });

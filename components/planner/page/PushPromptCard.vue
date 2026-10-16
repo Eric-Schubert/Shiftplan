@@ -32,18 +32,18 @@ function dismiss() {
       <i class="pi pi-bell" aria-hidden="true"></i>
     </span>
     <p class="min-w-0 flex-1 text-sm text-[var(--text-2)]">
-      <span class="font-semibold text-[var(--text-1)]">Bei Planänderungen benachrichtigt werden</span>
-      <span class="hidden sm:inline"> – zum Beispiel, wenn jemand ausfällt.</span>
+      <span class="font-semibold text-[var(--text-1)]">{{ $t("planner.week.pushPrompt.title") }}</span>
+      <span class="hidden sm:inline">{{ " " + $t("planner.week.pushPrompt.example") }}</span>
     </p>
-    <PrimeButton label="Aktivieren" size="small" class="min-h-9" @click="dialogOpen = true" />
+    <PrimeButton :label="$t('common.actions.activate')" size="small" class="min-h-9" @click="dialogOpen = true" />
     <PrimeButton
       text
       rounded
       icon="pi pi-times"
       severity="secondary"
       class="!h-9 !w-9"
-      aria-label="Hinweis ausblenden"
-      title="Nicht mehr anzeigen"
+      :aria-label="$t('planner.week.pushPrompt.dismiss')"
+      :title="$t('planner.week.pushPrompt.never')"
       @click="dismiss"
     />
   </div>

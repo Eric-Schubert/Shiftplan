@@ -1,0 +1,54 @@
+// Absences: reasons, the planner's dialogs and week panel, and the member's own report.
+export default {
+  // Labels of the wire values urlaub | privat | sonstiges, which stay as they are.
+  reasons: { urlaub: "Urlaub", privat: "Privat", sonstiges: "Sonstiges" },
+  reason: "Grund",
+  add: "Ausfall eintragen",
+  teamSeesHint: "Das Team sieht Name und Zeitraum, nie den Grund.",
+  dialog: {
+    staff: "Mitarbeiter",
+    note: "Notiz (optional)",
+    privacy: "Grund und Notiz sehen nur Planer. Sie werden nach 90 Tagen gelöscht.",
+    maxAdmin: "Höchstens 1 Jahr am Stück.",
+    submit: "Eintragen",
+    missing: "Bitte Mitarbeiter und Zeitraum wählen",
+    failed: "Ausfall konnte nicht gespeichert werden",
+  },
+  notify: {
+    label: "Team per Push informieren",
+    placeholder: "Zusatztext, z. B. Wer kann übernehmen?",
+  },
+  remove: {
+    header: "Ausfall entfernen",
+    day: "Ausfall von {name} am {day} löschen?",
+    endToday: "Ausfall von {name} ({period}) ab heute beenden? Die Tage bis gestern bleiben eingetragen.",
+    range: "Ausfall von {name} ({period}) komplett löschen?",
+    endTodayConfirm: "Ab heute beenden",
+    failed: "Ausfall konnte nicht gelöscht werden",
+  },
+  panel: {
+    title: "Ausfälle diese Woche",
+    empty: "Keine Ausfälle gemeldet.",
+    isOut: "fällt aus",
+    shiftOpen: "· {shift} offen",
+    viaApp: "über App",
+    removeDay: "Ausfall von {name} löschen",
+    removeRange: "Zeitraum von {name} löschen",
+  },
+  member: {
+    report: "Ausfall melden",
+    weekendSome: "Samstag und Sonntag werden nicht eingetragen.",
+    weekendAll: "Am Wochenende arbeitet dein Team nicht, dafür ist kein Ausfall nötig.",
+    reasonHint: "Den Grund sieht nur die Planung.",
+    notify: "Team benachrichtigen",
+    seekTakeover: "Übernahme suchen",
+    seekTakeoverHint: "Kolleginnen und Kollegen können deine Schichten an diesen Tagen übernehmen.",
+    message: "Zusatztext (optional)",
+    failed: "Ausfall konnte nicht gemeldet werden",
+    reported: {
+      takeovers: "Ausfall gemeldet, das Team kann deine Schichten übernehmen.",
+      notified: "Ausfall gemeldet, das Team ist informiert.",
+      plain: "Ausfall gemeldet.",
+    },
+  },
+};
