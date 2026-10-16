@@ -6,7 +6,10 @@
 export const AUDIT_RETENTION_DAYS = 730;
 /** Reasons and notes of absences are kept only as long as planning needs them, removed absences too. */
 export const ABSENCE_REASON_RETENTION_DAYS = 90;
-/** A request message may say why someone is away, so it goes as early as an absence reason. */
+/**
+ * A request message may say why someone is away, so it goes as early as an absence reason.
+ * The privacy policy names both in one sentence; keep them equal or split that sentence.
+ */
 export const REQUEST_MESSAGE_RETENTION_DAYS = ABSENCE_REASON_RETENTION_DAYS;
 /** The copy of a contact request in the admin area. Answers go out by e-mail. */
 export const CONTACT_RETENTION_DAYS = 365;

@@ -11,6 +11,9 @@ import { daysText, minutesText, periodText } from "~/utils/legal/durations";
 describe("shared retention periods", () => {
   it("keeps the periods the privacy policy has always named", () => {
     expect([AUDIT_RETENTION_DAYS, ABSENCE_REASON_RETENTION_DAYS, CONTACT_RETENTION_DAYS]).toEqual([730, 90, 365]);
+  });
+
+  it("keeps request messages as long as absence reasons, which the policy names in one sentence", () => {
     expect(REQUEST_MESSAGE_RETENTION_DAYS).toBe(ABSENCE_REASON_RETENTION_DAYS);
   });
 

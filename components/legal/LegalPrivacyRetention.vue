@@ -100,6 +100,7 @@ defineProps<{
       </li>
     </ol>
     <p>
+      <!-- One period for both: REQUEST_MESSAGE_RETENTION_DAYS follows ABSENCE_REASON_RETENTION_DAYS. -->
       Gründe und Notizen von Ausfällen sowie Nachrichten in Anfragen werden unabhängig davon nach
       {{ periodText(retention.absenceReasons, "dative") }} automatisch gelöscht, Einträge im
       Änderungsprotokoll nach {{ periodText(retention.auditLog, "dative") }}.
