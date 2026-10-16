@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     required: true,
     min: rotationConfig.cycleLengthMin,
     max: rotationConfig.cycleLengthMax,
-  })!;
+  });
   const staffId = validateId(body.staff_id, "staff_id");
   const shiftId = validateId(body.shift_id, "shift_id");
 

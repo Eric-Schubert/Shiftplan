@@ -30,9 +30,9 @@ export default defineEventHandler(async (event) => {
   });
 
   const shift = ShiftService.create({
-    name: name!,
-    start_time: startTime!,
-    end_time: endTime!,
+    name,
+    start_time: startTime,
+    end_time: endTime,
     color: color ?? shiftDefaults.color,
     min_staff: minStaff ?? shiftDefaults.minStaff,
     sort_order: sortOrder ?? shiftDefaults.sortOrder,

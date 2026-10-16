@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const shortCode = typeof body.short_code === "string" && body.short_code.trim() ? body.short_code : undefined;
 
   const staff = StaffService.create({
-    name: name!,
+    name,
     active: active ?? 1,
     is_parttime: isPartTime ?? 0,
     ...(shortCode !== undefined && { short_code: shortCode }),

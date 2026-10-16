@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const instanceName = validateString(body.instanceName, "name", {
       required: true,
       maxLength: INSTANCE_NAME_MAX_LENGTH,
-    })!;
+    });
     TeamAccessService.setInstanceName(instanceName);
     return { instanceName };
   }
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
           maxLength: ACCESS_CODE_MAX_LENGTH,
           pattern: /^\S+$/,
           patternMessage: messageRef("errors.team.codeWhitespace"),
-        })!;
+        });
 
   TeamAccessService.setAccessCode(code);
   return { code: TeamAccessService.getAccessCode() };

@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
     body.weeks !== undefined && body.weeks !== null && body.weeks !== "";
 
   if (!hasWeeksParameter) {
-    const year = validateYear(body.year, "year", { required: true })!;
-    const week = validateWeek(body.week, "week", { required: true })!;
+    const year = validateYear(body.year, "year", { required: true });
+    const week = validateWeek(body.week, "week", { required: true });
     return ShiftplanService.generateFromPattern(year, week);
   }
 
