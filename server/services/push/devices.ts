@@ -1,5 +1,5 @@
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
-import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
+import { purgeMemberAccess } from "~/server/services/member-access.service";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 
 // Team devices without a personal sign-in share this cap; personal ones are capped per person.

@@ -1,7 +1,7 @@
 import type { Staff, StaffCreateDTO, StaffUpdateDTO } from "~/types/staff";
 import { getDatabase } from "~/server/utils/database";
-import { removeStaffAccess } from "~/server/services/member-access/cleanup";
-import { cancelForStaff } from "~/server/services/shift-request/updates";
+import { removeStaffAccess } from "~/server/services/member-access.service";
+import { ShiftRequestService } from "~/server/services/shift-request.service";
 import { isValidShortCode, normalizeShortCode, suggestShortCode } from "~/server/utils/staff-short-code.js";
 
 function takenShortCodes(exceptId?: number): Set<string> {
@@ -70,7 +70,7 @@ export const StaffService = {
     // drops out of open requests, so accepting one cannot put them back into the plan.
     if (!active) {
       removeStaffAccess(id);
-      cancelForStaff(id);
+      ShiftRequestService.cancelForStaff(id);
     }
     return this.getById(id);
   },

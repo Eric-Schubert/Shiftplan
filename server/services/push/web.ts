@@ -1,6 +1,6 @@
 import webpush from "web-push";
 import { getAdminDatabase } from "~/server/utils/database";
-import { purgeMemberAccess } from "~/server/services/member-access/cleanup";
+import { purgeMemberAccess } from "~/server/services/member-access.service";
 import { isUndeliverable, markDelivered } from "~/server/services/push/undeliverable";
 import { getVapidDetails } from "~/server/services/push/vapid";
 import type { PushPayload, SendCounts, StoredSubscription } from "~/server/services/push/types";
