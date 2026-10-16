@@ -67,7 +67,7 @@ function makeUniqueSheetNames(sheets: XlsxSheetInput[]): XlsxSheetInput[] {
   const used = new Set<string>();
 
   return sheets.map((sheet, index) => {
-    const base = sanitizeSheetName(sheet.name || `Tabelle${index + 1}`);
+    const base = sanitizeSheetName(sheet.name || `Sheet${index + 1}`);
     let name = base;
     let suffix = 2;
 
@@ -83,6 +83,6 @@ function makeUniqueSheetNames(sheets: XlsxSheetInput[]): XlsxSheetInput[] {
 }
 
 function sanitizeSheetName(name: string): string {
-  const cleaned = name.replace(/[\\/?*:[\]]/g, " ").trim() || "Tabelle";
+  const cleaned = name.replace(/[\\/?*:[\]]/g, " ").trim() || "Sheet";
   return cleaned.slice(0, 31);
 }

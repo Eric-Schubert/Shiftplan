@@ -2,7 +2,8 @@ import type { XlsxCellValue } from "~/server/utils/xlsx";
 import type { RotationConfig } from "~/types/rotation";
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
-import { badRequest, splitList, toInteger, toText } from "~/server/services/rotation-excel/cells";
+import { badRequest, normalizeName, toInteger, toText } from "~/server/services/rotation-excel/cells";
+import { FREE_MARKERS } from "~/server/services/rotation-excel/labels";
 import { resolveByName, resolveShift } from "~/server/services/rotation-excel/lookup";
 import { messageRef } from "~/server/utils/api-error";
 import type { GridColumns, HeaderColumns } from "~/server/services/rotation-excel/sheet";
@@ -27,6 +28,20 @@ export type ReadContext = {
   lookups: Lookups;
   add: (entry: RotationExcelEntry) => void;
 };
+
+/**
+ * Splits "Anna, Ben" or "Früh; Spät" into names. "-" and the free word of every locale ("frei") count
+ * as empty, unless one of `names` is called that: a shift named "frei" or "off" stays a shift.
+ */
+function splitList(value: XlsxCellValue, names: Map<string, unknown[]>): string[] {
+  return toText(value)
+    .split(/[,;\n\r]+/)
+    .map((name) => name.trim())
+    .filter((name) => {
+      const key = normalizeName(name);
+      return name !== "" && (!FREE_MARKERS.has(key) || names.has(key));
+    });
+}
 
 /** One row per person, the shift for each pattern week in its "Woche N" column. */
 export function readGridRows({ rows, config, lookups, add }: ReadContext, grid: GridColumns): number {
@@ -66,7 +81,7 @@ export function readGridRows({ rows, config, lookups, add }: ReadContext, grid: 
     const staff = resolveByName(lookups.staffByName, name, STAFF, messageRef("excel.locations.row", { row: rowNumber }));
 
     for (const [col, week] of grid.weeks) {
-      for (const shiftName of splitList(row[col])) {
+      for (const shiftName of splitList(row[col], lookups.shiftsByName)) {
         const location = messageRef("excel.locations.rowWeek", { row: rowNumber, week });
         const shift = resolveByName(lookups.shiftsByName, shiftName, messageRef("excel.labels.shift"), location);
         add({ pattern_week: week, staff_id: staff.staff_id, shift_id: shift.shift_id });
@@ -109,7 +124,7 @@ export function readListRows({ rows, config, lookups, add }: ReadContext, column
       shiftsByName: lookups.shiftsByName,
     });
 
-    for (const staffName of splitList(row[columns.staffNames])) {
+    for (const staffName of splitList(row[columns.staffNames], lookups.staffByName)) {
       const staff = resolveByName(lookups.staffByName, staffName, STAFF, messageRef("excel.locations.row", { row: rowNumber }));
       add({ pattern_week: patternWeek, staff_id: staff.staff_id, shift_id: shift.shift_id });
     }

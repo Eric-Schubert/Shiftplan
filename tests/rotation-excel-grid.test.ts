@@ -76,6 +76,16 @@ describe("Rotation Excel import, one row per person", () => {
     ).toThrow("Die Spalte „Woche 3“ passt nicht zur Zykluslänge 2");
   });
 
+  it("reports a missing header when a near-miss header row has gaps", () => {
+    const file = createXlsx({
+      sheets: [{ name: "Rotation", rows: [["Startjahr", 2026], [], ["", "Mitarbeiter_in", "Woche1"], ["Anna Becker"]] }],
+    });
+
+    expect(() => RotationExcelService.importTemplate(file)).toThrow(
+      "Die Kopfzeile mit Musterwoche, Schicht und Mitarbeiter wurde nicht gefunden"
+    );
+  });
+
   it("asks for a name when a row has shifts but no person", () => {
     const file = gridFile([["", "Früh", ""]]);
 

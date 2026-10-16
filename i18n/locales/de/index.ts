@@ -5,6 +5,7 @@ import changelog from "./changelog";
 import common from "./common";
 import errors from "./errors";
 import excel from "./excel";
+import excelTemplate from "./excel-template";
 import holidays from "./holidays";
 import member from "./member";
 import planner from "./planner";
@@ -21,6 +22,7 @@ const de = {
   errors,
   validation,
   excel,
+  excelTemplate,
   push,
   app,
   changelog,

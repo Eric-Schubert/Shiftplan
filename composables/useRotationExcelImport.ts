@@ -1,4 +1,5 @@
 import type { RotationExcelImportResult } from "~/types/rotation";
+import { dispositionFileName } from "~/shared/utils/http/content-disposition";
 
 /**
  * Excel template download and import for the rotation pattern. A chosen file is checked first;
@@ -36,7 +37,9 @@ export function useRotationExcelImport(onImported: () => void) {
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = url;
-      link.download = "shiftplan-rotation-template.xlsx";
+      // The server names the file in the user's language; without the header the browser would use the blob id.
+      const fileName = dispositionFileName(response.headers.get("content-disposition"));
+      link.download = fileName ?? t("excelTemplate.fileName");
       document.body.appendChild(link);
       link.click();
       link.remove();

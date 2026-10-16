@@ -14,6 +14,7 @@ import {
   getRouterParam,
   readBody,
   setCookie,
+  setHeader,
   toPlainHandler,
   type EventHandler,
 } from "h3";
@@ -50,6 +51,7 @@ function installH3Globals() {
     getRouterParam,
     readBody,
     setCookie,
+    setHeader,
     useRuntimeConfig: () => ({ public: { appVersion: "9.9.9" } }),
   });
 }
