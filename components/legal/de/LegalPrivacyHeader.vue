@@ -23,7 +23,7 @@ useSeoMeta({
     <p class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--text-3)]">
       <span>Stand: {{ lastUpdated }}</span>
       <NuxtLink to="/impressum" :class="linkClass">Impressum</NuxtLink>
-      <NuxtLink to="/" :class="linkClass">Zum Schichtplan</NuxtLink>
+      <a href="/" :class="linkClass">Zum Schichtplan</a>
     </p>
   </header>
 

@@ -16,9 +16,9 @@ useSeoMeta({
         </div>
       </div>
 
-      <NuxtLink to="/">
+      <a href="/">
         <PrimeButton label="Zum Schichtplan" icon="pi pi-arrow-left" severity="secondary" outlined class="min-h-11" />
-      </NuxtLink>
+      </a>
     </div>
   </section>
 </template>

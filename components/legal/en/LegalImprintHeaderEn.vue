@@ -19,9 +19,9 @@ useSeoMeta({
         </div>
       </div>
 
-      <NuxtLink to="/" class="shrink-0">
+      <a href="/" class="shrink-0">
         <PrimeButton label="Back to the shift plan" icon="pi pi-arrow-left" severity="secondary" outlined class="min-h-11" />
-      </NuxtLink>
+      </a>
     </div>
     <LegalTranslationNotice class="mt-4" />
   </section>

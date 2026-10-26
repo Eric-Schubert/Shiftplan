@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toPrivacyFacts } from "~/utils/legal/privacy-facts";
 
-definePageMeta({ alias: ["/privacy"] });
+definePageMeta({ alias: ["/privacy"], layout: "legal" });
 
 const { demoLogin, privacy } = useRuntimeConfig().public;
 const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
