@@ -79,7 +79,7 @@ watch(activeStep, () => {
         @change="checkExcelFile"
       />
 
-      <RotationWizardSteps v-model:active-step="activeStep" :steps="steps" />
+      <RotationWizardSteps v-model:active-step="activeStep" :steps="steps" :locked="Boolean(pendingImport)" />
 
       <section v-if="activeStep === 0" class="space-y-4">
         <RotationWizardPatternInfo v-model:editing="editingConfig" :today="today" />
@@ -105,7 +105,15 @@ watch(activeStep, () => {
     </div>
 
     <template #footer>
-      <RotationWizardFooter v-model:active-step="activeStep" :step-count="steps.length" :rolled-out="rolledOut" @close="dialogVisible = false" />
+      <RotationWizardFooter
+        v-model:active-step="activeStep"
+        :step-count="steps.length"
+        :rolled-out="rolledOut"
+        :import-pending="Boolean(pendingImport)"
+        :importing="importingExcel"
+        @close="dialogVisible = false"
+        @confirm-import="confirmImport"
+      />
     </template>
   </PrimeDialog>
 </template>
