@@ -1,3 +1,5 @@
+// German catalog. The /_i18n/<hash>/ URL of the catalogs hashes only the locale index files, so a change
+// here gives it a new address; browsers then ask again instead of reusing an old cached response.
 import absence from "./absence";
 import app from "./app";
 import audit from "./audit";
