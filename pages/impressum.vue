@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ alias: ["/imprint"] });
+definePageMeta({ alias: ["/imprint"], layout: "legal" });
 
 // German is the binding version; the English one in components/legal/en is a translation of it.
 const { locale } = useI18n();

@@ -8,8 +8,9 @@ const { t } = useI18n();
 
 useHead({ title: () => (notFound.value ? t("app.error.title.notFound") : t("app.error.title.other")) });
 
+// A full load: on the product domain only the legal pages reach the app, "/" there is the product page.
 function goHome() {
-  clearError({ redirect: "/" });
+  reloadNuxtApp({ path: "/" });
 }
 </script>
 
