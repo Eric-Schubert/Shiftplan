@@ -33,6 +33,7 @@ export default {
     replaceText:
       "New pattern: {cycle}, pattern week 1 = {week}, {assignments}. It replaces the current pattern ({current}). Weekly plans stay unchanged until you roll them out in the last step.",
     replace: "Replace pattern",
+    replaceAndNext: "Replace pattern and continue",
     downloadFailed: "Template could not be loaded",
     readFailed: "The file could not be read",
     importFailed: "Import failed, the pattern is unchanged",

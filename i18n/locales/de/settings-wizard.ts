@@ -31,6 +31,7 @@ export default {
     replaceText:
       "Neues Muster: {cycle}, Musterwoche 1 = {week}, {assignments}. Es ersetzt das aktuelle Muster ({current}). Wochenpläne bleiben unverändert, bis du sie im letzten Schritt ausrollst.",
     replace: "Muster ersetzen",
+    replaceAndNext: "Muster ersetzen und weiter",
     downloadFailed: "Vorlage konnte nicht geladen werden",
     readFailed: "Die Datei konnte nicht gelesen werden",
     importFailed: "Import fehlgeschlagen, das Muster ist unverändert",

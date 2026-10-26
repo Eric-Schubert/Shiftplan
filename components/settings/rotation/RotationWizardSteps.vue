@@ -1,6 +1,8 @@
 <script setup lang="ts">
 defineProps<{
   steps: { title: string; text: string }[];
+  /** Other steps stay closed, e.g. while a checked Excel file waits to be replaced or cancelled. */
+  locked?: boolean;
 }>();
 
 const activeStep = defineModel<number>("activeStep", { required: true });
@@ -15,8 +17,9 @@ const activeStep = defineModel<number>("activeStep", { required: true });
         :class="
           activeStep === index
             ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-strong)]'
-            : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-2)] hover:border-[var(--border-strong)]'
+            : 'border-[var(--border-soft)] bg-[var(--surface-muted)] text-[var(--text-2)] enabled:hover:border-[var(--border-strong)] disabled:opacity-60'
         "
+        :disabled="locked && activeStep !== index"
         :aria-current="activeStep === index ? 'step' : undefined"
         @click="activeStep = index"
       >
