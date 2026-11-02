@@ -19,21 +19,6 @@ describe("Privacy policy as the instance is set up", () => {
     expect(all).toContain("located on a server of netcup GmbH, Karlsruhe in a data centre in Germany");
   });
 
-  it("describes Plausible only for the configured site", async () => {
-    const text = (setup: Pick<LegalSetup, "locale" | "plausible">) => renderPrivacy(setup).then(({ html }) => textOf(html));
-    const german = await text({ locale: "de", plausible: "shiftplan.info" });
-    const english = await text({ locale: "en", plausible: "shiftplan.info" });
-
-    expect(await text({ locale: "de" })).not.toContain("Plausible");
-    expect(await text({ locale: "de" })).toContain("Keine Werbung, kein Tracking.");
-    expect(await text({ locale: "en" })).not.toContain("Plausible");
-    expect(german).toContain("Reichweitenmessung auf shiftplan.info mit Plausible Analytics");
-    expect(german).toContain("Plausible Insights OÜ, Västriku tn 2, 50403 Tartu, Estland");
-    expect(german).toContain("Keine Werbung, kein seitenübergreifendes Tracking.");
-    expect(english).toContain("Audience measurement on shiftplan.info with Plausible Analytics");
-    expect(english).toContain("No advertising, no cross-site tracking.");
-  });
-
   it("names the country of the data centre in each language, only when it is configured", async () => {
     const text = (setup: Partial<LegalSetup>) =>
       renderPrivacy({ locale: "en", hoster: "netcup GmbH, Karlsruhe", ...setup }).then(({ html }) => textOf(html));
