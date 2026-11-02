@@ -23,5 +23,7 @@ export const publicRuntimeEnv = {
     hoster: process.env.NUXT_PUBLIC_PRIVACY_HOSTER || "",
     // ISO 3166 code of the country of the hoster's data centre, e.g. „DE“; empty when unknown, then the privacy policy names none.
     hosterLocation: process.env.NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION || "",
+    // Site that loads Plausible Analytics, e.g. „shiftplan.info“; empty when no page of the operator uses it.
+    plausible: process.env.NUXT_PUBLIC_PRIVACY_PLAUSIBLE || "",
   },
 };
