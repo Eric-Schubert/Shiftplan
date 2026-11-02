@@ -16,6 +16,5 @@ Part of the [self-hosting guide](README.md). A complete `.env` example is in [In
 | `NUXT_PUBLIC_PRIVACY_CLOUDFLARE` | list Cloudflare in the privacy policy | `false` |
 | `NUXT_PUBLIC_PRIVACY_HOSTER` | list the hosting provider with its address in the privacy policy | empty |
 | `NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION` | ISO 3166 country code of the hoster's data centre, for example `DE`; the privacy policy writes it out in each language (Deutschland, Germany) after the hoster. Empty names no country; a value that is no country code appears as written | empty |
-| `NUXT_PUBLIC_PRIVACY_PLAUSIBLE` | site of the operator that loads Plausible Analytics, for example `shiftplan.info`; the privacy policy then describes Plausible for that site. Shiftplan itself never loads Plausible | empty |
 | `CONTACT_MAIL_*` | email notification for contact form requests via Microsoft Graph; the privacy policy then lists Microsoft automatically | off |
 | `NUXT_PUBLIC_DEMO_LOGIN_*`, `SHIFTPLAN_DEMO_MEMBER_*` | public demos only | off |

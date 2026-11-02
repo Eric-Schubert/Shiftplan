@@ -14,7 +14,6 @@ export type LegalSetup = {
   cloudflare?: boolean;
   hoster?: string;
   hosterLocation?: string;
-  plausible?: string;
   imprint?: typeof IMPRINT;
   demo?: boolean;
 };
@@ -64,12 +63,7 @@ function stubNuxt(setup: LegalSetup, render: LegalRender) {
       public: {
         imprint: setup.imprint ?? IMPRINT,
         demoLogin: setup.demo ? { username: "demo", password: "demo" } : {},
-        privacy: {
-          cloudflare: setup.cloudflare ?? false,
-          hoster: setup.hoster ?? "",
-          hosterLocation: setup.hosterLocation ?? "",
-          plausible: setup.plausible ?? "",
-        },
+        privacy: { cloudflare: setup.cloudflare ?? false, hoster: setup.hoster ?? "", hosterLocation: setup.hosterLocation ?? "" },
       },
     }),
     useImprintContactForm: () => ({
