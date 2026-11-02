@@ -8,13 +8,14 @@ const isDemo = Boolean(demoLogin?.username && demoLogin?.password);
 const usesCloudflare = Boolean(privacy?.cloudflare);
 const hoster = String(privacy?.hoster || "").trim();
 const hosterLocation = String(privacy?.hosterLocation || "").trim();
+const plausibleSite = String(privacy?.plausible || "").trim();
 
 // Microsoft, the push relay, periods and cookie names as this instance is set up.
 const { data } = await useFetch("/api/legal/privacy");
 const facts = computed(() => toPrivacyFacts(data.value));
 const services = computed(() => {
   const { microsoft, appPush, defaultRelay, relayHost } = facts.value;
-  return { hoster, hosterLocation, usesCloudflare, usesMicrosoft: microsoft, appPush, defaultRelay, relayHost };
+  return { hoster, hosterLocation, plausibleSite, usesCloudflare, usesMicrosoft: microsoft, appPush, defaultRelay, relayHost };
 });
 
 // German is the binding version; the English one in components/legal/en is a translation of it.
@@ -27,8 +28,8 @@ const english = computed(() => locale.value === "en");
     <LegalPrivacyHeaderEn v-if="english" :is-demo="isDemo" />
     <LegalPrivacyHeader v-else :is-demo="isDemo" />
 
-    <LegalPrivacySummaryEn v-if="english" :retention="facts.retentionDays" />
-    <LegalPrivacySummary v-else :retention="facts.retentionDays" />
+    <LegalPrivacySummaryEn v-if="english" :retention="facts.retentionDays" :plausible-site="plausibleSite" />
+    <LegalPrivacySummary v-else :retention="facts.retentionDays" :plausible-site="plausibleSite" />
 
     <div class="mt-12 grid gap-10 lg:grid-cols-[15rem_minmax(0,44rem)] lg:gap-16">
       <LegalPrivacySidebarEn v-if="english" />

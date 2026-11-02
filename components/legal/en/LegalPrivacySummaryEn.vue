@@ -4,6 +4,8 @@ import { periodText } from "~/utils/legal/en/durations";
 
 defineProps<{
   retention: RetentionDays;
+  /** Site that loads Plausible Analytics; then the summary no longer promises "no tracking" outright. */
+  plausibleSite: string;
 }>();
 </script>
 
@@ -35,7 +37,7 @@ defineProps<{
         >
       </li>
       <li class="py-3">
-        <strong class="text-[var(--text-1)]">No advertising, no tracking.</strong>
+        <strong class="text-[var(--text-1)]">{{ plausibleSite ? "No advertising, no cross-site tracking." : "No advertising, no tracking." }}</strong>
         <span class="text-[var(--text-2)]">
           The application's own visit statistics do not store IP addresses in plain text and are cleaned up after
           {{ periodText(retention.analytics) }}. Apart from the push messages themselves, Google and Apple only receive technical data for the push

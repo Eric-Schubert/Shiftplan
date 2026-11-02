@@ -7,6 +7,8 @@ const props = defineProps<{
   hoster: string;
   /** ISO 3166 country code of the hoster's data centre (DE); empty when unknown, then the text names none. */
   hosterLocation: string;
+  /** Site of the operator that loads Plausible Analytics (shiftplan.info); empty when none does. */
+  plausibleSite: string;
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
   appPush: boolean;
@@ -40,6 +42,19 @@ const location = computed(() => regionName(localeTag("en"), props.hosterLocation
         in order to deliver the page securely and fend off attacks. Cloudflare acts as a processor under Art. 28 GDPR. Cloudflare is certified under the
         EU-US Data Privacy Framework; transfers to the USA take place on the basis of the European Commission's adequacy decision (Art. 45 GDPR). The
         legal basis is Art. 6(1)(f) GDPR; our legitimate interest lies in secure and stable provision.
+      </p>
+    </template>
+
+    <template v-if="plausibleSite">
+      <h4>Audience measurement on {{ plausibleSite }} with Plausible Analytics</h4>
+      <p>
+        On {{ plausibleSite }} we use Plausible Analytics (Plausible Insights OÜ, Västriku tn 2, 50403 Tartu, Estonia) to evaluate page views in
+        aggregate. For this, the browser loads a script from plausible.io and transmits the requested address, the referrer, browser, operating system and
+        device type as well as the IP address. From the IP address and user agent, Plausible forms a hash together with a salt that changes daily in order
+        to count visits. Plausible does not store raw IP addresses or user agents; only the approximate location (country, region, city) is derived from
+        the IP address. Plausible sets no cookies, uses no local storage and creates no persistent identifiers. The data is processed in the EU. Plausible
+        acts as a processor under Art. 28 GDPR. The legal basis is Art. 6(1)(f) GDPR; our legitimate interest lies in understanding the reach of
+        {{ plausibleSite }}.
       </p>
     </template>
 
