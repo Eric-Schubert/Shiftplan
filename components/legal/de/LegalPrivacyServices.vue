@@ -7,8 +7,6 @@ const props = defineProps<{
   hoster: string;
   /** ISO 3166 country code of the hoster's data centre (DE); empty when unknown, then the text names none. */
   hosterLocation: string;
-  /** Site of the operator that loads Plausible Analytics (shiftplan.info); empty when none does. */
-  plausibleSite: string;
   usesCloudflare: boolean;
   usesMicrosoft: boolean;
   appPush: boolean;
@@ -43,19 +41,6 @@ const location = computed(() => regionName(localeTag("de"), props.hosterLocation
         DSGVO. Cloudflare ist unter dem EU-US Data Privacy Framework zertifiziert; Übermittlungen in die USA erfolgen auf Grundlage des
         Angemessenheitsbeschlusses der EU-Kommission (Art. 45 DSGVO). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt
         in einer sicheren und stabilen Bereitstellung.
-      </p>
-    </template>
-
-    <template v-if="plausibleSite">
-      <h4>Reichweitenmessung auf {{ plausibleSite }} mit Plausible Analytics</h4>
-      <p>
-        Auf {{ plausibleSite }} nutzen wir Plausible Analytics (Plausible Insights OÜ, Västriku tn 2, 50403 Tartu, Estland), um Seitenaufrufe
-        zusammengefasst auszuwerten. Der Browser lädt dafür ein Skript von plausible.io und übermittelt die aufgerufene Adresse, den Referrer, Browser,
-        Betriebssystem und Gerätetyp sowie die IP-Adresse. Aus IP-Adresse und User-Agent bildet Plausible zusammen mit einem täglich wechselnden Salt
-        einen Hash, um Besuche zu zählen. Rohe IP-Adressen und User-Agents speichert Plausible nicht; aus der IP-Adresse wird nur der ungefähre Standort
-        (Land, Region, Stadt) abgeleitet. Plausible setzt keine Cookies, nutzt keinen Local Storage und legt keine dauerhaften Kennungen an. Die Daten
-        werden in der EU verarbeitet. Plausible handelt als Auftragsverarbeiter nach Art. 28 DSGVO. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser
-        berechtigtes Interesse liegt darin, die Reichweite von {{ plausibleSite }} zu verstehen.
       </p>
     </template>
 

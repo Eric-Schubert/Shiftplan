@@ -62,10 +62,6 @@ NUXT_PUBLIC_PRIVACY_HOSTER=
 # Empty: the privacy policy names no country.
 NUXT_PUBLIC_PRIVACY_HOSTER_LOCATION=
 
-# Site of yours that loads Plausible Analytics (for example a product page). The privacy policy then
-# describes Plausible for that site. Shiftplan itself never loads Plausible. Empty: not mentioned.
-NUXT_PUBLIC_PRIVACY_PLAUSIBLE=
-
 # Contact for web push (VAPID). Default: mailto: with the imprint email.
 SHIFTPLAN_PUSH_SUBJECT=
 
