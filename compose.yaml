@@ -2,7 +2,7 @@ name: shiftplan
 
 services:
   schichtplaner:
-    image: ghcr.io/eric-schubert/shiftplan:latest
+    image: ghcr.io/es-software-eu/shiftplan:latest
     container_name: schichtplaner
     restart: unless-stopped
     env_file:

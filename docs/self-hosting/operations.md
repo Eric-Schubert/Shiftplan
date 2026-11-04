@@ -11,7 +11,7 @@ docker compose up -d
 docker image prune -f
 ```
 
-Database migrations run automatically on start. Make a backup before larger version jumps. New versions and their changes are listed under [Releases](https://github.com/Eric-Schubert/Shiftplan/releases).
+Database migrations run automatically on start. Make a backup before larger version jumps. New versions and their changes are listed under [Releases](https://github.com/es-software-eu/Shiftplan/releases).
 
 You can update the instance automatically, for example with Watchtower. If you prefer to decide yourself, pin a version in `image:` (see [`compose.yaml`](install-docker-compose.md#3-create-composeyaml)) and raise it deliberately.
 
@@ -81,6 +81,6 @@ Without `SHIFTPLAN_TRUST_PROXY_HEADERS`, an instance behind a proxy sees all req
 **The container does not start, and the log shows `SQLITE_CANTOPEN` or `permission denied`.**
 `sudo chown -R 1000:1000 /opt/stacks/shiftplan/db`
 
-**Questions and bugs:** [GitHub Issues](https://github.com/Eric-Schubert/Shiftplan/issues) or support@es-software.eu.
+**Questions and bugs:** [GitHub Issues](https://github.com/es-software-eu/Shiftplan/issues) or support@es-software.eu.
 
 Next: [Environment variables](environment-variables.md).
