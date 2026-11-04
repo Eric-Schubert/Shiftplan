@@ -23,5 +23,5 @@ export function isCurrentRelease(entry: ChangelogEntry, currentVersion: string):
 
 export function releaseUrl(entry: ChangelogEntry): string | null {
   const version = normalizeVersion(entry.title);
-  return version ? `https://github.com/Eric-Schubert/Shiftplan/releases/tag/${version}` : null;
+  return version ? `https://github.com/es-software-eu/Shiftplan/releases/tag/${version}` : null;
 }

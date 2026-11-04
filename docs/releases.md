@@ -14,9 +14,11 @@ Hidden maintenance commits such as `docs:`, `test:`, `ci:`, or `chore:` do not c
 Release images are pushed to GHCR:
 
 ```text
-ghcr.io/eric-schubert/shiftplan:latest
-ghcr.io/eric-schubert/shiftplan:<version>
+ghcr.io/es-software-eu/shiftplan:latest
+ghcr.io/es-software-eu/shiftplan:<version>
 ```
+
+Since 3.18.0 the images live in the `es-software-eu` organization. Older versions up to 3.18.0 are still available at `ghcr.io/eric-schubert/shiftplan:<version>`; that path receives no new releases.
 
 `<version>` has no `v` prefix: the Git tag `v3.10.4` becomes the image tag `3.10.4`. Each image is also tagged with its short commit SHA.
 

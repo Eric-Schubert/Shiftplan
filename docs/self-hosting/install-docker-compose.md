@@ -99,7 +99,7 @@ name: shiftplan
 
 services:
   shiftplan:
-    image: ghcr.io/eric-schubert/shiftplan:latest
+    image: ghcr.io/es-software-eu/shiftplan:latest
     container_name: shiftplan
     restart: unless-stopped
     env_file:
@@ -131,7 +131,7 @@ services:
       retries: 3
 ```
 
-Instead of `latest` you can pin a version, for example `ghcr.io/eric-schubert/shiftplan:3.10.4`. Image tags have no `v` prefix, unlike the Git tags and GitHub releases (`v3.10.4`). With a pinned version you decide when to update; see [Updates](operations.md#updates).
+Instead of `latest` you can pin a version, for example `ghcr.io/es-software-eu/shiftplan:3.18.0`. Image tags have no `v` prefix, unlike the Git tags and GitHub releases (`v3.10.4`). With a pinned version you decide when to update; see [Updates](operations.md#updates).
 
 ## 4. Start
 
@@ -158,7 +158,7 @@ The German state for public and school holidays, the session duration, rate limi
 ```bash
 mkdir -p /opt/stacks/shiftplan/config
 curl -fsSL -o /opt/stacks/shiftplan/config/backend.config.json \
-  https://raw.githubusercontent.com/Eric-Schubert/Shiftplan/master/config/backend.config.json
+  https://raw.githubusercontent.com/es-software-eu/Shiftplan/master/config/backend.config.json
 ```
 
 ```yaml
