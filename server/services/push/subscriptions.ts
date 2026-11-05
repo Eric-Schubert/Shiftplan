@@ -3,6 +3,7 @@ import { getAdminDatabase } from "~/server/utils/database";
 import { hasValidKeys } from "~/server/services/push/keys";
 import type { PushSubscriptionInput } from "~/server/services/push/types";
 import { apiError } from "~/server/utils/api-error";
+import { allowNewTarget } from "~/server/services/push/registration-limit";
 
 const MAX_SUBSCRIPTIONS = 2000;
 const MAX_ENDPOINT_LENGTH = 1024;
@@ -36,7 +37,12 @@ export function countSubscriptions(): number {
  * bound to that sign-in, so signing out or revoking it removes the subscription too.
  * Pushes reach it in `locale`, the language of the request that subscribed or renewed it.
  */
-export function subscribe(input: unknown, member: { sessionId: string; staffId: number } | null = null, locale: AppLocale = DEFAULT_LOCALE): void {
+export function subscribe(
+  input: unknown,
+  member: { sessionId: string; staffId: number } | null = null,
+  locale: AppLocale = DEFAULT_LOCALE,
+  network: string | null = null
+): void {
   const subscription = input as Partial<PushSubscriptionInput> | null;
   const endpoint = subscription?.endpoint;
 
@@ -50,6 +56,10 @@ export function subscribe(input: unknown, member: { sessionId: string; staffId: 
   const db = getAdminDatabase();
   const exists = db.prepare("SELECT 1 FROM push_subscriptions WHERE endpoint = ?").get(endpoint);
   if (!exists && countSubscriptions() >= MAX_SUBSCRIPTIONS) {
+    throw apiError(null, 429, "errors.push.tooManySubscriptions");
+  }
+  // Without a personal sign-in, new subscriptions count against the caller's network, so one client cannot fill the cap.
+  if (!exists && !member && network !== null && !allowNewTarget(network)) {
     throw apiError(null, 429, "errors.push.tooManySubscriptions");
   }
 

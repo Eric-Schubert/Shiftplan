@@ -73,6 +73,20 @@ describe("contact form", () => {
     expect(otherNetwork.status).toBe(200);
   });
 
+  it("caps all networks together at ten times the per-network limit", async () => {
+    const message = { name: "Eva", replyTo: "eva@example.com", message: "Bitte um Rückruf, danke." };
+    const statuses: number[] = [];
+    for (let net = 0; net < 11; net += 1) {
+      for (let host = 1; host <= 5; host += 1) {
+        statuses.push((await client.request("POST", "/api/contact", { body: message, ip: `2001:db8:${net}::${host}` })).status);
+      }
+    }
+
+    expect(statuses.filter((status) => status === 200)).toHaveLength(50);
+    expect(statuses.slice(50)).toEqual([429, 429, 429, 429, 429]);
+    expect(graphCalls.filter((call) => call.url.includes("/sendMail"))).toHaveLength(50);
+  });
+
   it("checks lengths on the trimmed text and sets no reply-to for a phone number", async () => {
     const short = await send({ name: "Eva", replyTo: "0351 123456", message: "   zu kurz   " });
     const symbols = await send({ name: "Eva", replyTo: "0351 123456", message: "<<<<<<<<<<" });

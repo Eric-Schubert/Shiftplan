@@ -8,6 +8,7 @@ export default {
   integer: "{label} muss eine ganze Zahl sein",
   between: "{label} muss zwischen {min} und {max} liegen",
   nameMissing: "{label} in {location} fehlt",
+  listTooLong: "Die Liste in {location} ist zu lang",
   nameUnknown: "{label} '{name}' in {location} ist unbekannt oder inaktiv",
   nameAmbiguous: "{label} '{name}' in {location} ist mehrfach vorhanden",
   shiftIdUnknown: "Schicht-ID {id} in Zeile {row} ist unbekannt oder inaktiv",

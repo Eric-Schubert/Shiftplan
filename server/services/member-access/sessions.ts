@@ -113,17 +113,16 @@ export function revokeOtherSessions(staffId: number, keepSessionId: string | nul
 }
 
 /**
- * A planner blocks a device. A PIN set or changed while that device was signed in may be known to
- * whoever holds it, so it goes too; the person sets a new one after the next QR sign-in.
- * Signing out (revokeSession) keeps the PIN.
+ * A planner blocks a device. Whoever holds it may know the person's PIN, or may have chosen it through
+ * another sign-in that is gone by now, so the PIN goes too. The person's other devices stay signed in
+ * and set a new PIN there. Signing out (revokeSession) keeps the PIN.
  */
 export function blockDevice(sessionId: string): boolean {
   const db = getAdminDatabase();
   return db.transaction(() => {
-    const session = db.prepare("SELECT staff_id, created_at FROM member_sessions WHERE session_id = ?").get(sessionId) as
-      { staff_id: number; created_at: number } | undefined;
+    const session = db.prepare("SELECT staff_id FROM member_sessions WHERE session_id = ?").get(sessionId) as { staff_id: number } | undefined;
     if (!session) return false;
-    db.prepare("DELETE FROM member_pins WHERE staff_id = ? AND updated_at >= ?").run(session.staff_id, session.created_at);
+    db.prepare("DELETE FROM member_pins WHERE staff_id = ?").run(session.staff_id);
     return deleteSessions([sessionId]) > 0;
   })();
 }

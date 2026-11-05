@@ -1,5 +1,5 @@
 delete:
-  summary: Revoke an app device (planner), also removes its push registration
+  summary: Revoke an app device (planner), also removes its push registration and the person's PIN
   parameters:
     - name: id
       in: path

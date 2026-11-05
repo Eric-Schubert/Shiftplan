@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import { normalizeShortCode } from "~/server/lib/migrations/staff-short-code.js";
-import { createSession, type Member } from "~/server/services/member-access/sessions";
+import { createSession, revokeOtherSessions, type Member } from "~/server/services/member-access/sessions";
 import { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPin, isWeakPin } from "~/shared/utils/limits";
 import { apiError } from "~/server/utils/api-error";
 
@@ -18,14 +18,17 @@ export function staffWithPin(): number[] {
   return (getAdminDatabase().prepare("SELECT staff_id FROM member_pins").all() as Array<{ staff_id: number }>).map((row) => row.staff_id);
 }
 
-export async function setPin(staffId: number, pin: string): Promise<void> {
+async function hashPin(pin: string): Promise<string> {
   if (!isValidPin(pin)) {
     throw apiError(null, 400, "errors.member.pinLength", { min: PIN_MIN_LENGTH, max: PIN_MAX_LENGTH });
   }
   if (isWeakPin(pin)) {
     throw apiError(null, 400, "errors.member.pinWeak");
   }
-  const pinHash = await bcrypt.hash(pin, PIN_HASH_COST);
+  return bcrypt.hash(pin, PIN_HASH_COST);
+}
+
+function storePin(staffId: number, pinHash: string): void {
   getAdminDatabase()
     .prepare(
       `
@@ -34,6 +37,22 @@ export async function setPin(staffId: number, pin: string): Promise<void> {
       `
     )
     .run(staffId, pinHash, Date.now());
+}
+
+/**
+ * A signed-in person sets their PIN. The session is checked again in the same transaction as the write:
+ * a planner who resets the PIN or blocks the device while the hash is computed wins, and the PIN is not
+ * written. The person's other sign-ins end, so a leaked session or PIN stops working everywhere.
+ */
+export async function setPinForSession(member: Member, pin: string): Promise<void> {
+  const pinHash = await hashPin(pin);
+  const db = getAdminDatabase();
+  db.transaction(() => {
+    const live = db.prepare("SELECT 1 FROM member_sessions WHERE session_id = ? AND revoked_at IS NULL").get(member.sessionId);
+    if (!live) throw apiError(null, 401, "errors.member.notSignedIn");
+    storePin(member.staffId, pinHash);
+    revokeOtherSessions(member.staffId, member.sessionId);
+  })();
 }
 
 /**

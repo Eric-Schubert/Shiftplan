@@ -21,6 +21,6 @@ export default {
   },
   revokeDialog: {
     header: "Gerät sperren",
-    text: "„{device}“ von {name} wird abgemeldet und bekommt keine Benachrichtigungen mehr. Eine PIN, die seit der Anmeldung dieses Geräts festgelegt wurde, wird mit gelöscht. Für einen neuen Zugang einfach einen neuen QR-Code erzeugen.",
+    text: "„{device}“ von {name} wird abgemeldet und bekommt keine Benachrichtigungen mehr. Die PIN der Person wird mit gelöscht, sie legt bei der nächsten Anmeldung eine neue fest. Für einen neuen Zugang einfach einen neuen QR-Code erzeugen.",
   },
 };

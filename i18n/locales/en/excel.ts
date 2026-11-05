@@ -10,6 +10,7 @@ export default {
   integer: "{label} must be a whole number",
   between: "{label} must be between {min} and {max}",
   nameMissing: "{label} in {location} is missing",
+  listTooLong: "The list in {location} is too long",
   nameUnknown: "{label} '{name}' in {location} is unknown or inactive",
   nameAmbiguous: "{label} '{name}' in {location} exists more than once",
   shiftIdUnknown: "Shift ID {id} in row {row} is unknown or inactive",

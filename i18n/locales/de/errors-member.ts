@@ -8,4 +8,5 @@ export default {
   inviteInvalid: "Der QR-Code ist ungültig, abgelaufen oder wurde schon benutzt",
   staffNotFound: "Mitarbeiter nicht gefunden oder inaktiv",
   deviceNotFound: "Gerät nicht gefunden",
+  demoPin: "In der Demo lässt sich keine PIN festlegen",
 };

@@ -100,6 +100,19 @@ describe("push subscription keys", () => {
     expect(explicitDefault.status).toBe(200);
   });
 
+  it("lets one network add only a limited number of new subscriptions per hour", async () => {
+    const subscribe = (endpoint: string, ip: string) => client.request("POST", "/api/push/subscribe", { body: { endpoint, keys: KEYS }, ip });
+    const statuses: number[] = [];
+    for (let n = 0; n < 31; n += 1) statuses.push((await subscribe(`https://fcm.googleapis.com/fcm/send/n${n}`, "2001:db8:5::1")).status);
+    const renewal = await subscribe("https://fcm.googleapis.com/fcm/send/n0", "2001:db8:5::2");
+    const otherNetwork = await subscribe("https://fcm.googleapis.com/fcm/send/other", "2001:db8:6::1");
+
+    expect(statuses.slice(0, 30).every((status) => status === 200)).toBe(true);
+    expect(statuses[30]).toBe(429);
+    expect(renewal.status).toBe(200);
+    expect(otherNetwork.status).toBe(200);
+  });
+
   it("keeps subscriptions with valid keys after a temporary failure", async () => {
     await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
     sendNotification.mockRejectedValue(new Error("socket hang up"));

@@ -7,11 +7,16 @@ import { parseAttrs, parseTextRuns } from "./xml";
 import { xmlElements } from "./xml-scan";
 import { readZip } from "./zip-read";
 
-export function parseXlsx(buffer: Buffer): XlsxWorkbook {
+/**
+ * `trimText` trims each shared string once while reading. Many cells may point to one shared string, so
+ * a reader that trims cell by cell would redo the work for every cell; a trimmed string trims in O(1).
+ */
+export function parseXlsx(buffer: Buffer, options: { trimText?: boolean } = {}): XlsxWorkbook {
   const zip = readZip(buffer);
   const workbook = readXml(zip, "xl/workbook.xml");
   const rels = readXml(zip, "xl/_rels/workbook.xml.rels");
-  const sharedStrings = parseSharedStrings(zip.get("xl/sharedStrings.xml")?.toString("utf-8") || "");
+  const strings = parseSharedStrings(zip.get("xl/sharedStrings.xml")?.toString("utf-8") || "");
+  const sharedStrings = options.trimText ? strings.map((text) => text.trim()) : strings;
 
   const relationships = parseRelationships(rels);
   const sheets: XlsxSheet[] = [];

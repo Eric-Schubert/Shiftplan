@@ -3,6 +3,7 @@ import { getAdminDatabase, getDatabase } from "~/server/utils/database";
 import type { DeviceScope, StoredDevice } from "~/server/services/push/types";
 import { apiError } from "~/server/utils/api-error";
 import { localeFromTag } from "~/server/utils/locale";
+import { allowNewTarget } from "~/server/services/push/registration-limit";
 import type { MessageKey } from "~/server/lib/i18n/translate";
 
 // Team devices without a personal sign-in share this cap; personal ones are capped per person.
@@ -53,7 +54,12 @@ function trimDevicesOfPerson(staffId: number, personal: boolean, keepToken: stri
  * "only mine" plan changes; personal messages need a personal sign-in.
  * Pushes reach it in the app's `locale` when it sends a supported one, else in `requestLocale`.
  */
-export function registerDevice(input: unknown, member?: { sessionId: string; staffId: number }, requestLocale: AppLocale = DEFAULT_LOCALE): void {
+export function registerDevice(
+  input: unknown,
+  member?: { sessionId: string; staffId: number },
+  requestLocale: AppLocale = DEFAULT_LOCALE,
+  network: string | null = null
+): void {
   const device = input as {
     platform?: unknown;
     token?: unknown;
@@ -91,6 +97,10 @@ export function registerDevice(input: unknown, member?: { sessionId: string; sta
   const db = getAdminDatabase();
   const exists = db.prepare("SELECT 1 FROM push_devices WHERE token = ?").get(token);
   if (!exists && !member && countTeamDevices() >= MAX_TEAM_DEVICES) {
+    throw apiError(null, 429, "errors.push.tooManyDevices");
+  }
+  // New team devices count against the caller's network, so one client cannot fill the cap for everyone.
+  if (!exists && !member && network !== null && !allowNewTarget(network)) {
     throw apiError(null, 429, "errors.push.tooManyDevices");
   }
 

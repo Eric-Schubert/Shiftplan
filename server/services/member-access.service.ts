@@ -1,5 +1,5 @@
-import { createInvite, redeem } from "~/server/services/member-access/invites";
-import { clearPin, hasPin, loginWithPin, setPin, staffWithPin, verifyPin } from "~/server/services/member-access/pins";
+import { createInvite, isDemoMember, redeem } from "~/server/services/member-access/invites";
+import { clearPin, hasPin, loginWithPin, setPinForSession, staffWithPin, verifyPin } from "~/server/services/member-access/pins";
 import {
   blockDevice,
   createSession,
@@ -23,10 +23,11 @@ export const DEVICE_NAME_MAX_LENGTH = 60;
 export const MemberAccessService = {
   createInvite,
   redeem,
+  isDemoMember,
   createSession,
   hasPin,
   staffWithPin,
-  setPin,
+  setPinForSession,
   verifyPin,
   clearPin,
   loginWithPin,

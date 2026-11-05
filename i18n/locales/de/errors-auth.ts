@@ -10,6 +10,7 @@ export default {
   tooManyLogins: "Zu viele Anmeldeversuche. Bitte warten.",
   loginFailed: "Anmeldung fehlgeschlagen",
   demoPassword: "In der Demo lässt sich das Passwort nicht ändern",
+  demoPush: "In der Demo lassen sich keine Benachrichtigungen senden",
   currentPasswordRequired: "Aktuelles Passwort erforderlich",
   newPasswordRequired: "Neues Passwort erforderlich",
   passwordChangeFailed: "Passwort-Änderung fehlgeschlagen",
