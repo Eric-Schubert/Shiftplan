@@ -10,4 +10,5 @@ export default {
   inviteInvalid: "The QR code is invalid, has expired or has already been used",
   staffNotFound: "Staff member not found or inactive",
   deviceNotFound: "Device not found",
+  demoPin: "A PIN cannot be set in the demo",
 } satisfies typeof de;

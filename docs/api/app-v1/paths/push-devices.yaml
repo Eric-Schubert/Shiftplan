@@ -10,6 +10,7 @@ post:
     acceptances and rejections) only go to devices registered with a personal token.
 
     Each person keeps the ten most recently registered devices, older ones are dropped.
+    Without a personal token, one client network registers at most 30 new devices per hour (429).
 
     Pushes reach the device in its `locale`. Without a supported value the server takes the
     language of the request (`Accept-Language`), else the instance's language. Registering again

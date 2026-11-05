@@ -20,6 +20,16 @@ function normalizeCode(code: string): string {
 function demoStaffId(code: string): number | null {
   const demoCode = process.env.SHIFTPLAN_DEMO_MEMBER_CODE?.trim();
   if (!demoCode || normalizeCode(code) !== normalizeCode(demoCode)) return null;
+  return demoMemberStaffId();
+}
+
+/** Whether this is the person the public demo code signs in as: everyone who uses the code shares it. */
+export function isDemoMember(staffId: number): boolean {
+  return demoMemberStaffId() === staffId;
+}
+
+function demoMemberStaffId(): number | null {
+  if (!process.env.SHIFTPLAN_DEMO_MEMBER_CODE?.trim()) return null;
   const name = process.env.SHIFTPLAN_DEMO_MEMBER_NAME?.trim();
   const row = getDatabase()
     .prepare(name ? "SELECT staff_id FROM staff WHERE active = 1 AND name = ?" : "SELECT staff_id FROM staff WHERE active = 1 ORDER BY staff_id LIMIT 1")

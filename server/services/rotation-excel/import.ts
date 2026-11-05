@@ -4,7 +4,7 @@ import { RotationService } from "~/server/services/rotation.service";
 import { ShiftService } from "~/server/services/shift.service";
 import { StaffService } from "~/server/services/staff.service";
 import type { RotationConfig } from "~/types/rotation";
-import { badRequest, clearTextCache, normalizeName } from "~/server/services/rotation-excel/cells";
+import { badRequest, normalizeName } from "~/server/services/rotation-excel/cells";
 import { ROTATION_SHEET_NAMES } from "~/server/services/rotation-excel/labels";
 import { makeNameLookup } from "~/server/services/rotation-excel/lookup";
 import { readGridRows, readListRows, type Lookups, type ReadContext, type RotationExcelEntry } from "~/server/services/rotation-excel/rows";
@@ -21,7 +21,7 @@ export type RotationExcelImportResult = {
 /** The workbook, or a 400 that says why the file cannot be read (a .xls, a password, a broken zip). */
 function readWorkbook(fileData: Buffer): XlsxWorkbook {
   try {
-    return parseXlsx(fileData);
+    return parseXlsx(fileData, { trimText: true });
   } catch (error) {
     if (error instanceof XlsxError) badRequest(error.key, error.params);
     // Anything else the reader trips over, like a header cut off mid-field, is a broken file as well.
@@ -32,15 +32,6 @@ function readWorkbook(fileData: Buffer): XlsxWorkbook {
 
 /** Reads a filled template and replaces the pattern; with dryRun it only validates and counts. */
 export function importRotationTemplate(fileData: Buffer, options: { dryRun?: boolean } = {}): RotationExcelImportResult {
-  clearTextCache();
-  try {
-    return importWorkbook(fileData, options);
-  } finally {
-    clearTextCache();
-  }
-}
-
-function importWorkbook(fileData: Buffer, options: { dryRun?: boolean }): RotationExcelImportResult {
   const workbook = readWorkbook(fileData);
   const rotationSheet = workbook.sheets.find((sheet) => ROTATION_SHEET_NAMES.includes(normalizeName(sheet.name))) || workbook.sheets[0];
 

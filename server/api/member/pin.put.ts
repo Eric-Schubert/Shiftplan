@@ -8,6 +8,10 @@ export default defineEventHandler(async (event) => {
   // Body first, so a person deactivated in the meantime is no longer accepted.
   const body = await readObjectBody<{ pin?: unknown; currentPin?: unknown }>(event);
   const member = MemberAccessService.requireMember(event);
+  // Demo visitors share one person: a PIN would sign the others out and lock later visitors out.
+  if (MemberAccessService.isDemoMember(member.staffId)) {
+    throw apiError(event, 403, "errors.member.demoPin");
+  }
 
   if (MemberAccessService.hasPin(member.staffId)) {
     const currentPin = typeof body?.currentPin === "string" ? body.currentPin.trim() : "";
@@ -21,8 +25,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await MemberAccessService.setPin(member.staffId, typeof body?.pin === "string" ? body.pin.trim() : "");
-  // A new PIN ends the person's other sign-ins, so a leaked session or PIN stops working everywhere.
-  MemberAccessService.revokeOtherSessions(member.staffId, member.sessionId);
+  await MemberAccessService.setPinForSession(member, typeof body?.pin === "string" ? body.pin.trim() : "");
   return { hasPin: true };
 });

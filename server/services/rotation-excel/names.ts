@@ -2,11 +2,13 @@ import type { XlsxCellValue } from "~/server/utils/xlsx";
 import type { Shift } from "~/types/shift";
 import type { Staff } from "~/types/staff";
 import type { MessageRef } from "~/server/utils/api-error";
-import { normalizeName, toText } from "~/server/services/rotation-excel/cells";
+import { badRequest, normalizeName, toText } from "~/server/services/rotation-excel/cells";
 import { FREE_MARKERS } from "~/server/services/rotation-excel/labels";
 import { resolveByName } from "~/server/services/rotation-excel/lookup";
 
 const SEPARATORS = /([,;\n\r]+)/;
+// A list of every staff member or shift by name stays far below this.
+const MAX_LIST_TEXT = 4_000;
 const partCounts = new WeakMap<Map<string, unknown[]>, number>();
 
 /** Parts of the longest name that contains a separator, e.g. 2 for "Nacht, lang"; 1 when none does. */
@@ -51,6 +53,9 @@ export function listResolver<T extends Staff | Shift>(lookup: Map<string, T[]>, 
   const resolved = new Map<string, T[]>();
   return (value, location) => {
     const text = toText(value);
+    // Far longer than any real list. Never used as a key either: V8 hashes very long strings by their length
+    // only, so many long texts of one length would make every lookup compare them all.
+    if (text.length > MAX_LIST_TEXT) badRequest("excel.listTooLong", { location });
     let items = resolved.get(text);
     if (!items) {
       items = [...new Set(splitList(text, lookup).map((name) => resolveByName(lookup, name, label, location)))];

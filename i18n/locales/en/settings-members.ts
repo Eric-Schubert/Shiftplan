@@ -23,6 +23,6 @@ export default {
   },
   revokeDialog: {
     header: "Revoke device",
-    text: "{name}’s device “{device}” will be signed out and will no longer receive notifications. A PIN set since this device signed in is removed as well. To give access again, just create a new QR code.",
+    text: "{name}’s device “{device}” will be signed out and will no longer receive notifications. The person’s PIN is removed as well, they set a new one at their next sign-in. To give access again, just create a new QR code.",
   },
 } satisfies typeof de;

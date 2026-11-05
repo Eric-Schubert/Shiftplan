@@ -12,6 +12,7 @@ export default {
   tooManyLogins: "Too many sign-in attempts. Please wait.",
   loginFailed: "Sign-in failed",
   demoPassword: "The password cannot be changed in the demo",
+  demoPush: "Notifications cannot be sent in the demo",
   currentPasswordRequired: "Current password is required",
   newPasswordRequired: "New password is required",
   passwordChangeFailed: "Could not change the password",

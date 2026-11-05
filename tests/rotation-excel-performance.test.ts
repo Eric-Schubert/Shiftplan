@@ -7,21 +7,7 @@ import { parseAttrs } from "~/server/lib/xlsx/xml";
 import { createZip } from "~/server/lib/xlsx/zip-write";
 import { findGridColumns, findHeaderColumns } from "~/server/services/rotation-excel/sheet";
 import { readGridRows } from "~/server/services/rotation-excel/rows";
-
-// Crafted files that made the reader rescan the whole input per tag or cell (quadratic) and block
-// the server for seconds to minutes. Each case has to finish well inside the limit.
-const LIMIT_MS = 300;
-
-function timed(run: () => unknown): { ms: number; error: unknown } {
-  const start = performance.now();
-  let error: unknown = null;
-  try {
-    run();
-  } catch (caught) {
-    error = caught;
-  }
-  return { ms: performance.now() - start, error };
-}
+import { LIMIT_MS, timed } from "./helpers/crafted-xlsx";
 
 /** Letters that do not compress much, so the zip stays under the expansion limit. */
 function noise(length: number, seed = 7): string {
@@ -95,8 +81,8 @@ describe("rotation import on crafted cells", () => {
     expect((list.error as { data?: { code?: string } }).data?.code).toBe("excel.headerMissing");
   });
 
-  it("splits one long list text only once, however many cells repeat it", () => {
-    const free = "frei, ".repeat(5_000);
+  it("splits one list text only once, however many cells repeat it", () => {
+    const free = "frei, ".repeat(600);
     const rows = [["Mitarbeiter", "Woche 1"], ...Array.from({ length: 5_000 }, () => ["Anna", free])];
     const anna = { staff_id: 1, name: "Anna" };
     const context = {

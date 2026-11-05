@@ -31,22 +31,29 @@ function cleanupRateLimits(now: number): void {
   }
 }
 
+// The whole instance takes this many times the per-network limit per window: someone with many networks
+// (an IPv6 /48 holds 65,536 of them) cannot flood the inbox and the mailbox either.
+const INSTANCE_FACTOR = 10;
+const INSTANCE_KEY = "*";
+
 function assertRateLimit(event: H3Event, network: string): void {
   const now = Date.now();
   cleanupRateLimits(now);
   const rateLimit = getContactRateLimitConfig();
+  const limits: Array<[string, number]> = [
+    [INSTANCE_KEY, rateLimit.maxMessages * INSTANCE_FACTOR],
+    [network, rateLimit.maxMessages],
+  ];
 
-  const record = contactRateLimits.get(network);
-  if (!record || now - record.firstAttempt > rateLimit.windowMs) {
-    contactRateLimits.set(network, { count: 1, firstAttempt: now });
-    return;
-  }
-
-  if (record.count >= rateLimit.maxMessages) {
+  // Check both before counting, so a refused message uses up neither allowance.
+  if (limits.some(([key, max]) => (contactRateLimits.get(key)?.count ?? 0) >= max)) {
     throw apiError(event, 429, "errors.contact.tooMany");
   }
-
-  record.count += 1;
+  for (const [key] of limits) {
+    const record = contactRateLimits.get(key);
+    if (record) record.count += 1;
+    else contactRateLimits.set(key, { count: 1, firstAttempt: now });
+  }
 }
 
 export default defineEventHandler(async (event) => {
