@@ -27,6 +27,7 @@ export const ROUTE_POLICY: RoutePolicy = {
   legalPrefix: "/api/legal/",
 
   // Exact employee paths without a planner login, any method. The handlers check the team access code themselves.
+  // Writes carried by a cookie (team code, personal or planner sign-in) must come from this site (Origin header).
   teamRoutes: [
     "/api/instance",
     "/api/viewer/login",
@@ -38,7 +39,7 @@ export const ROUTE_POLICY: RoutePolicy = {
   ],
 
   // Personal app access, any method below this prefix. The handlers authenticate the staff member themselves
-  // (requireMember, or short code and PIN). Writes with the member cookie must come from this site (Origin header).
+  // (requireMember, or short code and PIN). Writes carried by a cookie must come from this site (Origin header).
   memberPrefix: "/api/member/",
 
   // GET below these prefixes is plan data for employees: open while no team access code is set,

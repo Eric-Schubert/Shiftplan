@@ -83,6 +83,18 @@ describe("rotation import on crafted cells", () => {
     expect((list.error as { data?: { code?: string } }).data?.code).toBe("excel.headerMissing");
   });
 
+  it("trims one long whitespace text only once, however many cells repeat it", () => {
+    // One shared string of the longest cell text Excel allows, referenced by every cell of a 1.9 MB sheet.
+    const spaces = " ".repeat(32_767);
+    const rows = Array.from({ length: 678 }, () => Array.from({ length: 128 }, () => spaces));
+
+    const grid = timed(() => findGridColumns(rows));
+    const list = timed(() => findHeaderColumns(rows));
+
+    expect(grid.ms + list.ms).toBeLessThan(LIMIT_MS);
+    expect((list.error as { data?: { code?: string } }).data?.code).toBe("excel.headerMissing");
+  });
+
   it("splits one long list text only once, however many cells repeat it", () => {
     const free = "frei, ".repeat(5_000);
     const rows = [["Mitarbeiter", "Woche 1"], ...Array.from({ length: 5_000 }, () => ["Anna", free])];

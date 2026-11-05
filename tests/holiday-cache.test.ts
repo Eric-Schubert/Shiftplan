@@ -59,6 +59,31 @@ describe("public holiday cache", () => {
   });
 });
 
+describe("school holiday cache", () => {
+  it("fetches each year and state once, whatever sets of states are asked for", async () => {
+    answer = async () => new Response("[]", { status: 200 });
+    const school = (await import("~/server/services/school-holiday.service")).SchoolHolidayService;
+
+    await school.list(2026, null, ["SN", "BB"]);
+    await school.list(2026, null, ["BB"]);
+    await school.list(2026, null, ["SN", "BB", "BE"]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps the instance's own years when anonymous requests cycle through every valid year", async () => {
+    answer = async () => new Response("[]", { status: 200 });
+    const school = (await import("~/server/services/school-holiday.service")).SchoolHolidayService;
+    await school.list(2026, null, ["SN"]);
+    for (let year = 2020; year <= 2100; year += 1) await school.list(year, null, ["BE"]);
+    const before = fetchMock.mock.calls.length;
+
+    await school.list(2026, null, ["SN"]);
+
+    expect(fetchMock.mock.calls.length).toBe(before);
+  });
+});
+
 describe("GET /api/holidays", () => {
   async function call(query: string) {
     const { createApp, toPlainHandler } = await import("h3");

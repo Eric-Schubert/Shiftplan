@@ -1,6 +1,7 @@
 import type { H3Event } from "h3";
 import { getRotationValidationConfig } from "~/server/config/domain-config";
 import { apiError } from "~/server/utils/api-error";
+import { routedPath } from "~/server/utils/request-path";
 
 // JSON bodies of this API stay far below this. The Excel import gets its file limit plus form overhead.
 const MAX_BODY_BYTES = 256 * 1024;
@@ -44,10 +45,11 @@ function readLimited(event: H3Event, limit: number, path: string): Promise<Buffe
 /**
  * h3 buffers whole request bodies without a limit, before any handler can check size, auth
  * or rate limits. Node stops a body at its Content-Length, so only chunked bodies are counted.
+ * Every payload request is limited, whatever its path: no route of this app takes larger bodies.
  */
 export default defineEventHandler(async (event) => {
-  const path = getRequestURL(event).pathname;
-  if (!path.startsWith("/api/") || !PAYLOAD_METHODS.has(getMethod(event))) return;
+  if (!PAYLOAD_METHODS.has(getMethod(event))) return;
+  const path = routedPath(event);
 
   const limit = getBodyLimit(path);
   if (Number.parseInt(getHeader(event, "content-length") || "", 10) > limit) throw tooLarge(event, path);

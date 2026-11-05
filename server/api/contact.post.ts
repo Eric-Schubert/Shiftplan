@@ -1,7 +1,7 @@
 import type { H3Event } from "h3";
 import { ContactService } from "~/server/services/contact.service";
 import { ContactMailService } from "~/server/services/contact-mail.service";
-import { getClientIP } from "~/server/utils/session";
+import { getClientIP, getClientNetwork } from "~/server/utils/session";
 import { validateString } from "~/server/utils/validation";
 import { getContactFormConfig, getContactRateLimitConfig } from "~/server/config/contact-config";
 import { apiError } from "~/server/utils/api-error";
@@ -31,14 +31,14 @@ function cleanupRateLimits(now: number): void {
   }
 }
 
-function assertRateLimit(event: H3Event, ip: string): void {
+function assertRateLimit(event: H3Event, network: string): void {
   const now = Date.now();
   cleanupRateLimits(now);
   const rateLimit = getContactRateLimitConfig();
 
-  const record = contactRateLimits.get(ip);
+  const record = contactRateLimits.get(network);
   if (!record || now - record.firstAttempt > rateLimit.windowMs) {
-    contactRateLimits.set(ip, { count: 1, firstAttempt: now });
+    contactRateLimits.set(network, { count: 1, firstAttempt: now });
     return;
   }
 
@@ -57,7 +57,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const ip = getClientIP(event);
-  assertRateLimit(event, ip);
+  // Per network like the other anonymous limits: one IPv6 client owns a whole /64.
+  assertRateLimit(event, getClientNetwork(event));
   const formConfig = getContactFormConfig();
 
   // Stored as typed (trimmed): the admin view escapes on render and the mail is plain text.

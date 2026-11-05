@@ -103,3 +103,27 @@ export function listSessions(staffId?: number): MemberSession[] {
 export function revokeSession(sessionId: string): boolean {
   return deleteSessions([sessionId]) > 0;
 }
+
+/** Ends every personal session of one person except `keepSessionId`, with their push registrations. */
+export function revokeOtherSessions(staffId: number, keepSessionId: string | null): number {
+  const rows = getAdminDatabase()
+    .prepare("SELECT session_id FROM member_sessions WHERE staff_id = ? AND session_id IS NOT ?")
+    .all(staffId, keepSessionId) as Array<{ session_id: string }>;
+  return deleteSessions(rows.map((row) => row.session_id));
+}
+
+/**
+ * A planner blocks a device. A PIN set or changed while that device was signed in may be known to
+ * whoever holds it, so it goes too; the person sets a new one after the next QR sign-in.
+ * Signing out (revokeSession) keeps the PIN.
+ */
+export function blockDevice(sessionId: string): boolean {
+  const db = getAdminDatabase();
+  return db.transaction(() => {
+    const session = db.prepare("SELECT staff_id, created_at FROM member_sessions WHERE session_id = ?").get(sessionId) as
+      { staff_id: number; created_at: number } | undefined;
+    if (!session) return false;
+    db.prepare("DELETE FROM member_pins WHERE staff_id = ? AND updated_at >= ?").run(session.staff_id, session.created_at);
+    return deleteSessions([sessionId]) > 0;
+  })();
+}

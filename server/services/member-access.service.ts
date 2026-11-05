@@ -1,6 +1,14 @@
 import { createInvite, redeem } from "~/server/services/member-access/invites";
 import { clearPin, hasPin, loginWithPin, setPin, staffWithPin, verifyPin } from "~/server/services/member-access/pins";
-import { createSession, getMember, listSessions, requireMember, revokeSession } from "~/server/services/member-access/sessions";
+import {
+  blockDevice,
+  createSession,
+  getMember,
+  listSessions,
+  requireMember,
+  revokeOtherSessions,
+  revokeSession,
+} from "~/server/services/member-access/sessions";
 
 export { purgeMemberAccess, removeStaffAccess } from "~/server/services/member-access/cleanup";
 export type { Member, MemberSession } from "~/server/services/member-access/sessions";
@@ -26,4 +34,6 @@ export const MemberAccessService = {
   requireMember,
   listSessions,
   revokeSession,
+  revokeOtherSessions,
+  blockDevice,
 };

@@ -57,6 +57,8 @@ const MAX_LABEL_LENGTH = 200;
 
 /** A cell as label to compare: normalizeLabel, or "" for a long text that cannot be one. */
 function labelOf(value: XlsxCellValue): string {
+  // Far longer than any label, even padded: skip it before trimming, one shared string may fill every cell.
+  if (typeof value === "string" && value.length > MAX_LABEL_LENGTH * 4) return "";
   const text = toText(value);
   return text.length > MAX_LABEL_LENGTH ? "" : normalizeLabel(text);
 }
