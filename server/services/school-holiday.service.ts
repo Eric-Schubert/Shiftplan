@@ -5,6 +5,7 @@ import {
   getHolidayConfig,
   getHolidaySubdivisionName,
   getSchoolHolidayLookupRange,
+  holidayCacheEntries,
   normalizeHolidaySubdivisionCode,
   toHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
@@ -30,7 +31,10 @@ export interface SchoolHoliday {
   stateName: string;
 }
 
-const cachedSchoolHolidays = createHolidayCache<SchoolHoliday[]>("school holidays");
+// One entry per year and state, so any set of states is served from the same entries.
+const cachedSchoolHolidays = createHolidayCache<SchoolHoliday[]>("school holidays", () =>
+  holidayCacheEntries(Object.keys(getHolidayConfig().subdivisionNames).length)
+);
 
 async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Promise<SchoolHoliday[]> {
   const config = getHolidayConfig();
@@ -56,15 +60,14 @@ async function fetchSchoolHolidaysFromAPI(year: number, stateCode: string): Prom
   }));
 }
 
-function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
-  const normalizedStates = [...states].sort();
+async function getSchoolHolidays(year: number, states: string[]): Promise<SchoolHoliday[]> {
   const { countryIsoCode, languageIsoCode } = getHolidayConfig();
-  const cacheKey = [year, countryIsoCode, languageIsoCode, normalizedStates.join(",")].join("|");
-
-  return cachedSchoolHolidays(cacheKey, async () => {
-    const results = await Promise.all(normalizedStates.map((state) => fetchSchoolHolidaysFromAPI(year, state)));
-    return results.flat().sort((a, b) => a.start.localeCompare(b.start));
-  });
+  const results = await Promise.all(
+    [...new Set(states)]
+      .sort()
+      .map((state) => cachedSchoolHolidays([year, countryIsoCode, languageIsoCode, state].join("|"), () => fetchSchoolHolidaysFromAPI(year, state)))
+  );
+  return results.flat().sort((a, b) => a.start.localeCompare(b.start));
 }
 
 function periodsOverlap(start1: string, end1: string, start2: string, end2: string): boolean {

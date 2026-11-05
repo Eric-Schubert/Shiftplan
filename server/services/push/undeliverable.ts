@@ -4,8 +4,8 @@ import type { StoredSubscription } from "~/server/services/push/types";
 // Answers that mean this subscription never works: invalid, foreign VAPID key, gone.
 // 413 is about the message, not the subscription, and 5xx/429 are temporary.
 const DEAD_STATUS_CODES = new Set([400, 403, 404, 410]);
-// Unreachable hosts get a few sends, so a short outage keeps the subscription.
-const UNREACHABLE_CODES = new Set(["EAI_AGAIN", "ECONNREFUSED"]);
+// A send without an HTTP answer (unreachable, refused, timed out, TLS failure) gets a few tries,
+// so a short outage keeps the subscription, but one that never answers does not stay forever.
 const MAX_UNREACHABLE_SENDS = 3;
 
 const unreachableSends = new Map<number, number>();
@@ -23,7 +23,7 @@ export function isUndeliverable(reason: unknown, subscription: StoredSubscriptio
   let dead = !hasValidKeys(subscription.p256dh, subscription.auth);
   if (statusCode !== undefined) dead ||= DEAD_STATUS_CODES.has(statusCode);
   else if (code === "ENOTFOUND") dead = true;
-  else if (code && UNREACHABLE_CODES.has(code)) {
+  else {
     const sends = (unreachableSends.get(subscription.subscription_id) ?? 0) + 1;
     unreachableSends.set(subscription.subscription_id, sends);
     dead ||= sends >= MAX_UNREACHABLE_SENDS;

@@ -20,7 +20,8 @@ function isAllowedEndpoint(endpoint: string): boolean {
     return false;
   }
 
-  if (url.protocol !== "https:") return false;
+  // Default port only: a push host on another port never answers with a status that would prune the entry.
+  if (url.protocol !== "https:" || url.port !== "" || url.username || url.password) return false;
   const host = url.hostname.toLowerCase();
   return ALLOWED_PUSH_HOSTS.includes(host) || ALLOWED_PUSH_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
 }

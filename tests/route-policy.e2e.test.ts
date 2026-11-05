@@ -1,74 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApiClient, type ApiClient, type CookieJar } from "./helpers/api-harness";
-import { apiRoutes } from "./helpers/routes";
+import { describe, expect, it, vi } from "vitest";
+import type { CookieJar } from "./helpers/api-harness";
+import { ASSIGNMENT, FOREIGN_ORIGIN, SAME_ORIGIN, client, memberBrowser, setTeamCode, useRoutePolicyClient } from "./helpers/route-policy";
 import { webPushMock } from "./helpers/web-push-mock";
 
 vi.mock("web-push", () => webPushMock);
 
-// One case per class in server/config/route-policy.ts, through the real auth middleware.
-// Paths without a handler answer 404 once the middleware lets them through.
-const ROUTES = apiRoutes(
-  "auth/login.post.ts",
-  "auth/session.get.ts",
-  "absences/index.get.ts",
-  "team-access/index.post.ts",
-  "viewer/login.post.ts",
-  "member-invites/index.post.ts",
-  "member/redeem.post.ts",
-  "member/logout.post.ts",
-  "shiftplan/assign.post.ts"
-);
-
-const SAME_ORIGIN = { origin: "http://localhost", host: "localhost" };
-const FOREIGN_ORIGIN = { origin: "https://evil.example", host: "localhost" };
-const ASSIGNMENT = { staff_id: 1, shift_id: 1, year: 2030, week: 10 };
 const ABSENCES = "/api/absences?year=2030&week=10";
 
-let client: ApiClient;
-
-async function setTeamCode(): Promise<string> {
-  const admin = await client.loginAs("admin", "admin1234");
-  const created = await client.request<{ code: string }>("POST", "/api/team-access", {
-    jar: admin,
-    csrf: true,
-    body: { generate: true },
-  });
-  return created.json!.code;
-}
-
-/** A browser that redeemed a personal invite for Anna: signed in with the member cookie. */
-async function memberBrowser(): Promise<CookieJar> {
-  const planner = await client.loginAs("planner", "planner1234");
-  const invite = await client.request<{ code: string }>("POST", "/api/member-invites", {
-    jar: planner,
-    csrf: true,
-    body: { staffId: 1 },
-  });
-  const jar: CookieJar = new Map();
-  const redeem = await client.request("POST", "/api/member/redeem", {
-    jar,
-    headers: SAME_ORIGIN,
-    body: { code: invite.json!.code, client: "web", deviceName: "Firefox" },
-  });
-  expect(redeem.status).toBe(200);
-  return jar;
-}
-
 describe("route policy in the auth middleware", () => {
-  beforeEach(async () => {
-    process.env.SHIFTPLAN_PUSH_RELAY_URL = "off";
-    client = await createApiClient(ROUTES, (db) => {
-      db.prepare("INSERT INTO staff (name, short_code) VALUES ('Anna Weber', 'AW')").run();
-      db.prepare(
-        "INSERT INTO shifts (name, active, start_time, end_time, color, min_staff, sort_order) VALUES ('Frühschicht', 1, '06:00', '14:00', '#22c55e', 1, 1)"
-      ).run();
-    });
-  });
-
-  afterEach(() => {
-    client.close();
-    delete process.env.SHIFTPLAN_PUSH_RELAY_URL;
-  });
+  useRoutePolicyClient();
 
   it("lets anyone reach public routes, legal facts and public reads, also with a team code", async () => {
     await setTeamCode();

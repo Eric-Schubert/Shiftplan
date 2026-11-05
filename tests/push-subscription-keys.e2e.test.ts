@@ -83,6 +83,23 @@ describe("push subscription keys", () => {
     expect(counts).toEqual([1, 1, 0]);
   });
 
+  it("treats timeouts and TLS failures like an unreachable service", async () => {
+    for (const error of [new Error("Socket timeout"), Object.assign(new Error("wrong version number"), { code: "ERR_SSL_WRONG_VERSION_NUMBER" })]) {
+      await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
+      sendNotification.mockRejectedValue(error);
+      for (let send = 0; send < 3; send += 1) await client.push.PushService.sendWebPush({ title: "Test", body: "Test", url: "/" });
+      expect(client.push.PushService.countSubscriptions()).toBe(0);
+    }
+  });
+
+  it("accepts push hosts only on their default port and without credentials", async () => {
+    for (const endpoint of ["https://fcm.googleapis.com:80/fcm/send/x", "https://fcm.googleapis.com:8443/x", "https://user@fcm.googleapis.com/x"]) {
+      expect((await client.request("POST", "/api/push/subscribe", { body: { endpoint, keys: KEYS } })).status).toBe(400);
+    }
+    const explicitDefault = await client.request("POST", "/api/push/subscribe", { body: { endpoint: "https://fcm.googleapis.com:443/x", keys: KEYS } });
+    expect(explicitDefault.status).toBe(200);
+  });
+
   it("keeps subscriptions with valid keys after a temporary failure", async () => {
     await client.request("POST", "/api/push/subscribe", { body: { endpoint: FCM_ENDPOINT, keys: KEYS } });
     sendNotification.mockRejectedValue(new Error("socket hang up"));

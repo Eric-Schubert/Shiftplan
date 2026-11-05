@@ -62,6 +62,17 @@ describe("contact form", () => {
     expect(mail.message.body.content).toContain("Kann ich Früh & Spät tauschen? <3");
   });
 
+  it("limits messages per IPv6 network, not per address", async () => {
+    const message = { name: "Eva", replyTo: "eva@example.com", message: "Bitte um Rückruf, danke." };
+    const fromNetwork = (host: number) => client.request("POST", "/api/contact", { body: message, ip: `2001:db8:1:2::${host.toString(16)}` });
+    const statuses = [];
+    for (let host = 1; host <= 6; host += 1) statuses.push((await fromNetwork(host)).status);
+    const otherNetwork = await client.request("POST", "/api/contact", { body: message, ip: "2001:db8:1:3::1" });
+
+    expect(statuses).toEqual([200, 200, 200, 200, 200, 429]);
+    expect(otherNetwork.status).toBe(200);
+  });
+
   it("checks lengths on the trimmed text and sets no reply-to for a phone number", async () => {
     const short = await send({ name: "Eva", replyTo: "0351 123456", message: "   zu kurz   " });
     const symbols = await send({ name: "Eva", replyTo: "0351 123456", message: "<<<<<<<<<<" });

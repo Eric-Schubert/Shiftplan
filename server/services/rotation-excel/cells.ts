@@ -6,9 +6,24 @@ export function badRequest(key: MessageKey, params?: ErrorParams): never {
   throw apiError(null, 400, key, params);
 }
 
+// Trimmed long texts of the running import. A shared string may be referenced by every cell of a sheet,
+// so it is trimmed once, not once per cell. Cleared around every import, so no file's text outlives it.
+const LONG_TEXT = 256;
+const longTexts = new Map<string, string>();
+
+export function clearTextCache(): void {
+  longTexts.clear();
+}
+
 export function toText(value: XlsxCellValue): string {
   if (value === null || value === undefined) return "";
-  return String(value).trim();
+  if (typeof value !== "string" || value.length <= LONG_TEXT) return String(value).trim();
+  let text = longTexts.get(value);
+  if (text === undefined) {
+    text = value.trim();
+    longTexts.set(value, text);
+  }
+  return text;
 }
 
 export function normalizeName(value: string): string {

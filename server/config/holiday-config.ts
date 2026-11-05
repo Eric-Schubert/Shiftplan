@@ -1,5 +1,6 @@
 import type { H3Event } from "h3";
 import { getBackendConfig } from "./backend-config";
+import { getValidationConfig } from "./domain-config";
 import { subdivisionShortCode } from "~/server/lib/holidays/open-holidays";
 import { apiError } from "~/server/utils/api-error";
 
@@ -80,4 +81,13 @@ function formatDate(year: number, month: number, day: number): string {
 
 function padDatePart(value: number): string {
   return String(value).padStart(2, "0");
+}
+
+/**
+ * Holiday cache entries per year and state that requests can ask for: every valid year plus the
+ * neighbours a week view reaches into. A cache this large is never pushed out by arbitrary requests.
+ */
+export function holidayCacheEntries(statesPerYear: number): number {
+  const { min, max } = getValidationConfig().year;
+  return (max - min + 3) * Math.max(1, statesPerYear);
 }

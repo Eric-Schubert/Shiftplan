@@ -74,4 +74,13 @@ describe("request body limit", () => {
     expect(JSON.parse(tooBig.body).statusMessage).toBe("Die Excel-Datei darf maximal 2 MB groß sein");
     expect(JSON.parse(elsewhere.body).statusMessage).toBe("Die Anfrage ist zu groß");
   });
+
+  // h3 decodes the path the router serves, so /%61pi/contact reaches /api/contact.
+  it("limits percent-encoded paths and paths outside /api alike", async () => {
+    const encoded = await send("/%61pi/contact", json(limits.json + 1), "length");
+    const encodedChunked = await send("/a%70i/contact", json(limits.json + 1), "chunked");
+    const outside = await send("/somewhere", json(limits.json + 1), "chunked");
+
+    expect([encoded.status, encodedChunked.status, outside.status]).toEqual([413, 413, 413]);
+  });
 });

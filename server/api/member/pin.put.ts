@@ -22,5 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   await MemberAccessService.setPin(member.staffId, typeof body?.pin === "string" ? body.pin.trim() : "");
+  // A new PIN ends the person's other sign-ins, so a leaked session or PIN stops working everywhere.
+  MemberAccessService.revokeOtherSessions(member.staffId, member.sessionId);
   return { hasPin: true };
 });

@@ -98,6 +98,8 @@ describe("team access and push e2e", () => {
     await client.request("POST", "/api/viewer/login", { jar: viewer, body: { code: "team-2026" } });
     await client.request("POST", "/api/push/subscribe", {
       jar: viewer,
+      // The viewer cookie is ambient, so the browser's write must come from this site.
+      headers: { origin: "http://localhost", host: "localhost" },
       body: { endpoint: APPLE_ENDPOINT, keys: KEYS },
     });
     expect(client.push.PushService.countSubscriptions()).toBe(1);

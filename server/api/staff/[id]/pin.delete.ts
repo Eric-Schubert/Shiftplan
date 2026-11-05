@@ -6,5 +6,8 @@ import { validateId } from "~/server/utils/validation";
 export default defineEventHandler((event) => {
   requirePlanner(event);
   const staffId = validateId(getRouterParam(event, "id"), "recordId");
-  return { removed: MemberAccessService.clearPin(staffId) };
+  const removed = MemberAccessService.clearPin(staffId);
+  // No sign-in that may know the old PIN can set the next one without it.
+  MemberAccessService.revokeOtherSessions(staffId, null);
+  return { removed };
 });

@@ -2,14 +2,22 @@ import type { H3Event } from "h3";
 import { validateSession, getSessionToken, validateCsrfToken, getCsrfTokenFromRequest, refreshSessionCookies } from "~/server/utils/session";
 import { getAuthConfig } from "~/server/config/auth-config";
 import { classifyRoute } from "~/server/config/route-policy";
-import { TeamAccessService } from "~/server/services/team-access.service";
-import { getMemberToken } from "~/server/services/member-access.service";
+import { TeamAccessService, VIEWER_COOKIE_NAME } from "~/server/services/team-access.service";
+import { MEMBER_COOKIE_NAME } from "~/server/services/member-access.service";
 import { apiError } from "~/server/utils/api-error";
+import { routedPath } from "~/server/utils/request-path";
 
 /**
- * A browser signed in with short code and PIN authenticates with a cookie. Writes must then come
- * from this site itself, which the browser states in the Origin header.
+ * Whether a write is carried by a cookie the browser adds on its own: a personal sign-in, the team
+ * access code or a planner session. The app sends a Bearer token instead, which no foreign page can set.
  */
+function usesAmbientCookie(event: H3Event): boolean {
+  if (getHeader(event, "authorization")?.startsWith("Bearer ")) return false;
+  const cookies = [MEMBER_COOKIE_NAME, VIEWER_COOKIE_NAME, getAuthConfig().session.cookies.sessionName];
+  return cookies.some((name) => Boolean(getCookie(event, name)));
+}
+
+/** Writes authorized by such a cookie must come from this site itself, which the browser states in the Origin header. */
 function isSameOriginRequest(event: H3Event): boolean {
   const origin = getHeader(event, "origin");
   if (!origin) return false;
@@ -23,7 +31,8 @@ function isSameOriginRequest(event: H3Event): boolean {
 
 // Which class a route belongs to is decided in server/config/route-policy.ts.
 export default defineEventHandler((event) => {
-  const path = getRequestURL(event).pathname;
+  // The decoded path the router serves: on the raw request target, /%61pi/... would skip every check below.
+  const path = routedPath(event);
   const method = getMethod(event);
 
   if (!path.startsWith("/api/")) {
@@ -37,7 +46,7 @@ export default defineEventHandler((event) => {
   }
 
   if (routeClass === "team" || routeClass === "member") {
-    if (method !== "GET" && getMemberToken(event)?.viaCookie && !isSameOriginRequest(event)) {
+    if (method !== "GET" && usesAmbientCookie(event) && !isSameOriginRequest(event)) {
       throw apiError(event, 403, "errors.common.badOrigin");
     }
     return;

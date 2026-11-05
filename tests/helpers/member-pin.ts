@@ -17,6 +17,8 @@ const ROUTES = apiRoutes(
   "member/absences/index.post.ts",
   "member-invites/index.post.ts",
   "member-sessions/pins.get.ts",
+  "member-sessions/index.get.ts",
+  "member-sessions/[id].delete.ts",
   "viewer/status.get.ts"
 );
 

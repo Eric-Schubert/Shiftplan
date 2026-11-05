@@ -5,6 +5,7 @@ import {
   getHolidayConfig,
   getHolidaySubdivisionName,
   getPublicHolidaySubdivisionCodes,
+  holidayCacheEntries,
   normalizeHolidaySubdivisionCode,
 } from "~/server/config/holiday-config";
 import { createHolidayCache } from "~/server/lib/holidays/cache";
@@ -22,7 +23,7 @@ interface OpenHolidayResponse {
   subdivisions?: Array<{ code: string; shortName: string }>;
 }
 
-const cachedHolidays = createHolidayCache<PublicHoliday[]>("public holidays");
+const cachedHolidays = createHolidayCache<PublicHoliday[]>("public holidays", () => holidayCacheEntries(1));
 
 // The answer depends on the country, the name language and the configured states, not only on the year.
 function cacheKey(year: number): string {
